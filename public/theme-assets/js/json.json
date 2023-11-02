@@ -1,0 +1,108 @@
+[
+    {
+        "Name": "Remind_payment",
+        "messages": [
+            {
+                "Name": "day_before",
+                "message": "Dear [client_f_name], Your account expires tomorrow. Pay using Paybill: 4061913 Account: [acc_no]. Your wallet balance is [client_wallet]."
+            },
+            {
+                "Name": "de_day",
+                "message": null
+            },
+            {
+                "Name": "day_after",
+                "message": "Dear [client_f_name], Your account expired yesterday. Pay using Paybill:4061913 Account: [acc_no] .Your wallet balance is [client_wallet]."
+            }
+        ]
+    },
+    {
+        "Name": "recieve_payments",
+        "messages": [
+            {
+                "Name": "right_account",
+                "message": "Hello [client_f_name], Your payment of [trans_amnt] has been received on [today] at [now]. New wallet balance is [client_wallet]."
+            },
+            {
+                "Name": "wrong_account",
+                "message": "INVALID ACCOUNT. [trans_amnt] recieved on [today] at [now]. Send your name and M-Pesa Transaction Id to 0717748569\/0720268519 For rectification."
+            },
+            {
+                "Name": "refferer_msg",
+                "message": "Hello [client_f_name] you have been credited with [refferer_trans_amount] from [refferer_name] on [today] at [now].Your new wallet balance is [client_wallet]"
+            },
+            {
+                "Name": "refferer_msg",
+                "message": "Hello [client_f_name] we have recieved your payment of [trans_amnt], your minimum payment allowed is [min_amnt]. Wallet balance is [client_wallet]"
+            }
+        ]
+    },
+    {
+        "Name": "renew_account",
+        "messages": [
+            {
+                "Name": "account_blocked",
+                "message": "Dear [client_f_name] Your Acc [acc_no] has been renewed untill [exp_date].  Your new wallet Bal is  [client_wallet]. For enquires call 0717748569\/0720268519"
+            },
+            {
+                "Name": "account_extended",
+                "message": "Dear [client_f_name] Your Acc [acc_no] has been extended until [exp_date]. Your new wallet Bal: [client_wallet]. For enquires call 0717748569\/0720268519"
+            },
+            {
+                "Name": "account_deactivated",
+                "message": "Dear [client_f_name] Your Acc [acc_no] has been deactivated. Paybill:4061913 Account: [acc_no]. Your wallet Bal: [client_wallet]. For enquires call 0717748569\/0720268519"
+            }
+        ]
+    },
+    {
+        "Name": "new_client",
+        "messages": [
+            {
+                "Name": "welcome_message",
+                "message": "Welcome [client_f_name]. Your monthly payment is [monthly_fees]. Pay via  paybill No. 4061913 account no [acc_no]. Your next expiration date is [exp_date]."
+            }
+        ]
+    },
+    {
+        "Name": "sms_bill_manager",
+        "messages": [
+            {
+                "Name": "welcome_client_sms",
+                "message": "Vipi [client_f_name] karibu Hypbits, utafanya malipo yako ukitumia paybill No. 4061913 na akaunti namba [acc_no]  kwa [sms_rate] kwa kila sms."
+            },
+            {
+                "Name": "rcv_coracc_billsms",
+                "message": "Vipi [client_name], tumepokea malipo yako ya [trans_amnt] leo: [today] masaa ya [now]. Balance yako mpya ni [sms_balance] SMS."
+            },
+            {
+                "Name": "rcv_incoracc_billsms",
+                "message": "Tumepokea [trans_amnt], Akaunti namba amabayo umepeana sio sahihi, tafadahli tuma jumbe fupi ukipeana namba yako ya simu na jina yako kwa 0743551250\/0720268519"
+            },
+            {
+                "Name": "rcv_belowmin_billsms",
+                "message": "Vipi, [client_f_name], Malipo chini ya elfu moja haikubaliki tafadhali! Malipo ya chini inayo kubalika ni [min_amnt]"
+            },
+            {
+                "Name": "msg_reminder_bal",
+                "message": "Vipi, [client_f_name], SMS zako zimebaki [sms_balance] fanya malipo ukitumia paybill 4061913 kwa akaunti namba hii [acc_no] ili uziongesha kabla ziishe."
+            }
+        ]
+    },
+    {
+        "Name": "account_freezing",
+        "messages": [
+            {
+                "Name": "account_frozen",
+                "message": "Dear [client_f_name] Your Acc [acc_no] will be frozen for [days_frozen] untill [unfreeze_date].  Your wallet Bal as of  [today] at [now] is [client_wallet]. For enquires call 0717748569\/0720268519."
+            },
+            {
+                "Name": "account_unfrozen",
+                "message": "Welcome back [client_f_name], Your Acc [acc_no] has been activated successfully after being frozen. Your new wallet Bal is  [client_wallet]. For enquires call 0717748569\/0720268519."
+            },
+            {
+                "Name": "future_account_freeze",
+                "message": "Hello [client_f_name], Your Acc [acc_no] will be frozen on [frozen_date], after which your account will be inactive for [days_frozen] until [unfreeze_date].For enquires call 0717748569\/0720268519."
+            }
+        ]
+    }
+]

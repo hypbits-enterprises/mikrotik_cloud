@@ -1,0 +1,24 @@
+1;ADALA HILLARY NGIGE;83859;8075;Grade 8;20th Jun 2022;HILLARY NGIGE;0743551250
+2;Brussels;30518;10192;Belgium;Brussels;30518;10192
+3;Copenhagen;43094;5295;Denmark;Copenhagen;43094;5295
+4;Helsinki;304529;5147;Finland;Helsinki;304529;5147
+5;Paris;543965;58728;France;Paris;543965;58728
+6;Berlin;357022;82057;Germany;Berlin;357022;82057
+7;Athens;131625;10511;Greece;Athens;131625;10511
+8;Dublin;70723;3694;Ireland;Dublin;70723;3694
+9;Roma;301316;57563;Italy;Roma;301316;57563
+10;Luxembourg;2586;424;Luxembourg;Luxembourg;2586;424
+1;Amsterdam;41526;15654;Netherlands;Amsterdam;41526;15654
+11;Lisbon;91906;9957;Portugal;Lisbon;91906;9957
+12;Madrid;504790;39348;Spain;Madrid;504790;39348
+13;Stockholm;410934;8839;Sweden;Stockholm;410934;8839
+14;London;243820;58862;United Kingdom;London;243820;58862
+15;Vienna;83859;8075;Austria;Vienna;83859;8075
+16;Brussels;30518;10192;Belgium;Brussels;30518;10192
+17;Copenhagen;43094;5295;Denmark;Copenhagen;43094;5295
+18;Helsinki;304529;5147;Finland;Helsinki;304529;5147
+19;Paris;543965;58728;France;Paris;543965;58728
+20;Berlin;357022;82057;Germany;Berlin;357022;82057
+21;Athens;131625;10511;Greece;Athens;131625;10511
+22;Dublin;70723;3694;Ireland;Dublin;70723;3694
+23;Roma;301316;57563;Italy;Roma;301316;57563

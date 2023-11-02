@@ -1,0 +1,304 @@
+22nd Oct 2023 (15:23:03pm):Fund successfully recieved from  Hillary!
+22nd Oct 2023 (15:17:46pm):Fund successfully recieved from  Hillary!
+22nd Oct 2023 (15:06:58pm): Hilla successfully login as admin on ip 192.168.88.244
+22nd Oct 2023 (13:30:53pm): Hilla successfully login as admin on ip 192.168.88.244
+21st Oct 2023 (17:41:48pm):Fund successfully recieved from  Hillary!
+21st Oct 2023 (17:41:08pm):Fund successfully recieved from  Hillary!
+21st Oct 2023 (17:40:21pm):Fund successfully recieved from  Hillary!
+21st Oct 2023 (17:35:15pm):Fund successfully recieved from  Hillary!
+21st Oct 2023 (17:20:38pm):Client (GLORIA MUWANGUZI) activated by Hilla
+21st Oct 2023 (17:20:26pm):Client (GLORIA MUWANGUZI) deactivated by Hilla
+21st Oct 2023 (15:56:36pm):Client (GLORIA MUWANGUZI) information modified by Hilla on router!
+21st Oct 2023 (15:56:20pm):Client (HILLA) has been deleted by Hilla!
+21st Oct 2023 (15:53:47pm):New Client (HILLA) successfully registered by  Hilla added! PPPoE Assignment! but settings overwritten
+21st Oct 2023 (15:52:13pm):New Client (GLORIA MUWANGUZI) successfully registered by  Hilla added to DB only! PPPoE Assignment!
+21st Oct 2023 (15:22:04pm):New Client (Gloria Muwanguzi) successfully registered by  Hilla to database and router! Static Assignment!
+21st Oct 2023 (14:49:58pm): Hilla successfully login as admin on ip 192.168.88.244
+21st Oct 2023 (14:49:15pm): Admin failed attempt to login  on ip 192.168.88.244
+11th Aug 2023 (19:03:21pm): Hilla successfully login as admin on ip 10.10.20.3
+11th Aug 2023 (19:02:42pm): Admin failed attempt to login  on ip 10.10.20.3
+03rd Jul 2023 (01:10:39am): Hilla successfully login as admin on ip 192.168.88.244
+02nd Jul 2023 (23:58:56pm):Client (OWEN MALINGU) deactivated by System
+02nd Jul 2023 (23:58:56pm):Client (HILLARY NGIGE) deactivated by System
+02nd Jul 2023 (23:54:48pm): Hilla successfully login as admin on ip 192.168.88.244
+02nd Jul 2023 (02:35:50am):Client (OWEN MALINGU) deactivated by System
+02nd Jul 2023 (02:35:50am):Client (HILLARY NGIGE) deactivated by System
+02nd Jul 2023 (02:29:52am): HILLARY NGIGE has been frozen for + 2 days untill 04th Jul 2023  by Hilla!
+02nd Jul 2023 (02:23:23am):Client (OWEN MALINGU) deactivated by System
+02nd Jul 2023 (02:23:18am):Client ( OWEN MALINGU ) pay status has been changed to active by Hilla!
+02nd Jul 2023 (02:21:29am):Client (OWEN MALINGU) deactivated by System
+02nd Jul 2023 (02:20:18am):Client (OWEN MALINGU) deactivated by System
+02nd Jul 2023 (02:19:29am):Client (OWEN MALINGU) activated by System
+02nd Jul 2023 (02:19:29am):Client (HILLARY NGIGE) activated by System
+02nd Jul 2023 (02:19:29am):Client (Test two) activated by System
+02nd Jul 2023 (02:19:02am):Client (OWEN MALINGU) activated by System
+02nd Jul 2023 (02:19:02am):Client (HILLARY NGIGE) activated by System
+02nd Jul 2023 (02:19:02am):Client (Test two) activated by System
+02nd Jul 2023 (02:04:39am): OWEN MALINGU will be frozen on Mon 03rd Jul 2023 for + 7 days untill 10th Jul 2023 . Action done by Hilla!
+02nd Jul 2023 (02:04:27am): OWEN MALINGU will be frozen on Mon 03rd Jul 2023 for + 0 days untill 03rd Jul 2023 . Action done by Hilla!
+02nd Jul 2023 (02:03:16am): OWEN MALINGU will be frozen on Tue 04th Jul 2023 for + 6 days untill 10th Jul 2023 . Action done by Hilla!
+02nd Jul 2023 (02:02:00am): OWEN MALINGU will be frozen on Tue 04th Jul 2023 for + 6 days untill 10th Jul 2023 . Action done by Hilla!
+02nd Jul 2023 (01:54:05am): OWEN MALINGU will be frozen on Mon 03rd Jul 2023 for + 7 days untill 10th Jul 2023 . Action done by Hilla!
+02nd Jul 2023 (01:53:51am):Client (HILLARY NGIGE) deactivated by Hilla
+02nd Jul 2023 (01:53:20am):Client ( Test two ) freeze status changed to in-active by Hilla!
+02nd Jul 2023 (01:52:03am):Client (OWEN MALINGU) activated by Hilla
+02nd Jul 2023 (01:51:34am):Client (HILLARY NGIGE) deactivated by Hilla
+02nd Jul 2023 (01:44:27am): OWEN MALINGU will be frozen on Wed 05th Jul 2023 for + 12 days untill 17th Jul 2023 . Action done by Hilla!
+02nd Jul 2023 (01:32:44am):Client (Test two) deactivated by Hilla
+02nd Jul 2023 (01:32:41am):Client ( Test two ) freeze status changed to in-active by Hilla!
+02nd Jul 2023 (01:32:35am):Client (HILLARY NGIGE) deactivated by Hilla
+02nd Jul 2023 (01:32:32am):Client ( HILLARY NGIGE ) freeze status changed to in-active by Hilla!
+02nd Jul 2023 (01:32:25am):Client (OWEN MALINGU) deactivated by Hilla
+02nd Jul 2023 (01:32:22am):Client ( OWEN MALINGU ) freeze status changed to in-active by Hilla!
+02nd Jul 2023 (01:28:08am):Client ( Test two ) pay status has been changed to active by Hilla!
+02nd Jul 2023 (01:28:07am):Client (Test two) deactivated by Hilla
+02nd Jul 2023 (01:28:03am):Client (HILLARY NGIGE) deactivated by Hilla
+02nd Jul 2023 (01:28:01am):Client ( HILLARY NGIGE ) pay status has been changed to active by Hilla!
+02nd Jul 2023 (01:27:56am):Client (OWEN MALINGU) deactivated by Hilla
+02nd Jul 2023 (01:27:54am):Client ( OWEN MALINGU ) pay status has been changed to active by Hilla!
+02nd Jul 2023 (01:18:55am):Client (Test two) deactivated by Hilla
+02nd Jul 2023 (01:18:53am):Client ( Test two ) freeze status changed to in-active by Hilla!
+02nd Jul 2023 (01:18:43am):Client (OWEN MALINGU) deactivated by Hilla
+02nd Jul 2023 (01:18:38am):Client (HILLARY NGIGE) deactivated by Hilla
+02nd Jul 2023 (01:18:36am):Client ( HILLARY NGIGE ) freeze status changed to in-active by Hilla!
+02nd Jul 2023 (01:18:28am):Client ( OWEN MALINGU ) freeze status changed to in-active by Hilla!
+02nd Jul 2023 (01:16:30am): Hilla successfully login as admin on ip 192.168.88.244
+01st Jul 2023 (20:43:10pm):Client ( OWEN MALINGU ) pay status has been changed to In-active by Hilla!
+01st Jul 2023 (20:43:01pm):Client (OWEN MALINGU) deactivated by Hilla
+01st Jul 2023 (20:41:44pm): OWEN MALINGU will be frozen on Mon 03rd Jul 2023 for + 7 days untill 10th Jul 2023 . Action done by Hilla!
+01st Jul 2023 (20:41:13pm):Client ( OWEN MALINGU ) freeze status changed to in-active by Hilla!
+01st Jul 2023 (20:37:06pm):Client (OWEN MALINGU) deactivated by Hilla
+01st Jul 2023 (20:36:37pm):Client (OWEN MALINGU) deactivated by Hilla
+01st Jul 2023 (20:36:11pm):Client (Test two) information modified by Hilla on the router
+01st Jul 2023 (20:34:20pm):Client (HILLARY NGIGE) deactivated by Hilla
+01st Jul 2023 (20:34:16pm):Client (Test two) deactivated by Hilla
+01st Jul 2023 (20:34:09pm):Client ( Test two ) freeze status changed to in-active by Hilla!
+01st Jul 2023 (20:33:56pm):Client ( HILLARY NGIGE ) freeze status changed to in-active by Hilla!
+01st Jul 2023 (20:29:11pm): OWEN MALINGU will be frozen on Mon 03rd Jul 2023 for + 3 days untill 06th Jul 2023 . Action done by Hilla!
+01st Jul 2023 (20:28:10pm): OWEN MALINGU will be frozen on Tue 04th Jul 2023 for + 8 days untill 12th Jul 2023 . Action done by Hilla!
+01st Jul 2023 (20:27:44pm):Client (OWEN MALINGU) deactivated by Hilla
+01st Jul 2023 (20:22:50pm):Client ( OWEN MALINGU ) pay status has been changed to In-active by Hilla!
+01st Jul 2023 (20:22:25pm):Client (Test two) deactivated by Hilla
+01st Jul 2023 (20:22:23pm):Client (Test two) information modified by Hilla on the router
+01st Jul 2023 (20:22:13pm):Client (HILLARY NGIGE) deactivated by Hilla
+01st Jul 2023 (20:22:12pm):Client (HILLARY NGIGE) information modified by Hilla on the router
+01st Jul 2023 (20:21:59pm):Client (OWEN MALINGU) deactivated by Hilla
+01st Jul 2023 (20:21:53pm):Client (OWEN MALINGU) information modified by Hilla on the router
+01st Jul 2023 (20:21:08pm):Client (OWEN MALINGU) deactivated by Hilla
+01st Jul 2023 (20:21:05pm):Client (OWEN MALINGU) information modified by Hilla on the router
+01st Jul 2023 (20:18:34pm):Client (Test two) deactivated by Hilla
+01st Jul 2023 (20:18:32pm):Client (Test two) information modified by Hilla on the router
+01st Jul 2023 (20:18:23pm):Client (HILLARY NGIGE) deactivated by Hilla
+01st Jul 2023 (20:18:18pm):Client (HILLARY NGIGE) information modified by Hilla on the router
+01st Jul 2023 (20:18:08pm):Client (OWEN MALINGU) deactivated by Hilla
+01st Jul 2023 (20:17:01pm):Client (OWEN MALINGU) information modified by Hilla on the router
+01st Jul 2023 (20:16:39pm):Client (Test two) deactivated by Hilla
+01st Jul 2023 (20:16:37pm):Client ( Test two ) pay status has been changed to active by Hilla!
+01st Jul 2023 (20:16:36pm):Client (Test two) activated by Hilla
+01st Jul 2023 (20:16:34pm):Client (Test two) deactivated by Hilla
+01st Jul 2023 (20:16:32pm):Client ( HILLARY NGIGE ) pay status has been changed to active by Hilla!
+01st Jul 2023 (20:16:28pm):Client (HILLARY NGIGE) deactivated by Hilla
+01st Jul 2023 (20:16:25pm):Client (OWEN MALINGU) deactivated by Hilla
+01st Jul 2023 (20:16:20pm):Client (Test two) information modified by Hilla on the router
+01st Jul 2023 (20:16:10pm):Client (HILLARY NGIGE) information modified by Hilla on the router
+01st Jul 2023 (20:16:02pm):Client (OWEN MALINGU) information modified by Hilla on the router
+01st Jul 2023 (20:08:12pm): OWEN MALINGU will be frozen on Mon 10th Jul 2023 for + 7 days untill 17th Jul 2023 . Action done by Hilla!
+01st Jul 2023 (20:07:45pm):Client ( OWEN MALINGU ) pay status has been changed to active by Hilla!
+01st Jul 2023 (20:02:38pm): OWEN MALINGU will be frozen on Mon 10th Jul 2023 for + 7 days untill 17th Jul 2023 . Action done by Hilla!
+01st Jul 2023 (20:01:33pm):Client (HILLARY NGIGE) deactivated by Hilla
+01st Jul 2023 (20:01:25pm):Client ( HILLARY NGIGE ) pay status has been changed to active by Hilla!
+01st Jul 2023 (20:00:29pm):Client ( OWEN MALINGU ) pay status has been changed to active by Hilla!
+01st Jul 2023 (20:00:24pm):Client ( Test two ) pay status has been changed to active by Hilla!
+01st Jul 2023 (20:00:21pm):Client (Test two) information modified by Hilla on the router
+01st Jul 2023 (20:00:12pm):Client (HILLARY NGIGE) information modified by Hilla on the router
+01st Jul 2023 (19:59:48pm):Client (OWEN MALINGU) deactivated by System
+01st Jul 2023 (19:59:48pm):Client (OWEN MALINGU) information modified by Hilla on the router
+01st Jul 2023 (19:52:51pm): OWEN MALINGU will be frozen on Mon 10th Jul 2023 for + 7 days untill 17th Jul 2023 . Action done by Hilla!
+01st Jul 2023 (19:51:46pm): OWEN MALINGU will be frozen on Mon 10th Jul 2023 for + 7 days untill 17th Jul 2023 . Action done by Hilla!
+01st Jul 2023 (19:51:04pm):Client ( OWEN MALINGU ) pay status has been changed to active by Hilla!
+01st Jul 2023 (19:45:41pm):Client ( OWEN MALINGU ) pay status has been changed to active by Hilla!
+01st Jul 2023 (19:45:24pm): Hilla successfully login as admin on ip 192.168.88.244
+01st Jul 2023 (18:00:45pm): James May will be frozen on Wed 05th Jul 2023 for + 2 days untill 07th Jul 2023 . Action done by Hilla!
+01st Jul 2023 (17:57:45pm):Client ( OWEN MALINGU ) freeze status changed to in-active by Hilla!
+01st Jul 2023 (17:46:14pm): OWEN MALINGU will be frozen on Sun 16th Jul 2023 Indefinately. Action done by Hilla!
+01st Jul 2023 (17:45:29pm):Client ( OWEN MALINGU ) freeze status changed to in-active by Hilla!
+01st Jul 2023 (17:37:33pm): OWEN MALINGU will be frozen on Tue 04th Jul 2023 Indefinately. Action done by Hilla!
+01st Jul 2023 (17:30:46pm):Client ( OWEN MALINGU ) freeze status changed to in-active by Hilla!
+01st Jul 2023 (17:29:52pm): OWEN MALINGU will be frozen on Sun 09th Jul 2023 for + 7 days untill 16th Jul 2023 . Action done by Hilla!
+01st Jul 2023 (17:26:15pm):Client ( OWEN MALINGU ) freeze status changed to in-active by Hilla!
+01st Jul 2023 (17:25:39pm): OWEN MALINGU will be frozen on Mon 10th Jul 2023 for + 7 days untill 17th Jul 2023 . Action done by Hilla!
+01st Jul 2023 (17:22:52pm):Client ( OWEN MALINGU ) freeze status changed to in-active by Hilla!
+01st Jul 2023 (17:22:16pm): OWEN MALINGU will be frozen on Mon 10th Jul 2023 Indefinately. Action done by Hilla!
+01st Jul 2023 (17:21:33pm):Client ( OWEN MALINGU ) freeze status changed to in-active by Hilla!
+01st Jul 2023 (16:52:08pm):Client ( OWEN MALINGU ) pay status has been changed to active by Hilla!
+01st Jul 2023 (16:51:15pm): OWEN MALINGU will be frozen on Mon 10th Jul 2023 for + 7 days untill 17th Jul 2023 . Action done by Hilla!
+01st Jul 2023 (16:11:56pm): Hilla successfully login as admin on ip 192.168.88.244
+01st Jul 2023 (14:11:52pm):Client ( OWEN MALINGU ) freeze status changed to in-active by Hilla!
+01st Jul 2023 (12:53:47pm): Hilla successfully login as admin on ip 192.168.88.244
+01st Jul 2023 (11:56:48am): Hilla successfully login as admin on ip 192.168.88.244
+22nd Jun 2023 (21:02:00pm): Hilla successfully login as admin on ip 192.168.88.244
+22nd Jun 2023 (21:01:34pm): Admin failed attempt to login  on ip 192.168.88.244
+22nd Jun 2023 (20:30:18pm): HILLARY NGIGE has been frozen for + 1 days untill 23rd Jun 2023  by Hilla!
+22nd Jun 2023 (20:29:40pm):Client ( HILLARY NGIGE ) freeze status changed to in-active by Hilla!
+22nd Jun 2023 (20:26:19pm): HILLARY NGIGE has been frozen for + 2 days untill 01st Jan 1970  by Hilla!
+22nd Jun 2023 (20:25:47pm): Hilla successfully login as admin on ip 192.168.88.244
+22nd Jun 2023 (18:43:40pm): Hilla successfully login as admin on ip 192.168.88.244
+22nd Jun 2023 (18:11:39pm):Client ( James May ) freeze status changed to in-active by Hilla!
+22nd Jun 2023 (18:11:19pm): James May has been frozen for + 2 days untill 01st Jan 1970  by Hilla!
+22nd Jun 2023 (18:11:10pm):Client ( James May ) freeze status changed to in-active by Hilla!
+22nd Jun 2023 (18:10:43pm): James May has been frozen for + 1 days untill 01st Jan 1970  by Hilla!
+22nd Jun 2023 (18:04:12pm):New Client (James May) successfully registered by  Hilla added to DB only! PPPoE Assignment!
+22nd Jun 2023 (17:59:02pm):Client ( HILLARY NGIGE ) freeze status changed to in-active by Hilla!
+22nd Jun 2023 (17:58:57pm): HILLARY NGIGE has been frozen for + 0 days untill 01st Jan 1970  by Hilla!
+22nd Jun 2023 (17:58:20pm):Client ( HILLARY NGIGE ) freeze status changed to in-active by Hilla!
+22nd Jun 2023 (17:53:38pm): HILLARY NGIGE has been frozen for + 2 days untill 01st Jan 1970  by Hilla!
+22nd Jun 2023 (17:49:50pm):Client ( Test two ) freeze status changed to in-active by Hilla!
+22nd Jun 2023 (17:49:44pm):Client (Test two) information modified by Hilla on the router
+22nd Jun 2023 (17:48:32pm): Test two has been frozen for + 0 days untill 01st Jan 1970  by Hilla!
+22nd Jun 2023 (17:36:45pm): OWEN MALINGU has been frozen for + 0 days untill 01st Jan 1970  by Hilla!
+22nd Jun 2023 (17:29:27pm):Client ( OWEN MALINGU ) freeze status changed to in-active by Hilla!
+22nd Jun 2023 (17:28:44pm): OWEN MALINGU has been frozen for + 0 days untill 01st Jan 1970  by Hilla!
+22nd Jun 2023 (17:28:16pm):Client ( OWEN MALINGU ) freeze status changed to in-active by Hilla!
+22nd Jun 2023 (17:01:46pm):Client (OWEN MALINGU) deactivated by System
+22nd Jun 2023 (17:01:43pm):Client (OWEN MALINGU) activated by Hilla
+22nd Jun 2023 (17:01:21pm):Client (OWEN MALINGU) deactivated by System
+22nd Jun 2023 (17:01:16pm):Client (Test two) information modified by Hilla on the router
+22nd Jun 2023 (17:01:05pm):Client (Test two) information modified by Hilla on the router
+22nd Jun 2023 (17:00:46pm):Client (OWEN MALINGU) information modified by Hilla on the router
+22nd Jun 2023 (16:53:38pm): OWEN MALINGU has been frozen for + 1 days untill 23rd Jun 2023  by Hilla!
+22nd Jun 2023 (16:52:39pm):Client ( OWEN MALINGU ) pay status has been changed to active by Hilla!
+22nd Jun 2023 (16:36:02pm): Hilla successfully login as admin on ip 192.168.88.244
+21st Jun 2023 (21:52:30pm): Hilla successfully login as admin on ip 192.168.88.244
+21st Jun 2023 (13:31:11pm): OWEN MALINGU has been frozen for + 8 days untill 29th Jun 2023  by Hilla!
+21st Jun 2023 (12:40:43pm):Client (HILLARY NGIGE) deactivated by Hilla
+21st Jun 2023 (12:40:36pm):Client (HILLARY NGIGE) information modified by Hilla on the router
+21st Jun 2023 (12:40:07pm):Client (HILLARY NGIGE) information modified by Hilla on the router
+21st Jun 2023 (12:39:37pm): Hilla successfully login as admin on ip 192.168.88.244
+21st Jun 2023 (12:38:57pm): Admin failed attempt to login  on ip 192.168.88.244
+21st Jun 2023 (11:25:44am): HILLARY NGIGE has been frozen for + 1 days untill 22nd Jun 2023  by Hilla!
+21st Jun 2023 (11:24:03am):Client ( HILLARY NGIGE ) freeze status changed to in-active by Hilla!
+21st Jun 2023 (11:23:07am): HILLARY NGIGE has been frozen for + 1 days untill 22nd Jun 2023  by Hilla!
+21st Jun 2023 (11:21:32am):Client ( HILLARY NGIGE ) freeze status changed to in-active by Hilla!
+21st Jun 2023 (11:00:49am): Hilla successfully login as admin on ip 192.168.88.244
+20th Jun 2023 (20:14:18pm): HILLARY NGIGE has been frozen for + 8 days untill 28th Jun 2023  by Hilla!
+20th Jun 2023 (20:03:47pm): HILLARY NGIGE has been frozen for + 8 days untill 28th Jun 2023  by Hilla!
+20th Jun 2023 (20:02:48pm): HILLARY NGIGE has been frozen for + 9 days untill 29th Jun 2023  by Hilla!
+20th Jun 2023 (20:01:59pm): HILLARY NGIGE has been frozen for + 2 days untill 22nd Jun 2023  by Hilla!
+20th Jun 2023 (19:26:27pm): Hilla successfully login as admin on ip 192.168.88.244
+20th Jun 2023 (18:47:25pm): HILLARY NGIGE has been frozen for + 7 days untill 27th Jun 2023  by Hilla!
+20th Jun 2023 (18:38:14pm):Client ( HILLARY NGIGE ) freeze status changed to in-active by Hilla!
+20th Jun 2023 (18:37:21pm): HILLARY NGIGE has been frozen for + 9 days untill 29th Jun 2023  by Hilla!
+20th Jun 2023 (18:36:16pm):Client ( HILLARY NGIGE ) freeze status changed to in-active by Hilla!
+20th Jun 2023 (18:30:15pm): HILLARY NGIGE has been frozen for + 10 days untill 30th Jun 2023  by Hilla!
+20th Jun 2023 (18:28:56pm):Client ( HILLARY NGIGE ) freeze status changed to in-active by Hilla!
+20th Jun 2023 (18:28:32pm): HILLARY NGIGE has been frozen for + 9 days untill 29th Jun 2023  by Hilla!
+20th Jun 2023 (18:28:20pm):Client ( HILLARY NGIGE ) freeze status changed to in-active by Hilla!
+20th Jun 2023 (18:26:07pm): HILLARY NGIGE has been frozen for + 3 days untill 23rd Jun 2023  by Hilla!
+20th Jun 2023 (18:24:53pm):Client ( HILLARY NGIGE ) freeze status changed to in-active by Hilla!
+20th Jun 2023 (18:21:05pm): HILLARY NGIGE has been frozen for + 1 days untill 21st Jun 2023  by Hilla!
+20th Jun 2023 (17:59:21pm): Hilla successfully login as admin on ip 192.168.88.244
+20th Jun 2023 (14:58:08pm): Hilla successfully login as admin on ip 192.168.88.244
+20th Jun 2023 (14:53:51pm): Hilla successfully login as admin on ip 192.168.88.244
+20th Jun 2023 (14:52:58pm): Admin failed attempt to login  on ip 192.168.88.244
+20th Jun 2023 (14:51:25pm): Hilla successfully login as admin on ip 192.168.88.244
+20th Jun 2023 (14:49:05pm): Admin failed attempt to login  on ip 192.168.88.244
+20th Jun 2023 (14:48:55pm): Admin failed attempt to login  on ip 192.168.88.244
+20th Jun 2023 (14:48:47pm): Admin failed attempt to login  on ip 192.168.88.244
+01st Jun 2023 (10:46:47am): Hilla successfully login as admin on ip 192.168.88.244
+01st Jun 2023 (10:04:32am): Hilla successfully login as admin on ip 192.168.88.244
+01st Jun 2023 (09:53:44am): Hilla successfully login as admin on ip 192.168.88.244
+01st Jun 2023 (09:17:07am): Hilla successfully login as admin on ip 192.168.88.244
+01st Jun 2023 (08:50:17am): Admin failed attempt to login  on ip 192.168.88.244
+01st Jun 2023 (08:07:46am): Admin failed attempt to login  on ip 192.168.88.244
+11th May 2023 (12:52:48pm): Mungai successfully login as admin on ip 192.168.88.243
+11th May 2023 (12:35:15pm):Fund successfully recieved from  Hillary!
+11th May 2023 (12:32:47pm): Judith successfully login as client on ip 192.168.88.243
+11th May 2023 (12:26:09pm): Judith successfully login as client on ip 192.168.88.243
+11th May 2023 (12:23:25pm):Client ( Judith ) wallet balance has been changed to Kes 340 by Mungai!
+11th May 2023 (12:23:02pm): Mungai successfully login as admin on ip 192.168.88.243
+11th May 2023 (11:55:05am): Mungai successfully login as admin on ip 192.168.88.243
+14th Apr 2023 (19:05:52pm): Mungai successfully login as admin on ip 192.168.88.243
+14th Apr 2023 (17:36:05pm): Mungai successfully login as admin on ip 192.168.88.243
+14th Apr 2023 (13:50:09pm): Mungai successfully login as admin on ip 192.168.88.243
+14th Apr 2023 (10:38:12am): Mungai successfully login as admin on ip 192.168.88.243
+14th Apr 2023 (10:11:23am): Hilla successfully login as admin on ip 192.168.88.244
+13th Apr 2023 (15:34:32pm): Hilla successfully login as admin on ip 192.168.88.244
+13th Apr 2023 (15:29:48pm): Hillary Ngige successfully login as admin on ip 192.168.88.244
+13th Apr 2023 (15:26:01pm): Hilla successfully login as admin on ip 192.168.88.244
+13th Apr 2023 (15:24:16pm): Hillary Ngige successfully login as admin on ip 192.168.88.244
+13th Apr 2023 (14:11:09pm): Hilla successfully login as admin on ip 192.168.88.244
+13th Apr 2023 (13:50:23pm): Hilla successfully login as admin on ip 192.168.88.244
+13th Apr 2023 (12:34:39pm): Hillary Ngige successfully login as admin on ip 192.168.88.245
+13th Apr 2023 (12:33:51pm): Hillary Ngige successfully login as admin on ip 192.168.88.245
+13th Apr 2023 (09:56:33am): Hilla successfully login as admin on ip 192.168.88.244
+13th Apr 2023 (07:23:59am): Hilla successfully login as admin on ip 192.168.88.244
+12th Apr 2023 (09:23:24am): Hilla successfully login as admin on ip 192.168.88.244
+11th Apr 2023 (15:42:36pm): Hilla successfully login as admin on ip 192.168.88.244
+11th Apr 2023 (14:23:14pm): Hillary Ngige successfully login as admin on ip 192.168.88.245
+11th Apr 2023 (14:19:53pm): Hillary Ngige successfully login as admin on ip 192.168.88.245
+11th Apr 2023 (14:03:08pm):Fund successfully recieved from  Hill'ary!
+11th Apr 2023 (14:02:43pm): Hilla successfully login as admin on ip 192.168.88.244
+11th Apr 2023 (13:28:12pm):Fund successfully recieved from  Hill`ary!
+11th Apr 2023 (12:06:47pm): Hilla successfully login as admin on ip 192.168.88.244
+11th Apr 2023 (11:02:13am): Hilla successfully login as admin on ip 192.168.88.244
+11th Apr 2023 (09:34:38am): Hilla successfully login as admin on ip 192.168.88.244
+10th Apr 2023 (14:27:03pm): Hilla successfully login as admin on ip 192.168.88.244
+10th Apr 2023 (14:09:04pm): Hilla successfully login as admin on ip 192.168.88.244
+10th Apr 2023 (13:55:57pm): Hilla successfully login as admin on ip 192.168.88.244
+10th Apr 2023 (13:48:12pm): Hilla successfully login as admin on ip 192.168.88.244
+10th Apr 2023 (13:34:04pm): Hillary Ngige successfully login as admin on ip 192.168.88.244
+10th Apr 2023 (13:33:18pm): Hilla successfully login as admin on ip 192.168.88.244
+10th Apr 2023 (11:59:14am): Hilla successfully login as admin on ip 192.168.88.244
+10th Apr 2023 (10:04:14am): Hilla successfully login as admin on ip 192.168.88.244
+10th Apr 2023 (09:23:46am): Hilla successfully login as admin on ip 192.168.88.244
+08th Apr 2023 (16:04:02pm): Hilla successfully login as admin on ip 192.168.88.244
+08th Apr 2023 (15:26:51pm): HILLARY NGIGE successfully login as admin on ip 192.168.88.244
+08th Apr 2023 (15:25:26pm): HILLARY NGIGE successfully login as admin on ip 192.168.88.244
+08th Apr 2023 (15:21:41pm): HILLARY NGIGE successfully login as admin on ip 192.168.88.244
+08th Apr 2023 (13:28:11pm): Mungai successfully login as admin on ip 192.168.88.243
+08th Apr 2023 (13:04:00pm): HILLARY NGIGE successfully login as admin on ip 192.168.88.244
+08th Apr 2023 (12:09:35pm): Mungai successfully login as admin on ip 192.168.88.243
+08th Apr 2023 (12:00:50pm): Mungai successfully login as admin on ip 192.168.88.240
+08th Apr 2023 (12:00:04pm): Admin failed attempt to login  on ip 192.168.88.240
+08th Apr 2023 (11:58:51am): Mungai successfully login as admin on ip 192.168.88.240
+08th Apr 2023 (11:32:46am): Hillary Ngige successfully login as admin on ip 192.168.88.244
+08th Apr 2023 (11:02:15am): HILLARY NGIGE successfully login as admin on ip 192.168.88.244
+07th Apr 2023 (16:56:39pm):Fund successfully transfered by  Mungai to Abigael Buchere Mama Chops!
+07th Apr 2023 (16:11:21pm): Mungai successfully login as admin on ip 192.168.88.240
+07th Apr 2023 (15:55:25pm):Admin (Hillary Ngige) has been added by ( Mungai )!
+07th Apr 2023 (15:22:45pm):Client ( Jackline Kazungu ) pay status has been changed to active by Mungai!
+07th Apr 2023 (15:22:39pm):Client ( Jackline Kazungu ) pay status has been changed to In-active by Mungai!
+07th Apr 2023 (15:14:50pm):Client (Judith) deactivated by Mungai
+07th Apr 2023 (14:26:13pm): Mungai successfully login as admin on ip 192.168.88.240
+07th Apr 2023 (13:57:51pm): Mungai successfully login as admin on ip 192.168.88.244
+07th Apr 2023 (13:05:55pm): Mungai successfully login as admin on ip 192.168.88.244
+07th Apr 2023 (10:51:05am): Mungai successfully login as admin on ip 192.168.88.244
+07th Apr 2023 (10:49:18am):Admin (Mungai) has been added by ( HILLARY NGIGE )!
+07th Apr 2023 (09:18:48am): HILLARY NGIGE successfully login as admin on ip 192.168.88.244
+07th Apr 2023 (08:34:14am): HILLARY NGIGE successfully login as admin on ip 192.168.88.244
+06th Apr 2023 (21:06:59pm):Client ( Judith ) pay status has been changed to active by HILLARY NGIGE!
+06th Apr 2023 (21:06:54pm):Client ( Judith ) pay status has been changed to In-active by HILLARY NGIGE!
+06th Apr 2023 (21:05:30pm):Client (Judith) activated by HILLARY NGIGE
+06th Apr 2023 (21:05:22pm):Client (Judith) deactivated by HILLARY NGIGE
+06th Apr 2023 (21:05:12pm):Client (Judith) information modified by HILLARY NGIGE on the router
+06th Apr 2023 (20:46:37pm): HILLARY NGIGE successfully login as admin on ip 192.168.88.243
+05th Apr 2023 (19:18:49pm): HILLARY NGIGE successfully login as admin on ip 192.168.88.244
+05th Apr 2023 (17:58:02pm):Client (Faith Ngunanga) has been deleted by HILLARY NGIGE!
+05th Apr 2023 (17:51:49pm):Client (Faith Ngunanga) information modified by HILLARY NGIGE on the router
+05th Apr 2023 (17:48:50pm):Client (Emilly Mama Leorna) has been deleted by HILLARY NGIGE!
+05th Apr 2023 (17:48:50pm):Client (Stellah_AirBnB) has been deleted by HILLARY NGIGE!
+05th Apr 2023 (17:48:49pm):Client (Beaut Munga) has been deleted by HILLARY NGIGE!
+05th Apr 2023 (17:48:49pm):Client (Ascar) has been deleted by HILLARY NGIGE!
+05th Apr 2023 (17:48:49pm):Client (Emma Kisimani) has been deleted by HILLARY NGIGE!
+05th Apr 2023 (17:48:05pm):Client (Stellah_AirBnB) information modified by HILLARY NGIGE on the router
+05th Apr 2023 (17:47:44pm):Client (Beaut Munga) information modified by HILLARY NGIGE on the router
+05th Apr 2023 (17:47:30pm):Client (Emilly Mama Leorna) information modified by HILLARY NGIGE on the router
+05th Apr 2023 (17:47:20pm):Client (Ascar) information modified by HILLARY NGIGE on the router
+05th Apr 2023 (17:47:09pm):Client (Emma Kisimani) information modified by HILLARY NGIGE on the router
+05th Apr 2023 (17:45:34pm):Client (Caroline) has been deleted by HILLARY NGIGE!
+05th Apr 2023 (17:45:34pm):Client (Rose_John) has been deleted by HILLARY NGIGE!
+05th Apr 2023 (17:45:34pm):Client (Jonathan) has been deleted by HILLARY NGIGE!
+05th Apr 2023 (17:45:33pm):Client (Rukia Omar) has been deleted by HILLARY NGIGE!
+05th Apr 2023 (17:44:54pm):Client (Caroline) information modified by HILLARY NGIGE on the router
+05th Apr 2023 (17:44:42pm):Client (Rose_John) information modified by HILLARY NGIGE on the router
+05th Apr 2023 (17:44:31pm):Client (

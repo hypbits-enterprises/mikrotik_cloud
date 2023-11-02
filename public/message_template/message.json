@@ -1,0 +1,15 @@
+{
+    "refferer": "HYP028",
+    "Monthly_payment": "1000",
+    "payment_history": [
+        {
+            "month": "Jan-2022",
+            "amount": [
+                {
+                    "amount": 200,
+                    "date": "20220528190222"
+                }
+            ]
+        }
+    ]
+}
