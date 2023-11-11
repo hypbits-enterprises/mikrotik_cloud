@@ -224,44 +224,60 @@
                                     @if (session('error_router'))
                                         <p class='text-danger'>{{ session('error_router') }}</p>
                                     @endif
-                                    <form action="/addRouter" method="post">
+                                    <form action="{{url()->route("newCloudRouter")}}" method="post">
                                         @csrf
                                         <div class="row">
-                                            <div class="col-md-6 form-group">
-                                                <label for="router_name" class="form-control-label">Router name</label>
+                                            <div class="col-md-12 form-group">
+                                                <label for="router_name" class="form-control-label"><b>Router Name</b></label>
                                                 <input type="text" name="router_name" id="router_name"
                                                     class="form-control rounded-lg p-1" placeholder="Router name"
-                                                    required>
+                                                    required
+                                                    @if (session("router_name"))
+                                                        value="{{session("router_name")}}"
+                                                    @endif
+                                                    >
                                             </div>
-                                            <div class="col-md-6">
-                                                <label for="ip_address" class="form-control-label">Router ip
-                                                    Address</label>
-                                                <input type="text" name="ip_address" id="ip_address"
-                                                    class="form-control rounded-lg p-1" placeholder="ex 10.10.10.1"
-                                                    required>
+                                            <div class="col-md-12 form-group">
+                                                <label for="routers_physical_address" class="form-control-label"><b>Router Physical Location</b></label>
+                                                <input type="text" name="routers_physical_address" id="routers_physical_address"
+                                                    class="form-control rounded-lg p-1" placeholder="ex Mshomoroni, Mombasa, Ke."
+                                                    required
+                                                    @if (session("routers_physical_address"))
+                                                        value="{{session("routers_physical_address")}}"
+                                                    @endif
+                                                    >
                                             </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-4 form-group">
-                                                <label for="api_username" class="form-control-label">Router API
-                                                    username</label>
-                                                <input type="text" name="api_username" id="api_username"
-                                                    class="form-control rounded-lg p-1"
-                                                    placeholder="Router API username" required>
+                                            <div class="col-md-12 form-group">
+                                                <label for="routers_coordinates" class="form-control-label"><b>Routers Co-ordinates (Optional) <i class="ft-info" data-toggle="tooltip" title="" data-original-title="On google map, right click on the router`s pin location and copy the co-ordinates then paste them here!"></i></b></label>
+                                                <input type="text" name="routers_coordinates" id="routers_coordinates"
+                                                    class="form-control rounded-lg p-1" placeholder="Google maps co-ordinates"
+                                                    @if (session("routers_coordinates"))
+                                                        value="{{session("routers_coordinates")}}"
+                                                    @endif>
                                             </div>
-                                            <div class="col-md-4">
-                                                <label for="router_api_password" class="form-control-label">Router API
-                                                    password</label>
-                                                <input type="password" name="router_api_password"
-                                                    id="router_api_password" class="form-control rounded-lg p-1"
-                                                    placeholder="Router API password" required>
+                                            <div class="col-md-12 form-group">
+                                                <label for="winbox_port" class="form-control-label"><b>Winbox Port</b></label>
+                                                <input type="text" name="winbox_port" id="winbox_port"
+                                                    class="form-control rounded-lg p-1" placeholder="Default - 8291" 
+                                                    required
+                                                    @if (session("router_name"))
+                                                        value="{{session("router_name")}}"
+                                                    @else
+                                                        value="8291"
+                                                    @endif
+                                                    >
                                             </div>
-                                            <div class="col-md-4">
-                                                <label for="router_api_port" class="form-control-label">Router API
-                                                    port</label>
-                                                <input type="number" value="8728" name="router_api_port"
-                                                    id="router_api_port" class="form-control rounded-lg p-1"
-                                                    placeholder="Router port number" required>
+                                            <div class="col-md-12 form-group">
+                                                <label for="api_ports" class="form-control-label"><b>API Port</b></label>
+                                                <input type="text" name="api_ports" id="api_ports"
+                                                    class="form-control rounded-lg p-1" placeholder="Default - 8728"
+                                                    required
+                                                    @if (session("router_name"))
+                                                        value="{{session("router_name")}}"
+                                                    @else
+                                                        value="8728"
+                                                    @endif
+                                                    >
                                             </div>
                                         </div>
                                         <hr>

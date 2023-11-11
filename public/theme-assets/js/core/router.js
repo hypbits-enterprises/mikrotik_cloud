@@ -31,13 +31,15 @@ window.onload = function() {
             // create the collumn array that will take the row value
             var col = [];
             // console.log(element);
-            col.push(element['router_api_password']);
-            col.push(element['router_api_port']);
-            col.push(element['router_api_username']);
+            col.push(element['sstp_password']);
+            col.push(element['api_port']);
+            col.push(element['sstp_username']);
             col.push(element['router_id']);
-            col.push(element['router_ipaddr']);
+            col.push(element['router_location']);
             col.push(element['router_name']);
             col.push(element['router_status']);
+            col.push(element['activated']);
+            col.push(element['user_count']);
             // var col = element.split(":");
             rowsColStudents.push(col);
         }
@@ -63,18 +65,19 @@ function displayRecord(start, finish, arrays) {
     //the finish value
     var fins = 0;
     //this is the table header to the start of the tbody
-    var tableData = "<table class='table'><thead><tr><th>#</th><th>Router Name</th><th>Ip Address</th><th>Router Username</th><th>Action</th></tr></thead><tbody>";
+    var tableData = "<table class='table'><thead><tr><th>#</th><th>Router Name</th><th>Location</th><th># of Clients</th><th>Action</th></tr></thead><tbody>";
     if(finish < total) {
         fins = finish;
         //create a table of the 10 records
         var counter = start+1;
         for (let index = start; index < finish; index++) {
                 var status = "<span class='badge badge-success'> </span>";
-                if (arrays[index][6] == 0) {
+                if (arrays[index][7] == 0) {
                     // if the user is active
                     status = "<span class='badge badge-danger'> </span>";
                 }
-                tableData+="<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][5] +" "+status+"</td><td>" + arrays[index][4] + "</td><td>" + arrays[index][2] + "</td><td><a href='Router/View/" + arrays[index][3] + "' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Router'><i class='ft-eye'></i> View</a><a href='Router/Logs/" + arrays[index][3] + "' class='btn btn-sm btn-primary text-bolder mx-1 ' data-toggle='tooltip' title='View this routers logs'><i class='ft-activity'></i></a></td></tr>";
+                tableData+="<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][5] +" "+status+"</td><td>" + arrays[index][4] + "</td><td>" + arrays[index][8]+" Client(s)" + "</td><td><a href='Router/View/" + arrays[index][3] + "' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Router'><i class='ft-eye'></i> View</a></td></tr>";
+                // tableData+="<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][5] +" "+status+"</td><td>" + arrays[index][4] + "</td><td>" + arrays[index][8]+" Client(s)" + "</td><td><a href='Router/View/" + arrays[index][3] + "' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Router'><i class='ft-eye'></i> View</a><a href='Router/Logs/" + arrays[index][3] + "' class='btn btn-sm btn-primary text-bolder mx-1 ' data-toggle='tooltip' title='View this routers logs'><i class='ft-activity'></i></a></td></tr>";
                 // tableData += "<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][1] +" "+status+"</td><td>" + arrays[index][4] + "</td><td>" + arrays[index][5] + "</td><td><a href='#' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this User'><i class='ft-eye'></i></a> <a href='#' class='btn btn-sm btn-secondary text-bolder' data-toggle='tooltip' title='Edit this User'><i class='ft-edit'></i></a>  <a href='#' class='btn btn-sm btn-warning text-bolder'   data-toggle='tooltip' title='Disable this User'><i class='ft-alert-octagon'></i></a></td></tr>";
             counter++;
         }
@@ -83,11 +86,12 @@ function displayRecord(start, finish, arrays) {
         var counter = start+1;
         for (let index = start; index < total; index++) {
                 var status = "<span class='badge badge-success'> </span>";
-                if (arrays[index][6] == 0) {
+                if (arrays[index][7] == 0) {
                     // if the user is active
                     status = "<span class='badge badge-danger'> </span>";
                 }
-                tableData+="<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][5] +" "+status+"</td><td>" + arrays[index][4] + "</td><td>" + arrays[index][2] + "</td><td><a href='Router/View/" + arrays[index][3] + "' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Router'><i class='ft-eye'></i> View</a><a href='Router/Logs/" + arrays[index][3] + "' class='btn btn-sm btn-primary text-bolder mx-1 ' data-toggle='tooltip' title='View this routers logs'><i class='ft-activity'></i></a></td></tr>";
+                // tableData+="<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][5] +" "+status+"</td><td>" + arrays[index][4] + "</td><td>" + arrays[index][8]+" Client(s)" + "</td><td><a href='Router/View/" + arrays[index][3] + "' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Router'><i class='ft-eye'></i> View</a><a href='Router/Logs/" + arrays[index][3] + "' class='btn btn-sm btn-primary text-bolder mx-1 ' data-toggle='tooltip' title='View this routers logs'><i class='ft-activity'></i></a></td></tr>";
+                tableData+="<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][5] +" "+status+"</td><td>" + arrays[index][4] + "</td><td>" + arrays[index][8]+" Client(s)" + "</td><td><a href='Router/View/" + arrays[index][3] + "' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Router'><i class='ft-eye'></i> View</a></td></tr>";
                 // tableData += "<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][1] +" "+status+"</td><td>" + arrays[index][4] + "</td><td>" + arrays[index][5] + "</td><td><a href='#' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this User'><i class='ft-eye'></i></a> <a href='#' class='btn btn-sm btn-secondary text-bolder' data-toggle='tooltip' title='Edit this User'><i class='ft-edit'></i></a>  <a href='#' class='btn btn-sm btn-warning text-bolder'   data-toggle='tooltip' title='Disable this User'><i class='ft-alert-octagon'></i></a></td></tr>";
             counter++;
         }

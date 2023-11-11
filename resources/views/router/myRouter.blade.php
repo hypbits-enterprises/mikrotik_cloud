@@ -218,14 +218,14 @@
                                             <input type="text" name="searchkey" id="searchkey" class="form-control rounded-lg p-1" placeholder="Search here ..">
                                         </div>
                                         <div class="col-md-6">
-                                            <div class="btn-group mr-1 mb-1 float-right">
+                                            {{-- <div class="btn-group mr-1 mb-1 float-right">
                                                 <button type="button" {{$readonly}} class="btn btn-info btn-min-width dropdown-toggle " data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"><i class="ft-plus"> New</i></button>
                                                 <div class="dropdown-menu">
                                                     <a class="dropdown-item" href="/Routers/New">New Router Basic</a>
                                                     <a class="dropdown-item" href="/Clients/NewRouterSetup">Set-up New Router</a>
                                                 </div>
-                                            </div>
-                                            {{-- <a href="/Routers/New" class="btn btn-info text-bolder float-right"><i class="ft-plus"> New</i></a> --}}
+                                            </div> --}}
+                                            <a href="/Routers/New" class="btn btn-info text-bolder float-right"><i class="ft-plus"> New</i></a>
                                         </div>
                                     </div>
                                     <div class="table-responsive" id="transDataReciever">

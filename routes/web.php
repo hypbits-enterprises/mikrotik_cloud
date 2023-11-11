@@ -11,6 +11,7 @@ use App\Http\Controllers\Clients_data;
 use App\Http\Controllers\export_client;
 use App\Http\Controllers\billsms_manager;
 use App\Http\Controllers\Expenses;
+use App\Http\Controllers\Router_Cloud;
 use App\Http\Controllers\SharedTables;
 use Symfony\Component\Mime\Crypto\SMime;
 
@@ -63,8 +64,6 @@ Route::post("/Client/Update/MinimumPay",[Clients::class,"updateMinPay"])->name("
 Route::post("addClientPppoe",[Clients::class,'processClientPPPoE'])->name("clients.addppoe");
 // the clients controller route
 Route::get("/Clients",[Clients::class,'getClientData']);
-// get the routers information
-Route::get("/Routers",[Clients::class,'getRouterData']);
 // get the router information for the new client
 Route::get("/Clients/NewStatic",[Clients::class,"getRouterDataClients"]);
 Route::get("/Clients/NewPPPoE",[Clients::class,"getRouterDatappoe"])->name("newclient.pppoe");
@@ -136,10 +135,19 @@ Route::get("/confirmTransfer/{user_id}/{transaction_id}",[Transaction::class,"co
 Route::post("/Transact",[Transaction::class,"mpesaTransactions"]);
 
 // Router section
-Route::get("/Router/View/{routerid}",[Router::class,"getRouterInfor"]);
-Route::get("/Routers/Delete/{routerid}",[Router::class,"deleteRouter"]);
+// Route::get("/Router/View/{routerid}",[Router::class,"getRouterInfor"]);
+// Route::get("/Routers/Delete/{routerid}",[Router::class,"deleteRouter"]);
 Route::get("/Router/Reboot/{routerid}",[Router::class,"reboot"]);
-Route::post("/updateRouter",[Router::class,"updateRoute"]);
+
+// cloud router
+Route::post("/new_cloud_router",[Router_Cloud::class,"save_cloud_router"])->name("newCloudRouter");
+Route::get("/Router/View/{router_id}",[Router_Cloud::class,"view_router_details"])->name("view_router_cloud");
+Route::get("/Router/Connect/{router_id}",[Router_Cloud::class,"connect_router"])->name("connect_router");
+Route::post("/updateRouter",[Router_Cloud::class,"updateRouter"])->name("update_router");
+Route::get("/Routers/Delete/{routerid}",[Router_Cloud::class,"deleteRouter"]);
+
+// get the routers information
+Route::get("/Routers",[Router_Cloud::class,'getRouterData'])->name("my_routers");
 
 // Sms section
 Route::get("/sms",[Sms::class,"getSms"]);

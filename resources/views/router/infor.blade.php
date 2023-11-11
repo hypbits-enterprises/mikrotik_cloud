@@ -250,18 +250,66 @@ date_default_timezone_set('Africa/Nairobi');
                                         </div>
                                     </div>
                                     {{-- <p>{{($client_data)}}</p> --}}
-                                    <p class="card-text">Fill all the fields to add a router.</p>
+                                    <p><b>Note</b></p>
+                                    From the configurations below:
+                                    <ul>
+                                        <li>A user account will be created and given full rights. This rights will be important to handle all the router operations via the API.</li>
+                                        <li>API services will be activated.</li>
+                                        <li>Copy the following configuration paste it on your routers terminal to configure it for remote access. The come back and click connect button below.</li>
+                                    </ul>
+                                    <hr>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <h6 class="text-center"><u>Router Infor</u></h6>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="" class="form-control-label"><b>Router`s Location:</b></label>
+                                                <span>
+                                                    @php
+                                                        echo strlen($router_data[0]->router_coordinates) > 0 ? "<a class='text-danger' href = 'https://www.google.com/maps/place/".$router_data[0]->router_coordinates."' target = '_blank'><u>Locate Router</u> </a>" :"No Co-ordinates provided for the router!" ;
+                                                    @endphp
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr>
                                     @if (session('success_router'))
                                         <p class='text-success'>{{ session('success_router') }}</p>
                                     @endif
                                     @if (session('error_router'))
                                         <p class='text-danger'>{{ session('error_router') }}</p>
                                     @endif
-                                    <form action="/updateRouter" method="post">
+                                    <button id="configuration_show_button" class="btn btn-secondary btn-sm my-2 {{$router_data[0]->activated == 0 ? "d-none" : ""}}">Show Router Configuration</button>
+                                    <div id="configuration_window" class="container shadow-0 border border-rounded p-1 w-100 {{$router_data[0]->activated == 1 ? "d-none" : ""}}">
+                                        <button class="btn btn-sm btn-primary mb-2" id="send_to_clipboard"><i class="ft-copy" ></i> Copy</button>
+                                        <h4 class="text-center">Router Configuration</h4>
+                                        <p id="command_holder">
+                                            /ppp profile add name="HYPBITS_SSTP" comment="Do not delete: Default Hypbits VPN profile"<br>
+                                            /interface sstp-client add name="HYPBITS_SSTP_ONE" connect-to=192.168.88.222 user={{$router_data[0]->sstp_username}} password={{$router_data[0]->sstp_password}} profile="HYPBITS_SSTP" authentication=pap,chap,mschap1,mschap2 disabled=no comment="Do not delete: HYPBITS connection to {{$router_data[0]->router_name}}"<br>
+                                            /ip route add dst-address=192.168.4.0/24 gateway=192.168.4.1 comment="Do not delete: HYPBITS VPN SERVER NETWORK1"<br>
+                                            /ip route add dst-address=172.23.0.0/24 gateway=192.168.4.1 comment="Do not delete: HYPBITS VPN SERVER NETWORK2"<br>
+                                            /ip firewall filter add chain=input action=accept in-interface=HYPBITS_SSTP_ONE log=no log-prefix="" comment="Do not delete: Allow HYPBITS remote access" disabled=no<br><br>
+
+                                            /ip firewall filter move [find where in-interface=HYPBITS_SSTP_ONE] destination 0<br>
+                                            /ip service set api disabled=no port=8728<br>
+                                            /ip service set winbox disabled=no port=8291<br><br>
+                                            
+                                            ##version 6.49.10<br>
+                                            /user group add name="HYPBITS_FULL" policy="local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,tikapp,!dude" comment="Do not delete: HYPBITS user group"<br>
+                                            <br>
+                                            ##version 7.11.2<br>
+                                            /user group add name="HYPBITS_FULL" policy="local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,rest-api" comment="Do not delete: HYPBITS user group"<br>
+                                            
+                                            /user add name="{{$router_data[0]->sstp_username}}" password="{{$router_data[0]->sstp_password}}" group="HYPBITS_FULL" comment="Do not delete: Hypbits API User"</p>
+
+                                            <a href="{{url()->route("connect_router",$router_data[0]->router_id)}}" class="btn btn-success btn-sm mt-1 {{$router_data[0]->activated == 0 ? "" : "d-none"}}"><i class="ft-settings"></i> Connect</a>
+                                    </div>
+                                    <form action="{{url()->route("update_router")}}" method="post">
                                         @csrf
                                         <div class="row">
-                                            <div class="col-md-6 form-group">
-                                                <label for="router_name" class="form-control-label">Router name</label>
+                                            <div class="col-md-12 form-group">
+                                                <label for="router_name" class="form-control-label"><b>Router name</b></label>
                                                 <input type="hidden" name="router_id"
                                                     value="{{ $router_data[0]->router_id }}">
                                                 <input type="text" name="router_name" id="router_name"
@@ -269,39 +317,33 @@ date_default_timezone_set('Africa/Nairobi');
                                                     value="{{ $router_data[0]->router_name }}"
                                                     placeholder="Router name" required>
                                             </div>
-                                            <div class="col-md-6">
-                                                <label for="ip_address" class="form-control-label">Router ip
-                                                    Address</label>
-                                                <input type="text" name="ip_address" id="ip_address"
+                                            <div class="col-md-12 form-group">
+                                                <label for="physical_location" class="form-control-label"><b>Physical Location</b></label>
+                                                <input type="text" name="physical_location" id="physical_location"
                                                     class="form-control rounded-lg p-1"
-                                                    value="{{ $router_data[0]->router_ipaddr }}"
-                                                    placeholder="ex 10.10.10.1" required>
+                                                    value="{{ $router_data[0]->router_location }}"
+                                                    placeholder="Router name" required>
                                             </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col-md-4 form-group">
-                                                <label for="api_username" class="form-control-label">Router API
-                                                    username</label>
-                                                <input type="text" name="api_username" id="api_username"
+                                            <div class="col-md-12 form-group">
+                                                <label for="router_coordinates" class="form-control-label"><b>Routers Co-ordinates (Optional) <i class="ft-info" data-toggle="tooltip" title="" data-original-title="On google map, right click on the router`s pin location and copy the co-ordinates then paste them here!"></i></b></label>
+                                                <input type="text" name="router_coordinates" id="router_coordinates"
                                                     class="form-control rounded-lg p-1"
-                                                    value="{{ $router_data[0]->router_api_username }}"
-                                                    placeholder="Router API username" required>
+                                                    value="{{ $router_data[0]->router_coordinates }}"
+                                                    placeholder="Google maps co-ordinates">
                                             </div>
-                                            <div class="col-md-4">
-                                                <label for="router_api_password" class="form-control-label">Router API
-                                                    password</label>
-                                                <input type="password" name="router_api_password"
-                                                    id="router_api_password" class="form-control rounded-lg p-1"
-                                                    value="{{ $router_data[0]->router_api_password }}"
-                                                    placeholder="Router API password" required>
+                                            <div class="col-md-12 form-group">
+                                                <label for="winbox_ports" class="form-control-label"><b>Winbox Port</b></label>
+                                                <input type="text" name="winbox_ports" id="winbox_ports"
+                                                    class="form-control rounded-lg p-1"
+                                                    value="{{ $router_data[0]->winbox_port }}"
+                                                    placeholder="Deafult - 8291" required>
                                             </div>
-                                            <div class="col-md-4">
-                                                <label for="router_api_port" class="form-control-label">Router API
-                                                    port</label>
-                                                <input type="number" value="8728" name="router_api_port"
-                                                    id="router_api_port" class="form-control rounded-lg p-1"
-                                                    value="{{ $router_data[0]->router_api_port }}"
-                                                    placeholder="Router port number" required>
+                                            <div class="col-md-12 form-group">
+                                                <label for="api_ports" class="form-control-label"><b>API Port</b></label>
+                                                <input type="text" name="api_ports" id="api_ports"
+                                                    class="form-control rounded-lg p-1"
+                                                    value="{{ $router_data[0]->api_port }}"
+                                                    placeholder="Deafult - 8728" required>
                                             </div>
                                         </div>
                                         <hr>
@@ -875,23 +917,43 @@ date_default_timezone_set('Africa/Nairobi');
     </script>
     <script src="/theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
     <script src="/theme-assets/js/core/app-lite.js" type="text/javascript"></script>
-    <script src="/theme-assets/js/core/view_router.js"></script>
+    {{-- <script src="/theme-assets/js/core/view_router.js"></script> --}}
     <script>
-      var milli_seconds = 1200;
-      setInterval(() => {
-          if (milli_seconds == 0) {
-              window.location.href = "/";
-          }
-          milli_seconds--;
-      }, 1000);
-    var delete_user = document.getElementById("delete_user");
-    delete_user.addEventListener("click", function () {
-        document.getElementById("prompt_del_window").classList.remove("d-none");
-    });
-    var delet_user_no = document.getElementById("delet_user_no");
-    delet_user_no.addEventListener("click", function () {
-        document.getElementById("prompt_del_window").classList.add("d-none");
-    });
+        var milli_seconds = 1200;
+        setInterval(() => {
+            if (milli_seconds == 0) {
+                window.location.href = "/";
+            }
+            milli_seconds--;
+        }, 1000);
+        var delete_user = document.getElementById("delete_user");
+        delete_user.addEventListener("click", function () {
+            document.getElementById("prompt_del_window").classList.remove("d-none");
+        });
+        var delet_user_no = document.getElementById("delet_user_no");
+        delet_user_no.addEventListener("click", function () {
+            document.getElementById("prompt_del_window").classList.add("d-none");
+        });
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text)
+            .then(() => {
+                console.log('Text successfully copied to clipboard:', text);
+            })
+            .catch(err => {
+                console.error('Unable to copy text to clipboard', err);
+            });
+        }
+        var send_to_clipboard = document.getElementById("send_to_clipboard");
+        send_to_clipboard.addEventListener("click", function () {
+            var this_inner_text = document.getElementById("command_holder").innerText;
+            copyToClipboard(this_inner_text);
+            // console.log(this_inner_text);
+        });
+
+        document.getElementById("configuration_show_button").onclick = function () {
+            document.getElementById("configuration_window").classList.toggle("d-none");
+        }
     </script>
 </body>
 

@@ -826,11 +826,6 @@ class Clients extends Controller
         }
     }
 
-    function getRouterData(){
-        // here we get the router data
-        $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0'");
-        return view("myRouter",['router_data'=>$router_data]);
-    }
 
     function getRouterDataClients(){
         // here we get the router data

@@ -38,6 +38,7 @@ class Router extends Controller
             session()->put("router_api_port",$port);
             // connect to the router
             $r1 = $API->comm("/system/routerboard/print");
+            // return $r1;
             $model = $r1[0]['model'];
             $r2 = $API->comm("/system/identity/print");
             $identity = $r2[0]['name'];
