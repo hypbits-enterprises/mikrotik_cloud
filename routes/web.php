@@ -63,7 +63,7 @@ Route::post("/Client/Update/MinimumPay",[Clients::class,"updateMinPay"])->name("
 // save client pppoe
 Route::post("addClientPppoe",[Clients::class,'processClientPPPoE'])->name("clients.addppoe");
 // the clients controller route
-Route::get("/Clients",[Clients::class,'getClientData']);
+Route::get("/Clients",[Clients::class,'getClientData'])->name("myclients");
 // get the router information for the new client
 Route::get("/Clients/NewStatic",[Clients::class,"getRouterDataClients"]);
 Route::get("/Clients/NewPPPoE",[Clients::class,"getRouterDatappoe"])->name("newclient.pppoe");
