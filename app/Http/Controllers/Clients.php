@@ -3015,7 +3015,159 @@ class Clients extends Controller
                 $clients_id = $req->input('clients_id');
                 $location_coordinates = $req->input('location_coordinates');
                 $client_account_number = $req->input('client_account_number');
+                
                 // get the ip address and queue list above
+                // check if the selected router is connected
+                // get the router data
+                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$router_name]);
+                if (count($router_data) == 0) {
+                    $error = "Router selected does not exist!";
+                    session()->flash("network_presence",$error);
+                    return redirect(url()->previous());
+                }
+                
+                // get the sstp credentails they are also the api usernames
+                $sstp_username = $router_data[0]->sstp_username;
+                $sstp_password = $router_data[0]->sstp_password;
+                $api_port = $router_data[0]->api_port;
+
+                // connect to the sstp server to get the routers ip address based on the username and password
+                // first get the sstp server credentials
+                $sstp_settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
+                if (count($sstp_settings) == 0) {
+                    $error = "The SSTP server is not set, Contact your administrator!";
+                    session()->flash("network_presence",$error);
+                    return redirect(url()->previous());
+                }
+
+                // connect to the server
+                $sstp_value = $this->isJson($sstp_settings[0]->value) ? json_decode($sstp_settings[0]->value) : null;
+
+                if ($sstp_value == null) {
+                    $error = "The SSTP server is not set, Contact your administrator!";
+                    session()->flash("network_presence",$error);
+                    return redirect(url()->previous());
+                }
+
+                // connect to the router and set the sstp client
+                $server_ip_address = "192.168.88.225";
+                $user = $sstp_value->username;
+                $pass = $sstp_value->password;
+                $port = 8728;
+
+                // check if the router is actively connected
+                $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
+                // return $client_router_ip;
+
+                // get ip address and queues
+                // start with IP address
+                // connect to the router and add the ip address and queues to the interface
+                $API = new routeros_api();
+                $API->debug = false;
+
+                $router_ip_addresses = [];
+                $router_simple_queues = [];
+                if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)){
+                    // connect and get the router ip address and queues
+                    $ip_addr = $API->comm("/ip/address/print");
+                    $router_ip_addresses = $ip_addr;
+
+                    // get the simple queues
+                    $simple_queues = $API->comm("/queue/simple/print");
+                    $router_simple_queues = $simple_queues;
+
+                    // check if the queues and ip address for the existing clients configuration
+                    // if the configurations are present update them accordingly
+                    return $router_simple_queues;
+                    
+                    // check if the network is present
+                    $old_network = $client_data[0]->client_network;
+                    $old_client_gw = $client_data[0]->client_default_gw;
+                    $present = 0;
+                    $ip_id = 0;
+                    for ($index=0; $index < count($router_ip_addresses); $index++) { 
+                        if ($router_ip_addresses[$index]['network'] == $old_network) {
+                            $present = 1;
+                            $ip_id = $router_ip_addresses[$index]['.id'];
+                            break;
+                        }
+                    }
+
+                    // if present update the network details
+                    if ($present == 1) {
+                        // set the ip address using its id
+                        $result = $API->comm("/ip/address/set",
+                        array(
+                            "address"     => $req->input('client_gw'),
+                            "interface" => $req->input('interface_name'),
+                            "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
+                            ".id" => $ip_id
+                        ));
+                        if(count($result) > 0){
+                            // this means there is an error
+                            $API->comm("/ip/address/set",
+                            array(
+                                "interface" => $req->input('interface_name'),
+                                "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
+                                ".id" => $ip_id
+                            ));
+                        }
+                    }else{
+                        // if the ip address is not present add it!
+                        // add a new ip address
+                        $API->comm("/ip/address/add", 
+                        array(
+                            "address"     => $req->input('client_gw'),
+                            "interface" => $req->input('interface_name'),
+                            "network" => $req->input('client_network'),
+                            "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number
+                        ));
+                    }
+
+                    // simple queues
+                    // loop through the queues to see if the current queue is present!
+                    $queue_id = 0;
+                    $present = 0;
+                    
+                    for ($index=0; $index < count($router_simple_queues); $index++) { 
+                        if ($router_simple_queues[$index]['target'] == $client_network."/".explode("/",$client_gw_name)[1]) {
+                            $present = 1;
+                            $queue_id = $router_simple_queues[$index]['.id'];
+                            break;
+                        }
+                    }
+        
+                    $upload = $upload_speed.$unit1;
+                    $download = $download_speed.$unit2;
+
+                    // return $old_network."/".explode("/",$old_client_gw)[1];
+                    if ($present == 1) {
+                        // set the queue using the ip address
+                        $API->comm("/queue/simple/set",
+                            array(
+                                "name" => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
+                                "target" => $client_network."/".explode("/",$client_gw_name)[1],
+                                "max-limit" => $upload."/".$download,
+                                ".id" => $queue_id
+                            )
+                        );
+                    }else {
+                        // add the queue to the list
+                        $API->comm("/queue/simple/add",
+                            array(
+                                "name" => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
+                                "target" => $client_network."/".explode("/",$client_gw_name)[1],
+                                "max-limit" => $upload."/".$download
+                            )
+                        );
+                    }
+
+                    // update the clients
+                }else{
+                    session()->flash("error","An error occured! Check your router credentials and try again!");
+                    return redirect(url()->previous());
+                }
+                
                 // get ip
                 // Initiate curl session in a variable (resource)
                 $curl_handle = curl_init();
