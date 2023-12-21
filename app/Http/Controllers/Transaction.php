@@ -277,18 +277,10 @@ class Transaction extends Controller
             session()->flash("success","You have successfully transfered the funds to your account");
             return redirect("/Payment");
         }
-        // log file capture error
-        // read the data 
-        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-        $existing_txt = fread($myfile,$file_sizes);
-        // return $existing_txt;
-        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-        $date = date("dS M Y (H:i:sa)");
-        $txt = $date.":Fund successfully transfered by  ".session('Usernames')." to ".$client_data[0]->client_name."!\n".$existing_txt;
-        // return $txt;
-        fwrite($myfile, $txt);
-        fclose($myfile);
+                
+        $new_client = new Clients();
+        $txt = ":Fund successfully transfered by  ".session('Usernames')." to ".$client_data[0]->client_name."!";
+        $new_client->log($txt);
         // end of log file
         session()->flash("success","You have successfully transfered the funds to ".$client_data[0]->client_name."");
         return redirect("/Transactions/View/$trans_id");
@@ -1040,19 +1032,10 @@ class Transaction extends Controller
                 $transTable->fullnames = $clientelle;
                 $transTable->save();
             }
-
-            // log file capture error
-            // read the data
-            $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-            $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-            $existing_txt = fread($myfile,$file_sizes);
-            // return $existing_txt;
-            $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-            $date = date("dS M Y (H:i:sa)");
-            $txt = $date.":Fund successfully recieved from  ".$jsonMpesaResponse['FirstName']."!\n".$existing_txt;
-            // return $txt;
-            fwrite($myfile, $txt);
-            fclose($myfile);
+                
+            $new_client = new Clients();
+            $txt = ":Fund successfully recieved from  ".$jsonMpesaResponse['FirstName']."!";
+            $new_client->log($txt);
             // end of log file
         }
     }

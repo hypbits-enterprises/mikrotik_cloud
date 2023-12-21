@@ -150,18 +150,10 @@ class login extends Controller
                 DB::table("admin_tables")->where("admin_id",$result[0]->admin_id)->update(["last_time_login" => date("YmdHis"),"date_changed" => date("YmdHis")]);
                 return redirect("/verify");
             }else {
-                // log file capture error
-                // read the data 
-                $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                $existing_txt = fread($myfile,$file_sizes);
-                // return $existing_txt;
-                $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                $date = date("dS M Y (H:i:sa)");
-                $txt = "{$date}: Admin failed attempt to login  on ip ".$_SERVER['REMOTE_ADDR']."\n".$existing_txt;
-                // return $txt;
-                fwrite($myfile, $txt);
-                fclose($myfile);
+                
+                $new_client = new Clients();
+                $txt = ":Admin failed attempt to login  on ip ".$_SERVER['REMOTE_ADDR'];
+                $new_client->log($txt);
                 // end of log file
 
                 session()->flash('error',"Invalid username and password provided!");
@@ -251,19 +243,10 @@ class login extends Controller
                 return redirect("/verify");
                 // return redirect("/ClientDashboard");
             }else {
-                // log file capture error
-                // read the data 
-                $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                $existing_txt = fread($myfile,$file_sizes);
-                // return $existing_txt;
-                $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                $date = date("dS M Y (H:i:sa)");
-                $txt = "{$date}: Client failed attempt to login username:".$username." on ip ".$_SERVER['REMOTE_ADDR']."\n".$existing_txt;
-                // return $txt;
-                fwrite($myfile, $txt);
-                fclose($myfile);
-                // end of log file
+                
+                $new_client = new Clients();
+                $txt = ": Client failed attempt to login username:".$username." on ip ".$_SERVER['REMOTE_ADDR'];
+                $new_client->log($txt);
 
                 session()->flash('error',"Invalid username and password provided!");
                 return redirect("/Login");
@@ -340,19 +323,10 @@ class login extends Controller
                 $user_data = DB::select("SELECT * FROM `admin_tables` WHERE `deleted` = '0' AND `admin_id` = '$user_id'");
                 DB::table("verification_codes")->where("code",$code)->update(["status" => "1", 'date_changed' => date("YmdHis")]);
                 if (count($user_data) > 0) {
-                    // log file capture error
-                    // read the data 
-                    $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                    $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                    $existing_txt = fread($myfile,$file_sizes);
-                    // return $existing_txt;
-                    $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                    $date = date("dS M Y (H:i:sa)");
-                    $txt = "{$date}: ".$user_data[0]->admin_fullname." successfully login as admin on ip ".$_SERVER['REMOTE_ADDR']."\n".$existing_txt;
-                    // return $txt;
-                    fwrite($myfile, $txt);
-                    fclose($myfile);
-                    // end of log file
+                
+                    $new_client = new Clients();
+                    $txt = $user_data[0]->admin_fullname." successfully login as admin on ip ".$_SERVER['REMOTE_ADDR'];
+                    $new_client->log($txt);
 
                     $req->session()->put("Usernames",$user_data[0]->admin_fullname);
                     $req->session()->put("Userids",$user_data[0]->admin_id);
@@ -371,20 +345,10 @@ class login extends Controller
                     $req->session()->put("fullname",$user_data[0]->client_name);
                     $req->session()->put("Usernames",$user_data[0]->client_name);
                     $req->session()->put("client_id",$user_data[0]->client_id);
-
-                    // log file capture error
-                    // read the data 
-                    $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                    $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                    $existing_txt = fread($myfile,$file_sizes);
-                    // return $existing_txt;
-                    $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                    $date = date("dS M Y (H:i:sa)");
-                    $txt = "{$date}: ".$user_data[0]->client_name." successfully login as client on ip ".$_SERVER['REMOTE_ADDR']."\n".$existing_txt;
-                    // return $txt;
-                    fwrite($myfile, $txt);
-                    fclose($myfile);
-                    // end of log file
+                
+                    $new_client = new Clients();
+                    $txt = $user_data[0]->client_name." successfully login as client on ip ".$_SERVER['REMOTE_ADDR'];
+                    $new_client->log($txt);
 
                     // session_unset('Userid');
                     // redirect the page to the dashbord of the administrator, update the last time they logged in;

@@ -78,20 +78,10 @@ class Router extends Controller
             // return $reboot;
             $API->disconnect();
             session()->flash("success_router","Your router is being rebooted give it some time to start");
-
-            // log file capture error
-            // read the data 
-            $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-            $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-            $existing_txt = fread($myfile,$file_sizes);
-            // return $existing_txt;
-            $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-            $date = date("dS M Y (H:i:sa)");
-            $txt = $date.":Router rebooted by ".session('Usernames')."\n".$existing_txt;
-            // return $txt;
-            fwrite($myfile, $txt);
-            fclose($myfile);
-            // end of log file
+                
+            $new_client = new Clients();
+            $txt = ":Router rebooted by ".session('Usernames');
+            $new_client->log($txt);
         }else {
             session()->flash("error_router","Attempts to connect to the router was unsuccessfull");
         }
@@ -121,19 +111,10 @@ class Router extends Controller
                         "router_status" => "1",
                         'date_changed' => date("YmdHis")
                     ]);
-
-                    // log file capture error
-                    // read the data 
-                    $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                    $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                    $existing_txt = fread($myfile,$file_sizes);
-                    // return $existing_txt;
-                    $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                    $date = date("dS M Y (H:i:sa)");
-                    $txt = $date.":Router ".$router_name." Information updated by ".session('Usernames')."\n".$existing_txt;
-                    // return $txt;
-                    fwrite($myfile, $txt);
-                    fclose($myfile);
+                
+                    $new_client = new Clients();
+                    $txt = ":Router ".$router_name." Information updated by ".session('Usernames');
+                    $new_client->log($txt);
                     // end of log file
                     session()->flash("success_router","Your router information has been successfully been updated!");
         }else {

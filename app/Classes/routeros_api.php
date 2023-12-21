@@ -21,9 +21,9 @@ class routeros_api
     var $debug = false;      // Show debug information
     var $error_no;           // Variable for storing connection error number, if any
     var $error_str;          // Variable for storing connection error text, if any
-    var $attempts = 3;       // Connection attempt count
+    var $attempts = 1;       // Connection attempt count
     var $connected = false;  // Connection state
-    var $delay = 3;          // Delay between connection attempts in seconds
+    var $delay = 1;          // Delay between connection attempts in seconds
     var $port = 8728;        // Port to connect to
     var $timeout = 3;        // Connection attempt timeout and data read timeout
     var $socket;             // Variable for storing socket resource
@@ -314,7 +314,7 @@ class routeros_api
                 $this->debug('>>> [' . $retlen . '/' . $LENGTH . '] bytes read.');
             }
             // If we get a !done, make a note of it.
-            // $receiveddone = true;
+            // $receiveddone = false;
             if ($_ == "!done")
                 $receiveddone = true;
             $STATUS = socket_get_status($this->socket);

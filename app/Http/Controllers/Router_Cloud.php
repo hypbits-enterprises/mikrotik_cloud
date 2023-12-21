@@ -61,13 +61,19 @@ class Router_Cloud extends Controller
         $API = new routeros_api();
         $API->debug = false;
         if ($API->connect($ip_address,$user,$pass,$port)){
-            $ipaddress = $API->comm("/ppp/secret/print");
-            $API->comm("/ppp/secret/add",array(
+            // return $API->comm("/ppp/secret/print");
+            // create a ppp profile
+            $add_pp_secret = $API->comm("/ppp/secret/add",
+            array(
                 "name" => $username,
                 "password" => $password,
                 "profile" => "SSTP_PROFILE",
                 "service" => "sstp"
             ));
+            $API->disconnect();
+        }else{
+            session()->flash("error_router","The SSTP server cannot be reached, Contact your administrator!");
+            return redirect(url()->previous());
         }
         
 
@@ -88,6 +94,61 @@ class Router_Cloud extends Controller
 
     // connect router
     function connect_router($router_id){
+        // check if the router is active
+        // check first if the router configuration is done
+        $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ?",[$router_id]);
+
+        if (count($router_data) == 0) {
+            session()->flash("error_router","Invalid router");
+            redirect(url()->route("view_router_cloud"));
+        }
+
+        // get all clients under that router
+        $client_details = DB::select("SELECT COUNT(*) AS 'Total' FROM `client_tables` WHERE `router_name` = ?",[$router_id]);
+
+        // get the router details
+        $router_detail = [];
+
+        // connect to the router and get its details
+
+        // connect to the router and set the sstp client
+        $sstp_value = $this->getSSTPAddress();
+        if ($sstp_value == null) {
+            $error = "The SSTP server is not set, Contact your administrator!";
+            session()->flash("error_router",$error);
+            return redirect(url()->route("view_router_cloud"));
+        }
+
+        // connect to the router and set the sstp client
+        $ip_address = $sstp_value->ip_address;
+        $user = $sstp_value->username;
+        $pass = $sstp_value->password;
+        $port = 8728;
+
+        // check if the router is actively connected
+        $client_router_ip = $this->checkActive($ip_address,$user,$pass,$port,$router_data[0]->sstp_username);
+
+        $router_stats = [];
+        if ($client_router_ip) {
+            // get the router details
+            $API = new routeros_api();
+            $API->debug = false;
+            
+            $ip_address = $client_router_ip;
+            $user = $router_data[0]->sstp_username;
+            $pass = $router_data[0]->sstp_password;
+            $port = $router_data[0]->api_port;
+            if ($API->connect($ip_address, $user, $pass, $port)){
+                $router_stats = $API->comm("/system/resource/print");
+            }else{
+                session()->flash("error_router","Cannot connect to router, ensure you have configured the router correctly!");
+                return redirect(url()->route("view_router_cloud",[$router_id]));
+            }
+        }else{
+            session()->flash("error_router","Cannot connect to router, ensure you have configured the router correctly!");
+            return redirect(url()->route("view_router_cloud",[$router_id]));
+        }
+        
         // change the status from unconnected to connected
         $update = DB::update("UPDATE `remote_routers` SET `activated` = '1' WHERE `router_id` = ?",[$router_id]);
 
@@ -107,12 +168,145 @@ class Router_Cloud extends Controller
 
         // get all clients under that router
         $client_details = DB::select("SELECT COUNT(*) AS 'Total' FROM `client_tables` WHERE `router_name` = ?",[$router_id]);
-        // return $client_details;
 
         // get the router details
         $router_detail = [];
 
-        return view("router.infor",["router_data" => $router_data, "user_count" => $client_details,"router_detail" => $router_detail]);
+        // connect to the router and get its details
+
+        // connect to the router and set the sstp client
+        $sstp_value = $this->getSSTPAddress();
+        if ($sstp_value == null) {
+            $error = "The SSTP server is not set, Contact your administrator!";
+            session()->flash("error_router",$error);
+            return redirect(url()->route("view_router_cloud"));
+        }
+
+        // connect to the router and set the sstp client
+        $ip_address = $sstp_value->ip_address;
+        $user = $sstp_value->username;
+        $pass = $sstp_value->password;
+        $port = 8728;
+
+        // check if the router is actively connected
+        $client_router_ip = $this->checkActive($ip_address,$user,$pass,$port,$router_data[0]->sstp_username);
+
+        $router_stats = [];
+        if ($client_router_ip) {
+            // get the router details
+            $API = new routeros_api();
+            $API->debug = false;
+            
+            $ip_address = $client_router_ip;
+            $user = $router_data[0]->sstp_username;
+            $pass = $router_data[0]->sstp_password;
+            $port = $router_data[0]->api_port;
+            if ($API->connect($ip_address, $user, $pass, $port)){
+                $router_stats = $API->comm("/system/resource/print");
+            }
+        }
+        // return $router_stats;
+
+        return view("router.infor",["router_data" => $router_data, "router_stats" => $router_stats, "user_count" => $client_details,"router_detail" => $router_detail, "ip_address" => $ip_address]);
+    }
+
+    function reboot($router_id){
+        // get the router data
+        $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ?",[$router_id]);
+        if (count($router_data) == 0) {
+            $error = "The router is invalid!";
+            session()->flash("error_router",$error);
+            return redirect(url()->previous());
+        }
+
+        // connect to the router and set the sstp client
+        $sstp_value = $this->getSSTPAddress();
+        if ($sstp_value == null) {
+            $error = "The SSTP server is not set, Contact your administrator!";
+            session()->flash("error_router",$error);
+            return redirect(url()->previous());
+        }
+
+        // connect to the router and set the sstp client
+        $ip_address = $sstp_value->ip_address;
+        $user = $sstp_value->username;
+        $pass = $sstp_value->password;
+        $port = 8728;
+
+        // check if the router is actively connected
+        $client_router_ip = $this->checkActive($ip_address,$user,$pass,$port,$router_data[0]->sstp_username);
+        if ($client_router_ip) {
+            // connect and reboot the router
+            $API = new routeros_api();
+            $API->debug = false;
+
+            $ip_address = $client_router_ip;
+            $user = $router_data[0]->sstp_username;
+            $pass = $router_data[0]->sstp_password;
+            $port = $router_data[0]->api_port;
+            if ($API->connect($ip_address, $user, $pass, $port)){
+                // reboot
+                $API->comm("/system/reboot");
+
+                // skip disconnect
+                $API->disconnect();
+
+                // return
+                return redirect(url()->route("view_router_cloud",$router_data[0]->router_id));
+            }else {
+                // return
+                return redirect(url()->route("view_router_cloud",$router_data[0]->router_id));
+            }
+        }else{
+            // return
+            return redirect(url()->route("view_router_cloud",$router_data[0]->router_id));
+        }
+    }
+
+    function checkActive($ip_address,$user,$pass,$port,$sstp_username){
+        $API = new routeros_api();
+        $API->debug = false;
+
+        if ($API->connect($ip_address, $user, $pass, $port)){
+            // connect and get the 
+            $active = $API->comm("/ppp/active/print");
+            // return $active;
+
+            // loop through the active routers to get if the router is active or not so that we connect
+            $found = 0;
+            $ip_address_remote_client = false;
+            for ($index=0; $index < count($active); $index++) { 
+                if ($active[$index]['name'] == $sstp_username && $active[$index]['service'] == "sstp") {
+                    $found = 1;
+                    $ip_address_remote_client = $active[$index]['address'];
+                    break;
+                }
+            }
+
+            // if found the router is actively connected
+            if ($found == 1) {
+                $API->disconnect();
+                return $ip_address_remote_client;
+            }
+            $API->disconnect();
+        }
+        return false;
+    }
+
+    function getSSTPAddress(){
+        // get the server details
+        $sstp_settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
+        if (count($sstp_settings) == 0) {
+            return null;
+        }
+
+        // connect to the server
+        $sstp_value = $this->isJson($sstp_settings[0]->value) ? json_decode($sstp_settings[0]->value) : null;
+
+        if ($sstp_value == null) {
+            return null;
+        }
+        return $sstp_value;
     }
 
     function updateRouter(Request $request){

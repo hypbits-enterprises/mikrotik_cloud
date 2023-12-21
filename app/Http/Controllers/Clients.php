@@ -802,19 +802,11 @@ class Clients extends Controller
                 $routerTable->save();
                 session()->flash("success_router","Router ( $router_name ) successfully added to the system");
 
-                // log file capture error
-                // read the data 
-                $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                $existing_txt = fread($myfile,$file_sizes);
-                // return $existing_txt;
-                $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                $date = date("dS M Y (H:i:sa)");
-                $txt = $date.":New Router successfully added by  ".session('Usernames')."!\n".$existing_txt;
-                // return $txt;
-                fwrite($myfile, $txt);
-                fclose($myfile);
+                // log message
+                $txt = ":New Router successfully added by  ".session('Usernames')."!";
+                $this->log($txt);
                 // end of log file
+                
                 return redirect("/Routers");
             }else {
                 session()->flash("error_router","The router with the ip address of '".$ip_address."' is already present!");
@@ -862,6 +854,22 @@ class Clients extends Controller
         }
         // return $client_accounts;
         return view("newPPOEclient",['router_data'=>$router_data, "client_accounts" => $client_accounts, "client_username" => $client_username]);
+    }
+
+    function getSSTPAddress(){
+        // get the server details
+        $sstp_settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
+        if (count($sstp_settings) == 0) {
+            return null;
+        }
+
+        // connect to the server
+        $sstp_value = $this->isJson($sstp_settings[0]->value) ? json_decode($sstp_settings[0]->value) : null;
+
+        if ($sstp_value == null) {
+            return null;
+        }
+        return $sstp_value;
     }
 
     // save client in PPPoE
@@ -933,26 +941,16 @@ class Clients extends Controller
             $sstp_password = $router_data[0]->sstp_password;
             $api_port = $router_data[0]->api_port;
 
-            // connect to the sstp server to get the routers ip address based on the username and password
-            // first get the sstp server credentials
-            $sstp_settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
-            if (count($sstp_settings) == 0) {
-                $error = "The SSTP server is not set, Contact your administrator!";
-                session()->flash("network_presence",$error);
-                return redirect(url()->previous());
-            }
-
-            // connect to the server
-            $sstp_value = $this->isJson($sstp_settings[0]->value) ? json_decode($sstp_settings[0]->value) : null;
-
+            // connect to the router and set the sstp client
+            $sstp_value = $this->getSSTPAddress();
             if ($sstp_value == null) {
                 $error = "The SSTP server is not set, Contact your administrator!";
                 session()->flash("network_presence",$error);
                 return redirect(url()->previous());
             }
 
-            // connect to the router and set the sstp client
-            $server_ip_address = "192.168.88.225";
+            // server settings
+            $server_ip_address = $sstp_value->ip_address;
             $user = $sstp_value->username;
             $pass = $sstp_value->password;
             $port = 8728;
@@ -993,19 +991,10 @@ class Clients extends Controller
                             "disabled" => "false",
                             ".id" => $secret_id
                         ));
-    
-                        // log file capture error
-                        // read the data 
-                        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                        $existing_txt = fread($myfile,$file_sizes);
-                        // return $existing_txt;
-                        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                        $date = date("dS M Y (H:i:sa)");
-                        $txt = $date.":New Client (".$client_name.") successfully registered by  ".session('Usernames')." added! PPPoE Assignment! but settings overwritten\n".$existing_txt;
-                        // return $txt;
-                        fwrite($myfile, $txt);
-                        fclose($myfile);
+
+                        // log message
+                        $txt = ":New Client (".$client_name.") successfully registered by  ".session('Usernames')." added! PPPoE Assignment! but settings overwritten";
+                        $this->log($txt);
                         // end of log file
                     }else{
                         // add the ppp profile
@@ -1019,36 +1008,18 @@ class Clients extends Controller
                             "comment"  => $client_name." (".$client_address." - ".$location_coordinates.") - ".$client_acc_number,
                             "disabled" => "false"
                         ));
-    
-                        // log file capture error
-                        // read the data 
-                        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                        $existing_txt = fread($myfile,$file_sizes);
-                        // return $existing_txt;
-                        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                        $date = date("dS M Y (H:i:sa)");
-                        $txt = $date.":New Client (".$client_name.") successfully registered by  ".session('Usernames')." added! PPPoE Assignment!\n".$existing_txt;
-                        // return $txt;
-                        fwrite($myfile, $txt);
-                        fclose($myfile);
+
+                        // log message
+                        $txt = ":New Client (".$client_name.") successfully registered by  ".session('Usernames')." added! PPPoE Assignment!";
+                        $this->log($txt);
                         // end of log file
                     }
                 }
 
                 if ($allow_router_changes == "off") {
-                    // log file capture error
-                    // read the data 
-                    $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                    $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                    $existing_txt = fread($myfile,$file_sizes);
-                    // return $existing_txt;
-                    $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                    $date = date("dS M Y (H:i:sa)");
-                    $txt = $date.":New Client (".$client_name.") successfully registered by  ".session('Usernames')." added to the database only!\n".$existing_txt;
-                    // return $txt;
-                    fwrite($myfile, $txt);
-                    fclose($myfile);
+                    // log message
+                    $txt = ":New Client (".$client_name.") successfully registered by  ".session('Usernames')." added to the database only!";
+                    $this->log($txt);
                     // end of log file
                 }
 
@@ -1239,18 +1210,8 @@ class Clients extends Controller
                 $sstp_password = $router_data[0]->sstp_password;
                 $api_port = $router_data[0]->api_port;
 
-                // connect to the sstp server to get the routers ip address based on the username and password
-                // first get the sstp server credentials
-                $sstp_settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
-                if (count($sstp_settings) == 0) {
-                    $error = "The SSTP server is not set, Contact your administrator!";
-                    session()->flash("network_presence",$error);
-                    return redirect(url()->previous());
-                }
-
-                // connect to the server
-                $sstp_value = $this->isJson($sstp_settings[0]->value) ? json_decode($sstp_settings[0]->value) : null;
-
+                // connect to the router and set the sstp client
+                $sstp_value = $this->getSSTPAddress();
                 if ($sstp_value == null) {
                     $error = "The SSTP server is not set, Contact your administrator!";
                     session()->flash("network_presence",$error);
@@ -1258,7 +1219,7 @@ class Clients extends Controller
                 }
 
                 // connect to the router and set the sstp client
-                $server_ip_address = "192.168.88.225";
+                $server_ip_address = $sstp_value->ip_address;
                 $user = $sstp_value->username;
                 $pass = $sstp_value->password;
                 $port = 8728;
@@ -1452,19 +1413,9 @@ class Clients extends Controller
                         }
                     }
 
-
-                    // log file capture error
-                    // read the data 
-                    $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                    $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                    $existing_txt = fread($myfile,$file_sizes);
-                    // return $existing_txt;
-                    $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                    $date = date("dS M Y (H:i:sa)");
-                    $txt = $date.":New Client (".$client_name.") successfully registered by  ".session('Usernames')." to database and router! Static Assignment!\n".$existing_txt;
-                    // return $txt;
-                    fwrite($myfile, $txt);
-                    fclose($myfile);
+                    // log message
+                    $txt = ":New Client (".$client_name.") successfully registered by  ".session('Usernames')." to database and router! Static Assignment!";
+                    $this->log($txt);
                     // end of log file
 
                     // return to the main page
@@ -1596,21 +1547,11 @@ class Clients extends Controller
                 }
                 // DB::delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
                 $update = DB::update("UPDATE `client_tables` SET `date_changed` = ?, `deleted` = '1' WHERE `client_id` = ?",[date("YmdHis"),$user_id]);
-        
-                // log file capture error
-                // read the data 
-                $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                $existing_txt = fread($myfile,$file_sizes);
-                // return $existing_txt;
-                $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                $date = date("dS M Y (H:i:sa)");
-                $txt = $date.":Client (".$client_name.") has been deleted by ".session('Usernames')."!\n".$existing_txt;
-                // return $txt;
-                fwrite($myfile, $txt);
-                fclose($myfile);
+
+                // log message
+                $txt = ":Client (".$client_name.") has been deleted by ".session('Usernames')."!";
+                $this->log($txt);
                 // end of log file
-                // return redirect("/Clients");
             }elseif ($user_data[0]->assignment == "pppoe"){
                 // remove the client secret and all active connections associated to it
                 // get secrets
@@ -1707,19 +1648,10 @@ class Clients extends Controller
                 }
                 // DB::delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
                 DB::update("UPDATE `client_tables` SET `date_changed` = ? , `deleted` = '1' WHERE `client_id` = ?",[date("YmdHis"),$user_id]);
-            
-                // log file capture error
-                // read the data 
-                $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                $existing_txt = fread($myfile,$file_sizes);
-                // return $existing_txt;
-                $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                $date = date("dS M Y (H:i:sa)");
-                $txt = $date.":Client (".$client_name.") has been deleted by ".session('Usernames')."!\n".$existing_txt;
-                // return $txt;
-                fwrite($myfile, $txt);
-                fclose($myfile);
+
+                // log message
+                $txt = ":Client (".$client_name.") has been deleted by ".session('Usernames')."!";
+                $this->log($txt);
                 // end of log file
             }
         }else{
@@ -1881,19 +1813,10 @@ class Clients extends Controller
                 // DB::delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
                 DB::update("UPDATE `client_tables` SET `date_changed` = ? , `deleted` = '1' WHERE `client_id` = ?",[date("YmdHis"),$user_id]);
                 session()->flash("success",".".$client_name." has been deleted successfully!");
-        
-                // log file capture error
-                // read the data 
-                $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                $existing_txt = fread($myfile,$file_sizes);
-                // return $existing_txt;
-                $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                $date = date("dS M Y (H:i:sa)");
-                $txt = $date.":Client (".$client_name.") has been deleted by ".session('Usernames')."!\n".$existing_txt;
-                // return $txt;
-                fwrite($myfile, $txt);
-                fclose($myfile);
+
+                // log message
+                $txt = ":Client (".$client_name.") has been deleted by ".session('Usernames')."!";
+                $this->log($txt);
                 // end of log file
                 return redirect("/Clients");
             }elseif ($user_data[0]->assignment == "pppoe"){
@@ -1988,20 +1911,10 @@ class Clients extends Controller
                     // DB::delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
                     DB::update("UPDATE `client_tables` SET `date_changed` = ? , `deleted` = '1' WHERE `client_id` = ?",[date("YmdHis"),$user_id]);
                     session()->flash("success",".".$client_name." has been deleted successfully!");
-            
-                    // log file capture error
-                    // read the data 
-                    $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                    $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                    $existing_txt = fread($myfile,$file_sizes);
-                    // return $existing_txt;
-                    $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                    $date = date("dS M Y (H:i:sa)");
-                    $txt = $date.":Client (".$client_name.") has been deleted by ".session('Usernames')."!\n".$existing_txt;
-                    // return $txt;
-                    fwrite($myfile, $txt);
-                    fclose($myfile);
-                    // end of log file
+
+                    // log message
+                    $txt = ":Client (".$client_name.") has been deleted by ".session('Usernames')."!";
+                    $this->log($txt);
                     return redirect("/Clients");
                 }
             }
@@ -2060,24 +1973,16 @@ class Clients extends Controller
         $sstp_password = $router_data[0]->sstp_password;
         $api_port = $router_data[0]->api_port;
 
-        // connect to the sstp server to get the routers ip address based on the username and password
-        // first get the sstp server credentials
-        $sstp_settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
-        if (count($sstp_settings) == 0) {
-            echo "The SSTP server is not set, Contact your administrator!";
-            return "";
-        }
-
-        // connect to the server
-        $sstp_value = $this->isJson($sstp_settings[0]->value) ? json_decode($sstp_settings[0]->value) : null;
-
+        // connect to the router and set the sstp client
+        $sstp_value = $this->getSSTPAddress();
         if ($sstp_value == null) {
-            echo "The SSTP server is not set, Contact your administrator!";
-            return "";
+            $error = "The SSTP server is not set, Contact your administrator!";
+            session()->flash("network_presence",$error);
+            return redirect(url()->previous());
         }
 
         // connect to the router and set the sstp client
-        $ip_address = "192.168.88.225";
+        $ip_address = $sstp_value->ip_address;
         $user = $sstp_value->username;
         $pass = $sstp_value->password;
         $port = 8728;
@@ -2133,24 +2038,18 @@ class Clients extends Controller
         $sstp_password = $router_data[0]->sstp_password;
         $api_port = $router_data[0]->api_port;
 
-        // connect to the sstp server to get the routers ip address based on the username and password
-        // first get the sstp server credentials
-        $sstp_settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
-        if (count($sstp_settings) == 0) {
-            echo "The SSTP server is not set, Contact your administrator!";
-            return "";
-        }
+        
 
-        // connect to the server
-        $sstp_value = $this->isJson($sstp_settings[0]->value) ? json_decode($sstp_settings[0]->value) : null;
-
+        // connect to the router and set the sstp client
+        $sstp_value = $this->getSSTPAddress();
         if ($sstp_value == null) {
-            echo "The SSTP server is not set, Contact your administrator!";
-            return "";
+            $error = "The SSTP server is not set, Contact your administrator!";
+            session()->flash("network_presence",$error);
+            return redirect(url()->previous());
         }
 
         // connect to the router and set the sstp client
-        $ip_address = "192.168.88.225";
+        $ip_address = $sstp_value->ip_address;
         $user = $sstp_value->username;
         $pass = $sstp_value->password;
         $port = 8728;
@@ -2444,19 +2343,10 @@ class Clients extends Controller
                 ]);
                 // return $json_data;
                 session()->flash("success","".$client_data[0]->client_name." refferer is set to ".$refferer_data[0]->client_name." and will recieve Kes ".number_format($refferer_amount)."!");
-        
-                // log file capture error
-                // read the data 
-                $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                $existing_txt = fread($myfile,$file_sizes);
-                // return $existing_txt;
-                $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                $date = date("dS M Y (H:i:sa)");
-                $txt = $date."".$client_data[0]->client_name." refferer is updated to ".$refferer_data[0]->client_name." and will recieve Kes ".number_format($refferer_amount)." by ".session('Usernames')."!\n".$existing_txt;
-                // return $txt;
-                fwrite($myfile, $txt);
-                fclose($myfile);
+
+                // log message
+                $txt = $client_data[0]->client_name." refferer is updated to ".$refferer_data[0]->client_name." and will recieve Kes ".number_format($refferer_amount)." by ".session('Usernames')."!";
+                $this->log($txt);
                 // end of log file
                 return redirect("Clients/View/".$user_id);
             }else {
@@ -2474,19 +2364,10 @@ class Clients extends Controller
                 ]);
                 // return $json_data;
                 session()->flash("success","".$client_data[0]->client_name." refferer is set  to ".$refferer_data[0]->client_name." and will recieve Kes ".number_format($refferer_amount)."!");
-        
-                // log file capture error
-                // read the data 
-                $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                $existing_txt = fread($myfile,$file_sizes);
-                // return $existing_txt;
-                $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                $date = date("dS M Y (H:i:sa)");
-                $txt = $date."".$client_data[0]->client_name." refferer is set to ".$refferer_data[0]->client_name." and will recieve Kes ".number_format($refferer_amount)." by ".session('Usernames')."!\n".$existing_txt;
-                // return $txt;
-                fwrite($myfile, $txt);
-                fclose($myfile);
+
+                // log message
+                $txt = $client_data[0]->client_name." refferer is set to ".$refferer_data[0]->client_name." and will recieve Kes ".number_format($refferer_amount)." by ".session('Usernames')."!";
+                $this->log($txt);
                 // end of log file
                 return redirect("Clients/View/".$user_id);
             }
@@ -2610,24 +2491,14 @@ class Clients extends Controller
                     $sms_table->save();
                 }
             }
-    
-    
-            // log file capture error
-            // read the data 
-            $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-            $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-            $existing_txt = fread($myfile,$file_sizes);
-            // return $existing_txt;
-            $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-            $date = date("dS M Y (H:i:sa)");
+            
+            // log message
             if ($freeze_type == "definate"){
-                $txt = $date.": ".$client_data[0]->client_name." has been frozen for $days untill ".date("dS M Y ",strtotime($freeze_date))." by ".session('Usernames')."!\n".$existing_txt;
+                $txt = $client_data[0]->client_name." has been frozen for $days untill ".date("dS M Y ",strtotime($freeze_date))." by ".session('Usernames')."!";
             }else{
-                $txt = $date.": ".$client_data[0]->client_name." has been frozen for Indefinately by ".session('Usernames')."!\n".$existing_txt;
+                $txt = $client_data[0]->client_name." has been frozen for Indefinately by ".session('Usernames')."!";
             }
-            // return $txt;
-            fwrite($myfile, $txt);
-            fclose($myfile);
+            $this->log($txt);
             // end of log file
             return redirect("Clients/View/".$client_id);
         }else{
@@ -2753,25 +2624,13 @@ class Clients extends Controller
                     $sms_table->save();
                 }
             }
-    
-    
-            // log file capture error
-            // read the data 
-            $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-            $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-            $existing_txt = fread($myfile,$file_sizes);
-            // return $existing_txt;
-            $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-            $date = date("dS M Y (H:i:sa)");
+
             if ($freeze_type == "definate"){
-                $txt = $date.": ".$client_data[0]->client_name." will be frozen on ".date("D dS M Y",strtotime($freezing_date))." for $days untill ".date("dS M Y ",strtotime($freeze_date)).". Action done by ".session('Usernames')."!\n".$existing_txt;
+                $txt = $client_data[0]->client_name." will be frozen on ".date("D dS M Y",strtotime($freezing_date))." for $days untill ".date("dS M Y ",strtotime($freeze_date)).". Action done by ".session('Usernames')."!";
             }else{
-                $txt = $date.": ".$client_data[0]->client_name." will be frozen on ".date("D dS M Y",strtotime($freezing_date))." Indefinately. Action done by ".session('Usernames')."!\n".$existing_txt;
+                $txt = $client_data[0]->client_name." will be frozen on ".date("D dS M Y",strtotime($freezing_date))." Indefinately. Action done by ".session('Usernames')."!";
             }
-            // return $txt;
-            fwrite($myfile, $txt);
-            fclose($myfile);
-            // end of log file
+            $this->log($txt);
             return redirect("Clients/View/".$client_id);
         }
     }
@@ -2788,20 +2647,9 @@ class Clients extends Controller
 
         $client = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
         $client_name = $client[0]->client_name;
-
-        // log file capture error
-        // read the data 
-        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-        $existing_txt = fread($myfile,$file_sizes);
-        // return $existing_txt;
-        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-        $date = date("dS M Y (H:i:sa)");
-        $txt = $date.":Client ( $client_name ) expiration date changed to ".date("D dS M Y",strtotime($new_expiration)).""."! by ".session('Usernames')."\n".$existing_txt;
-        // return $txt;
-        fwrite($myfile, $txt);
-        fclose($myfile);
-        // end of log file
+        
+        $txt = ":Client ( $client_name ) expiration date changed to ".date("D dS M Y",strtotime($new_expiration)).""."! by ".session('Usernames');
+        $this->log($txt);
         // redirect to the client table
         session()->flash("success","Updates have been done successfully!");
         return redirect("Clients/View/".$client_id);
@@ -2911,19 +2759,8 @@ class Clients extends Controller
             }
         }
 
-        
-        // log file capture error
-        // read the data 
-        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-        $existing_txt = fread($myfile,$file_sizes);
-        // return $existing_txt;
-        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-        $date = date("dS M Y (H:i:sa)");
-        $txt = $date.":Client ( $client_name ) freeze status changed to in-active by ".session('Usernames').""."!\n".$existing_txt;
-        // return $txt;
-        fwrite($myfile, $txt);
-        fclose($myfile);
+        $txt = ":Client ( $client_name ) freeze status changed to in-active by ".session('Usernames').""."!";
+        $this->log($txt);
         // end of log file
         session()->flash("success","Client Unfrozen successfully".($full_days != "" ? " and ".$full_days." has been deducted to the expiration date":"")."!");
         return redirect("Clients/View/".$client_id);
@@ -2941,20 +2778,9 @@ class Clients extends Controller
 
         $client = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
         $client_name = $client[0]->client_name;
-        
-        // log file capture error
-        // read the data 
-        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-        $existing_txt = fread($myfile,$file_sizes);
-        // return $existing_txt;
-        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-        $date = date("dS M Y (H:i:sa)");
-        $txt = $date.":Client ( $client_name ) has been frozen by ".session('Usernames').""."!\n".$existing_txt;
-        // return $txt;
-        fwrite($myfile, $txt);
-        fclose($myfile);
-        // end of log file
+
+        $txt = ":Client ( $client_name ) has been frozen by ".session('Usernames')."!";
+        $this->log($txt);
         session()->flash("success","Client Unfrozen successfully!");
         return redirect("Clients/View/".$client_id);
     }
@@ -2973,18 +2799,8 @@ class Clients extends Controller
         $client = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
         $client_name = $client[0]->client_name;
         
-        // log file capture error
-        // read the data 
-        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-        $existing_txt = fread($myfile,$file_sizes);
-        // return $existing_txt;
-        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-        $date = date("dS M Y (H:i:sa)");
-        $txt = $date.":Client ( $client_name ) wallet balance has been changed to Kes $wallet_amount by ".session('Usernames').""."!\n".$existing_txt;
-        // return $txt;
-        fwrite($myfile, $txt);
-        fclose($myfile);
+        $txt = ":Client ( $client_name ) wallet balance has been changed to Kes $wallet_amount by ".session('Usernames').""."!";
+        $this->log($txt);
         // end of log file
         session()->flash("success","Wallet balance has been successfully changed!");
         return redirect("Clients/View/".$client_id);
@@ -2994,8 +2810,13 @@ class Clients extends Controller
         $clients_id = $req->input('clients_id');
         // check user assignment 
         $client_data = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '".$clients_id."' AND `deleted` = '0'");
+        // return $client_data;
         if (count($client_data) > 0) {
             if($client_data[0]->assignment == "static"){
+                if(!$req->input("interface_name")){
+                    session()->flash("error","Kindly select the interface the client is to be assigned!");
+                    return redirect(url()->previous());
+                }
                 // get the client information
                 $client_name = $req->input('client_name');
                 $client_address = $req->input('client_address');
@@ -3022,7 +2843,7 @@ class Clients extends Controller
                 $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$router_name]);
                 if (count($router_data) == 0) {
                     $error = "Router selected does not exist!";
-                    session()->flash("network_presence",$error);
+                    session()->flash("error",$error);
                     return redirect(url()->previous());
                 }
                 
@@ -3031,18 +2852,10 @@ class Clients extends Controller
                 $sstp_password = $router_data[0]->sstp_password;
                 $api_port = $router_data[0]->api_port;
 
-                // connect to the sstp server to get the routers ip address based on the username and password
-                // first get the sstp server credentials
-                $sstp_settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
-                if (count($sstp_settings) == 0) {
-                    $error = "The SSTP server is not set, Contact your administrator!";
-                    session()->flash("network_presence",$error);
-                    return redirect(url()->previous());
-                }
+                
 
-                // connect to the server
-                $sstp_value = $this->isJson($sstp_settings[0]->value) ? json_decode($sstp_settings[0]->value) : null;
-
+                // connect to the router and set the sstp client
+                $sstp_value = $this->getSSTPAddress();
                 if ($sstp_value == null) {
                     $error = "The SSTP server is not set, Contact your administrator!";
                     session()->flash("network_presence",$error);
@@ -3050,7 +2863,7 @@ class Clients extends Controller
                 }
 
                 // connect to the router and set the sstp client
-                $server_ip_address = "192.168.88.225";
+                $server_ip_address = $sstp_value->ip_address;
                 $user = $sstp_value->username;
                 $pass = $sstp_value->password;
                 $port = 8728;
@@ -3068,477 +2881,116 @@ class Clients extends Controller
                 $router_ip_addresses = [];
                 $router_simple_queues = [];
                 if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)){
-                    // connect and get the router ip address and queues
-                    $ip_addr = $API->comm("/ip/address/print");
-                    $router_ip_addresses = $ip_addr;
-
-                    // get the simple queues
-                    $simple_queues = $API->comm("/queue/simple/print");
-                    $router_simple_queues = $simple_queues;
-
-                    // check if the queues and ip address for the existing clients configuration
-                    // if the configurations are present update them accordingly
-                    return $router_simple_queues;
-                    
-                    // check if the network is present
-                    $old_network = $client_data[0]->client_network;
-                    $old_client_gw = $client_data[0]->client_default_gw;
-                    $present = 0;
-                    $ip_id = 0;
-                    for ($index=0; $index < count($router_ip_addresses); $index++) { 
-                        if ($router_ip_addresses[$index]['network'] == $old_network) {
-                            $present = 1;
-                            $ip_id = $router_ip_addresses[$index]['.id'];
-                            break;
+                    if($req->input('allow_router_changes') == "on"){
+                        // connect and get the router ip address and queues
+                        $ip_addr = $API->comm("/ip/address/print");
+                        $router_ip_addresses = $ip_addr;
+    
+                        // get the simple queues
+                        $simple_queues = $API->comm("/queue/simple/print");
+                        $router_simple_queues = $simple_queues;
+    
+                        // check if the queues and ip address for the existing clients configuration
+                        // if the configurations are present update them accordingly
+                        // return $router_simple_queues;
+                        
+                        // check if the network is present
+                        $old_network = $client_data[0]->client_network;
+                        $old_client_gw = $client_data[0]->client_default_gw;
+                        $present = 0;
+                        $ip_id = 0;
+                        for ($index=0; $index < count($router_ip_addresses); $index++) { 
+                            if ($router_ip_addresses[$index]['network'] == $old_network) {
+                                $present = 1;
+                                $ip_id = $router_ip_addresses[$index]['.id'];
+                                break;
+                            }
                         }
-                    }
-
-                    // if present update the network details
-                    if ($present == 1) {
-                        // set the ip address using its id
-                        $result = $API->comm("/ip/address/set",
-                        array(
-                            "address"     => $req->input('client_gw'),
-                            "interface" => $req->input('interface_name'),
-                            "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
-                            ".id" => $ip_id
-                        ));
-                        if(count($result) > 0){
-                            // this means there is an error
-                            $API->comm("/ip/address/set",
+    
+                        // if present update the network details
+                        if ($present == 1) {
+                            // set the ip address using its id
+                            $result = $API->comm("/ip/address/set",
                             array(
+                                "address"     => $req->input('client_gw'),
                                 "interface" => $req->input('interface_name'),
                                 "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
                                 ".id" => $ip_id
                             ));
+                            if(count($result) > 0){
+                                // this means there is an error
+                                $API->comm("/ip/address/set",
+                                array(
+                                    "interface" => $req->input('interface_name'),
+                                    "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
+                                    ".id" => $ip_id
+                                ));
+                            }
+                        }else{
+                            // if the ip address is not present add it!
+                            // add a new ip address
+                            $API->comm("/ip/address/add", 
+                            array(
+                                "address"     => $req->input('client_gw'),
+                                "interface" => $req->input('interface_name'),
+                                "network" => $req->input('client_network'),
+                                "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number
+                            ));
                         }
-                    }else{
-                        // if the ip address is not present add it!
-                        // add a new ip address
-                        $API->comm("/ip/address/add", 
-                        array(
-                            "address"     => $req->input('client_gw'),
-                            "interface" => $req->input('interface_name'),
-                            "network" => $req->input('client_network'),
-                            "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number
-                        ));
-                    }
-
-                    // simple queues
-                    // loop through the queues to see if the current queue is present!
-                    $queue_id = 0;
-                    $present = 0;
-                    
-                    for ($index=0; $index < count($router_simple_queues); $index++) { 
-                        if ($router_simple_queues[$index]['target'] == $client_network."/".explode("/",$client_gw_name)[1]) {
-                            $present = 1;
-                            $queue_id = $router_simple_queues[$index]['.id'];
-                            break;
+    
+                        // simple queues
+                        // loop through the queues to see if the current queue is present!
+                        $queue_id = 0;
+                        $present = 0;
+                        
+                        for ($index=0; $index < count($router_simple_queues); $index++) { 
+                            if ($router_simple_queues[$index]['target'] == $client_network."/".explode("/",$client_gw_name)[1]) {
+                                $present = 1;
+                                $queue_id = $router_simple_queues[$index]['.id'];
+                                break;
+                            }
                         }
-                    }
+            
+                        $upload = $upload_speed.$unit1;
+                        $download = $download_speed.$unit2;
+    
+                        // return $old_network."/".explode("/",$old_client_gw)[1];
+                        if ($present == 1) {
+                            // set the queue using the ip address
+                            $API->comm("/queue/simple/set",
+                                array(
+                                    "name" => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
+                                    "target" => $client_network."/".explode("/",$client_gw_name)[1],
+                                    "max-limit" => $upload."/".$download,
+                                    ".id" => $queue_id
+                                )
+                            );
+                        }else {
+                            // add the queue to the list
+                            $API->comm("/queue/simple/add",
+                                array(
+                                    "name" => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
+                                    "target" => $client_network."/".explode("/",$client_gw_name)[1],
+                                    "max-limit" => $upload."/".$download
+                                )
+                            );
+                        }
         
-                    $upload = $upload_speed.$unit1;
-                    $download = $download_speed.$unit2;
-
-                    // return $old_network."/".explode("/",$old_client_gw)[1];
-                    if ($present == 1) {
-                        // set the queue using the ip address
-                        $API->comm("/queue/simple/set",
-                            array(
-                                "name" => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
-                                "target" => $client_network."/".explode("/",$client_gw_name)[1],
-                                "max-limit" => $upload."/".$download,
-                                ".id" => $queue_id
-                            )
-                        );
-                    }else {
-                        // add the queue to the list
-                        $API->comm("/queue/simple/add",
-                            array(
-                                "name" => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
-                                "target" => $client_network."/".explode("/",$client_gw_name)[1],
-                                "max-limit" => $upload."/".$download
-                            )
-                        );
+                        $txt = ":Client (".$client_name.") information updated by ".session('Usernames')." to both the database and the router";
+                        $this->log($txt);
+                        // end of log file
+                    }else{
+        
+                        $txt = ":Client (".$client_name.") information updated by ".session('Usernames')." to on the database.";
+                        $this->log($txt);
+                        // end of log file
                     }
 
                     // update the clients
-                }else{
-                    session()->flash("error","An error occured! Check your router credentials and try again!");
-                    return redirect(url()->previous());
-                }
-                
-                // get ip
-                // Initiate curl session in a variable (resource)
-                $curl_handle = curl_init();
-        
-                $baseUrl = explode(":",url('/'));
-                $local_url = $baseUrl[0].":".$baseUrl[1];
-                $url = "$local_url:81/crontab/getIpaddress.php?r_ip=true&r_id=".$router_name;
-        
-                // Set the curl URL option
-                curl_setopt($curl_handle, CURLOPT_URL, $url);
-        
-                // This option will return data as a string instead of direct output
-                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-        
-                // Execute curl & store data in a variable
-                $curl_data = curl_exec($curl_handle);
-        
-                curl_close($curl_handle);
-        
-                // Decode JSON into PHP array
-                $router_ip_addresses = json_decode($curl_data);
-        
-                // get the queue
-                // Initiate curl session in a variable (resource)
-                $curl_handle = curl_init();
-        
-                $baseUrl = explode(":",url('/'));
-                $local_url = $baseUrl[0].":".$baseUrl[1];
-                $url = "$local_url:81/crontab/getIpaddress.php?r_queues=true&r_id=".$router_name;
-        
-                // Set the curl URL option
-                curl_setopt($curl_handle, CURLOPT_URL, $url);
-        
-                // This option will return data as a string instead of direct output
-                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-        
-                // Execute curl & store data in a variable
-                $curl_data = curl_exec($curl_handle);
-        
-                curl_close($curl_handle);
-        
-                // Decode JSON into PHP array
-                $router_simple_queues = json_decode($curl_data);
-                // return $router_simple_queues;
-        
-        
-                if ($req->input('allow_router_changes') == "on") {
-                    // lets get the router connection information
-                    $router_data = DB::select("SELECT * FROM `router_tables` WHERE `router_id` = '".$req->input('router_name')."' AND `deleted` = '0'");
-                    // connect to the router
-                    $API = new routeros_api();
-                    $API->debug = false;
-                    // get the clients data and update in the database
-                    // check if the ip addresses of the client is updated and the interface
-                    $clientsData = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '".$req->input('clients_id')."' AND `deleted` = '0'");
-                    // print the ip addresses on the address list
-                    // edit the network of the clients
-                    // if the address of the user is used as a parent of other clients don`t delete the address in the ip address list
-                    // add the new address to the address table
-                    // if the target is a child of a network in the queue list delete the queue and add a new address from the new network
-                    if ($req->input('client_network') != $clientsData[0]->client_network) {
-                        // if ($req->input('client_gw') != $clientsData[0]->client_default_gw) {
-                            // print the ip address from the address list
-                            if ($API->connect($router_data[0]->router_ipaddr,$router_data[0]->router_api_username,$router_data[0]->router_api_password,$router_data[0]->router_api_port)) {
-                                $client_data = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$clients_id' AND `deleted` = '0'");
-                                // return $client_data;
-                                $old_network = $client_data[0]->client_network;
-                                $old_client_gw = $client_data[0]->client_default_gw;
-                                // check if the ip is present if its not present add it if not change the data
-                                // return $old_client_gw;
-                                $ip_address = $router_ip_addresses;
-                                // return $ip_address;
-                                $present = 0;
-                                $myids = "";
-                                foreach ($ip_address as $key => $value) {
-                                    foreach ($value as $key1 => $value1) {
-                                        if ($key1 == ".id") {
-                                            $myids = $value1;
-                                        }
-                                        if ($key1 == "network") {
-                                            if ($value1 == $old_network) {
-                                                $present = 1;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    if ($present == 1) {
-                                        break;
-                                    }
-                                }
-                                // return $old_network;
-                                // if the ip address is present change its details
-                                if ($present == 1) {
-                                    // set the ip address using its id
-                                    $result = $API->comm("/ip/address/set",
-                                    array(
-                                        "address"     => $req->input('client_gw'),
-                                        "interface" => $req->input('interface_name'),
-                                        "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
-                                        ".id" => $myids
-                                    ));
-                                    if(count($result) > 0){
-                                        // this means there is an error
-                                        $API->comm("/ip/address/set",
-                                        array(
-                                            "interface" => $req->input('interface_name'),
-                                            "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
-                                            ".id" => $myids
-                                        ));
-                                    }
-                                }else {
-                                    // add a new ip address
-                                    $API->comm("/ip/address/add", 
-                                    array(
-                                        "address"     => $req->input('client_gw'),
-                                        "interface" => $req->input('interface_name'),
-                                        "network" => $req->input('client_network'),
-                                        "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number
-                                    ));
-                                }
-                                // return "New ip = ".$req->input('client_network');
-                                // check if there is a queue if its not present add if its present set it
-                                $queueList = $router_simple_queues;
-                                $present = 0;
-                                $queue_id = "";
-                                foreach ($queueList as $key => $value) {
-                                    foreach ($value as $key1 => $value1) {
-                                        if($key1 == ".id"){
-                                            $queue_id = $value1;
-                                        }
-                                        if($value1 == $old_network."/".explode("/",$old_client_gw)[1]){
-                                            $present = 1;
-                                            break;
-                                        }
-                                    }
-                                    if ($present == 1) {
-                                        break;
-                                    }
-                                }
-        
-                                $upload = $upload_speed.$unit1;
-                                $download = $download_speed.$unit2;
-        
-                                // return $old_network."/".explode("/",$old_client_gw)[1];
-                                if ($present == 1) {
-                                    // set the queue using the ip address
-                                    $API->comm("/queue/simple/set",
-                                        array(
-                                            "name" => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
-                                            "target" => $client_network."/".explode("/",$client_gw_name)[1],
-                                            "max-limit" => $upload."/".$download,
-                                            ".id" => $queue_id
-        
-                                        )
-                                    );
-                                }else {
-                                    // add the queue to the list
-                                    $API->comm("/queue/simple/add",
-                                        array(
-                                            "name" => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
-                                            "target" => $client_network."/".explode("/",$client_gw_name)[1],
-                                            "max-limit" => $upload."/".$download
-                                        )
-                                    );
-                                }
-        
-                                $upload = $upload_speed.$unit1;
-                                $download = $download_speed.$unit2;
-            
-                                // update the table
-                                DB::table('client_tables')
-                                        ->where('client_id', $clients_id)
-                                        ->update([
-                                            'client_name' => $client_name,
-                                            'client_network' => $client_network,
-                                            'client_default_gw' => $client_gw_name,
-                                            'max_upload_download' => $upload."/".$download,
-                                            'monthly_payment' => $client_monthly_pay,
-                                            'router_name' => $router_name,
-                                            'client_interface' => $interface_name,
-                                            'comment' => $req->input('comments'),
-                                            'clients_contacts' => $client_phone,
-                                            'client_username' => $req->input('client_username'),
-                                            'client_password' => $client_password,
-                                            'location_coordinates' => $location_coordinates,
-                                            'client_address' => $req->input('client_address'),
-                                            'date_changed' => date("YmdHis")
-                                        ]);
-        
-                                // log file capture error
-                                // read the data 
-                                $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                                $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                                $existing_txt = fread($myfile,$file_sizes);
-                                // return $existing_txt;
-                                $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                                $date = date("dS M Y (H:i:sa)");
-                                $txt = $date.":Client (".$client_name.") information modified by ".session('Usernames')." on the router\n".$existing_txt;
-                                // return $txt;
-                                fwrite($myfile, $txt);
-                                fclose($myfile);
-                                // end of log file
-                                        
-                                // redirect to the client table
-                                session()->flash("success","Updates have been done successfully!");
-                                return redirect("Clients/View/".$clients_id);
-                                $API->disconnect();
-                            }else {
-                                session()->flash("error","Cannot connect to the router check if its active or its ip address has been changed");
-                                return redirect("Clients/View/".$clients_id);
-                            }
-                        // }else {
-                        //     session()->flash("error","Updates cant be done because the ip address is different to the network!");
-                        //     return redirect("Clients/View/".$clients_id);
-                        // }
-                    }else {
-                        session()->flash("success","Updates have been done successfully!");
-                        // update if the ip addresses have not changed
-                        // go throught the ips and make changes on the new ip changes
-                        $API = new routeros_api();
-                        $API->debug = false;
-                        if ($API->connect($router_data[0]->router_ipaddr,$router_data[0]->router_api_username,$router_data[0]->router_api_password,$router_data[0]->router_api_port)) {
-                            // get the clients old network and ip address
-                            $client_data = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$clients_id' AND `deleted` = '0'");
-                            // return $client_data;
-                            $old_network = $client_data[0]->client_network;
-                            $old_client_gw = $client_data[0]->client_default_gw;
-                            // check if the ip is present if its not present add it if not change the data
-                            $ip_address = $router_ip_addresses;
-                            // return $ip_address;
-                            $present = 0;
-                            $myids = "";
-                            foreach ($ip_address as $key => $value) {
-                                foreach ($value as $key1 => $value1) {
-                                    if ($key1 == ".id") {
-                                        $myids = $value1;
-                                    }
-                                    if ($value1 == $old_network) {
-                                        $present = 1;
-                                        break;
-                                    }
-                                }
-                                if ($present == 1) {
-                                    break;
-                                }
-                            }
-                            // return $old_network;
-                            // if the ip address is present change its details
-                            if ($present == 1) {
-                                // set the ip address using its id
-                                $result = $API->comm("/ip/address/set",
-                                array(
-                                    "address"     => $req->input('client_gw'),
-                                    "interface" => $req->input('interface_name'),
-                                    "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
-                                    ".id" => $myids
-                                ));
-                                if(count($result) > 0){
-                                    // this means there is an error
-                                    $API->comm("/ip/address/set",
-                                    array(
-                                        "interface" => $req->input('interface_name'),
-                                        "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
-                                        ".id" => $myids
-                                    ));
-                                }
-                            }else {
-                                // add a new ip address
-                                $API->comm("/ip/address/add", 
-                                array(
-                                    "address"     => $req->input('client_gw'),
-                                    "interface" => $req->input('interface_name'),
-                                    "network" => $req->input('client_network'),
-                                    "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number
-                                ));
-                            }
-        
-                            // check if there is a queue if its not present add if its present set it
-                            $queueList = $router_simple_queues;
-                            $present = 0;
-                            $queue_id = "";
-                            foreach ($queueList as $key => $value) {
-                                foreach ($value as $key1 => $value1) {
-                                    if($key1 == ".id"){
-                                        $queue_id = $value1;
-                                    }
-                                    if($value1 == $old_network."/".explode("/",$old_client_gw)[1]){
-                                        $present = 1;
-                                        break;
-                                    }
-                                }
-                                if ($present == 1) {
-                                    break;
-                                }
-                            }
-        
-                            $upload = $upload_speed.$unit1;
-                            $download = $download_speed.$unit2;
-        
-                            // return $download;
-                            if ($present == 1) {
-                                // set the queue using the ip address
-                                $API->comm("/queue/simple/set",
-                                    array(
-                                        "name" => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
-                                        "target" => $client_network."/".explode("/",$client_gw_name)[1],
-                                        "max-limit" => $upload."/".$download,
-                                        ".id" => $queue_id
-        
-                                    )
-                                );
-                            }else {
-                                // add the queue to the list
-                                $API->comm("/queue/simple/add",
-                                    array(
-                                        "name" => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
-                                        "target" => $client_network."/".explode("/",$client_gw_name)[1],
-                                        "max-limit" => $upload."/".$download
-                                    )
-                                );
-                            }
-            
-            
-                            // update the user data in the database
-                                // update the table
-                            DB::table('client_tables')
-                            ->where('client_id', $clients_id)
-                            ->update([
-                                'client_name' => $client_name,
-                                'client_network' => $client_network,
-                                'client_default_gw' => $client_gw_name,
-                                'max_upload_download' => $upload."/".$download,
-                                'monthly_payment' => $client_monthly_pay,
-                                'router_name' => $router_name,
-                                'client_interface' => $interface_name,
-                                'comment' => $req->input('comments'),
-                                'clients_contacts' => $client_phone,
-                                'client_username' => $req->input('client_username'),
-                                'client_password' => $client_password,
-                                'location_coordinates' => $location_coordinates,
-                                'client_address' => $req->input('client_address'),
-                                'date_changed' => date("YmdHis")
-                            ]);
-                            session()->flash("success","Updates have been done successfully!");
-        
-                            // log file capture error
-                            // read the data 
-                            $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                            $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                            $existing_txt = fread($myfile,$file_sizes);
-                            // return $existing_txt;
-                            $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                            $date = date("dS M Y (H:i:sa)");
-                            $txt = $date.":Client (".$client_name.") information modified by ".session('Usernames')." on the router\n".$existing_txt;
-                            // return $txt;
-                            fwrite($myfile, $txt);
-                            fclose($myfile);
-                            // end of log file
-                        }else{
-                            session()->flash("error","Cannot connect to the router check if its active or its ip address has been changed");
-                        }
-                        // go through the ips and get the id for the ip to set with the new changes
-                        return redirect("Clients/View/".$clients_id);
-                    }
-                }else {
-                    // update the table
-        
                     $upload = $upload_speed.$unit1;
                     $download = $download_speed.$unit2;
-                    $comments = $client_name." (".$client_address.")";
-        
+
+                    // update the table
                     DB::table('client_tables')
                     ->where('client_id', $clients_id)
                     ->update([
@@ -3557,25 +3009,20 @@ class Clients extends Controller
                         'client_address' => $req->input('client_address'),
                         'date_changed' => date("YmdHis")
                     ]);
-        
-                    // log file capture error
-                    // read the data 
-                    $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                    $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                    $existing_txt = fread($myfile,$file_sizes);
-                    // return $existing_txt;
-                    $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                    $date = date("dS M Y (H:i:sa)");
-                    $txt = "".$date.":Client (".$client_name.") information modified by ".session('Usernames')." on the DB only\n".$existing_txt;
-                    // return $txt;
-                    fwrite($myfile, $txt);
-                    fclose($myfile);
-                    // end of log file
-                    session()->flash("success","Updates have been done successfully to the database, your router has not been changed!");
+                            
+                    // redirect to the client table
+                    $API->disconnect();
+                    session()->flash("success","Updates have been done successfully!");
+                    return redirect("Clients/View/".$clients_id);
+                }else{
+                    session()->flash("error","An error occured! Check your router credentials and try again!");
+                    return redirect(url()->previous());
                 }
-                // return $clientsData;
-    
             }elseif ($client_data[0]->assignment == "pppoe") {
+                if(!$req->input("pppoe_profile")){
+                    session()->flash("error","Kindly select the PPPOE profile the client is to be assigned!");
+                    return redirect(url()->previous());
+                }
                 // get the data for the ppoe clients
                 $clients_id = $req->input("clients_id");
                 $allow_router_changes = $req->input("allow_router_changes");
@@ -3593,55 +3040,66 @@ class Clients extends Controller
                 $client_username = $req->input("client_username");
                 $client_password = $req->input("client_password");
                 // check if the secret and the username is present in the router
+                
                 // if the secret is present in the router overwrite it
-
-                $curl_handle = curl_init();
-                $baseUrl = explode(":",url('/'));
-                $local_url = $baseUrl[0].":".$baseUrl[1];
-                $url = "$local_url:81/crontab/getIpaddress.php?r_ppoe_secrets=true&r_id=".$router_name;
-                // Set the curl URL option
-                curl_setopt($curl_handle, CURLOPT_URL, $url);
-                // This option will return data as a string instead of direct output
-                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                // Execute curl & store data in a variable
-                $curl_data = curl_exec($curl_handle);
-                curl_close($curl_handle);
-                // Decode JSON into PHP array
-                $router_secrets = json_decode($curl_data);
-                // loop through the secrets and find the name
-                $present = 0;
-                $secret_id = 0;
-                for ($index=0; $index < count($router_secrets); $index++) { 
-                    $secret = $router_secrets[$index];
-                    if ($secret->name == $client_secret_username) {
-                        $present = 1;
-                        foreach ($secret as $key => $value) {
-                            if ($key == ".id") {
-                                $secret_id = $value;
-                                break;
-                            }
-                        }
-                        break;
-                    }
+                // get the router data
+                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$router_name]);
+                if (count($router_data) == 0) {
+                    $error = "Router selected does not exist!";
+                    session()->flash("error",$error);
+                    return redirect(url()->previous());
                 }
-                // return $present;
-                if ($present == 1) {
-                    // set the client secret// proceed and set the user credentials
-                    $router_data = DB::select("SELECT * FROM `router_tables` WHERE `router_id` = '$router_name' AND `deleted` = '0' LIMIT 1");
-                    $ip_address = $router_data[0]->router_ipaddr;
-                    $router_api_username = $router_data[0]->router_api_username;
-                    $router_api_password = $router_data[0]->router_api_password;
-                    $router_api_port = $router_data[0]->router_api_port;
-            
-            
-                    // connect to the router and add the ip address and queues to the interface
-                    $API = new routeros_api();
-                    $API->debug = false;
-                    // check if the connection is valid
-                    if ($API->connect($ip_address, $router_api_username, $router_api_password, $router_api_port)){
-                        // add a new ip address
-                        $change_router = 0;
-                        if ($allow_router_changes == "on") {
+                
+                // get the sstp credentails they are also the api usernames
+                $sstp_username = $router_data[0]->sstp_username;
+                $sstp_password = $router_data[0]->sstp_password;
+                $api_port = $router_data[0]->api_port;
+                
+
+                // connect to the router and set the sstp client
+                $sstp_value = $this->getSSTPAddress();
+                if ($sstp_value == null) {
+                    $error = "The SSTP server is not set, Contact your administrator!";
+                    session()->flash("network_presence",$error);
+                    return redirect(url()->previous());
+                }
+
+                // connect to the router and set the sstp client
+                $server_ip_address = $sstp_value->ip_address;
+                $user = $sstp_value->username;
+                $pass = $sstp_value->password;
+                $port = 8728;
+
+                // check if the router is actively connected
+                $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
+                // return $client_router_ip;
+
+                // get ip address and queues
+                // start with IP address
+                // connect to the router and add the ip address and queues to the interface
+                $API = new routeros_api();
+                $API->debug = false;
+
+                $router_secrets = [];
+                if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)){
+                    $router_secrets = $API->comm("/ppp/secret/print");
+                    // return $router_secrets;
+
+                    // loop through the secrets and find the name
+                    $present = 0;
+                    $secret_id = 0;
+                    for ($index=0; $index < count($router_secrets); $index++) { 
+                        if ($router_secrets[$index]['name'] == $client_data[0]->client_secret) {
+                            $present = 1;
+                            $secret_id = $router_secrets[$index]['.id'];
+                            break;
+                        }
+                    }
+
+                    // 
+                    if ($allow_router_changes == "on"){
+                        // if present update the client secrets
+                        if ($present == 1) {
                             $API->comm("/ppp/secret/set", 
                             array(
                                 "name"     => $client_secret_username,
@@ -3652,8 +3110,47 @@ class Clients extends Controller
                                 "disabled" => "false",
                                 ".id" => $secret_id
                             ));
-                            $change_router = 1;
+                        }else{
+                            // if the secret is not found add the secrets
+                            $API->comm("/ppp/secret/add", 
+                            array(
+                                "name"     => $client_secret_username,
+                                "service" => "pppoe",
+                                "password" => $client_secret_password,
+                                "profile"  => $pppoe_profile,
+                                "comment"  => $client_name." (".$client_address." - ".$location_coordinates.") - ".$client_account_number,
+                                "disabled" => "false"
+                            ));
+                            // return $client_data;
                         }
+                    
+                        // disconnect
+                        $API->disconnect();
+
+                        // update the user data // update the table
+                        DB::table('client_tables')
+                        ->where('client_id', $clients_id)
+                        ->update([
+                            'client_name' => $client_name,
+                            'client_secret' => $client_secret_username,
+                            'client_secret_password' => $client_secret_password,
+                            'monthly_payment' => $client_monthly_pay,
+                            'router_name' => $router_name,
+                            'client_profile' => $pppoe_profile,
+                            'comment' => $req->input('comments'),
+                            'clients_contacts' => $client_phone,
+                            'client_username' => $req->input('client_username'),
+                            'client_password' => $client_password,
+                            'location_coordinates' => $location_coordinates,
+                            'client_address' => $client_address,
+                            'date_changed' => date("YmdHis")
+                        ]);
+        
+                        $txt = ":Client (".$client_name.") information updated by ".session('Usernames')." both on the database and the router!";
+                        $this->log($txt);
+                        // end of log file
+                    }else{
+
                         // update the user data // update the table
                         DB::table('client_tables')
                         ->where('client_id', $clients_id)
@@ -3673,106 +3170,36 @@ class Clients extends Controller
                             'date_changed' => date("YmdHis")
                         ]);
 
-                        // log file capture error
-                        // read the data 
-                        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                        $existing_txt = fread($myfile,$file_sizes);
-                        // return $existing_txt;
-                        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                        $date = date("dS M Y (H:i:sa)");
-                        $text = $change_router == 0 ? "" : "on router!";
-                        $txt = $date.":Client (".$client_name.") information modified by ".session('Usernames')." ".$text."\n".$existing_txt;
-                        // return $txt;
-                        fwrite($myfile, $txt);
-                        fclose($myfile);
-                        // end of log file
-                                
-                        // redirect to the client table
-                        session()->flash("success","Updates have been done successfully!");
-                        $API->disconnect();
-                        return redirect("Clients/View/".$clients_id);
-                    }else{
-                        session()->flash("error","Cannot connect to the router check if its active or its ip address has been changed");
-                        return redirect("Clients/View/".$clients_id);
-                    }
-                }else {
-                    // set the client secret
-                    // proceed and register the user
-                    $router_data = DB::select("SELECT * FROM `router_tables` WHERE `router_id` = '$router_name' AND `deleted` = '0' LIMIT 1");
-                    $ip_address = $router_data[0]->router_ipaddr;
-                    $router_api_username = $router_data[0]->router_api_username;
-                    $router_api_password = $router_data[0]->router_api_password;
-                    $router_api_port = $router_data[0]->router_api_port;
-            
-            
-                    // connect to the router and add the ip address and queues to the interface
-                    $API = new routeros_api();
-                    $API->debug = false;
-                    // check if the connection is valid
-                    if ($API->connect($ip_address, $router_api_username, $router_api_password, $router_api_port)){
-                        // add a new ip address
-                        $change_router = 0;
-                        if ($allow_router_changes == "on") {
-                            $API->comm("/ppp/secret/add", 
-                            array(
-                                "name"     => $client_secret_username,
-                                "service" => "pppoe",
-                                "password" => $client_secret_password,
-                                "profile"  => $pppoe_profile,
-                                "comment"  => $client_name." (".$client_address." - ".$location_coordinates.") - ".$client_account_number,
-                                "disabled" => "false"
-                            ));
-                            $change_router = 1;
-                        }
-                        // update the user data // update the table
-                            DB::table('client_tables')
-                            ->where('client_id', $clients_id)
-                            ->update([
-                                'client_name' => $client_name,
-                                'client_secret' => $client_secret_username,
-                                'client_secret_password' => $client_secret_password,
-                                'monthly_payment' => $client_monthly_pay,
-                                'router_name' => $router_name,
-                                'client_profile' => $pppoe_profile,
-                                'comment' => $req->input('comments'),
-                                'clients_contacts' => $client_phone,
-                                'client_username' => $req->input('client_username'),
-                                'client_password' => $client_password,
-                                'location_coordinates' => $location_coordinates,
-                                'client_address' => $client_address,
-                                'date_changed' => date("YmdHis")
-                            ]);
-
-                        // log file capture error
-                        // read the data 
-                        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                        $existing_txt = fread($myfile,$file_sizes);
-                        // return $existing_txt;
-                        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                        $date = date("dS M Y (H:i:sa)");
-                        $text = $change_router == 0 ? "" : "on router!";
-                        $txt = $date.":Client (".$client_name.") information modified by ".session('Usernames')." ".$text."\n".$existing_txt;
-                        // return $txt;
-                        fwrite($myfile, $txt);
-                        fclose($myfile);
-                        // end of log file
-                                
-                        // redirect to the client table
-                        session()->flash("success","Updates have been done successfully!");
-                        $API->disconnect();
-                        return redirect("Clients/View/".$clients_id);
-                    }else{
-                        session()->flash("error","Cannot connect to the router check if its active or its ip address has been changed");
-                        return redirect("Clients/View/".$clients_id);
+                        // log message
+                        $txt = ":Client (".$client_name.") information updated by ".session('Usernames')." on the database! \n";
+                        $this->log($txt);
                     }
                 }
+                                
+                // redirect to the client table
+                session()->flash("success","Updates have been done successfully!");
+                return redirect(url()->previous());
             }
         }else {
-            // return error of client not present
+            // redirect to the client table
+            session()->flash("error","Invalid client!");
+            return redirect("Clients");
         }
 
+    }
+
+    function log($log_message){
+        // read the data 
+        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
+        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
+        $existing_txt = fread($myfile,$file_sizes);
+        // return $existing_txt;
+        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
+        $date = date("dS M Y (H:i:sa)");
+        $txt = $date.$log_message."\n".$existing_txt;
+        // return $txt;
+        fwrite($myfile, $txt);
+        fclose($myfile);
     }
 
     // deactivate the user
@@ -3783,41 +3210,46 @@ class Clients extends Controller
             if ($client_data[0]->assignment == "static") {
                 $router_id = $client_data[0]->router_name;
                 // connect to the router and deactivate the client address
-                $router_data = DB::select("SELECT * FROM `router_tables` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
-        
-                // get the ip address and queue list above
-                // get ip
-                // Initiate curl session in a variable (resource)
-                $curl_handle = curl_init();
-        
-                $baseUrl = explode(":",url('/'));
-                $local_url = $baseUrl[0].":".$baseUrl[1];
-                $url = "$local_url:81/crontab/getIpaddress.php?r_ip=true&r_id=".$router_id;
-        
-                // Set the curl URL option
-                curl_setopt($curl_handle, CURLOPT_URL, $url);
-        
-                // This option will return data as a string instead of direct output
-                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-        
-                // Execute curl & store data in a variable
-                $curl_data = curl_exec($curl_handle);
-        
-                curl_close($curl_handle);
-        
-                // Decode JSON into PHP array
-                $router_ip_addresses = json_decode($curl_data);
-        
+                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
+
+                // get the sstp credentails they are also the api usernames
+                $sstp_username = $router_data[0]->sstp_username;
+                $sstp_password = $router_data[0]->sstp_password;
+                $api_port = $router_data[0]->api_port;
+                
+
+                // connect to the router and set the sstp client
+                $sstp_value = $this->getSSTPAddress();
+                if ($sstp_value == null) {
+                    $error = "The SSTP server is not set, Contact your administrator!";
+                    session()->flash("network_presence",$error);
+                    return redirect(url()->previous());
+                }
+
+                // connect to the router and set the sstp client
+                $server_ip_address = $sstp_value->ip_address;
+                $user = $sstp_value->username;
+                $pass = $sstp_value->password;
+                $port = 8728;
+
+                // check if the router is actively connected
+                $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
+
+                if ($client_router_ip == null) {
+                    $error = "Your router is not active, Restart it and try again!";
+                    session()->flash("network_presence",$error);
+                    return redirect(url()->previous());
+                }
         
                 // create the router os api
                 $API = new routeros_api();
                 $API->debug = false;
+
                 // create connection
-        
-                if ($API->connect($router_data[0]->router_ipaddr,$router_data[0]->router_api_username,$router_data[0]->router_api_password,$router_data[0]->router_api_port)) {
+                if ($API->connect($client_router_ip,$sstp_username,$sstp_password,$api_port)) {
                     // connection created deactivate the user
-                    $ip_addresses = $router_ip_addresses;
-                    // return $ip_addresses;
+                    $ip_addresses = $API->comm("/ip/address/print");
+                    
                     // loop through the ip addresses and get the clents ip address id
                     $client_network = $client_data[0]->client_network;
                     $present = 0;
@@ -3836,7 +3268,8 @@ class Clients extends Controller
                             break;
                         }
                     }
-                    // return $ip_id;
+                    
+
                     // deactivate the id
                     if (strlen($ip_id) > 0) {
                         // deactivate
@@ -3851,19 +3284,11 @@ class Clients extends Controller
                             'client_status' => "0",
                             'date_changed' => date("YmdHis")
                         ]);
-    
-                        // log file capture error
-                        // read the data 
-                        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                        $existing_txt = fread($myfile,$file_sizes);
-                        // return $existing_txt;
-                        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                        $date = date("dS M Y (H:i:sa)");
-                        $txt = $date.":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System")."\n".$existing_txt;
-                        // return $txt;
-                        fwrite($myfile, $txt);
-                        fclose($myfile);
+
+                        // log message
+                        $txt = ":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System");
+                        $this->log($txt);
+
                         // end of log file
                         session()->flash("success","User has been successfully deactivated");
                         return redirect("/Clients/View/$userid");
@@ -3879,66 +3304,50 @@ class Clients extends Controller
                 // disable the client secret and remove the client from active connections
                 $router_id = $client_data[0]->router_name;
                 // connect to the router and deactivate the client address
-                $router_data = DB::select("SELECT * FROM `router_tables` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
+                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
         
-                // get the ip address and queue list above
-                // get secrets
-                // Initiate curl session in a variable (resource)
-                $curl_handle = curl_init();
-        
-                $baseUrl = explode(":",url('/'));
-                $local_url = $baseUrl[0].":".$baseUrl[1];
-                $url = "$local_url:81/crontab/getIpaddress.php?r_ppoe_secrets=true&r_id=".$router_id;
-        
-                // Set the curl URL option
-                curl_setopt($curl_handle, CURLOPT_URL, $url);
-        
-                // This option will return data as a string instead of direct output
-                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-        
-                // Execute curl & store data in a variable
-                $curl_data = curl_exec($curl_handle);
-        
-                curl_close($curl_handle);
-        
-                // Decode JSON into PHP array
-                $router_secrets = json_decode($curl_data);
-                // return $router_secrets;
+                // get the sstp credentails they are also the api usernames
+                $sstp_username = $router_data[0]->sstp_username;
+                $sstp_password = $router_data[0]->sstp_password;
+                $api_port = $router_data[0]->api_port;
+                
 
-                // get the active connection
-                // Initiate curl session in a variable (resource)
-                $curl_handle = curl_init();
-        
-                $baseUrl = explode(":",url('/'));
-                $local_url = $baseUrl[0].":".$baseUrl[1];
-                $url = "$local_url:81/crontab/getIpaddress.php?r_active_secrets=true&r_id=".$router_id;
-        
-                // Set the curl URL option
-                curl_setopt($curl_handle, CURLOPT_URL, $url);
-        
-                // This option will return data as a string instead of direct output
-                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-        
-                // Execute curl & store data in a variable
-                $curl_data = curl_exec($curl_handle);
-        
-                curl_close($curl_handle);
-        
-                // Decode JSON into PHP array
-                $active_connections = json_decode($curl_data);
-                // return $active_connections;
+                // connect to the router and set the sstp client
+                $sstp_value = $this->getSSTPAddress();
+                if ($sstp_value == null) {
+                    $error = "The SSTP server is not set, Contact your administrator!";
+                    session()->flash("network_presence",$error);
+                    return redirect(url()->previous());
+                }
+
+                // connect to the router and set the sstp client
+                $server_ip_address = $sstp_value->ip_address;
+                $user = $sstp_value->username;
+                $pass = $sstp_value->password;
+                $port = 8728;
+
+                // check if the router is actively connected
+                $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
+
+                if ($client_router_ip == null) {
+                    $error = "Your router is not active, Restart it and try again!";
+                    session()->flash("network_presence",$error);
+                    return redirect(url()->previous());
+                }
         
                 // client secret name 
                 $secret_name = $client_data[0]->client_secret;
                 // create the router os api
                 $API = new routeros_api();
                 $API->debug = false;
-                if ($API->connect($router_data[0]->router_ipaddr,$router_data[0]->router_api_username,$router_data[0]->router_api_password,$router_data[0]->router_api_port)){
+                if ($API->connect($client_router_ip,$sstp_username,$sstp_password,$api_port)){
+                    $active_connections = $API->comm("/ppp/active/print");
+                    $router_secrets = $API->comm("/ppp/secret/print");
                     // loop through the secrets get the id and use it to disable the secret
                     $secret_id = "0";
                     for ($indexes=0; $indexes < count($router_secrets); $indexes++) { 
                         $secrets = $router_secrets[$indexes];
-                        if ($secrets->name == $secret_name) {
+                        if ($secrets['name'] == $secret_name) {
                             // loop through and pull the id we will use to disable the secret
                             foreach ($secrets as $key => $value) {
                                 if ($key == ".id") {
@@ -3956,7 +3365,7 @@ class Clients extends Controller
                     // loop through the active connections and drop the users active connection
                     for ($index=0; $index < count($active_connections); $index++) { 
                         $actives = $active_connections[$index];
-                        if ($actives->name == $secret_name) {
+                        if ($actives['name'] == $secret_name) {
                             foreach ($actives as $key => $value) {
                                 if ($key == ".id") {
                                     $active_id = $value;
@@ -3979,18 +3388,9 @@ class Clients extends Controller
                         'date_changed' => date("YmdHis")
                     ]);
 
-                    // log file capture error
-                    // read the data 
-                    $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                    $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                    $existing_txt = fread($myfile,$file_sizes);
-                    // return $existing_txt;
-                    $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                    $date = date("dS M Y (H:i:sa)");
-                    $txt = $date.":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System")."\n".$existing_txt;
-                    // return $txt;
-                    fwrite($myfile, $txt);
-                    fclose($myfile);
+                    // log message
+                    $txt = ":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System");
+                    $this->log($txt);
                     // end of log file
                     session()->flash("success","User has been successfully deactivated");
                     return redirect("/Clients/View/$userid");
@@ -4086,22 +3486,12 @@ class Clients extends Controller
                                     'client_status' => "0",
                                     'date_changed' => date("YmdHis")
                                 ]);
-            
-                                // log file capture error
-                                // read the data 
-                                $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                                $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                                $existing_txt = fread($myfile,$file_sizes);
-                                // return $existing_txt;
-                                $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                                $date = date("dS M Y (H:i:sa)");
-                                $txt = $date.":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System")."\n".$existing_txt;
-                                // return $txt;
-                                fwrite($myfile, $txt);
-                                fclose($myfile);
+
+                                // log message
+                                $txt = ":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System");
+                                $this->log($txt);
+                                
                                 // end of log file
-                                // session()->flash("success","User has been successfully deactivated");
-                                // return redirect("/Clients/View/$userid");
                             }else {
                                 // session()->flash("error","The user ip address not found in the router address list");
                                 // return redirect("/Clients/View/$userid");
@@ -4214,18 +3604,9 @@ class Clients extends Controller
                                 'date_changed' => date("YmdHis")
                             ]);
 
-                            // log file capture error
-                            // read the data 
-                            $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                            $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                            $existing_txt = fread($myfile,$file_sizes);
-                            // return $existing_txt;
-                            $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                            $date = date("dS M Y (H:i:sa)");
-                            $txt = $date.":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System")."\n".$existing_txt;
-                            // return $txt;
-                            fwrite($myfile, $txt);
-                            fclose($myfile);
+                            // log message
+                            $txt = ":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System");
+                            $this->log($txt);
                             // end of log file
                             // session()->flash("success","User has been successfully deactivated");
                             // return redirect("/Clients/View/$userid");
@@ -4316,19 +3697,10 @@ class Clients extends Controller
                                 'client_status' => "0",
                                 'date_changed' => date("YmdHis")
                             ]);
-        
-                            // log file capture error
-                            // read the data 
-                            $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                            $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                            $existing_txt = fread($myfile,$file_sizes);
-                            // return $existing_txt;
-                            $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                            $date = date("dS M Y (H:i:sa)");
-                            $txt = $date.":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System")."\n".$existing_txt;
-                            // return $txt;
-                            fwrite($myfile, $txt);
-                            fclose($myfile);
+
+                            // log message
+                            $txt = ":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System");
+                            $this->log($txt);
                             // end of log file
                             // session()->flash("success","User has been successfully deactivated");
                             // return redirect("/Clients/View/$userid");
@@ -4444,18 +3816,9 @@ class Clients extends Controller
                             'date_changed' => date("YmdHis")
                         ]);
 
-                        // log file capture error
-                        // read the data 
-                        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                        $existing_txt = fread($myfile,$file_sizes);
-                        // return $existing_txt;
-                        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                        $date = date("dS M Y (H:i:sa)");
-                        $txt = $date.":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System")."\n".$existing_txt;
-                        // return $txt;
-                        fwrite($myfile, $txt);
-                        fclose($myfile);
+                        // log message
+                        $txt = ":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System");
+                        $this->log($txt);
                         // end of log file
                         // session()->flash("success","User has been successfully deactivated");
                         // return redirect("/Clients/View/$userid");
@@ -4480,41 +3843,49 @@ class Clients extends Controller
             if ($client_data[0]->assignment == "static") {
                 $router_id = $client_data[0]->router_name;
                 // connect to the router and deactivate the client address
-                $router_data = DB::select("SELECT * FROM `router_tables` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
-        
-                // get the ip address and queue list above
-                // get ip
-                // Initiate curl session in a variable (resource)
-                $curl_handle = curl_init();
-        
-                $baseUrl = explode(":",url('/'));
-                $local_url = $baseUrl[0].":".$baseUrl[1];
-                $url = "$local_url:81/crontab/getIpaddress.php?r_ip=true&r_id=".$router_id;
-        
-                // Set the curl URL option
-                curl_setopt($curl_handle, CURLOPT_URL, $url);
-        
-                // This option will return data as a string instead of direct output
-                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-        
-                // Execute curl & store data in a variable
-                $curl_data = curl_exec($curl_handle);
-        
-                curl_close($curl_handle);
+                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
         
                 // Decode JSON into PHP array
-                $router_ip_addresses = json_decode($curl_data);
+                $router_ip_addresses = [];
         
+                // get the sstp credentails they are also the api usernames
+                $sstp_username = $router_data[0]->sstp_username;
+                $sstp_password = $router_data[0]->sstp_password;
+                $api_port = $router_data[0]->api_port;
+                
+
+                // connect to the router and set the sstp client
+                $sstp_value = $this->getSSTPAddress();
+                if ($sstp_value == null) {
+                    $error = "The SSTP server is not set, Contact your administrator!";
+                    session()->flash("network_presence",$error);
+                    return redirect(url()->previous());
+                }
+
+                // connect to the router and set the sstp client
+                $server_ip_address = $sstp_value->ip_address;
+                $user = $sstp_value->username;
+                $pass = $sstp_value->password;
+                $port = 8728;
+
+                // check if the router is actively connected
+                $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
+
+                if ($client_router_ip == null) {
+                    $error = "Your router is not active, Restart it and try again!";
+                    session()->flash("network_presence",$error);
+                    return redirect(url()->previous());
+                }
         
                 // create the router os api
                 $API = new routeros_api();
                 $API->debug = false;
                 // create connection
         
-                if ($API->connect($router_data[0]->router_ipaddr,$router_data[0]->router_api_username,$router_data[0]->router_api_password,$router_data[0]->router_api_port)) {
+                if ($API->connect($client_router_ip,$sstp_username,$sstp_password,$api_port)) {
                     // connection created deactivate the user
-                    $ip_addresses = $router_ip_addresses;
-                    // return $ip_addresses;
+                    $ip_addresses = $API->comm("/ip/address/print");
+
                     // loop through the ip addresses and get the clents ip address id
                     $client_network = $client_data[0]->client_network;
                     $present = 0;
@@ -4548,19 +3919,10 @@ class Clients extends Controller
                             'client_status' => "1",
                             'date_changed' => date("YmdHis")
                         ]);
-    
-                        // log file capture error
-                        // read the data 
-                        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                        $existing_txt = fread($myfile,$file_sizes);
-                        // return $existing_txt;
-                        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                        $date = date("dS M Y (H:i:sa)");
-                        $txt = $date.":Client (".$client_data[0]->client_name.") activated by ".(session('Usernames') ? session('Usernames'):"System")."\n".$existing_txt;
-                        // return $txt;
-                        fwrite($myfile, $txt);
-                        fclose($myfile);
+
+                        // log message
+                        $txt = ":Client (".$client_data[0]->client_name.") activated by ".(session('Usernames') ? session('Usernames'):"System");
+                        $this->log($txt);
                         // end of log file
                         session()->flash("success","User has been successfully activated");
                         return redirect("/Clients/View/$userid");
@@ -4576,43 +3938,57 @@ class Clients extends Controller
                 // disable the client secret and remove the client from active connections
                 $router_id = $client_data[0]->router_name;
                 // connect to the router and deactivate the client address
-                $router_data = DB::select("SELECT * FROM `router_tables` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
+                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
+                
+                // router value
+                if (count($router_data) == 0) {
+                    $error = "Router connected to client not found!";
+                    session()->flash("network_presence",$error);
+                    return redirect(url()->previous());
+                }
         
-                // get the ip address and queue list above
-                // get secrets
-                // Initiate curl session in a variable (resource)
-                $curl_handle = curl_init();
-        
-                $baseUrl = explode(":",url('/'));
-                $local_url = $baseUrl[0].":".$baseUrl[1];
-                $url = "$local_url:81/crontab/getIpaddress.php?r_ppoe_secrets=true&r_id=".$router_id;
-        
-                // Set the curl URL option
-                curl_setopt($curl_handle, CURLOPT_URL, $url);
-        
-                // This option will return data as a string instead of direct output
-                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-        
-                // Execute curl & store data in a variable
-                $curl_data = curl_exec($curl_handle);
-        
-                curl_close($curl_handle);
-        
-                // Decode JSON into PHP array
-                $router_secrets = json_decode($curl_data);
-                // return $router_secrets;
+                // get the sstp credentails they are also the api usernames
+                $sstp_username = $router_data[0]->sstp_username;
+                $sstp_password = $router_data[0]->sstp_password;
+                $api_port = $router_data[0]->api_port;
+                
+
+                // connect to the router and set the sstp client
+                $sstp_value = $this->getSSTPAddress();
+                if ($sstp_value == null) {
+                    $error = "The SSTP server is not set, Contact your administrator!";
+                    session()->flash("network_presence",$error);
+                    return redirect(url()->previous());
+                }
+
+                // connect to the router and set the sstp client
+                $server_ip_address = $sstp_value->ip_address;
+                $user = $sstp_value->username;
+                $pass = $sstp_value->password;
+                $port = 8728;
+
+                // check if the router is actively connected
+                $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
+
+                if ($client_router_ip == null) {
+                    $error = "Your router is not active, Restart it and try again!";
+                    session()->flash("network_presence",$error);
+                    return redirect(url()->previous());
+                }
         
                 // client secret name 
                 $secret_name = $client_data[0]->client_secret;
                 // create the router os api
                 $API = new routeros_api();
                 $API->debug = false;
-                if ($API->connect($router_data[0]->router_ipaddr,$router_data[0]->router_api_username,$router_data[0]->router_api_password,$router_data[0]->router_api_port)){
+                if ($API->connect($client_router_ip,$sstp_username,$sstp_password,$api_port)){
+                    $router_secrets = $API->comm("/ppp/secret/print");
+
                     // loop through the secrets get the id and use it to disable the secret
                     $secret_id = "0";
-                    for ($indexes=0; $indexes < count($router_secrets); $indexes++) { 
+                    for ($indexes=0; $indexes < count($router_secrets); $indexes++) {
                         $secrets = $router_secrets[$indexes];
-                        if ($secrets->name == $secret_name) {
+                        if ($secrets['name'] == $secret_name) {
                             // loop through and pull the id we will use to disable the secret
                             foreach ($secrets as $key => $value) {
                                 if ($key == ".id") {
@@ -4622,6 +3998,7 @@ class Clients extends Controller
                             }
                         }
                     }
+
                     $API->comm("/ppp/secret/set", array(
                         "disabled" => "false",
                         ".id" => $secret_id
@@ -4636,18 +4013,9 @@ class Clients extends Controller
                         'date_changed' => date("YmdHis")
                     ]);
 
-                    // log file capture error
-                    // read the data 
-                    $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                    $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                    $existing_txt = fread($myfile,$file_sizes);
-                    // return $existing_txt;
-                    $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                    $date = date("dS M Y (H:i:sa)");
-                    $txt = $date.":Client (".$client_data[0]->client_name.") activated by ".(session('Usernames') ? session('Usernames'):"System")."\n".$existing_txt;
-                    // return $txt;
-                    fwrite($myfile, $txt);
-                    fclose($myfile);
+                    // log message
+                    $txt = ":Client (".$client_data[0]->client_name.") activated by ".(session('Usernames') ? session('Usernames'):"System");
+                    $this->log($txt);
                     // end of log file
                     session()->flash("success","User has been successfully activated");
                     return redirect("/Clients/View/$userid");
@@ -4739,22 +4107,12 @@ class Clients extends Controller
                             'client_status' => "1",
                             'date_changed' => date("YmdHis")
                         ]);
-    
-                        // log file capture error
-                        // read the data 
-                        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                        $existing_txt = fread($myfile,$file_sizes);
-                        // return $existing_txt;
-                        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                        $date = date("dS M Y (H:i:sa)");
-                        $txt = $date.":Client (".$client_data[0]->client_name.") activated by ".(session('Usernames') ? session('Usernames'):"System")."\n".$existing_txt;
-                        // return $txt;
-                        fwrite($myfile, $txt);
-                        fclose($myfile);
+
+                        // log message
+                        $txt = ":Client (".$client_data[0]->client_name.") activated by ".(session('Usernames') ? session('Usernames'):"System");
+                        $this->log($txt);
                         // end of log file
-                        // session()->flash("success","User has been successfully activated");
-                        // return redirect("/Clients/View/$userid");
+
                     }else {
                         // session()->flash("error","The user ip address not found in the router address list");
                         // return redirect("/Clients/View/$userid");
@@ -4827,19 +4185,11 @@ class Clients extends Controller
                         'date_changed' => date("YmdHis")
                     ]);
 
-                    // log file capture error
-                    // read the data 
-                    $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                    $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                    $existing_txt = fread($myfile,$file_sizes);
-                    // return $existing_txt;
-                    $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                    $date = date("dS M Y (H:i:sa)");
-                    $txt = $date.":Client (".$client_data[0]->client_name.") activated by ".(session('Usernames') ? session('Usernames'):"System")."\n".$existing_txt;
-                    // return $txt;
-                    fwrite($myfile, $txt);
-                    fclose($myfile);
+                    // log message
+                    $txt = ":Client (".$client_data[0]->client_name.") activated by ".(session('Usernames') ? session('Usernames'):"System");
+                    $this->log($txt);
                     // end of log file
+
                     // session()->flash("success","User has been successfully activated");
                     // return redirect("/Clients/View/$userid");
                 }else {
@@ -4864,19 +4214,10 @@ class Clients extends Controller
         ]);
         $client = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$userid' AND `deleted` = '0'");
         $client_name = $client[0]->client_name;
-        
-        // log file capture error
-        // read the data 
-        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-        $existing_txt = fread($myfile,$file_sizes);
-        // return $existing_txt;
-        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-        $date = date("dS M Y (H:i:sa)");
-        $txt = $date.":Client ( $client_name ) pay status has been changed to In-active by ".session('Usernames').""."!\n".$existing_txt;
-        // return $txt;
-        fwrite($myfile, $txt);
-        fclose($myfile);
+
+        // log message
+        $txt = ":Client ( $client_name ) pay status has been changed to In-active by ".session('Usernames');
+        $this->log($txt);
         // end of log file
         session()->flash("success","User payment automation has been successfully de-activated");
         return redirect("/Clients/View/$userid");
@@ -4891,19 +4232,10 @@ class Clients extends Controller
         ]);
         $client = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$userid' AND `deleted` = '0'");
         $client_name = $client[0]->client_name;
-        
-        // log file capture error
-        // read the data 
-        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-        $existing_txt = fread($myfile,$file_sizes);
-        // return $existing_txt;
-        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-        $date = date("dS M Y (H:i:sa)");
-        $txt = $date.":Client ( $client_name ) pay status has been changed to active by ".session('Usernames').""."!\n".$existing_txt;
-        // return $txt;
-        fwrite($myfile, $txt);
-        fclose($myfile);
+
+        // log message
+        $txt = ":Client ( $client_name ) pay status has been changed to active by ".session('Usernames');
+        $this->log($txt);
         // end of log file
         session()->flash("success","User payment automation has been successfully Activated");
         return redirect("/Clients/View/$userid");
@@ -4977,19 +4309,10 @@ class Clients extends Controller
         $response_data = json_decode($curl_data);
         curl_close($curl_handle);
         // return $curl_data;
-        
-        // log file capture error
-        // read the data 
-        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-        $existing_txt = fread($myfile,$file_sizes);
-        // return $existing_txt;
-        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-        $date = date("dS M Y (H:i:sa)");
-        $txt = $date.":Clients data has been synced by ".session('Usernames').""."!\n".$existing_txt;
-        // return $txt;
-        fwrite($myfile, $txt);
-        fclose($myfile);
+
+        // log message
+        $txt = ":Clients data has been synced by ".session('Usernames');
+        $this->log($txt);
         // end of log file
         session()->flash("success","Syncing done successfully!");
         return redirect("/Clients");
@@ -5014,20 +4337,10 @@ class Clients extends Controller
         // Decode JSON into PHP array
         $response_data = json_decode($curl_data);
         curl_close($curl_handle);
-        // return $curl_data;
-        
-        // log file capture error
-        // read the data 
-        $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-        $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-        $existing_txt = fread($myfile,$file_sizes);
-        // return $existing_txt;
-        $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-        $date = date("dS M Y (H:i:sa)");
-        $txt = $date.":Transaction data has been synced by ".session('Usernames').""."!\n".$existing_txt;
-        // return $txt;
-        fwrite($myfile, $txt);
-        fclose($myfile);
+
+        // log message
+        $txt = ":Transaction data has been synced by ".session('Usernames')."!";
+        $this->log($txt);
         // end of log file
         session()->flash("success","Syncing done successfully!");
         return redirect("/Transactions");

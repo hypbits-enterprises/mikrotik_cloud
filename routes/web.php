@@ -137,7 +137,7 @@ Route::post("/Transact",[Transaction::class,"mpesaTransactions"]);
 // Router section
 // Route::get("/Router/View/{routerid}",[Router::class,"getRouterInfor"]);
 // Route::get("/Routers/Delete/{routerid}",[Router::class,"deleteRouter"]);
-Route::get("/Router/Reboot/{routerid}",[Router::class,"reboot"]);
+Route::get("/Router/Reboot/{routerid}",[Router_Cloud::class,"reboot"]);
 
 // cloud router
 Route::post("/new_cloud_router",[Router_Cloud::class,"save_cloud_router"])->name("newCloudRouter");

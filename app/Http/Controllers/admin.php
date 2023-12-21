@@ -90,20 +90,10 @@ class admin extends Controller
                 // this means the username is present
                 DB::table("admin_tables")->where("admin_id",$admin_id)->update(["admin_password" => $confirm_password,"date_changed" => date("YmdHis")]);
                 session()->flash("success","You have successfully updated your password!");
-        
-                // log file capture error
-                // read the data 
-                $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-                $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-                $existing_txt = fread($myfile,$file_sizes);
-                // return $existing_txt;
-                $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-                $date = date("dS M Y (H:i:sa)");
-                $txt = $date.":Admin ( ".session('Usernames')." ) successfully updated password "."!\n".$existing_txt;
-                // return $txt;
-                fwrite($myfile, $txt);
-                fclose($myfile);
-                // end of log file
+                
+                $new_client = new Clients();
+                $txt = ":Admin ( ".session('Usernames')." ) successfully updated password"."!";
+                $new_client->log($txt);
                 return redirect("/Accounts");
             }else {
                 // the admin is not present
@@ -170,20 +160,10 @@ class admin extends Controller
             $admin_table->user_status = "1";
             $admin_table->priviledges = $privileges;
             $admin_table->save();
-        
-            // log file capture error
-            // read the data 
-            $myfile = fopen(public_path("/logs/log.txt"), "r") or die("Unable to open file!");
-            $file_sizes = filesize(public_path("/logs/log.txt")) > 0?filesize(public_path("/logs/log.txt")):8190;
-            $existing_txt = fread($myfile,$file_sizes);
-            // return $existing_txt;
-            $myfile = fopen(public_path("/logs/log.txt"), "w") or die("Unable to open file!");
-            $date = date("dS M Y (H:i:sa)");
-            $txt = $date.":Admin ($admin_name) has been added by ( ".session('Usernames')." )"."!\n".$existing_txt;
-            // return $txt;
-            fwrite($myfile, $txt);
-            fclose($myfile);
-            // end of log file
+                
+            $new_client = new Clients();
+            $txt = ":Admin ($admin_name) has been added by ( ".session('Usernames')." )"."!";
+            $new_client->log($txt);
             session()->flash("success","The administrator has successfully been added.");
             return redirect("/Accounts/add");
         }
