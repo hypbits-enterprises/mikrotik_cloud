@@ -117,8 +117,8 @@ Route::get("/deactivate/{userid}",[Clients::class,"deactivate"]);
 Route::get("/activate/{userid}",[Clients::class,"activate"]);
 
 // deactivate and activate the user api
-Route::get("/deactivate_user/{userid}",[Clients::class,"deactivate2"]);
-Route::get("/activate_user/{userid}",[Clients::class,"activate2"]);
+// Route::get("/deactivate_user/{userid}",[Clients::class,"deactivate2"]);
+// Route::get("/activate_user/{userid}",[Clients::class,"activate2"]);
 
 // deactivate the user payment status
 Route::get("/deactivatePayment/{userid}", [Clients::class,"dePay"]);

@@ -1709,106 +1709,83 @@ class Clients extends Controller
         $user_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = '$user_id'");
         if (count($user_data) > 0) {
             if ($user_data[0]->assignment == "static") {
+
+                // check if the routers are the same
+                // if not proceed and disable the router profile
+                // get the router data
                 $router_id =  $user_data[0]->router_name;
                 $client_name = $user_data[0]->client_name;
-                $curl_handle = curl_init();
-                // get router data
-                $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '$router_id' LIMIT 1");
-                $ip_address = $router_data[0]->router_ipaddr;
-                $router_api_username = $router_data[0]->router_api_username;
-                $router_api_password = $router_data[0]->router_api_password;
-                $router_api_port = $router_data[0]->router_api_port;
-        
-                // get queues and ip addresses
-                $baseUrl = explode(":",url('/'));
-                $local_url = $baseUrl[0].":".$baseUrl[1];
-                $url = "$local_url:81/crontab/getIpaddress.php?r_queues=true&r_id=".$router_id;
-        
-                // Set the curl URL option
-                curl_setopt($curl_handle, CURLOPT_URL, $url);
-        
-                // This option will return data as a string instead of direct output
-                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-        
-                // Execute curl & store data in a variable
-                $curl_data = curl_exec($curl_handle);
-        
-                curl_close($curl_handle);
-        
-                // Decode JSON into PHP array
-                $router_simple_queues = json_decode($curl_data);
-                // return $router_simple_queues;
-        
-                // route ip addresses
-                $curl_handle = curl_init();
-        
-                $baseUrl = explode(":",url('/'));
-                $local_url = $baseUrl[0].":".$baseUrl[1];
-                $url = "$local_url:81/crontab/getIpaddress.php?r_ip=true&r_id=".$router_id;
-        
-                // Set the curl URL option
-                curl_setopt($curl_handle, CURLOPT_URL, $url);
-        
-                // This option will return data as a string instead of direct output
-                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-        
-                // Execute curl & store data in a variable
-                $curl_data = curl_exec($curl_handle);
-        
-                curl_close($curl_handle);
-        
-                // Decode JSON into PHP array
-                $router_ip_addresses = json_decode($curl_data);
-                // return $router_simple_queues;
-                // loop through the ip addresses and delete the one with the clients details
-                $clients_network = $user_data[0]->client_network;
-                $client_subnet = explode("/",$user_data[0]->client_default_gw)[1];
-                $client_default_gw = explode("/",$user_data[0]->client_default_gw)[1];
-                // ip address to delete
-                $id = "";
-                foreach ($router_ip_addresses as $key => $value) {
-                    if ($value->address == $user_data[0]->client_default_gw && $value->network == $clients_network) {
-                        foreach ($value as $key2 => $value2) {
-                            if ($key2 == ".id") {
-                                $id = $value2;
+                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$router_id]);
+                if (count($router_data) > 0) {
+                    // disable the interface in that router
+            
+                    // get the sstp credentails they are also the api usernames
+                    $sstp_username = $router_data[0]->sstp_username;
+                    $sstp_password = $router_data[0]->sstp_password;
+                    $api_port = $router_data[0]->api_port;
+                    
+
+                    // connect to the router and set the sstp client
+                    $sstp_value = $this->getSSTPAddress();
+                    if ($sstp_value == null) {
+                        $error = "The SSTP server is not set, Contact your administrator!";
+                        session()->flash("network_presence",$error);
+                        return redirect(url()->previous());
+                    }
+
+                    // connect to the router and set the sstp client
+                    $server_ip_address = $sstp_value->ip_address;
+                    $user = $sstp_value->username;
+                    $pass = $sstp_value->password;
+                    $port = 8728;
+
+                    // check if the router is actively connected
+                    $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
+                    $API = new routeros_api();
+                    $API->debug = false;
+    
+                    $router_secrets = [];
+                    if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)){
+                        // connection created deactivate the user
+                        $ip_addresses = $API->comm("/ip/address/print");
+                        $simple_queues = $API->comm("/queue/simple/print");
+                        $subnet = explode("/",$user_data[0]->client_default_gw);
+                        
+                        // loop through the ip addresses and get the clents ip address id
+                        $client_network = $user_data[0]->client_network;
+                        $ip_id = false;
+                        foreach ($ip_addresses as $key => $ip_address) {
+                            if($client_network == $ip_address['network']){
+                                $ip_id = $ip_address['.id'];
                                 break;
                             }
                         }
-                        break;
-                    }
-                }
-                // return $id;
-                // delete that id
-        
-                // end of delete ip address
-                // loop through the simple queues and delete the user queue
-                $id2 = "";
-                foreach ($router_simple_queues as $key => $value) {
-                    if ($value->target == $clients_network."/".$client_subnet) {
-                        foreach ($value as $key2 => $value2) {
-                            if ($key2 == ".id") {
-                                $id2 = $value2;
+
+                        // remove the id
+                        if ($ip_id) {
+                            // remove
+                            $API->comm("/ip/address/remove", array(
+                                ".id" => $ip_id
+                            ));
+                        }
+
+                        // loopt through the simple queues and get the queue to remove
+                        $queue_ip = $client_network."/".$subnet[1];
+                        $queue_id = false;
+                        foreach ($simple_queues as $key => $queue) {
+                            if($queue['target'] == $queue_ip){
+                                $queue_id = $queue['.id'];
                                 break;
                             }
                         }
+
+                        // remove the queue
+                        if($queue_id){
+                            $API->comm("/queue/simple/remove", array(
+                                ".id" => $queue_id
+                            ));
+                        }
                     }
-                }
-                // return $id2;
-        
-                // connect to the router and add the ip address and queues to the interface
-                $API = new routeros_api();
-                $API->debug = false;
-                // check if the connection is valid
-                if ($API->connect($ip_address, $router_api_username, $router_api_password, $router_api_port)){
-                    $API->comm("/ip/address/remove",
-                    array(
-                        ".id" => $id
-                    ));
-                    $API->comm("/queue/simple/remove",
-                        array(
-                            ".id" => $id2
-                        )
-                    );
                 }
                 // DB::delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
                 DB::update("UPDATE `client_tables` SET `date_changed` = ? , `deleted` = '1' WHERE `client_id` = ?",[date("YmdHis"),$user_id]);
@@ -1820,103 +1797,83 @@ class Clients extends Controller
                 // end of log file
                 return redirect("/Clients");
             }elseif ($user_data[0]->assignment == "pppoe"){
-                // remove the client secret and all active connections associated to it
-                // get secrets
-                // Initiate curl session in a variable (resource)
-                $curl_handle = curl_init();
+                // get the router data
                 $router_id = $user_data[0]->router_name;
                 $client_name = $user_data[0]->client_name;
+                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$user_data[0]->router_name]);
+                if (count($router_data) > 0) {
+                    // get the sstp credentails they are also the api usernames
+                    $sstp_username = $router_data[0]->sstp_username;
+                    $sstp_password = $router_data[0]->sstp_password;
+                    $api_port = $router_data[0]->api_port;
 
+                    // connect to the router and set the sstp client
+                    $sstp_value = $this->getSSTPAddress();
+                    if ($sstp_value == null) {
+                        $error = "The SSTP server is not set, Contact your administrator!";
+                        session()->flash("network_presence",$error);
+                        return redirect(url()->previous());
+                    }
 
-                $baseUrl = explode(":",url('/'));
-                $local_url = $baseUrl[0].":".$baseUrl[1];
-                $url = "$local_url:81/crontab/getIpaddress.php?r_ppoe_secrets=true&r_id=".$router_id;
-        
-                // Set the curl URL option
-                curl_setopt($curl_handle, CURLOPT_URL, $url);
-        
-                // This option will return data as a string instead of direct output
-                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-        
-                // Execute curl & store data in a variable
-                $curl_data = curl_exec($curl_handle);
-        
-                curl_close($curl_handle);
-        
-                // Decode JSON into PHP array
-                $router_secrets = json_decode($curl_data);
-                // return $router_secrets;
+                    // connect to the router and set the sstp client
+                    $server_ip_address = $sstp_value->ip_address;
+                    $user = $sstp_value->username;
+                    $pass = $sstp_value->password;
+                    $port = 8728;
 
-                // get the active connection
-                // Initiate curl session in a variable (resource)
-                $curl_handle = curl_init();
-        
-                $baseUrl = explode(":",url('/'));
-                $local_url = $baseUrl[0].":".$baseUrl[1];
-                $url = "$local_url:81/crontab/getIpaddress.php?r_active_secrets=true&r_id=".$router_id;
-        
-                // Set the curl URL option
-                curl_setopt($curl_handle, CURLOPT_URL, $url);
-        
-                // This option will return data as a string instead of direct output
-                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-        
-                // Execute curl & store data in a variable
-                $curl_data = curl_exec($curl_handle);
-        
-                curl_close($curl_handle);
-        
-                // Decode JSON into PHP array
-                $active_connections = json_decode($curl_data);
-                // return $active_connections;
-                // get router data
-                $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '$router_id' LIMIT 1");
-                $ip_address = $router_data[0]->router_ipaddr;
-                $router_api_username = $router_data[0]->router_api_username;
-                $router_api_password = $router_data[0]->router_api_password;
-                $router_api_port = $router_data[0]->router_api_port;
-                // connect to the router and add the ip address and queues to the interface
-                $API = new routeros_api();
-                $API->debug = false;
+                    // check if the router is actively connected
+                    $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
+                    // return $client_router_ip;
+                    $API = new routeros_api();
+                    $API->debug = false;
+    
+                    $router_secrets = [];
+                    if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)){
+                        // get the secret details
+                        $secret_name = $user_data[0]->client_secret;
+                        $active_connections = $API->comm("/ppp/active/print");
+                        $router_secrets = $API->comm("/ppp/secret/print");
 
-                $secret_name = $user_data[0]->client_secret;
-                // go through secrets and delete the username thats active
-                if ($API->connect($ip_address, $router_api_username, $router_api_password, $router_api_port)){
-                    for ($index1=0; $index1 < count($router_secrets); $index1++) { 
-                        $secret = $router_secrets[$index1];
-                        if ($secret->name == $secret_name) {
-                            foreach ($secret as $key => $value) {
-                                if ($key == ".id") {
-                                    $API->comm("/ppp/secret/remove",array(
-                                        ".id" => $value
-                                    ));
-                                    break;
-                                }
+                        // router secrets
+                        $secret_id = false;
+                        foreach ($router_secrets as $key => $router_secret) {
+                            if ($router_secret['name'] == $secret_name) {
+                                $secret_id = $router_secret['.id'];
+                                break;
                             }
                         }
-                    }
-                    for ($index2=0; $index2 < count($active_connections); $index2++) { 
-                        $active = $active_connections[$index2];
-                        if ($active->name == $secret_name) {
-                            foreach ($active as $key => $value) {
-                                if ($key == ".id") {
-                                    $API->comm("/ppp/active/remove",array(
-                                        ".id" => $value
-                                    ));
-                                    break;
-                                }
+
+                        // disable the secret
+                        if ($secret_id) {
+                            $API->comm("/ppp/secret/remove", array(
+                                ".id" => $secret_id
+                            ));
+                        }
+
+                        $active_id = false;
+                        foreach ($active_connections as $key => $connection) {
+                            if($connection['name'] == $secret_name){
+                                $active_id = $connection['.id'];
                             }
                         }
+    
+                        if ($active_id) {
+                            // remove the active connection if there is, it will do nothing if the id is not present
+                            $API->comm("/ppp/active/remove", array(
+                                ".id" => $active_id
+                            ));
+                        }
                     }
-                    // DB::delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
-                    DB::update("UPDATE `client_tables` SET `date_changed` = ? , `deleted` = '1' WHERE `client_id` = ?",[date("YmdHis"),$user_id]);
-                    session()->flash("success",".".$client_name." has been deleted successfully!");
-
-                    // log message
-                    $txt = ":Client (".$client_name.") has been deleted by ".session('Usernames')."!";
-                    $this->log($txt);
-                    return redirect("/Clients");
                 }
+
+                // DB::delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
+                DB::update("UPDATE `client_tables` SET `date_changed` = ? , `deleted` = '1' WHERE `client_id` = ?",[date("YmdHis"),$user_id]);
+                session()->flash("success",".".$client_name." has been deleted successfully!");
+
+                // log message
+                $txt = ":Client (".$client_name.") has been deleted by ".session('Usernames')."!";
+                $this->log($txt);
+                return redirect("/Clients");
             }
         }else{
             session()->flash("error_clients","User not found!");
@@ -2817,6 +2774,93 @@ class Clients extends Controller
                     session()->flash("error","Kindly select the interface the client is to be assigned!");
                     return redirect(url()->previous());
                 }
+
+                // get the clients details to see if the router is different
+                $original_client_dets = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = ?;",[$req->input("clients_id")]);
+                // return $req;
+
+                if (count($original_client_dets) == 0) {
+                    session()->flash("error","Update cannot be done to an invalid user!");
+                    return redirect(url()->previous());
+                }
+
+                // check if the routers are the same
+                if ($original_client_dets[0]->router_name != $req->input("router_name")) {
+                    // if not proceed and disable the router profile
+                    // get the router data
+                    $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$original_client_dets[0]->router_name]);
+                    if (count($router_data) > 0) {
+                        // disable the interface in that router
+                
+                        // get the sstp credentails they are also the api usernames
+                        $sstp_username = $router_data[0]->sstp_username;
+                        $sstp_password = $router_data[0]->sstp_password;
+                        $api_port = $router_data[0]->api_port;
+                        
+
+                        // connect to the router and set the sstp client
+                        $sstp_value = $this->getSSTPAddress();
+                        if ($sstp_value == null) {
+                            $error = "The SSTP server is not set, Contact your administrator!";
+                            session()->flash("network_presence",$error);
+                            return redirect(url()->previous());
+                        }
+
+                        // connect to the router and set the sstp client
+                        $server_ip_address = $sstp_value->ip_address;
+                        $user = $sstp_value->username;
+                        $pass = $sstp_value->password;
+                        $port = 8728;
+
+                        // check if the router is actively connected
+                        $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
+                        $API = new routeros_api();
+                        $API->debug = false;
+        
+                        $router_secrets = [];
+                        if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)){
+                            // connection created deactivate the user
+                            $ip_addresses = $API->comm("/ip/address/print");
+                            $simple_queues = $API->comm("/queue/simple/print");
+                            $subnet = explode("/",$original_client_dets[0]->client_default_gw);
+                            
+                            // loop through the ip addresses and get the clents ip address id
+                            $client_network = $original_client_dets[0]->client_network;
+                            $ip_id = false;
+                            foreach ($ip_addresses as $key => $ip_address) {
+                                if($client_network == $ip_address['network']){
+                                    $ip_id = $ip_address['.id'];
+                                    break;
+                                }
+                            }
+
+                            // remove the id
+                            if ($ip_id) {
+                                // remove
+                                $API->comm("/ip/address/remove", array(
+                                    ".id" => $ip_id
+                                ));
+                            }
+
+                            // loopt through the simple queues and get the queue to remove
+                            $queue_ip = $client_network."/".$subnet[1];
+                            $queue_id = false;
+                            foreach ($simple_queues as $key => $queue) {
+                                if($queue['target'] == $queue_ip){
+                                    $queue_id = $queue['.id'];
+                                    break;
+                                }
+                            }
+
+                            // remove the queue
+                            if($queue_id){
+                                $API->comm("/queue/simple/remove", array(
+                                    ".id" => $queue_id
+                                ));
+                            }
+                        }
+                    }
+                }
                 // get the client information
                 $client_name = $req->input('client_name');
                 $client_address = $req->input('client_address');
@@ -2913,6 +2957,7 @@ class Clients extends Controller
                             $result = $API->comm("/ip/address/set",
                             array(
                                 "address"     => $req->input('client_gw'),
+                                "disabled" => "no",
                                 "interface" => $req->input('interface_name'),
                                 "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
                                 ".id" => $ip_id
@@ -2922,6 +2967,7 @@ class Clients extends Controller
                                 $API->comm("/ip/address/set",
                                 array(
                                     "interface" => $req->input('interface_name'),
+                                    "disabled" => "no",
                                     "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number,
                                     ".id" => $ip_id
                                 ));
@@ -2934,6 +2980,7 @@ class Clients extends Controller
                                 "address"     => $req->input('client_gw'),
                                 "interface" => $req->input('interface_name'),
                                 "network" => $req->input('client_network'),
+                                "disabled" => "no",
                                 "comment"  => $req->input('client_name')." (".$req->input('client_address')." - ".$location_coordinates.") - ".$client_account_number
                             ));
                         }
@@ -3023,6 +3070,87 @@ class Clients extends Controller
                     session()->flash("error","Kindly select the PPPOE profile the client is to be assigned!");
                     return redirect(url()->previous());
                 }
+
+                // get the clients details to see if the router is different
+                $original_client_dets = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = ?;",[$req->input("clients_id")]);
+                // return $req;
+
+                if (count($original_client_dets) == 0) {
+                    session()->flash("error","Update cannot be done to an invalid user!");
+                    return redirect(url()->previous());
+                }
+
+                // check if the routers are the same
+                if ($original_client_dets[0]->router_name != $req->input("router_name")) {
+                    // if not proceed and disable the router profile
+                    // get the router data
+                    $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$original_client_dets[0]->router_name]);
+                    if (count($router_data) > 0) {
+                        // get the sstp credentails they are also the api usernames
+                        $sstp_username = $router_data[0]->sstp_username;
+                        $sstp_password = $router_data[0]->sstp_password;
+                        $api_port = $router_data[0]->api_port;
+
+                        // connect to the router and set the sstp client
+                        $sstp_value = $this->getSSTPAddress();
+                        if ($sstp_value == null) {
+                            $error = "The SSTP server is not set, Contact your administrator!";
+                            session()->flash("network_presence",$error);
+                            return redirect(url()->previous());
+                        }
+
+                        // connect to the router and set the sstp client
+                        $server_ip_address = $sstp_value->ip_address;
+                        $user = $sstp_value->username;
+                        $pass = $sstp_value->password;
+                        $port = 8728;
+
+                        // check if the router is actively connected
+                        $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
+                        // return $client_router_ip;
+                        $API = new routeros_api();
+                        $API->debug = false;
+        
+                        $router_secrets = [];
+                        if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)){
+                            // get the secret details
+                            $secret_name = $original_client_dets[0]->client_secret;
+                            $active_connections = $API->comm("/ppp/active/print");
+                            $router_secrets = $API->comm("/ppp/secret/print");
+
+                            // router secrets
+                            $secret_id = false;
+                            foreach ($router_secrets as $key => $router_secret) {
+                                if ($router_secret['name'] == $secret_name) {
+                                    $secret_id = $router_secret['.id'];
+                                    break;
+                                }
+                            }
+
+                            // disable the secret
+                            if ($secret_id) {
+                                $API->comm("/ppp/secret/remove", array(
+                                    ".id" => $secret_id
+                                ));
+                            }
+
+                            $active_id = false;
+                            foreach ($active_connections as $key => $connection) {
+                                if($connection['name'] == $secret_name){
+                                    $active_id = $connection['.id'];
+                                }
+                            }
+        
+                            if ($active_id) {
+                                // remove the active connection if there is, it will do nothing if the id is not present
+                                $API->comm("/ppp/active/remove", array(
+                                    ".id" => $active_id
+                                ));
+                            }
+                        }
+                    }
+                }
+
                 // get the data for the ppoe clients
                 $clients_id = $req->input("clients_id");
                 $allow_router_changes = $req->input("allow_router_changes");
@@ -3305,6 +3433,12 @@ class Clients extends Controller
                 $router_id = $client_data[0]->router_name;
                 // connect to the router and deactivate the client address
                 $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
+                
+                if (count($router_data) == 0) {
+                    $error = "Router that the client is connected to is not present!";
+                    session()->flash("network_presence",$error);
+                    return redirect(url()->previous());
+                }
         
                 // get the sstp credentails they are also the api usernames
                 $sstp_username = $router_data[0]->sstp_username;
@@ -3404,436 +3538,6 @@ class Clients extends Controller
             return redirect("/Clients");
         }
     }
-    // deactivate the user outer API
-    function deactivate2($userid){
-        // get the user router and update the setting
-        // get if the client id is separated with a comma
-        if (str_contains($userid,",")) {
-            $client_ids = explode(",",$userid);
-            for ($i=0; $i < count($client_ids); $i++) {
-                $userid = $client_ids[$i];
-                /**Starts Here */
-                $client_data = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$userid' AND `deleted` = '0'");
-                if (count($client_data) > 0) {
-                    if ($client_data[0]->assignment == "static") {
-                        $router_id = $client_data[0]->router_name;
-                        // connect to the router and deactivate the client address
-                        $router_data = DB::select("SELECT * FROM `router_tables` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
-                
-                        // get the ip address and queue list above
-                        // get ip
-                        // Initiate curl session in a variable (resource)
-                        $curl_handle = curl_init();
-                
-                        $baseUrl = explode(":",url('/'));
-                        $local_url = $baseUrl[0].":".$baseUrl[1];
-                        $url = "$local_url:81/crontab/getIpaddress.php?r_ip=true&r_id=".$router_id;
-                
-                        // Set the curl URL option
-                        curl_setopt($curl_handle, CURLOPT_URL, $url);
-                
-                        // This option will return data as a string instead of direct output
-                        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                
-                        // Execute curl & store data in a variable
-                        $curl_data = curl_exec($curl_handle);
-                
-                        curl_close($curl_handle);
-                
-                        // Decode JSON into PHP array
-                        $router_ip_addresses = json_decode($curl_data);
-                
-                
-                        // create the router os api
-                        $API = new routeros_api();
-                        $API->debug = false;
-                        // create connection
-                
-                        if ($API->connect($router_data[0]->router_ipaddr,$router_data[0]->router_api_username,$router_data[0]->router_api_password,$router_data[0]->router_api_port)) {
-                            // connection created deactivate the user
-                            $ip_addresses = $router_ip_addresses;
-                            // return $ip_addresses;
-                            // loop through the ip addresses and get the clents ip address id
-                            $client_network = $client_data[0]->client_network;
-                            $present = 0;
-                            $ip_id = "";
-                            foreach ($ip_addresses as $key => $value) {
-                                foreach ($value as $key1 => $value1) {
-                                    if ($key1 == ".id") {
-                                        $ip_id = $value1;
-                                    }
-                                    if ($value1 == $client_network) {
-                                        $present = 1;
-                                        break;
-                                    }
-                                }
-                                if ($present == 1) {
-                                    break;
-                                }
-                            }
-                            // return $ip_id;
-                            // deactivate the id
-                            if (strlen($ip_id) > 0) {
-                                // deactivate
-                                $deactivate = $API->comm("/ip/address/set", array(
-                                    "disabled" => "yes",
-                                    ".id" => $ip_id
-                                ));
-                                // update the user data to de-activated
-                                DB::table('client_tables')
-                                ->where('client_id', $userid)
-                                ->update([
-                                    'client_status' => "0",
-                                    'date_changed' => date("YmdHis")
-                                ]);
-
-                                // log message
-                                $txt = ":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System");
-                                $this->log($txt);
-                                
-                                // end of log file
-                            }else {
-                                // session()->flash("error","The user ip address not found in the router address list");
-                                // return redirect("/Clients/View/$userid");
-                            }
-                        }else {
-                            // session()->flash("error","Cannot connect to the router!");
-                            // return redirect("/Clients/View/$userid");
-                        }
-                    }elseif ($client_data[0]->assignment == "pppoe") {
-                        // disable the client secret and remove the client from active connections
-                        $router_id = $client_data[0]->router_name;
-                        // connect to the router and deactivate the client address
-                        $router_data = DB::select("SELECT * FROM `router_tables` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
-                
-                        // get the ip address and queue list above
-                        // get secrets
-                        // Initiate curl session in a variable (resource)
-                        $curl_handle = curl_init();
-                
-                        $baseUrl = explode(":",url('/'));
-                        $local_url = $baseUrl[0].":".$baseUrl[1];
-                        $url = "$local_url:81/crontab/getIpaddress.php?r_ppoe_secrets=true&r_id=".$router_id;
-                
-                        // Set the curl URL option
-                        curl_setopt($curl_handle, CURLOPT_URL, $url);
-                
-                        // This option will return data as a string instead of direct output
-                        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                
-                        // Execute curl & store data in a variable
-                        $curl_data = curl_exec($curl_handle);
-                
-                        curl_close($curl_handle);
-                
-                        // Decode JSON into PHP array
-                        $router_secrets = json_decode($curl_data);
-                        // return $router_secrets;
-
-                        // get the active connection
-                        // Initiate curl session in a variable (resource)
-                        $curl_handle = curl_init();
-                
-                        $baseUrl = explode(":",url('/'));
-                        $local_url = $baseUrl[0].":".$baseUrl[1];
-                        $url = "$local_url:81/crontab/getIpaddress.php?r_active_secrets=true&r_id=".$router_id;
-                
-                        // Set the curl URL option
-                        curl_setopt($curl_handle, CURLOPT_URL, $url);
-                
-                        // This option will return data as a string instead of direct output
-                        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                
-                        // Execute curl & store data in a variable
-                        $curl_data = curl_exec($curl_handle);
-                
-                        curl_close($curl_handle);
-                
-                        // Decode JSON into PHP array
-                        $active_connections = json_decode($curl_data);
-                        // return $curl_data;
-                
-                        // client secret name 
-                        $secret_name = $client_data[0]->client_secret;
-                        // create the router os api
-                        $API = new routeros_api();
-                        $API->debug = false;
-                        if ($API->connect($router_data[0]->router_ipaddr,$router_data[0]->router_api_username,$router_data[0]->router_api_password,$router_data[0]->router_api_port)){
-                            // loop through the secrets get the id and use it to disable the secret
-                            $secret_id = "0";
-                            for ($indexes=0; $indexes < count($router_secrets); $indexes++) { 
-                                $secrets = $router_secrets[$indexes];
-                                if ($secrets->name == $secret_name) {
-                                    // loop through and pull the id we will use to disable the secret
-                                    foreach ($secrets as $key => $value) {
-                                        if ($key == ".id") {
-                                            $secret_id = $value;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            $API->comm("/ppp/secret/set", array(
-                                "disabled" => "true",
-                                ".id" => $secret_id
-                            ));
-                            $active_id = "0";
-                            // loop through the active connections and drop the users active connection
-                            for ($index=0; $index < count($active_connections); $index++) { 
-                                $actives = $active_connections[$index];
-                                if ($actives->name == $secret_name) {
-                                    foreach ($actives as $key => $value) {
-                                        if ($key == ".id") {
-                                            $active_id = $value;
-                                        }
-                                    }
-                                }
-                            }
-
-                            // remove the active connection if there is, it will do nothing if the id is not present
-                            $API->comm("/ppp/active/remove", array(
-                                ".id" => $active_id
-                            ));
-
-                            // uodate the database
-                            // update the user data to de-activated
-                            DB::table('client_tables')
-                            ->where('client_id', $userid)
-                            ->update([
-                                'client_status' => "0",
-                                'date_changed' => date("YmdHis")
-                            ]);
-
-                            // log message
-                            $txt = ":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System");
-                            $this->log($txt);
-                            // end of log file
-                            // session()->flash("success","User has been successfully deactivated");
-                            // return redirect("/Clients/View/$userid");
-                        }else {
-                            // session()->flash("error","Cannot connect to the router!");
-                            // return redirect("/Clients/View/$userid");
-                        }
-                    }
-                }else {
-                    // session()->flash("error_clients","Client not found!");
-                    // return redirect("/Clients");
-                }
-                /**End Here */
-            }
-            return "Users has been successfully deactivated";
-        }else{
-            /**Starts here */
-            $client_data = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$userid' AND `deleted` = '0'");
-            if (count($client_data) > 0) {
-                if ($client_data[0]->assignment == "static") {
-                    $router_id = $client_data[0]->router_name;
-                    // connect to the router and deactivate the client address
-                    $router_data = DB::select("SELECT * FROM `router_tables` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
-            
-                    // get the ip address and queue list above
-                    // get ip
-                    // Initiate curl session in a variable (resource)
-                    $curl_handle = curl_init();
-            
-                    $baseUrl = explode(":",url('/'));
-                    $local_url = $baseUrl[0].":".$baseUrl[1];
-                    $url = "$local_url:81/crontab/getIpaddress.php?r_ip=true&r_id=".$router_id;
-            
-                    // Set the curl URL option
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-            
-                    // This option will return data as a string instead of direct output
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-            
-                    // Execute curl & store data in a variable
-                    $curl_data = curl_exec($curl_handle);
-            
-                    curl_close($curl_handle);
-            
-                    // Decode JSON into PHP array
-                    $router_ip_addresses = json_decode($curl_data);
-            
-            
-                    // create the router os api
-                    $API = new routeros_api();
-                    $API->debug = false;
-                    // create connection
-            
-                    if ($API->connect($router_data[0]->router_ipaddr,$router_data[0]->router_api_username,$router_data[0]->router_api_password,$router_data[0]->router_api_port)) {
-                        // connection created deactivate the user
-                        $ip_addresses = $router_ip_addresses;
-                        // return $ip_addresses;
-                        // loop through the ip addresses and get the clents ip address id
-                        $client_network = $client_data[0]->client_network;
-                        $present = 0;
-                        $ip_id = "";
-                        foreach ($ip_addresses as $key => $value) {
-                            foreach ($value as $key1 => $value1) {
-                                if ($key1 == ".id") {
-                                    $ip_id = $value1;
-                                }
-                                if ($value1 == $client_network) {
-                                    $present = 1;
-                                    break;
-                                }
-                            }
-                            if ($present == 1) {
-                                break;
-                            }
-                        }
-                        // return $ip_id;
-                        // deactivate the id
-                        if (strlen($ip_id) > 0) {
-                            // deactivate
-                            $deactivate = $API->comm("/ip/address/set", array(
-                                "disabled" => "yes",
-                                ".id" => $ip_id
-                            ));
-                            // update the user data to de-activated
-                            DB::table('client_tables')
-                            ->where('client_id', $userid)
-                            ->update([
-                                'client_status' => "0",
-                                'date_changed' => date("YmdHis")
-                            ]);
-
-                            // log message
-                            $txt = ":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System");
-                            $this->log($txt);
-                            // end of log file
-                            // session()->flash("success","User has been successfully deactivated");
-                            // return redirect("/Clients/View/$userid");
-                        }else {
-                            // session()->flash("error","The user ip address not found in the router address list");
-                            // return redirect("/Clients/View/$userid");
-                        }
-                    }else {
-                        // session()->flash("error","Cannot connect to the router!");
-                        // return redirect("/Clients/View/$userid");
-                    }
-                }elseif ($client_data[0]->assignment == "pppoe") {
-                    // disable the client secret and remove the client from active connections
-                    $router_id = $client_data[0]->router_name;
-                    // connect to the router and deactivate the client address
-                    $router_data = DB::select("SELECT * FROM `router_tables` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
-            
-                    // get the ip address and queue list above
-                    // get secrets
-                    // Initiate curl session in a variable (resource)
-                    $curl_handle = curl_init();
-            
-                    $baseUrl = explode(":",url('/'));
-                    $local_url = $baseUrl[0].":".$baseUrl[1];
-                    $url = "$local_url:81/crontab/getIpaddress.php?r_ppoe_secrets=true&r_id=".$router_id;
-            
-                    // Set the curl URL option
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-            
-                    // This option will return data as a string instead of direct output
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-            
-                    // Execute curl & store data in a variable
-                    $curl_data = curl_exec($curl_handle);
-            
-                    curl_close($curl_handle);
-            
-                    // Decode JSON into PHP array
-                    $router_secrets = json_decode($curl_data);
-                    // return $router_secrets;
-
-                    // get the active connection
-                    // Initiate curl session in a variable (resource)
-                    $curl_handle = curl_init();
-            
-                    $baseUrl = explode(":",url('/'));
-                    $local_url = $baseUrl[0].":".$baseUrl[1];
-                    $url = "$local_url:81/crontab/getIpaddress.php?r_active_secrets=true&r_id=".$router_id;
-            
-                    // Set the curl URL option
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-            
-                    // This option will return data as a string instead of direct output
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-            
-                    // Execute curl & store data in a variable
-                    $curl_data = curl_exec($curl_handle);
-            
-                    curl_close($curl_handle);
-            
-                    // Decode JSON into PHP array
-                    $active_connections = json_decode($curl_data);
-                    // return $active_connections;
-            
-                    // client secret name 
-                    $secret_name = $client_data[0]->client_secret;
-                    // create the router os api
-                    $API = new routeros_api();
-                    $API->debug = false;
-                    if ($API->connect($router_data[0]->router_ipaddr,$router_data[0]->router_api_username,$router_data[0]->router_api_password,$router_data[0]->router_api_port)){
-                        // loop through the secrets get the id and use it to disable the secret
-                        $secret_id = "0";
-                        for ($indexes=0; $indexes < count($router_secrets); $indexes++) { 
-                            $secrets = $router_secrets[$indexes];
-                            if ($secrets->name == $secret_name) {
-                                // loop through and pull the id we will use to disable the secret
-                                foreach ($secrets as $key => $value) {
-                                    if ($key == ".id") {
-                                        $secret_id = $value;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        $API->comm("/ppp/secret/set", array(
-                            "disabled" => "true",
-                            ".id" => $secret_id
-                        ));
-                        $active_id = "0";
-                        // loop through the active connections and drop the users active connection
-                        for ($index=0; $index < count($active_connections); $index++) { 
-                            $actives = $active_connections[$index];
-                            if ($actives->name == $secret_name) {
-                                foreach ($actives as $key => $value) {
-                                    if ($key == ".id") {
-                                        $active_id = $value;
-                                    }
-                                }
-                            }
-                        }
-
-                        // remove the active connection if there is, it will do nothing if the id is not present
-                        $API->comm("/ppp/active/remove", array(
-                            ".id" => $active_id
-                        ));
-
-                        // uodate the database
-                        // update the user data to de-activated
-                        DB::table('client_tables')
-                        ->where('client_id', $userid)
-                        ->update([
-                            'client_status' => "0",
-                            'date_changed' => date("YmdHis")
-                        ]);
-
-                        // log message
-                        $txt = ":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System");
-                        $this->log($txt);
-                        // end of log file
-                        // session()->flash("success","User has been successfully deactivated");
-                        // return redirect("/Clients/View/$userid");
-                    }else {
-                        // session()->flash("error","Cannot connect to the router!");
-                        // return redirect("/Clients/View/$userid");
-                    }
-                }
-            }else {
-                // session()->flash("error_clients","Client not found!");
-                // return redirect("/Clients");
-            }
-            /**Ends Here */
-        }
-    }
     // activate the user
     function activate($userid){
         /*****starts here */
@@ -3844,9 +3548,11 @@ class Clients extends Controller
                 $router_id = $client_data[0]->router_name;
                 // connect to the router and deactivate the client address
                 $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
-        
-                // Decode JSON into PHP array
-                $router_ip_addresses = [];
+                if (count($router_data) == 0) {
+                    $error = "The router the client is connected to is not present!";
+                    session()->flash("error",$error);
+                    return redirect(url()->previous());
+                }
         
                 // get the sstp credentails they are also the api usernames
                 $sstp_username = $router_data[0]->sstp_username;
@@ -3858,7 +3564,7 @@ class Clients extends Controller
                 $sstp_value = $this->getSSTPAddress();
                 if ($sstp_value == null) {
                     $error = "The SSTP server is not set, Contact your administrator!";
-                    session()->flash("network_presence",$error);
+                    session()->flash("error",$error);
                     return redirect(url()->previous());
                 }
 
@@ -3873,7 +3579,7 @@ class Clients extends Controller
 
                 if ($client_router_ip == null) {
                     $error = "Your router is not active, Restart it and try again!";
-                    session()->flash("network_presence",$error);
+                    session()->flash("error",$error);
                     return redirect(url()->previous());
                 }
         
@@ -4029,179 +3735,6 @@ class Clients extends Controller
             return redirect("/Clients");
         }
         /*****ends here */
-    }
-    // activate the user
-    function activate2($userid){
-        /**Start here */
-        // get the user router and update the setting
-        $client_data = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$userid' AND `deleted` = '0'");
-        if (count($client_data) > 0) {
-            if ($client_data[0]->assignment == "static") {
-                $router_id = $client_data[0]->router_name;
-                // connect to the router and deactivate the client address
-                $router_data = DB::select("SELECT * FROM `router_tables` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
-        
-                // get the ip address and queue list above
-                // get ip
-                // Initiate curl session in a variable (resource)
-                $curl_handle = curl_init();
-        
-                $baseUrl = explode(":",url('/'));
-                $local_url = $baseUrl[0].":".$baseUrl[1];
-                $url = "$local_url:81/crontab/getIpaddress.php?r_ip=true&r_id=".$router_id;
-        
-                // Set the curl URL option
-                curl_setopt($curl_handle, CURLOPT_URL, $url);
-        
-                // This option will return data as a string instead of direct output
-                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-        
-                // Execute curl & store data in a variable
-                $curl_data = curl_exec($curl_handle);
-        
-                curl_close($curl_handle);
-        
-                // Decode JSON into PHP array
-                $router_ip_addresses = json_decode($curl_data);
-        
-        
-                // create the router os api
-                $API = new routeros_api();
-                $API->debug = false;
-                // create connection
-        
-                if ($API->connect($router_data[0]->router_ipaddr,$router_data[0]->router_api_username,$router_data[0]->router_api_password,$router_data[0]->router_api_port)) {
-                    // connection created deactivate the user
-                    $ip_addresses = $router_ip_addresses;
-                    // return $ip_addresses;
-                    // loop through the ip addresses and get the clents ip address id
-                    $client_network = $client_data[0]->client_network;
-                    $present = 0;
-                    $ip_id = "";
-                    foreach ($ip_addresses as $key => $value) {
-                        foreach ($value as $key1 => $value1) {
-                            if ($key1 == ".id") {
-                                $ip_id = $value1;
-                            }
-                            if ($value1 == $client_network) {
-                                $present = 1;
-                                break;
-                            }
-                        }
-                        if ($present == 1) {
-                            break;
-                        }
-                    }
-                    // return $ip_id;
-                    // deactivate the id
-                    if (strlen($ip_id) > 0) {
-                        // deactivate
-                        $deactivate = $API->comm("/ip/address/set", array(
-                            "disabled" => "no",
-                            ".id" => $ip_id
-                        ));
-                        // update the user data to de-activated
-                        DB::table('client_tables')
-                        ->where('client_id', $userid)
-                        ->update([
-                            'client_status' => "1",
-                            'date_changed' => date("YmdHis")
-                        ]);
-
-                        // log message
-                        $txt = ":Client (".$client_data[0]->client_name.") activated by ".(session('Usernames') ? session('Usernames'):"System");
-                        $this->log($txt);
-                        // end of log file
-
-                    }else {
-                        // session()->flash("error","The user ip address not found in the router address list");
-                        // return redirect("/Clients/View/$userid");
-                    }
-                }else {
-                    // session()->flash("error","Cannot connect to the router!");
-                    // return redirect("/Clients/View/$userid");
-                }
-            }elseif ($client_data[0]->assignment == "pppoe") {
-                // disable the client secret and remove the client from active connections
-                $router_id = $client_data[0]->router_name;
-                // connect to the router and deactivate the client address
-                $router_data = DB::select("SELECT * FROM `router_tables` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
-        
-                // get the ip address and queue list above
-                // get secrets
-                // Initiate curl session in a variable (resource)
-                $curl_handle = curl_init();
-        
-                $baseUrl = explode(":",url('/'));
-                $local_url = $baseUrl[0].":".$baseUrl[1];
-                $url = "$local_url:81/crontab/getIpaddress.php?r_ppoe_secrets=true&r_id=".$router_id;
-        
-                // Set the curl URL option
-                curl_setopt($curl_handle, CURLOPT_URL, $url);
-        
-                // This option will return data as a string instead of direct output
-                curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-        
-                // Execute curl & store data in a variable
-                $curl_data = curl_exec($curl_handle);
-        
-                curl_close($curl_handle);
-        
-                // Decode JSON into PHP array
-                $router_secrets = json_decode($curl_data);
-                // return $router_secrets;
-        
-                // client secret name 
-                $secret_name = $client_data[0]->client_secret;
-                // create the router os api
-                $API = new routeros_api();
-                $API->debug = false;
-                if ($API->connect($router_data[0]->router_ipaddr,$router_data[0]->router_api_username,$router_data[0]->router_api_password,$router_data[0]->router_api_port)){
-                    // loop through the secrets get the id and use it to disable the secret
-                    $secret_id = "0";
-                    for ($indexes=0; $indexes < count($router_secrets); $indexes++) { 
-                        $secrets = $router_secrets[$indexes];
-                        if ($secrets->name == $secret_name) {
-                            // loop through and pull the id we will use to disable the secret
-                            foreach ($secrets as $key => $value) {
-                                if ($key == ".id") {
-                                    $secret_id = $value;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    $API->comm("/ppp/secret/set", array(
-                        "disabled" => "false",
-                        ".id" => $secret_id
-                    ));
-
-                    // uodate the database
-                    // update the user data to de-activated
-                    DB::table('client_tables')
-                    ->where('client_id', $userid)
-                    ->update([
-                        'client_status' => "1",
-                        'date_changed' => date("YmdHis")
-                    ]);
-
-                    // log message
-                    $txt = ":Client (".$client_data[0]->client_name.") activated by ".(session('Usernames') ? session('Usernames'):"System");
-                    $this->log($txt);
-                    // end of log file
-
-                    // session()->flash("success","User has been successfully activated");
-                    // return redirect("/Clients/View/$userid");
-                }else {
-                    // session()->flash("error","Cannot connect to the router!");
-                    // return redirect("/Clients/View/$userid");
-                }
-            }
-        }else {
-            // session()->flash("error_clients","Client not found!");
-            // return redirect("/Clients");
-        }
-        /**End here */
     }
 
     function dePay($userid){
