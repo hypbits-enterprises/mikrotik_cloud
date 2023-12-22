@@ -54,7 +54,7 @@ class Router_Cloud extends Controller
         $ip_address = $sstp_value->ip_address;
         $user = $sstp_value->username;
         $pass = $sstp_value->password;
-        $port = 8728;
+        $port = $sstp_value->port;
 
 
         // connect to the router
@@ -123,7 +123,7 @@ class Router_Cloud extends Controller
         $ip_address = $sstp_value->ip_address;
         $user = $sstp_value->username;
         $pass = $sstp_value->password;
-        $port = 8728;
+        $port = $sstp_value->port;
 
         // check if the router is actively connected
         $client_router_ip = $this->checkActive($ip_address,$user,$pass,$port,$router_data[0]->sstp_username);
@@ -186,7 +186,7 @@ class Router_Cloud extends Controller
         $ip_address = $sstp_value->ip_address;
         $user = $sstp_value->username;
         $pass = $sstp_value->password;
-        $port = 8728;
+        $port = $sstp_value->port;
 
         // check if the router is actively connected
         $client_router_ip = $this->checkActive($ip_address,$user,$pass,$port,$router_data[0]->sstp_username);
@@ -231,7 +231,7 @@ class Router_Cloud extends Controller
         $ip_address = $sstp_value->ip_address;
         $user = $sstp_value->username;
         $pass = $sstp_value->password;
-        $port = 8728;
+        $port = $sstp_value->port;
 
         // check if the router is actively connected
         $client_router_ip = $this->checkActive($ip_address,$user,$pass,$port,$router_data[0]->sstp_username);

@@ -953,7 +953,7 @@ class Clients extends Controller
             $server_ip_address = $sstp_value->ip_address;
             $user = $sstp_value->username;
             $pass = $sstp_value->password;
-            $port = 8728;
+            $port = $sstp_value->port;
 
             // check if the router is actively connected
             $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
@@ -1222,7 +1222,7 @@ class Clients extends Controller
                 $server_ip_address = $sstp_value->ip_address;
                 $user = $sstp_value->username;
                 $pass = $sstp_value->password;
-                $port = 8728;
+                $port = $sstp_value->port;
 
                 // check if the router is actively connected
                 $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
@@ -1737,7 +1737,7 @@ class Clients extends Controller
                     $server_ip_address = $sstp_value->ip_address;
                     $user = $sstp_value->username;
                     $pass = $sstp_value->password;
-                    $port = 8728;
+                    $port = $sstp_value->port;
 
                     // check if the router is actively connected
                     $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
@@ -1819,7 +1819,7 @@ class Clients extends Controller
                     $server_ip_address = $sstp_value->ip_address;
                     $user = $sstp_value->username;
                     $pass = $sstp_value->password;
-                    $port = 8728;
+                    $port = $sstp_value->port;
 
                     // check if the router is actively connected
                     $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
@@ -1942,7 +1942,7 @@ class Clients extends Controller
         $ip_address = $sstp_value->ip_address;
         $user = $sstp_value->username;
         $pass = $sstp_value->password;
-        $port = 8728;
+        $port = $sstp_value->port;
 
         // check if the router is actively connected
         $client_router_ip = $this->checkActive($ip_address,$user,$pass,$port,$sstp_username);
@@ -2009,7 +2009,7 @@ class Clients extends Controller
         $ip_address = $sstp_value->ip_address;
         $user = $sstp_value->username;
         $pass = $sstp_value->password;
-        $port = 8728;
+        $port = $sstp_value->port;
 
         // check if the router is actively connected
         $client_router_ip = $this->checkActive($ip_address,$user,$pass,$port,$sstp_username);
@@ -2810,7 +2810,7 @@ class Clients extends Controller
                         $server_ip_address = $sstp_value->ip_address;
                         $user = $sstp_value->username;
                         $pass = $sstp_value->password;
-                        $port = 8728;
+                        $port = $sstp_value->port;
 
                         // check if the router is actively connected
                         $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
@@ -2910,7 +2910,7 @@ class Clients extends Controller
                 $server_ip_address = $sstp_value->ip_address;
                 $user = $sstp_value->username;
                 $pass = $sstp_value->password;
-                $port = 8728;
+                $port = $sstp_value->port;
 
                 // check if the router is actively connected
                 $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
@@ -3103,7 +3103,7 @@ class Clients extends Controller
                         $server_ip_address = $sstp_value->ip_address;
                         $user = $sstp_value->username;
                         $pass = $sstp_value->password;
-                        $port = 8728;
+                        $port = $sstp_value->port;
 
                         // check if the router is actively connected
                         $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
@@ -3196,7 +3196,7 @@ class Clients extends Controller
                 $server_ip_address = $sstp_value->ip_address;
                 $user = $sstp_value->username;
                 $pass = $sstp_value->password;
-                $port = 8728;
+                $port = $sstp_value->port;
 
                 // check if the router is actively connected
                 $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
@@ -3358,7 +3358,7 @@ class Clients extends Controller
                 $server_ip_address = $sstp_value->ip_address;
                 $user = $sstp_value->username;
                 $pass = $sstp_value->password;
-                $port = 8728;
+                $port = $sstp_value->port;
 
                 // check if the router is actively connected
                 $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
@@ -3458,7 +3458,7 @@ class Clients extends Controller
                 $server_ip_address = $sstp_value->ip_address;
                 $user = $sstp_value->username;
                 $pass = $sstp_value->password;
-                $port = 8728;
+                $port = $sstp_value->port;
 
                 // check if the router is actively connected
                 $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
@@ -3572,7 +3572,7 @@ class Clients extends Controller
                 $server_ip_address = $sstp_value->ip_address;
                 $user = $sstp_value->username;
                 $pass = $sstp_value->password;
-                $port = 8728;
+                $port = $sstp_value->port;
 
                 // check if the router is actively connected
                 $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
@@ -3671,7 +3671,7 @@ class Clients extends Controller
                 $server_ip_address = $sstp_value->ip_address;
                 $user = $sstp_value->username;
                 $pass = $sstp_value->password;
-                $port = 8728;
+                $port = $sstp_value->port;
 
                 // check if the router is actively connected
                 $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);

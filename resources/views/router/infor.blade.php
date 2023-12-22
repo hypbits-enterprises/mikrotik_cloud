@@ -292,16 +292,17 @@ date_default_timezone_set('Africa/Nairobi');
                                             /interface sstp-client add name="HYPBITS_SSTP_ONE" connect-to={{$ip_address}} user={{$router_data[0]->sstp_username}} password={{$router_data[0]->sstp_password}} profile="HYPBITS_SSTP" authentication=pap,chap,mschap1,mschap2 disabled=no comment="Do not delete: HYPBITS connection to {{$router_data[0]->router_name}}"<br><br>
                                             
                                             <span class="text-success">## Configure routes</span><br>
-                                            /ip route add dst-address=192.168.4.0/24 gateway=192.168.4.1 comment="Do not delete: HYPBITS VPN SERVER NETWORK1"<br>
-                                            /ip route add dst-address=172.23.0.0/24 gateway=192.168.4.1 comment="Do not delete: HYPBITS VPN SERVER NETWORK2"<br><br>
+                                            /ip route add dst-address=192.168.254.0/24 gateway=192.168.254.1 comment="Do not delete: HYPBITS VPN SERVER NETWORK1"<br>
+                                            /ip route add dst-address=192.168.253.0/24 gateway=192.168.254.1 comment="Do not delete: HYPBITS VPN SERVER NETWORK2"<br>
+                                            /ip route add dst-address=172.23.252.0/24 gateway=192.168.254.1 comment="Do not delete: HYPBITS VPN SERVER NETWORK3"<br><br>
                                             
                                             <span class="text-success">## Configure firewall</span><br>
                                             /ip firewall filter add chain=input action=accept in-interface=HYPBITS_SSTP_ONE log=no log-prefix="" comment="Do not delete: Allow HYPBITS remote access" disabled=no<br>
                                             /ip firewall filter move [find where in-interface=HYPBITS_SSTP_ONE] destination 0<br><br>
 
                                             <span class="text-success">## Enable required services</span><br>
-                                            /ip service set api disabled=no port=8728<br>
-                                            /ip service set winbox disabled=no port=8291<br><br>
+                                            /ip service set api disabled=no port={{$router_data[0]->api_port}}<br>
+                                            /ip service set winbox disabled=no port={{$router_data[0]->winbox_port}}<br><br>
                                             
                                             <span class="text-success">## version 6.49.10</span><br>
                                             /user group add name="HYPBITS_FULL" policy="local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,tikapp,!dude" comment="Do not delete: HYPBITS user group"<br>
