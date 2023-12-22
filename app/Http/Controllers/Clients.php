@@ -3349,9 +3349,13 @@ class Clients extends Controller
                 // connect to the router and set the sstp client
                 $sstp_value = $this->getSSTPAddress();
                 if ($sstp_value == null) {
-                    $error = "The SSTP server is not set, Contact your administrator!";
-                    session()->flash("network_presence",$error);
-                    return redirect(url()->previous());
+                    if (session('Usernames')) {
+                        $error = "The SSTP server is not set, Contact your administrator!";
+                        session()->flash("network_presence",$error);
+                        return redirect(url()->previous());
+                    }else{
+                        return "";
+                    }
                 }
 
                 // connect to the router and set the sstp client
@@ -3364,9 +3368,13 @@ class Clients extends Controller
                 $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
 
                 if ($client_router_ip == null) {
-                    $error = "Your router is not active, Restart it and try again!";
-                    session()->flash("network_presence",$error);
-                    return redirect(url()->previous());
+                    if (session('Usernames')) {
+                        $error = "Your router is not active, Restart it and try again!";
+                        session()->flash("network_presence",$error);
+                        return redirect(url()->previous());
+                    }else{
+                        return "";
+                    }
                 }
         
                 // create the router os api
@@ -3418,15 +3426,27 @@ class Clients extends Controller
                         $this->log($txt);
 
                         // end of log file
-                        session()->flash("success","User has been successfully deactivated");
-                        return redirect("/Clients/View/$userid");
+                        if (session('Usernames')) {
+                            session()->flash("success","User has been successfully deactivated");
+                            return redirect("/Clients/View/$userid");
+                        }else{
+                            return "";
+                        }
                     }else {
-                        session()->flash("error","The user ip address not found in the router address list");
-                        return redirect("/Clients/View/$userid");
+                        if (session('Usernames')) {
+                            session()->flash("error","The user ip address not found in the router address list");
+                            return redirect("/Clients/View/$userid");
+                        }else{
+                            return "";
+                        }
                     }
                 }else {
-                    session()->flash("error","Cannot connect to the router!");
-                    return redirect("/Clients/View/$userid");
+                    if (session('Usernames')) {
+                        session()->flash("error","Cannot connect to the router!");
+                        return redirect("/Clients/View/$userid");
+                    }else{
+                        return "";
+                    }
                 }
             }elseif ($client_data[0]->assignment == "pppoe") {
                 // disable the client secret and remove the client from active connections
@@ -3435,9 +3455,13 @@ class Clients extends Controller
                 $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
                 
                 if (count($router_data) == 0) {
-                    $error = "Router that the client is connected to is not present!";
-                    session()->flash("network_presence",$error);
-                    return redirect(url()->previous());
+                    if (session('Usernames')) {
+                        $error = "Router that the client is connected to is not present!";
+                        session()->flash("network_presence",$error);
+                        return redirect(url()->previous());
+                    }else{
+                        return "";
+                    }
                 }
         
                 // get the sstp credentails they are also the api usernames
@@ -3449,9 +3473,13 @@ class Clients extends Controller
                 // connect to the router and set the sstp client
                 $sstp_value = $this->getSSTPAddress();
                 if ($sstp_value == null) {
-                    $error = "The SSTP server is not set, Contact your administrator!";
-                    session()->flash("network_presence",$error);
-                    return redirect(url()->previous());
+                    if (session('Usernames')) {
+                        $error = "The SSTP server is not set, Contact your administrator!";
+                        session()->flash("network_presence",$error);
+                        return redirect(url()->previous());
+                    }else{
+                        return "";
+                    }
                 }
 
                 // connect to the router and set the sstp client
@@ -3464,9 +3492,13 @@ class Clients extends Controller
                 $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
 
                 if ($client_router_ip == null) {
-                    $error = "Your router is not active, Restart it and try again!";
-                    session()->flash("network_presence",$error);
-                    return redirect(url()->previous());
+                    if (session('Usernames')) {
+                        $error = "Your router is not active, Restart it and try again!";
+                        session()->flash("network_presence",$error);
+                        return redirect(url()->previous());
+                    }else{
+                        return "";
+                    }
                 }
         
                 // client secret name 
@@ -3526,16 +3558,28 @@ class Clients extends Controller
                     $txt = ":Client (".$client_data[0]->client_name.") deactivated by ".(session('Usernames') ? session('Usernames'):"System");
                     $this->log($txt);
                     // end of log file
-                    session()->flash("success","User has been successfully deactivated");
-                    return redirect("/Clients/View/$userid");
+                    if (session('Usernames')) {
+                        session()->flash("success","User has been successfully deactivated");
+                        return redirect("/Clients/View/$userid");
+                    }else{
+                        return "";
+                    }
                 }else {
-                    session()->flash("error","Cannot connect to the router!");
-                    return redirect("/Clients/View/$userid");
+                    if (session('Usernames')) {
+                        session()->flash("error","Cannot connect to the router!");
+                        return redirect("/Clients/View/$userid");
+                    }else{
+                        return "";
+                    }
                 }
             }
         }else {
-            session()->flash("error_clients","Client not found!");
-            return redirect("/Clients");
+            if (session('Usernames')) {
+                session()->flash("error_clients","Client not found!");
+                return redirect("/Clients");
+            }else{
+                return "";
+            }
         }
     }
     // activate the user
@@ -3549,9 +3593,13 @@ class Clients extends Controller
                 // connect to the router and deactivate the client address
                 $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
                 if (count($router_data) == 0) {
-                    $error = "The router the client is connected to is not present!";
-                    session()->flash("error",$error);
-                    return redirect(url()->previous());
+                    if (session('Usernames')) {
+                        $error = "The router the client is connected to is not present!";
+                        session()->flash("error",$error);
+                        return redirect(url()->previous());
+                    }else{
+                        return "";
+                    }
                 }
         
                 // get the sstp credentails they are also the api usernames
@@ -3563,9 +3611,13 @@ class Clients extends Controller
                 // connect to the router and set the sstp client
                 $sstp_value = $this->getSSTPAddress();
                 if ($sstp_value == null) {
-                    $error = "The SSTP server is not set, Contact your administrator!";
-                    session()->flash("error",$error);
-                    return redirect(url()->previous());
+                    if (session('Usernames')) {
+                        $error = "The SSTP server is not set, Contact your administrator!";
+                        session()->flash("error",$error);
+                        return redirect(url()->previous());
+                    }else{
+                        return "";
+                    }
                 }
 
                 // connect to the router and set the sstp client
@@ -3578,9 +3630,13 @@ class Clients extends Controller
                 $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
 
                 if ($client_router_ip == null) {
-                    $error = "Your router is not active, Restart it and try again!";
-                    session()->flash("error",$error);
-                    return redirect(url()->previous());
+                    if (session('Usernames')) {
+                        $error = "Your router is not active, Restart it and try again!";
+                        session()->flash("error",$error);
+                        return redirect(url()->previous());
+                    }else{
+                        return "";
+                    }
                 }
         
                 // create the router os api
@@ -3630,15 +3686,27 @@ class Clients extends Controller
                         $txt = ":Client (".$client_data[0]->client_name.") activated by ".(session('Usernames') ? session('Usernames'):"System");
                         $this->log($txt);
                         // end of log file
-                        session()->flash("success","User has been successfully activated");
-                        return redirect("/Clients/View/$userid");
+                        if (session('Usernames')) {
+                            session()->flash("success","User has been successfully activated");
+                            return redirect("/Clients/View/$userid");
+                        }else{
+                            return "";
+                        }
                     }else {
-                        session()->flash("error","The user ip address not found in the router address list");
-                        return redirect("/Clients/View/$userid");
+                        if (session('Usernames')) {
+                            session()->flash("error","The user ip address not found in the router address list");
+                            return redirect("/Clients/View/$userid");
+                        }else{
+                            return "";
+                        }
                     }
                 }else {
-                    session()->flash("error","Cannot connect to the router!");
-                    return redirect("/Clients/View/$userid");
+                    if (session('Usernames')) {
+                        session()->flash("error","Cannot connect to the router!");
+                        return redirect("/Clients/View/$userid");
+                    }else{
+                        return "";
+                    }
                 }
             }elseif ($client_data[0]->assignment == "pppoe") {
                 // disable the client secret and remove the client from active connections
@@ -3648,9 +3716,13 @@ class Clients extends Controller
                 
                 // router value
                 if (count($router_data) == 0) {
-                    $error = "Router connected to client not found!";
-                    session()->flash("network_presence",$error);
-                    return redirect(url()->previous());
+                    if (session('Usernames')) {
+                        $error = "Router connected to client not found!";
+                        session()->flash("network_presence",$error);
+                        return redirect(url()->previous());
+                    }else{
+                        return "";
+                    }
                 }
         
                 // get the sstp credentails they are also the api usernames
@@ -3662,9 +3734,13 @@ class Clients extends Controller
                 // connect to the router and set the sstp client
                 $sstp_value = $this->getSSTPAddress();
                 if ($sstp_value == null) {
-                    $error = "The SSTP server is not set, Contact your administrator!";
-                    session()->flash("network_presence",$error);
-                    return redirect(url()->previous());
+                    if (session('Usernames')) {
+                        $error = "The SSTP server is not set, Contact your administrator!";
+                        session()->flash("network_presence",$error);
+                        return redirect(url()->previous());
+                    }else{
+                        return "";
+                    }
                 }
 
                 // connect to the router and set the sstp client
@@ -3677,9 +3753,13 @@ class Clients extends Controller
                 $client_router_ip = $this->checkActive($server_ip_address,$user,$pass,$port,$sstp_username);
 
                 if ($client_router_ip == null) {
-                    $error = "Your router is not active, Restart it and try again!";
-                    session()->flash("network_presence",$error);
-                    return redirect(url()->previous());
+                    if (session('Usernames')) {
+                        $error = "Your router is not active, Restart it and try again!";
+                        session()->flash("network_presence",$error);
+                        return redirect(url()->previous());
+                    }else{
+                        return "";
+                    }
                 }
         
                 // client secret name 
@@ -3723,16 +3803,28 @@ class Clients extends Controller
                     $txt = ":Client (".$client_data[0]->client_name.") activated by ".(session('Usernames') ? session('Usernames'):"System");
                     $this->log($txt);
                     // end of log file
-                    session()->flash("success","User has been successfully activated");
-                    return redirect("/Clients/View/$userid");
+                    if (session('Usernames')) {
+                        session()->flash("success","User has been successfully activated");
+                        return redirect("/Clients/View/$userid");
+                    }else{
+                        return "";
+                    }
                 }else {
-                    session()->flash("error","Cannot connect to the router!");
-                    return redirect("/Clients/View/$userid");
+                    if (session('Usernames')) {
+                        session()->flash("error","Cannot connect to the router!");
+                        return redirect("/Clients/View/$userid");
+                    }else{
+                        return "";
+                    }
                 }
             }
         }else {
-            session()->flash("error_clients","Client not found!");
-            return redirect("/Clients");
+            if (session('Usernames')) {
+                session()->flash("error_clients","Client not found!");
+                return redirect("/Clients");
+            }else{
+                return "";
+            }
         }
         /*****ends here */
     }
