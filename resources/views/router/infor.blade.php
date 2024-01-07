@@ -285,34 +285,35 @@ date_default_timezone_set('Africa/Nairobi');
                                         <button class="btn btn-sm btn-primary mb-2" id="send_to_clipboard"><i class="ft-copy" ></i> Copy</button>
                                         <h4 class="text-center">Router Configuration</h4>
                                         <p id="command_holder">
-                                            <span class="text-success">## Set the SSTP Profile</span><br>
+                                            {{-- <span class="text-success">## Set the SSTP Profile</span><br> --}}
                                             /ppp profile add name="HYPBITS_SSTP" comment="Do not delete: Default Hypbits VPN profile"<br><br>
                                             
-                                            <span class="text-success">## Add the SSTP Interface</span><br>
+                                            {{-- <span class="text-success">## Add the SSTP Interface</span><br> --}}
                                             /interface sstp-client add name="HYPBITS_SSTP_ONE" connect-to={{$ip_address}} user={{$router_data[0]->sstp_username}} password={{$router_data[0]->sstp_password}} profile="HYPBITS_SSTP" authentication=pap,chap,mschap1,mschap2 disabled=no comment="Do not delete: HYPBITS connection to {{$router_data[0]->router_name}}"<br><br>
                                             
-                                            <span class="text-success">## Configure routes</span><br>
+                                            {{-- <span class="text-success">## Configure routes</span><br> --}}
                                             /ip route add dst-address=192.168.254.0/24 gateway=192.168.254.1 comment="Do not delete: HYPBITS VPN SERVER NETWORK1"<br>
                                             /ip route add dst-address=192.168.253.0/24 gateway=192.168.254.1 comment="Do not delete: HYPBITS VPN SERVER NETWORK2"<br>
-                                            /ip route add dst-address=172.23.252.0/24 gateway=192.168.254.1 comment="Do not delete: HYPBITS VPN SERVER NETWORK3"<br><br>
+                                            /ip route add dst-address=192.23.252.0/24 gateway=192.168.254.1 comment="Do not delete: HYPBITS VPN SERVER NETWORK3"<br><br>
                                             
-                                            <span class="text-success">## Configure firewall</span><br>
+                                            {{-- <span class="text-success">## Configure firewall</span><br> --}}
                                             /ip firewall filter add chain=input action=accept in-interface=HYPBITS_SSTP_ONE log=no log-prefix="" comment="Do not delete: Allow HYPBITS remote access" disabled=no<br>
-                                            /ip firewall filter move [find where in-interface=HYPBITS_SSTP_ONE] destination 0<br><br>
+                                            /ip firewall filter move [find where in-interface=HYPBITS_SSTP_ONE] destination=0<br><br>
 
-                                            <span class="text-success">## Enable required services</span><br>
+                                            {{-- <span class="text-success">## Enable required services</span><br> --}}
                                             /ip service set api disabled=no port={{$router_data[0]->api_port}}<br>
                                             /ip service set winbox disabled=no port={{$router_data[0]->winbox_port}}<br><br>
                                             
-                                            <span class="text-success">## version 6.49.10</span><br>
+                                            {{-- <span class="text-success">## version 6.49.10</span><br> --}}
                                             /user group add name="HYPBITS_FULL" policy="local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,tikapp,!dude" comment="Do not delete: HYPBITS user group"<br>
                                             <br>
                                             
-                                            <span class="text-success">## version 7.11.2</span><br>
+                                            {{-- <span class="text-success">## version 7.11.2</span><br> --}}
                                             /user group add name="HYPBITS_FULL" policy="local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,rest-api" comment="Do not delete: HYPBITS user group"<br>
                                             
                                             /user add name="{{$router_data[0]->sstp_username}}" password="{{$router_data[0]->sstp_password}}" group="HYPBITS_FULL" comment="Do not delete: Hypbits API User"</p>
-
+                                            
+                                            /quit
                                             <a href="{{url()->route("connect_router",$router_data[0]->router_id)}}" class="btn btn-success btn-sm mt-1 {{$router_data[0]->activated == 0 ? "" : "d-none"}}"><i class="ft-settings"></i> Connect</a>
                                     </div>
                                     <form action="{{url()->route("update_router")}}" method="post">

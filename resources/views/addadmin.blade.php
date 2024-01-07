@@ -251,7 +251,7 @@
                                                             <th>#</th>
                                                             <th>Menu</th>
                                                             <th>View <input type="checkbox" checked id="all_view"></th>
-                                                            <th>Read-only <input checked type="checkbox" id="all_readonly"></th>
+                                                            <th>Read-only <input type="checkbox" id="all_readonly"></th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -259,41 +259,41 @@
                                                             <th scope="row">1</th>
                                                             <td><label for="my_clients_option" class="form-label"><b>My Clients</b></label></td>
                                                             <td><input class="all_view" checked type="checkbox" id="my_clients_option_view"></td>
-                                                            <td><input class="all_readonly" checked type="checkbox" id="my_clients_option_readonly"></td>
+                                                            <td><input class="all_readonly" type="checkbox" id="my_clients_option_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <th rowspan="3" scope="row">2</th>
                                                             <td ><label for="my_clients_option" class="form-label"><b>Accounts</b></label></td>
                                                             <td><input class="all_view" checked type="checkbox" id="accounts_option_view"></td>
-                                                            <td><input class="all_readonly" checked type="checkbox" id="accounts_option_readonly"></td>
+                                                            <td><input class="all_readonly"  type="checkbox" id="accounts_option_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <td ><label for="my_clients_option" class="form-label"><b><i>Transactions</i></b></label></td>
                                                             <td><input class="all_view account_options" checked type="checkbox" id="transactions_option_view"></td>
-                                                            <td><input class="all_readonly account_options_2" checked type="checkbox" id="transactions_option_readonly"></td>
+                                                            <td><input class="all_readonly account_options_2"  type="checkbox" id="transactions_option_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <td ><label for="my_clients_option" class="form-label"><b><i>Expenses</i></b></label></td>
                                                             <td><input class="all_view account_options" checked type="checkbox" id="expenses_option_view"></td>
-                                                            <td><input class="all_readonly account_options_2" checked type="checkbox" id="expenses_option_readonly"></td>
+                                                            <td><input class="all_readonly account_options_2"  type="checkbox" id="expenses_option_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <th scope="row">3</th>
                                                             <td ><label for="my_clients_option" class="form-label"><b>My Routers</b></label></td>
                                                             <td><input class="all_view" checked type="checkbox" id="my_routers_option_view"></td>
-                                                            <td><input class="all_readonly" checked type="checkbox" id="my_routers_option_readonly"></td>
+                                                            <td><input class="all_readonly" type="checkbox" id="my_routers_option_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <th scope="row">4</th>
                                                             <td ><label for="my_clients_option" class="form-label"><b>SMS</b></label></td>
                                                             <td><input class="all_view" checked type="checkbox" id="sms_option_view"></td>
-                                                            <td><input class="all_readonly" checked type="checkbox" id="sms_option_readonly"></td>
+                                                            <td><input class="all_readonly" type="checkbox" id="sms_option_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <th scope="row">5</th>
                                                             <td ><label for="my_clients_option" class="form-label"><b>Account & Profile</b></label></td>
                                                             <td><input class="all_view" checked type="checkbox" id="account_profile_option_view"></td>
-                                                            <td><input class="all_readonly" checked type="checkbox" id="account_profile_option_readonly"></td>
+                                                            <td><input class="all_readonly" type="checkbox" id="account_profile_option_readonly"></td>
                                                         </tr>
                                                     </tbody>
                                                 </table>

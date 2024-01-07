@@ -453,10 +453,10 @@
                               </div>
                             </div>
                             <div class="text-center">
-                              <button type="submit" {{$readonly}} class="btn btn-primary disabled">Save Changes</button>
+                              <button type="submit" {{$readonly}} class="btn btn-primary">Save Changes</button>
                             </div>
                           </form><!-- End settings Form -->
-                          <div class="container">
+                          <div class="container d-none">
                             <p><strong>Export user data</strong></p>
                             <a href="/Clients/Export" class="btn btn-secondary text-bolder {{$readonly}} disabled"><i class="ft-command"> </i>Export</a>
                             <hr>

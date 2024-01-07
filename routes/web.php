@@ -53,8 +53,8 @@ Route::view("/verify","verify");
 // Route::view("/Clients/NewStatic","newClient");
 
 //login controller router
-Route::post("/proc_login",[login::class,"processLogin"]);
-Route::post("/verifycode",[Login::class,"processVerification"]);
+Route::post("/process_login",[login::class,"processLogin"])->name("process_login");
+Route::post("/verifycode",[Login::class,"processVerification"])->name("verify_code");
 
 // save client route
 Route::post("addClient",[Clients::class,'processNewClient'])->name("clients.addstatic");
@@ -133,6 +133,7 @@ Route::get("/Transactions/View/{trans_id}",[Transaction::class,"transDetails"]);
 Route::get("/Assign/Transaction/{trans_id}/Client/{client_id}",[Transaction::class,"assignTransaction"]);
 Route::get("/confirmTransfer/{user_id}/{transaction_id}",[Transaction::class,"confirmTransfer"]);
 Route::post("/Transact",[Transaction::class,"mpesaTransactions"]);
+Route::post("/Validate",[Transaction::class,"verify_client_transaction"]);
 
 // Router section
 // Route::get("/Router/View/{routerid}",[Router::class,"getRouterInfor"]);
@@ -165,6 +166,7 @@ Route::post("/sendsms_routers",[Sms::class,"sendsms_routers"]);
 Route::get("/Accounts",[admin::class,"getAdmin"]);
 Route::post("/changePasswordAdmin", [admin::class,"updatePassword"]);
 Route::get("/Accounts/add",[admin::class,"addAdmin"]);
+Route::get("/Accounts/delete/{admin_id}",[admin::class,"delete_admin"])->name("delete_admin");
 Route::post("/addAdministrator", [admin::class,"addAdministrator"]);
 Route::get("/Admin/View/{admin_id}", [admin::class,"viewAdmin"]);
 Route::post("/updateAdministrator", [admin::class,"updateAdmin"]);

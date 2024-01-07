@@ -26,11 +26,15 @@ class Clients extends Controller
     }
     //here we get the clients information from the database
     function getClientData(){
-        $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC;");
-        $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0'");
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC;");
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0'");
         // return $client_data;
         // get all the clients that have been frozen
-        $frozen_clients = DB::select("SELECT * FROM `client_tables` WHERE `client_freeze_status` = '1'");
+        $frozen_clients = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_freeze_status` = '1'");
         for ($index=0; $index < count($frozen_clients); $index++) { 
             // get difference in todays date and the day selected
             $date_today = date_create(date("Ymd"));
@@ -53,6 +57,10 @@ class Clients extends Controller
     }
     
     function generateReports(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req;
         $client_report_option = $req->input("client_report_option");
         $client_registration_date_option = $req->input("client_registration_date_option");
@@ -70,134 +78,134 @@ class Clients extends Controller
             if ($select_router_option == "All" && $client_statuses == "2") {
                 if ($client_registration_date_option == "all dates") {
                     $title = "All Clients Registered";
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` DESC");
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` DESC");
                 }elseif ($client_registration_date_option == "select date") {
                     $title = "Clients Registered on ".date("D dS M Y",strtotime($select_registration_date));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC");
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC");
                 }elseif ($client_registration_date_option == "between dates") {
                     $title = "Clients Registered between ".date("D dS M Y",strtotime($from_select_date))." AND ".date("D dS M Y",strtotime($to_select_date));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC");
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC");
                 }else{
                     $title = "Clients Registered";
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` DESC");
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` DESC");
                 }
             }elseif (($client_statuses == "1" || $client_statuses == "0") && $select_router_option != "All") {
                 $status = $client_statuses == "0" ? "In-Active" : "Active";
-                $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = ?",[$select_router_option]);
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = ?",[$select_router_option]);
                 $router_name = count($router_data) > 0 ? $router_data[0]->router_name : "Null";
 
                 if ($client_registration_date_option == "all dates") {
                     $title = "All ".$status." Clients Registered in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$client_statuses,$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$client_statuses,$select_router_option]);
                 }elseif ($client_registration_date_option == "select date") {
                     $title = $status." Clients Registered on ".date("D dS M Y",strtotime($select_registration_date))." in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `router_name` = ? AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC",[$client_statuses,$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `router_name` = ? AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC",[$client_statuses,$select_router_option]);
                 }elseif ($client_registration_date_option == "between dates") {
                     $title = $status." Clients Registered between ".date("D dS M Y",strtotime($from_select_date))." AND ".date("D dS M Y",strtotime($to_select_date))." in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `router_name` = ? AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC",[$client_statuses,$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `router_name` = ? AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC",[$client_statuses,$select_router_option]);
                 }else{
                     $title = "All ".$status." Clients Registered"." in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `router_name` = ? AND ORDER BY `clients_reg_date` DESC",[$client_statuses,$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `router_name` = ? AND ORDER BY `clients_reg_date` DESC",[$client_statuses,$select_router_option]);
                 }
             }elseif ($client_statuses == "3" && $select_router_option != "All") {
-                $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = ?",[$select_router_option]);
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = ?",[$select_router_option]);
                 $router_name = count($router_data) > 0 ? $router_data[0]->router_name : "Null";
 
                 if ($client_registration_date_option == "all dates") {
                     $title = "All reffered Clients Registered in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
                 }elseif ($client_registration_date_option == "select date") {
                     $title = "Reffered Clients Registered on ".date("D dS M Y",strtotime($select_registration_date))." in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `router_name` = ? AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC",[$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `router_name` = ? AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC",[$select_router_option]);
                 }elseif ($client_registration_date_option == "between dates") {
                     $title = "Reffered Clients Registered between ".date("D dS M Y",strtotime($from_select_date))." AND ".date("D dS M Y",strtotime($to_select_date))." in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `router_name` = ? AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC",[$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `router_name` = ? AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC",[$select_router_option]);
                 }else{
                     $title = "All reffered Clients Registered"." in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `router_name` = ? AND ORDER BY `clients_reg_date` DESC",[$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `router_name` = ? AND ORDER BY `clients_reg_date` DESC",[$select_router_option]);
                 }
             }elseif (($client_statuses == "4" || $client_statuses == "5") && $select_router_option != "All") {
                 $assignment = $client_statuses == "4" ? "static":"pppoe";
-                $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = ?",[$select_router_option]);
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = ?",[$select_router_option]);
                 $router_name = count($router_data) > 0 ? $router_data[0]->router_name : "Null";
 
                 if ($client_registration_date_option == "all dates") {
                     $title = "All ".$assignment." assigned Clients Registered in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$assignment,$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$assignment,$select_router_option]);
                 }elseif ($client_registration_date_option == "select date") {
                     $title = "".$assignment." assigned Clients Registered on ".date("D dS M Y",strtotime($select_registration_date))." in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `router_name` = ? AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC",[$assignment,$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `router_name` = ? AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC",[$assignment,$select_router_option]);
                 }elseif ($client_registration_date_option == "between dates") {
                     $title = "".$assignment." assigned Clients Registered between ".date("D dS M Y",strtotime($from_select_date))." AND ".date("D dS M Y",strtotime($to_select_date))." in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `router_name` = ? AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC",[$assignment,$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `router_name` = ? AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC",[$assignment,$select_router_option]);
                 }else{
                     $title = "All ".$assignment." assigned Clients Registered in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `router_name` = ? AND ORDER BY `clients_reg_date` DESC",[$assignment,$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `router_name` = ? AND ORDER BY `clients_reg_date` DESC",[$assignment,$select_router_option]);
                 }
             }elseif ($select_router_option != "All" && $client_statuses == "2") {
                 $status = $client_statuses == "0" ? "In-Active" : "Active";
-                $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = ?",[$select_router_option]);
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = ?",[$select_router_option]);
                 $router_name = count($router_data) > 0 ? $router_data[0]->router_name : "Null";
 
                 if ($client_registration_date_option == "all dates") {
                     $title = "All Clients Registered in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
                 }elseif ($client_registration_date_option == "select date") {
                     $title = "Clients Registered on ".date("D dS M Y",strtotime($select_registration_date))." in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC",[$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC",[$select_router_option]);
                 }elseif ($client_registration_date_option == "between dates") {
                     $title = "Clients Registered between ".date("D dS M Y",strtotime($from_select_date))." AND ".date("D dS M Y",strtotime($to_select_date))." in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC",[$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC",[$select_router_option]);
                 }else{
                     $title = "All Clients Registered"." in Router: ".ucwords(strtolower($router_name));
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? AND ORDER BY `clients_reg_date` DESC",[$select_router_option]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? AND ORDER BY `clients_reg_date` DESC",[$select_router_option]);
                 }
             }elseif ($select_router_option == "All" && ($client_statuses == "1" || $client_statuses == "0")) {
                 $status = $client_statuses == "0" ? "In-Active" : "Active";
 
                 if ($client_registration_date_option == "all dates") {
                     $title = "All ".$status." Clients Registered";
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? ORDER BY `clients_reg_date` DESC",[$client_statuses]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? ORDER BY `clients_reg_date` DESC",[$client_statuses]);
                 }elseif ($client_registration_date_option == "select date") {
                     $title = $status." Clients Registered on ".date("D dS M Y",strtotime($select_registration_date))."";
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC",[$client_statuses]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC",[$client_statuses]);
                 }elseif ($client_registration_date_option == "between dates") {
                     $title = $status." Clients Registered between ".date("D dS M Y",strtotime($from_select_date))." AND ".date("D dS M Y",strtotime($to_select_date))."";
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC",[$client_statuses]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC",[$client_statuses]);
                 }else{
                     $title = "All ".$status." Clients Registered"."";
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND ORDER BY `clients_reg_date` DESC",[$client_statuses]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND ORDER BY `clients_reg_date` DESC",[$client_statuses]);
                 }
             }elseif ($select_router_option == "All" && $client_statuses == "3"){
                 
                 if ($client_registration_date_option == "all dates") {
                     $title = "All reffered Clients Registered";
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' ORDER BY `clients_reg_date` DESC");
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' ORDER BY `clients_reg_date` DESC");
                 }elseif ($client_registration_date_option == "select date") {
                     $title = "Reffered Clients Registered on ".date("D dS M Y",strtotime($select_registration_date))."";
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND  `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC");
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND  `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC");
                 }elseif ($client_registration_date_option == "between dates") {
                     $title = "Reffered Clients Registered between ".date("D dS M Y",strtotime($from_select_date))." AND ".date("D dS M Y",strtotime($to_select_date))."";
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC");
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC");
                 }else{
                     $title = "All reffered Clients Registered"."";
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND ORDER BY `clients_reg_date` DESC");
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND ORDER BY `clients_reg_date` DESC");
                 }
             }elseif (($client_statuses == "4" || $client_statuses == "5") && $select_router_option == "All"){
                 $assignment = $client_statuses == "4" ? "static":"pppoe";
 
                 if ($client_registration_date_option == "all dates") {
                     $title = "All ".$assignment." assigned Clients Registered ";
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? ORDER BY `clients_reg_date` DESC",[$assignment]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? ORDER BY `clients_reg_date` DESC",[$assignment]);
                 }elseif ($client_registration_date_option == "select date") {
                     $title = "".$assignment." assigned Clients Registered on ".date("D dS M Y",strtotime($select_registration_date))." ";
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC",[$assignment]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `clients_reg_date` LIKE '".date("Ymd",strtotime($select_registration_date))."%' ORDER BY `clients_reg_date` DESC",[$assignment]);
                 }elseif ($client_registration_date_option == "between dates") {
                     $title = "".$assignment." assigned Clients Registered between ".date("D dS M Y",strtotime($from_select_date))." AND ".date("D dS M Y",strtotime($to_select_date))." ";
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC",[$assignment]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `clients_reg_date` BETWEEN '".date("YmdHis",strtotime($from_select_date))."' AND '".date("Ymd",strtotime($to_select_date))."235959"."' ORDER BY `clients_reg_date` DESC",[$assignment]);
                 }else{
                     $title = "All ".$assignment." assigned Clients Registered ";
-                    $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND ORDER BY `clients_reg_date` DESC",[$assignment]);
+                    $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND ORDER BY `clients_reg_date` DESC",[$assignment]);
                 }
             }
             // return $clients_data;
@@ -289,42 +297,42 @@ class Clients extends Controller
             if ($select_router_option == "All") {
                 if ($client_statuses == "2") {
                     $title = "All Clients Registered";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` DESC");
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` DESC");
                 }elseif ($client_statuses == "0" || $client_statuses == "1") {
                     $status = $client_statuses == "1" ? "Active" : "In-Active";
                     $title = "All ".$status." Clients Registered";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? ORDER BY `clients_reg_date` DESC",[$client_statuses]);
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? ORDER BY `clients_reg_date` DESC",[$client_statuses]);
                 }elseif ($client_statuses == "3") {
                     $title = "All reffered Clients Registered";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' ORDER BY `clients_reg_date` DESC");
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' ORDER BY `clients_reg_date` DESC");
                 }elseif ($client_statuses == "4" || $client_statuses == "5") {
                     $assignment = $client_statuses == "4" ? "static":"pppoe";
                     $title = "All ".$assignment." assigned Clients Registered";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? ORDER BY `clients_reg_date` DESC",[$assignment]);
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? ORDER BY `clients_reg_date` DESC",[$assignment]);
                 }else{
                     $title = "All Clients Registered";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` DESC");
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` DESC");
                 }
             }elseif ($select_router_option != "All") {
-                $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = ?",[$select_router_option]);
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = ?",[$select_router_option]);
                 $router_name = count($router_data) > 0 ? $router_data[0]->router_name : "Null";
                 if ($client_statuses == "2") {
                     $title = "All Clients Registered in Router: ".$router_name."";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
                 }elseif ($client_statuses == "0" || $client_statuses == "1") {
                     $status = $client_statuses == "1" ? "Active" : "In-Active";
                     $title = "All ".$status." Clients Registered in Router: ".$router_name."";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$client_statuses,$select_router_option]);
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$client_statuses,$select_router_option]);
                 }elseif ($client_statuses == "3") {
                     $title = "All reffered Clients Registered in Router: ".$router_name."";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
                 }elseif ($client_statuses == "4" || $client_statuses == "5") {
                     $assignment = $client_statuses == "4" ? "static":"pppoe";
                     $title = "All ".$assignment." assigned Clients Registered in Router: ".$router_name."";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$assignment,$select_router_option]);
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$assignment,$select_router_option]);
                 }else{
                     $title = "All Clients Registered in Router: ".$router_name."";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
                 }
             }
 
@@ -421,42 +429,42 @@ class Clients extends Controller
             if ($select_router_option == "All") {
                 if ($client_statuses == "2") {
                     $title = "All Clients Registered";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` DESC");
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` DESC");
                 }elseif ($client_statuses == "0" || $client_statuses == "1") {
                     $status = $client_statuses == "1" ? "Active" : "In-Active";
                     $title = "All ".$status." Clients Registered";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? ORDER BY `clients_reg_date` DESC",[$client_statuses]);
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? ORDER BY `clients_reg_date` DESC",[$client_statuses]);
                 }elseif ($client_statuses == "3") {
                     $title = "All reffered Clients Registered";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' ORDER BY `clients_reg_date` DESC");
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' ORDER BY `clients_reg_date` DESC");
                 }elseif ($client_statuses == "4" || $client_statuses == "5") {
                     $assignment = $client_statuses == "4" ? "static":"pppoe";
                     $title = "All ".$assignment." assigned Clients Registered";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? ORDER BY `clients_reg_date` DESC",[$assignment]);
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? ORDER BY `clients_reg_date` DESC",[$assignment]);
                 }else{
                     $title = "All Clients Registered";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` DESC");
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` DESC");
                 }
             }elseif ($select_router_option != "All") {
-                $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = ?",[$select_router_option]);
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = ?",[$select_router_option]);
                 $router_name = count($router_data) > 0 ? $router_data[0]->router_name : "Null";
                 if ($client_statuses == "2") {
                     $title = "All Clients Registered in Router: ".$router_name."";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
                 }elseif ($client_statuses == "0" || $client_statuses == "1") {
                     $status = $client_statuses == "1" ? "Active" : "In-Active";
                     $title = "All ".$status." Clients Registered in Router: ".$router_name."";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$client_statuses,$select_router_option]);
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = ? AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$client_statuses,$select_router_option]);
                 }elseif ($client_statuses == "3") {
                     $title = "All reffered Clients Registered in Router: ".$router_name."";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `reffered_by` IS NOT NULL AND `reffered_by` != '' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
                 }elseif ($client_statuses == "4" || $client_statuses == "5") {
                     $assignment = $client_statuses == "4" ? "static":"pppoe";
                     $title = "All ".$assignment." assigned Clients Registered in Router: ".$router_name."";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$assignment,$select_router_option]);
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = ? AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$assignment,$select_router_option]);
                 }else{
                     $title = "All Clients Registered in Router: ".$router_name."";
-                    $client_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
+                    $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = ? ORDER BY `clients_reg_date` DESC",[$select_router_option]);
                 }
             }
 
@@ -551,7 +559,11 @@ class Clients extends Controller
     }
 
     function getRouterName($router_id){
-        $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = ?",[$router_id]);
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = ?",[$router_id]);
         $router_name = count($router_data) > 0 ? $router_data[0]->router_name : "Null";
         return $router_name;
     }
@@ -574,6 +586,10 @@ class Clients extends Controller
     }
     // get the clients statistics
     function getClients_Statistics(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get weekly data
         $dates = date("D");
         $days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -593,7 +609,7 @@ class Clients extends Controller
         $clients_statistics = [];
         $clients_data = [];
 
-        $clientd_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` ASC");
+        $clientd_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` ASC");
         $client_reg_date = date("D",strtotime($clientd_data[0]->clients_reg_date));
         $client_reg_date_mon = date("M",strtotime($clientd_data[0]->clients_reg_date));
 
@@ -620,7 +636,7 @@ class Clients extends Controller
             $client_metrics = [];
             $clients_weekly = [];
             for ($index=0; $index < 7; $index++) {
-                $day_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `clients_reg_date` LIKE '".date("Ymd",strtotime($day_1))."%'");
+                $day_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `clients_reg_date` LIKE '".date("Ymd",strtotime($day_1))."%'");
                 $cl_data = array("date" => date("D dS M",strtotime($day_1)),"number" => count($day_data));
                 array_push($client_metrics,$cl_data);
                 array_push($clients_weekly,$day_data);
@@ -659,7 +675,7 @@ class Clients extends Controller
         $clients_statistics_monthly = [];
         $clients_data_monthly = [];
 
-        $clientd_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` ASC");
+        $clientd_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` ASC");
         $client_reg_date_mon = date("M",strtotime($clientd_data[0]->clients_reg_date));
 
         // get the first day of the week the client was registered
@@ -685,7 +701,7 @@ class Clients extends Controller
             $client_metrics = [];
             $clients_monthly = [];
             for ($index=0; $index < 12; $index++) {
-                $months_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `clients_reg_date` LIKE '".date("Ym",strtotime($month_1))."%'");
+                $months_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `clients_reg_date` LIKE '".date("Ym",strtotime($month_1))."%'");
                 $cl_data = array("date" => date("M Y",strtotime($month_1)),"number" => count($months_data));
                 array_push($client_metrics,$cl_data);
                 array_push($clients_monthly,$months_data);
@@ -711,7 +727,7 @@ class Clients extends Controller
         $clients_statistics_yearly = [];
         $clients_data_yearly = [];
 
-        $clientd_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` ASC");
+        $clientd_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` ASC");
 
         // get the date the week started when the first client was registered
         $duration_start = $clientd_data[0]->clients_reg_date;
@@ -723,7 +739,7 @@ class Clients extends Controller
         // return (date("Y",strtotime($year_1))*1)." ".$end_year;
         // store the arrays in the data
         for ($index = (date("Y",strtotime($year_1))*1); $index <= ($end_year*1); $index++) {
-            $yearly_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `clients_reg_date` LIKE '".$index."%'");
+            $yearly_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `clients_reg_date` LIKE '".$index."%'");
             $cl_data = array("date" => $index,"number" => count($yearly_data));
             
             array_push($clients_statistics_yearly,$cl_data);
@@ -734,6 +750,10 @@ class Clients extends Controller
         return view('client-stats',["clients_weekly" => $clients_data,"client_metrics_weekly" => $clients_statistics,"clients_statistics_monthly" => $clients_statistics_monthly,"clients_monthly" => $clients_data_monthly,"clients_statistics_yearly" => $clients_statistics_yearly,"clients_data_yearly" => $clients_data_yearly]);
     }
     function clientsDemographics(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         $selected_dates = $req->input('selected_dates');
         $from_today = $req->input('from_today');
 
@@ -743,14 +763,18 @@ class Clients extends Controller
         $clients_data = [];
         // select all clients that are to be due from today to the future
         if ($from_today == "true") {
-            $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `next_expiration_date` <= '".$future."' AND `next_expiration_date` >= '".$today."'");
+            $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `next_expiration_date` <= '".$future."' AND `next_expiration_date` >= '".$today."'");
         }else{
-            $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `next_expiration_date` <= '".$future."'");
+            $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `next_expiration_date` <= '".$future."'");
         }
 
         return $clients_data;
     }
     function deleteClients(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req;
         $hold_user_id_data = $req->input("hold_user_id_data");
         $delete_from_router = $req->input("delete_from_router");
@@ -771,6 +795,10 @@ class Clients extends Controller
 
     // this functions add a router to the database
     function addRouter(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get the user data
         $router_name = $req->input('router_name');
         $ip_address = $req->input('ip_address');
@@ -788,7 +816,7 @@ class Clients extends Controller
         if ($API->connect($ip_address, $api_username, $router_api_password, $router_api_port)) {
             $API->disconnect();
             // check if the router is in the database default gateway ip address
-            $router_present = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_ipaddr` = '".$ip_address."'");
+            $router_present = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_ipaddr` = '".$ip_address."'");
             // save the routers data to the database
             if (count($router_present) < 1) {
                 $routerTable = new router_table();
@@ -820,10 +848,14 @@ class Clients extends Controller
 
 
     function getRouterDataClients(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // here we get the router data
-        $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
         // GET ALL THE ACCOUNT NUMBERS PRESENT AND STORE THEM AS ARRAYS
-        $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC;");
+        $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC;");
 
         // get the clients account numbers and usernames
         $client_accounts = [];
@@ -839,10 +871,14 @@ class Clients extends Controller
 
 
     function getRouterDatappoe(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // here we get the router data
-        $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `deleted` = '0' ");
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0' ");
         // GET ALL THE ACCOUNT NUMBERS PRESENT AND STORE THEM AS ARRAYS
-        $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC;");
+        $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC;");
 
         // get the clients account numbers and usernames
         $client_accounts = [];
@@ -857,8 +893,12 @@ class Clients extends Controller
     }
 
     function getSSTPAddress(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get the server details
-        $sstp_settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
+        $sstp_settings = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
         if (count($sstp_settings) == 0) {
             return null;
         }
@@ -874,6 +914,10 @@ class Clients extends Controller
 
     // save client in PPPoE
     function processClientPPPoE(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // ADD IP ADDRESS ADD QUEUE AND ADD FILTER WHEN NEEDED
         // FIRST GET THE USER DATA
         $client_name = $req->input('client_name');
@@ -917,7 +961,7 @@ class Clients extends Controller
             'router_name' => 'required'
         ]);
 
-        $client_account = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_account` = '$client_acc_number'");
+        $client_account = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_account` = '$client_acc_number'");
         if (count($client_account) > 0 ) {
             // display an error that the account number is already used
             session()->flash("network_presence","The account number provided is already present");
@@ -929,7 +973,7 @@ class Clients extends Controller
         if ($client_secret_password == $repeat_secret_password) {
             // first check if the users router is connected
             // get the router data
-            $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$router_name]);
+            $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$router_name]);
             if (count($router_data) == 0) {
                 $error = "Router selected does not exist!";
                 session()->flash("network_presence",$error);
@@ -1050,11 +1094,11 @@ class Clients extends Controller
                 session()->flash("success_reg","The user data has been successfully registered!");
 
                 // get the sms keys
-                $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
+                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
                 $sms_api_key = $sms_keys[0]->value;
-                $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
+                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
                 $sms_partner_id = $sms_keys[0]->value;
-                $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
+                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
                 $sms_shortcode = $sms_keys[0]->value;
                 $partnerID = $sms_partner_id;
                 $apikey = $sms_api_key;
@@ -1062,7 +1106,7 @@ class Clients extends Controller
 
                 $message_contents = $this->get_sms();
                 $message = $message_contents[3]->messages[0]->message;
-                $user_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC LIMIT 1;");
+                $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC LIMIT 1;");
                 if ($user_data && $req->input('send_sms') == "on") {
                     $client_id = $user_data[0]->client_id;
                     $mobile = $user_data[0]->clients_contacts;
@@ -1116,6 +1160,10 @@ class Clients extends Controller
     }
     // save a new client in the database
     function processNewClient(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // ADD IP ADDRESS ADD QUEUE AND ADD FILTER WHEN NEEDED
         // FIRST GET THE USER DATA
         $client_name = $req->input('client_name');
@@ -1172,7 +1220,7 @@ class Clients extends Controller
 
 
         // if the clients account number is present dont accept any inputs
-        $client_usernamed = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_username` = '$client_username'");
+        $client_usernamed = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_username` = '$client_username'");
         if (count($client_usernamed) > 0 ) {
             // display an error that the account number is already used
             session()->flash("network_presence","The username provided is already present!");
@@ -1180,7 +1228,7 @@ class Clients extends Controller
             return redirect("/Clients/NewStatic");
         }
 
-        $client_account = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_account` = '$client_acc_number'");
+        $client_account = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_account` = '$client_acc_number'");
         if (count($client_account) > 0 ) {
             // display an error that the account number is already used
             session()->flash("network_presence","The account number provided is already present");
@@ -1188,7 +1236,7 @@ class Clients extends Controller
             return redirect("/Clients/NewStatic");
         }else {
             // check if the client with that username OR client default gateway is present in the system
-            $user_information = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_default_gw` = '$client_gw' AND  `router_name` = '".$router_name."'");
+            $user_information = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_default_gw` = '$client_gw' AND  `router_name` = '".$router_name."'");
     
             if (count($user_information) > 0) {
                 // the phone number or the client gw is shared
@@ -1198,7 +1246,7 @@ class Clients extends Controller
             }else {
                 // check if the selected router is connected
                 // get the router data
-                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$router_name]);
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$router_name]);
                 if (count($router_data) == 0) {
                     $error = "Router selected does not exist!";
                     session()->flash("network_presence",$error);
@@ -1361,11 +1409,11 @@ class Clients extends Controller
 
 
                     // get the sms keys
-                    $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
                     $sms_api_key = $sms_keys[0]->value;
-                    $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
                     $sms_partner_id = $sms_keys[0]->value;
-                    $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
                     $sms_shortcode = $sms_keys[0]->value;
                     $partnerID = $sms_partner_id;
                     $apikey = $sms_api_key;
@@ -1373,7 +1421,7 @@ class Clients extends Controller
 
                     $message_contents = $this->get_sms();
                     $message = $message_contents[3]->messages[0]->message;
-                    $user_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC LIMIT 1;");
+                    $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC LIMIT 1;");
                     if ($user_data && $req->input('send_sms') == "on") {
                         $client_id = $user_data[0]->client_id;
                         $mobile = $user_data[0]->clients_contacts;
@@ -1432,10 +1480,14 @@ class Clients extends Controller
     }
 
     function delete_user_use_acc($user_acc,$affect_router){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get the user information
         $affect_router = $affect_router == "on" ? true : false;
         // return $user_acc;
-        $user_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_account` = '$user_acc'");
+        $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_account` = '$user_acc'");
         if (count($user_data) > 0) {
             if ($user_data[0]->assignment == "static") {
                 $router_id =  $user_data[0]->router_name;
@@ -1447,7 +1499,7 @@ class Clients extends Controller
                     // return $user_id;
                     $curl_handle = curl_init();
                     // get router data
-                    $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '$router_id' LIMIT 1");
+                    $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '$router_id' LIMIT 1");
                     $ip_address = $router_data[0]->router_ipaddr;
                     $router_api_username = $router_data[0]->router_api_username;
                     $router_api_password = $router_data[0]->router_api_password;
@@ -1545,8 +1597,8 @@ class Clients extends Controller
                         );
                     }
                 }
-                // DB::delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
-                $update = DB::update("UPDATE `client_tables` SET `date_changed` = ?, `deleted` = '1' WHERE `client_id` = ?",[date("YmdHis"),$user_id]);
+                // DB::connection("mysql2")->delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
+                $update = DB::connection("mysql2")->update("UPDATE `client_tables` SET `date_changed` = ?, `deleted` = '1' WHERE `client_id` = ?",[date("YmdHis"),$user_id]);
 
                 // log message
                 $txt = ":Client (".$client_name.") has been deleted by ".session('Usernames')."!";
@@ -1606,7 +1658,7 @@ class Clients extends Controller
                     $active_connections = json_decode($curl_data);
                     // return $active_connections;
                     // get router data
-                    $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '$router_id' LIMIT 1");
+                    $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '$router_id' LIMIT 1");
                     $ip_address = $router_data[0]->router_ipaddr;
                     $router_api_username = $router_data[0]->router_api_username;
                     $router_api_password = $router_data[0]->router_api_password;
@@ -1646,8 +1698,8 @@ class Clients extends Controller
                         }
                     }
                 }
-                // DB::delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
-                DB::update("UPDATE `client_tables` SET `date_changed` = ? , `deleted` = '1' WHERE `client_id` = ?",[date("YmdHis"),$user_id]);
+                // DB::connection("mysql2")->delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
+                DB::connection("mysql2")->update("UPDATE `client_tables` SET `date_changed` = ? , `deleted` = '1' WHERE `client_id` = ?",[date("YmdHis"),$user_id]);
 
                 // log message
                 $txt = ":Client (".$client_name.") has been deleted by ".session('Usernames')."!";
@@ -1661,6 +1713,10 @@ class Clients extends Controller
     }
 
     function sendSmsClients(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req;
         $hold_user_id_data = $req->input("hold_user_id_data");
         if ($this->isJson_report($hold_user_id_data)) {
@@ -1668,7 +1724,7 @@ class Clients extends Controller
             // return $hold_user_id_data;
 
             // get all clients and get their phone numbers
-            $user_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted`= '0';");
+            $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0';");
 
             $phone_numbers = "";
             for ($index=0; $index < count($hold_user_id_data); $index++) { 
@@ -1684,7 +1740,7 @@ class Clients extends Controller
             // get the sms data it contains the client data
             $messages = "";
             // get the data to display for the client list
-            $user_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted`= '0';");
+            $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0';");
             $client_names = [];
             foreach ($user_data as $key => $value) {
                 array_push($client_names,$value->client_name);
@@ -1705,8 +1761,12 @@ class Clients extends Controller
     }
 
     function delete_user($user_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get the user information
-        $user_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = '$user_id'");
+        $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = '$user_id'");
         if (count($user_data) > 0) {
             if ($user_data[0]->assignment == "static") {
 
@@ -1715,7 +1775,7 @@ class Clients extends Controller
                 // get the router data
                 $router_id =  $user_data[0]->router_name;
                 $client_name = $user_data[0]->client_name;
-                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$router_id]);
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$router_id]);
                 if (count($router_data) > 0) {
                     // disable the interface in that router
             
@@ -1787,8 +1847,8 @@ class Clients extends Controller
                         }
                     }
                 }
-                // DB::delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
-                DB::update("UPDATE `client_tables` SET `date_changed` = ? , `deleted` = '1' WHERE `client_id` = ?",[date("YmdHis"),$user_id]);
+                // DB::connection("mysql2")->delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
+                DB::connection("mysql2")->update("UPDATE `client_tables` SET `date_changed` = ? , `deleted` = '1' WHERE `client_id` = ?",[date("YmdHis"),$user_id]);
                 session()->flash("success",".".$client_name." has been deleted successfully!");
 
                 // log message
@@ -1800,7 +1860,7 @@ class Clients extends Controller
                 // get the router data
                 $router_id = $user_data[0]->router_name;
                 $client_name = $user_data[0]->client_name;
-                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$user_data[0]->router_name]);
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$user_data[0]->router_name]);
                 if (count($router_data) > 0) {
                     // get the sstp credentails they are also the api usernames
                     $sstp_username = $router_data[0]->sstp_username;
@@ -1866,8 +1926,8 @@ class Clients extends Controller
                     }
                 }
 
-                // DB::delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
-                DB::update("UPDATE `client_tables` SET `date_changed` = ? , `deleted` = '1' WHERE `client_id` = ?",[date("YmdHis"),$user_id]);
+                // DB::connection("mysql2")->delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
+                DB::connection("mysql2")->update("UPDATE `client_tables` SET `date_changed` = ? , `deleted` = '1' WHERE `client_id` = ?",[date("YmdHis"),$user_id]);
                 session()->flash("success",".".$client_name." has been deleted successfully!");
 
                 // log message
@@ -1918,8 +1978,12 @@ class Clients extends Controller
     }
 
     function getRouterInterfaces($routerid){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get the router data
-        $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$routerid]);
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$routerid]);
         if (count($router_data) == 0) {
             echo "Router does not exist!";
             return "";
@@ -1983,8 +2047,12 @@ class Clients extends Controller
     }
 
     function getRouterProfile($routerid){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get the router data
-        $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$routerid]);
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$routerid]);
         if (count($router_data) == 0) {
             echo "Router does not exist!";
             return "";
@@ -2053,12 +2121,16 @@ class Clients extends Controller
 
     // update minimum payment
     function updateMinPay(Request $request){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $request;
         $client_id = $request->input("client_id");
         $change_minimum_payment = $request->input("change_minimum_payment");
 
         // update the clients minimum pay
-        $update = DB::update("UPDATE `client_tables` SET `min_amount` = ? WHERE `client_id` = ?",[$change_minimum_payment,$client_id]);
+        $update = DB::connection("mysql2")->update("UPDATE `client_tables` SET `min_amount` = ? WHERE `client_id` = ?",[$change_minimum_payment,$client_id]);
 
         // set a success
         session()->flash("success","Update has been done successfully!");
@@ -2068,14 +2140,18 @@ class Clients extends Controller
 
     // get the client information
     function getClientInformation($clientid){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get the clients information from the database
-        $clients_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = '$clientid'");
+        $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = '$clientid'");
         if (count($clients_data) > 0) {
             // here we get the router data
             // check if the client is static or pppoe
             $assignment = $clients_data[0]->assignment;
             if ($assignment == "static") {
-                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
                 // get the clients expiration date
                 $expire = $clients_data[0]->next_expiration_date;
                 $registration = $clients_data[0]->clients_reg_date;
@@ -2108,7 +2184,7 @@ class Clients extends Controller
                     }
                 }
                 // get the client name, phone number, account number
-                $clients_infor = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0'");
+                $clients_infor = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0'");
                 $clients_name = [];
                 $clients_phone = [];
                 $clients_acc_no = [];
@@ -2127,7 +2203,7 @@ class Clients extends Controller
                 $payment_histoty = [];
                 if (isset($client_data->client_acc)) {
                     $month_pay = $client_data->monthly_payment; 
-                    $client_name = DB::select("SELECT * FROM `client_tables` WHERE `client_account` = '".$client_data->client_acc."' AND `deleted` = '0'");
+                    $client_name = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_account` = '".$client_data->client_acc."' AND `deleted` = '0'");
                     if (count($client_name) > 0) {
                         $client_refferal = ucwords(strtolower($client_name[0]->client_name." @ Kes ".number_format($month_pay)));
                         $reffer_details = [$client_name[0]->client_name,$client_name[0]->client_account,$client_name[0]->wallet_amount,$client_name[0]->client_address];
@@ -2140,7 +2216,7 @@ class Clients extends Controller
                     }
                 }
                 // client account use it to get the clients that are reffered by him
-                $client_reffer = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0'");
+                $client_reffer = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0'");
                 // return $client_reffer;
                 $refferer_acc = $clients_data[0]->client_account;
                 $reffered_list = [];
@@ -2165,7 +2241,7 @@ class Clients extends Controller
                 }
                 return view("clientInfor",['clients_data'=>$clients_data,'router_data'=>$router_data,"expire_date" => $expire_date,"registration_date" => $reg_date, "freeze_date" => $freeze_date,"clients_names"=>$clients_name,"clients_account"=>$clients_acc_no,"clients_contacts"=>$clients_phone,"client_refferal" => $client_refferal,"reffer_details" => $reffer_details,"refferal_payment" => $payment_histoty,"reffered_list" => $reffered_list]);
             }elseif ($assignment == "pppoe") {
-                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
                 // get the clients expiration date
                 $expire = $clients_data[0]->next_expiration_date;
                 $registration = $clients_data[0]->clients_reg_date;
@@ -2198,7 +2274,7 @@ class Clients extends Controller
                     }
                 }
                 // get the client name, phone number, account number
-                $clients_infor = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0'");
+                $clients_infor = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0'");
                 $clients_name = [];
                 $clients_phone = [];
                 $clients_acc_no = [];
@@ -2216,7 +2292,7 @@ class Clients extends Controller
                 $payment_histoty = [];
                 if (isset($client_data->client_acc)) {
                     $month_pay = $client_data->monthly_payment; 
-                    $client_name = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_account` = '".$client_data->client_acc."'");
+                    $client_name = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_account` = '".$client_data->client_acc."'");
                     if (count($client_name) > 0) {
                         $client_refferal = ucwords(strtolower($client_name[0]->client_name." @ Kes ".number_format($month_pay)));
                         $reffer_details = [$client_name[0]->client_name,$client_name[0]->client_account,$client_name[0]->wallet_amount,$client_name[0]->client_address];
@@ -2229,7 +2305,7 @@ class Clients extends Controller
                     }
                 }
                 // client account use it to get the clients that are reffered by him
-                $client_reffer = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0'");
+                $client_reffer = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0'");
                 // return $client_reffer;
                 $refferer_acc = $clients_data[0]->client_account;
                 $reffered_list = [];
@@ -2263,7 +2339,11 @@ class Clients extends Controller
     }
     // get refferal
     function getRefferal($client_account){
-        $client_data = DB::select("SELECT * FROM `client_tables` WHERE `client_account` = '$client_account' AND `deleted` = '0'");
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_account` = '$client_account' AND `deleted` = '0'");
         if (count($client_data) > 0) {
             return $client_data[0]->client_name.":".$client_data[0]->client_account.":".$client_data[0]->wallet_amount.":".$client_data[0]->client_address;
         }else {
@@ -2272,13 +2352,17 @@ class Clients extends Controller
     }
     // set refferal information
     function setRefferal(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req->input();
         // get the user refferal information if there is any
         $user_id = $req->input('clients_id');
         $refferal_account_no = $req->input('refferal_account_no');
         $refferer_amount = $req->input("refferer_amount");
-        $client_data = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '".$user_id."' AND `deleted` = '0'");
-        $refferer_data = DB::select("SELECT * FROM `client_tables` WHERE `client_account` = '".$refferal_account_no."' AND `deleted` = '0'");
+        $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '".$user_id."' AND `deleted` = '0'");
+        $refferer_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_account` = '".$refferal_account_no."' AND `deleted` = '0'");
         if (count($client_data) > 0 && count($refferer_data) > 0) {
             $user_refferal = $client_data[0]->reffered_by;
             // check if there is anyone who reffered them by getting the str len
@@ -2292,7 +2376,7 @@ class Clients extends Controller
                 $reffered_by->client_acc = $refferal_account_no;
                 $reffered_by->monthly_payment = $refferer_amount;
                 // update the table and set the refferer information
-                DB::table('client_tables')
+                DB::connection("mysql2")->table('client_tables')
                 ->where('client_id', $user_id)
                 ->update([
                     'reffered_by' => json_encode($reffered_by),
@@ -2313,7 +2397,7 @@ class Clients extends Controller
                 $json_data->client_acc = $refferal_account_no;
                 $json_data->monthly_payment = $refferer_amount;
                 // update the table and set the refferer information
-                DB::table('client_tables')
+                DB::connection("mysql2")->table('client_tables')
                 ->where('client_id', $user_id)
                 ->update([
                     'reffered_by' => json_encode($json_data),
@@ -2332,6 +2416,10 @@ class Clients extends Controller
     }
     // update freeze date
     function set_freeze_date(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req;
         if ($req->input("freeze_date") == "freeze_now") {
             $freeze_type = $req->input("freeze_type");
@@ -2350,7 +2438,7 @@ class Clients extends Controller
             $client_id = $req->input('clients_id');
     
             // get the clients expiration date and add the days
-            $client_data = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '".$client_id."'");
+            $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '".$client_id."'");
     
             // add the days you got to the expiration dates
             $next_expiration_date = $client_data[0]->next_expiration_date;
@@ -2361,7 +2449,7 @@ class Clients extends Controller
             // return $freeze_date;
     
             // update the freeze data and the freeze status and the expiration date
-            DB::table('client_tables')
+            DB::connection("mysql2")->table('client_tables')
             ->where('client_id', $client_id)
             ->update([
                 'client_freeze_status' => "1",
@@ -2399,11 +2487,11 @@ class Clients extends Controller
                     $new_message = $this->message_content($message,$client_id,null,$day_frozen,$freeze_date);
     
                     // get the sms keys
-                    $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
                     $sms_api_key = $sms_keys[0]->value;
-                    $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
                     $sms_partner_id = $sms_keys[0]->value;
-                    $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
                     $sms_shortcode = $sms_keys[0]->value;
                     $partnerID = $sms_partner_id;
                     $apikey = $sms_api_key;
@@ -2484,7 +2572,7 @@ class Clients extends Controller
             // return $days;
     
             // get the clients expiration date and add the days
-            $client_data = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '".$client_id."'");
+            $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '".$client_id."'");
     
             // add the days you got to the expiration dates
             $next_expiration_date = $client_data[0]->next_expiration_date;
@@ -2495,7 +2583,7 @@ class Clients extends Controller
             // return $freeze_date;
     
             // update the freeze data and the freeze status and the expiration date
-            DB::table('client_tables')
+            DB::connection("mysql2")->table('client_tables')
             ->where('client_id', $client_id)
             ->update([
                 'client_freeze_status' => "0",
@@ -2532,11 +2620,11 @@ class Clients extends Controller
                     $new_message = $this->message_content($message,$client_id,null,$day_frozen,$freeze_date,$freezing_date);
     
                     // get the sms keys
-                    $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
                     $sms_api_key = $sms_keys[0]->value;
-                    $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
                     $sms_partner_id = $sms_keys[0]->value;
-                    $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
                     $sms_shortcode = $sms_keys[0]->value;
                     $partnerID = $sms_partner_id;
                     $apikey = $sms_api_key;
@@ -2593,16 +2681,20 @@ class Clients extends Controller
     }
     // update expiration date
     function updateExpDate(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         $new_expiration = date("Ymd",strtotime($req->input('expiration_date_edits')))."235959";
         $client_id = $req->input('clients_id');
-        DB::table('client_tables')
+        DB::connection("mysql2")->table('client_tables')
         ->where('client_id', $client_id)
         ->update([
             'next_expiration_date' => $new_expiration,
             'date_changed' => date("YmdHis")
         ]);
 
-        $client = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
+        $client = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
         $client_name = $client[0]->client_name;
         
         $txt = ":Client ( $client_name ) expiration date changed to ".date("D dS M Y",strtotime($new_expiration)).""."! by ".session('Usernames');
@@ -2614,7 +2706,11 @@ class Clients extends Controller
 
     // deactivate user from freeze
     function deactivatefreeze($client_id){
-        $client = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        $client = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
         $client_name = $client[0]->client_name;
         $next_expiration_date = $client[0]->next_expiration_date;
         $freeze_date = date("Ymd",strtotime($client[0]->freeze_date)) > date("Ymd") ? date("Ymd",strtotime($client[0]->freeze_date)) : date("Ymd");
@@ -2636,7 +2732,7 @@ class Clients extends Controller
         }
 
         // update the client freeze status deactivated status to 
-        DB::table('client_tables')
+        DB::connection("mysql2")->table('client_tables')
         ->where('client_id', $client_id)
         ->update([
             'client_freeze_status' => "0",
@@ -2666,11 +2762,11 @@ class Clients extends Controller
                 $new_message = $this->message_content($message,$client_id,null);
 
                 // get the sms keys
-                $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
+                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
                 $sms_api_key = $sms_keys[0]->value;
-                $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
+                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
                 $sms_partner_id = $sms_keys[0]->value;
-                $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
+                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
                 $sms_shortcode = $sms_keys[0]->value;
                 $partnerID = $sms_partner_id;
                 $apikey = $sms_api_key;
@@ -2724,16 +2820,20 @@ class Clients extends Controller
     }
     // deactivate user from freeze
     function activatefreeze($client_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $client_id;
         // update the client freeze status deactivated status to 
-        DB::table('client_tables')
+        DB::connection("mysql2")->table('client_tables')
         ->where('client_id', $client_id)
         ->update([
             'client_freeze_status' => "1",
             'date_changed' => date("YmdHis")
         ]);
 
-        $client = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
+        $client = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
         $client_name = $client[0]->client_name;
 
         $txt = ":Client ( $client_name ) has been frozen by ".session('Usernames')."!";
@@ -2742,10 +2842,14 @@ class Clients extends Controller
         return redirect("Clients/View/".$client_id);
     }
     function changeWalletBal(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req;
         $client_id = $req->input('clients_id');
         $wallet_amount = $req->input('wallet_amounts');
-        DB::table('client_tables')
+        DB::connection("mysql2")->table('client_tables')
         ->where('client_id', $client_id)
         ->update([
             'wallet_amount' => $wallet_amount,
@@ -2753,7 +2857,7 @@ class Clients extends Controller
             'date_changed' => date("YmdHis")
         ]);
 
-        $client = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
+        $client = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
         $client_name = $client[0]->client_name;
         
         $txt = ":Client ( $client_name ) wallet balance has been changed to Kes $wallet_amount by ".session('Usernames').""."!";
@@ -2764,9 +2868,13 @@ class Clients extends Controller
     }
     // update user
     function updateClients(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         $clients_id = $req->input('clients_id');
         // check user assignment 
-        $client_data = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '".$clients_id."' AND `deleted` = '0'");
+        $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '".$clients_id."' AND `deleted` = '0'");
         // return $client_data;
         if (count($client_data) > 0) {
             if($client_data[0]->assignment == "static"){
@@ -2776,7 +2884,7 @@ class Clients extends Controller
                 }
 
                 // get the clients details to see if the router is different
-                $original_client_dets = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = ?;",[$req->input("clients_id")]);
+                $original_client_dets = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = ?;",[$req->input("clients_id")]);
                 // return $req;
 
                 if (count($original_client_dets) == 0) {
@@ -2788,7 +2896,7 @@ class Clients extends Controller
                 if ($original_client_dets[0]->router_name != $req->input("router_name")) {
                     // if not proceed and disable the router profile
                     // get the router data
-                    $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$original_client_dets[0]->router_name]);
+                    $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$original_client_dets[0]->router_name]);
                     if (count($router_data) > 0) {
                         // disable the interface in that router
                 
@@ -2884,7 +2992,7 @@ class Clients extends Controller
                 // get the ip address and queue list above
                 // check if the selected router is connected
                 // get the router data
-                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$router_name]);
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$router_name]);
                 if (count($router_data) == 0) {
                     $error = "Router selected does not exist!";
                     session()->flash("error",$error);
@@ -3038,7 +3146,7 @@ class Clients extends Controller
                     $download = $download_speed.$unit2;
 
                     // update the table
-                    DB::table('client_tables')
+                    DB::connection("mysql2")->table('client_tables')
                     ->where('client_id', $clients_id)
                     ->update([
                         'client_name' => $client_name,
@@ -3072,7 +3180,7 @@ class Clients extends Controller
                 }
 
                 // get the clients details to see if the router is different
-                $original_client_dets = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = ?;",[$req->input("clients_id")]);
+                $original_client_dets = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = ?;",[$req->input("clients_id")]);
                 // return $req;
 
                 if (count($original_client_dets) == 0) {
@@ -3084,7 +3192,7 @@ class Clients extends Controller
                 if ($original_client_dets[0]->router_name != $req->input("router_name")) {
                     // if not proceed and disable the router profile
                     // get the router data
-                    $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$original_client_dets[0]->router_name]);
+                    $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$original_client_dets[0]->router_name]);
                     if (count($router_data) > 0) {
                         // get the sstp credentails they are also the api usernames
                         $sstp_username = $router_data[0]->sstp_username;
@@ -3171,7 +3279,7 @@ class Clients extends Controller
                 
                 // if the secret is present in the router overwrite it
                 // get the router data
-                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$router_name]);
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'",[$router_name]);
                 if (count($router_data) == 0) {
                     $error = "Router selected does not exist!";
                     session()->flash("error",$error);
@@ -3256,7 +3364,7 @@ class Clients extends Controller
                         $API->disconnect();
 
                         // update the user data // update the table
-                        DB::table('client_tables')
+                        DB::connection("mysql2")->table('client_tables')
                         ->where('client_id', $clients_id)
                         ->update([
                             'client_name' => $client_name,
@@ -3280,7 +3388,7 @@ class Clients extends Controller
                     }else{
 
                         // update the user data // update the table
-                        DB::table('client_tables')
+                        DB::connection("mysql2")->table('client_tables')
                         ->where('client_id', $clients_id)
                         ->update([
                             'client_name' => $client_name,
@@ -3332,13 +3440,17 @@ class Clients extends Controller
 
     // deactivate the user
     function deactivate($userid){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get the user router and update the setting
-        $client_data = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$userid' AND `deleted` = '0'");
+        $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$userid' AND `deleted` = '0'");
         if (count($client_data) > 0) {
             if ($client_data[0]->assignment == "static") {
                 $router_id = $client_data[0]->router_name;
                 // connect to the router and deactivate the client address
-                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
 
                 // get the sstp credentails they are also the api usernames
                 $sstp_username = $router_data[0]->sstp_username;
@@ -3414,7 +3526,7 @@ class Clients extends Controller
                             ".id" => $ip_id
                         ));
                         // update the user data to de-activated
-                        DB::table('client_tables')
+                        DB::connection("mysql2")->table('client_tables')
                         ->where('client_id', $userid)
                         ->update([
                             'client_status' => "0",
@@ -3452,7 +3564,7 @@ class Clients extends Controller
                 // disable the client secret and remove the client from active connections
                 $router_id = $client_data[0]->router_name;
                 // connect to the router and deactivate the client address
-                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
                 
                 if (count($router_data) == 0) {
                     if (session('Usernames')) {
@@ -3547,7 +3659,7 @@ class Clients extends Controller
 
                     // uodate the database
                     // update the user data to de-activated
-                    DB::table('client_tables')
+                    DB::connection("mysql2")->table('client_tables')
                     ->where('client_id', $userid)
                     ->update([
                         'client_status' => "0",
@@ -3584,14 +3696,18 @@ class Clients extends Controller
     }
     // activate the user
     function activate($userid){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         /*****starts here */
         // get the user router and update the setting
-        $client_data = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$userid' AND `deleted` = '0'");
+        $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$userid' AND `deleted` = '0'");
         if (count($client_data) > 0) {
             if ($client_data[0]->assignment == "static") {
                 $router_id = $client_data[0]->router_name;
                 // connect to the router and deactivate the client address
-                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
                 if (count($router_data) == 0) {
                     if (session('Usernames')) {
                         $error = "The router the client is connected to is not present!";
@@ -3675,7 +3791,7 @@ class Clients extends Controller
                             ".id" => $ip_id
                         ));
                         // update the user data to de-activated
-                        DB::table('client_tables')
+                        DB::connection("mysql2")->table('client_tables')
                         ->where('client_id', $userid)
                         ->update([
                             'client_status' => "1",
@@ -3712,7 +3828,7 @@ class Clients extends Controller
                 // disable the client secret and remove the client from active connections
                 $router_id = $client_data[0]->router_name;
                 // connect to the router and deactivate the client address
-                $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
                 
                 // router value
                 if (count($router_data) == 0) {
@@ -3792,7 +3908,7 @@ class Clients extends Controller
 
                     // uodate the database
                     // update the user data to de-activated
-                    DB::table('client_tables')
+                    DB::connection("mysql2")->table('client_tables')
                     ->where('client_id', $userid)
                     ->update([
                         'client_status' => "1",
@@ -3830,14 +3946,18 @@ class Clients extends Controller
     }
 
     function dePay($userid){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // update the payment information
-        DB::table('client_tables')
+        DB::connection("mysql2")->table('client_tables')
         ->where('client_id', $userid)
         ->update([
             'payments_status' => "0",
             'date_changed' => date("YmdHis")
         ]);
-        $client = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$userid' AND `deleted` = '0'");
+        $client = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$userid' AND `deleted` = '0'");
         $client_name = $client[0]->client_name;
 
         // log message
@@ -3848,14 +3968,18 @@ class Clients extends Controller
         return redirect("/Clients/View/$userid");
     }
     function actPay($userid){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // update the payment information
-        DB::table('client_tables')
+        DB::connection("mysql2")->table('client_tables')
         ->where('client_id', $userid)
         ->update([
             'payments_status' => "1",
             'date_changed' => date("YmdHis")
         ]);
-        $client = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$userid' AND `deleted` = '0'");
+        $client = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$userid' AND `deleted` = '0'");
         $client_name = $client[0]->client_name;
 
         // log message
@@ -3867,8 +3991,12 @@ class Clients extends Controller
     }
     // get the router ip addresses
     function getIpaddresses($router_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get router information
-        $router_data = DB::select("SELECT * FROM `router_tables` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
         $router_ipaddr = $router_data[0]->router_ipaddr;
         $router_password = $router_data[0]->router_api_password;
         $router_api_port = $router_data[0]->router_api_port;
@@ -3910,7 +4038,11 @@ class Clients extends Controller
         }
     }
 	function get_sms(){
-        $data = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'Messages' AND `deleted` = '0'");
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        $data = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'Messages' AND `deleted` = '0'");
         return json_decode($data[0]->value);
 	}
     function syncclient(){
@@ -3971,7 +4103,7 @@ class Clients extends Controller
         return redirect("/Transactions");
     }
 	function message_content($data,$user_id,$trans_amount,$freeze_days = null,$freeze_date = null,$future_freeze_date = null) {
-        $client_data = DB::select("SELECT * FROM `client_tables` WHERE `client_id` = '$user_id' AND `deleted` = '0'");
+        $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$user_id' AND `deleted` = '0'");
 		$exp_date = $client_data[0]->next_expiration_date;
 		$reg_date = $client_data[0]->clients_reg_date;
 		$monthly_payment = $client_data[0]->monthly_payment;

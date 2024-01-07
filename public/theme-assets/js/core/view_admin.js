@@ -12,6 +12,10 @@ window.onload = function () {
     checkChecked();
 }
 
+cObj("delete_user").onclick = function () {
+    cObj("prompt_del_window").classList.toggle("d-none");
+}
+
 function checkChecked() {
     var all_readonly = document.getElementsByClassName("all_readonly");
     var total = all_readonly.length;

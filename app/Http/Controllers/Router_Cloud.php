@@ -15,6 +15,10 @@ class Router_Cloud extends Controller
     //
     // create a new cloud router
     function save_cloud_router(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req;
         // get the data
         $router_name = $req->input("router_name");
@@ -36,7 +40,7 @@ class Router_Cloud extends Controller
         
         // create a SSTP secret on the SSTP server
         // get the server details
-        $sstp_settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
+        $sstp_settings = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
         if (count($sstp_settings) == 0) {
             session()->flash("error_router","The SSTP server is not set, Contact your administrator!");
             return redirect(url()->previous());
@@ -79,10 +83,10 @@ class Router_Cloud extends Controller
 
         // store the data in the database
         $today = date("YmdHis");
-        $insert = DB::insert("INSERT INTO `remote_routers` (`router_name`,`sstp_username`,`sstp_password`,`router_location`,`router_coordinates`,`winbox_port`,`api_port`,`date_changed`) 
+        $insert = DB::connection("mysql2")->insert("INSERT INTO `remote_routers` (`router_name`,`sstp_username`,`sstp_password`,`router_location`,`router_coordinates`,`winbox_port`,`api_port`,`date_changed`) 
                             VALUES (?,?,?,?,?,?,?,?)",[$router_name,$username,$password,$routers_physical_address,$routers_coordinates,$winbox_port,$api_ports,$today]);
 
-        $select = DB::select("SELECT * FROM `remote_routers` ORDER BY `router_id` DESC LIMIT 1");
+        $select = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` ORDER BY `router_id` DESC LIMIT 1");
         if (count($select) == 0) {
             session()->flash("error_router","An error has occured");
             return redirect(url()->route("my_routers"));
@@ -94,9 +98,13 @@ class Router_Cloud extends Controller
 
     // connect router
     function connect_router($router_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // check if the router is active
         // check first if the router configuration is done
-        $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ?",[$router_id]);
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ?",[$router_id]);
 
         if (count($router_data) == 0) {
             session()->flash("error_router","Invalid router");
@@ -104,7 +112,7 @@ class Router_Cloud extends Controller
         }
 
         // get all clients under that router
-        $client_details = DB::select("SELECT COUNT(*) AS 'Total' FROM `client_tables` WHERE `router_name` = ?",[$router_id]);
+        $client_details = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `client_tables` WHERE `router_name` = ?",[$router_id]);
 
         // get the router details
         $router_detail = [];
@@ -150,7 +158,7 @@ class Router_Cloud extends Controller
         }
         
         // change the status from unconnected to connected
-        $update = DB::update("UPDATE `remote_routers` SET `activated` = '1' WHERE `router_id` = ?",[$router_id]);
+        $update = DB::connection("mysql2")->update("UPDATE `remote_routers` SET `activated` = '1' WHERE `router_id` = ?",[$router_id]);
 
         // return to the main page
         return redirect(url()->route("view_router_cloud",[$router_id]));
@@ -158,8 +166,12 @@ class Router_Cloud extends Controller
 
     // view_router_details
     function view_router_details($router_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // check first if the router configuration is done
-        $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ?",[$router_id]);
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ?",[$router_id]);
 
         if (count($router_data) == 0) {
             session()->flash("error_router","Invalid router");
@@ -167,7 +179,7 @@ class Router_Cloud extends Controller
         }
 
         // get all clients under that router
-        $client_details = DB::select("SELECT COUNT(*) AS 'Total' FROM `client_tables` WHERE `router_name` = ?",[$router_id]);
+        $client_details = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `client_tables` WHERE `router_name` = ?",[$router_id]);
 
         // get the router details
         $router_detail = [];
@@ -211,8 +223,12 @@ class Router_Cloud extends Controller
     }
 
     function reboot($router_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get the router data
-        $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `router_id` = ?",[$router_id]);
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ?",[$router_id]);
         if (count($router_data) == 0) {
             $error = "The router is invalid!";
             session()->flash("error_router",$error);
@@ -294,8 +310,12 @@ class Router_Cloud extends Controller
     }
 
     function getSSTPAddress(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get the server details
-        $sstp_settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
+        $sstp_settings = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
         if (count($sstp_settings) == 0) {
             return null;
         }
@@ -310,6 +330,10 @@ class Router_Cloud extends Controller
     }
 
     function updateRouter(Request $request){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $request;
         $router_id = $request->input("router_id");
         $router_name = $request->input("router_name");
@@ -318,7 +342,7 @@ class Router_Cloud extends Controller
         $winbox_ports = $request->input("winbox_ports");
         $api_ports = $request->input("api_ports");
 
-        $update = DB::update("UPDATE `remote_routers` SET `router_name` = ?, `api_port` = ?, `winbox_port` = ?,`router_location` = ?, `router_coordinates` = ? WHERE `router_id` = ?",[$router_name,$api_ports,$winbox_ports,$physical_location,$router_coordinates,$router_id]);
+        $update = DB::connection("mysql2")->update("UPDATE `remote_routers` SET `router_name` = ?, `api_port` = ?, `winbox_port` = ?,`router_location` = ?, `router_coordinates` = ? WHERE `router_id` = ?",[$router_name,$api_ports,$winbox_ports,$physical_location,$router_coordinates,$router_id]);
 
         // sesssion
         session()->flash("success_router","Router details updated successfully!");
@@ -344,10 +368,14 @@ class Router_Cloud extends Controller
     }
 
     function getRouterData(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // here we get the router data
-        $router_data = DB::select("SELECT * FROM `remote_routers` WHERE `deleted` = '0' ORDER BY `router_id` DESC;");
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0' ORDER BY `router_id` DESC;");
         for ($index=0; $index < count($router_data); $index++) {
-            $users = DB::select("SELECT * FROM `client_tables` WHERE `router_name` = ?",[$router_data[$index]->router_id]);
+            $users = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `router_name` = ?",[$router_data[$index]->router_id]);
             $router_data[$index]->user_count = count($users);
         }
         return view("router.myRouter",['router_data'=>$router_data]);
@@ -360,14 +388,18 @@ class Router_Cloud extends Controller
     
     // delete router
     function deleteRouter($router_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // delete users associated to the router
-        // $delete = DB::delete("DELETE FROM `client_tables` WHERE `router_name` = '".$router_id."'");
-        $UPDATE = DB::update("UPDATE `client_tables` SET `date_changed` = ?, `deleted` = ? WHERE `router_name` = ?",[date("YmdHis"),"1",$router_id]);
+        // $delete = DB::connection("mysql2")->delete("DELETE FROM `client_tables` WHERE `router_name` = '".$router_id."'");
+        $UPDATE = DB::connection("mysql2")->update("UPDATE `client_tables` SET `date_changed` = ?, `deleted` = ? WHERE `router_name` = ?",[date("YmdHis"),"1",$router_id]);
         
         // delete the router
-        DB::update("UPDATE `remote_routers` SET `date_changed` = ?, `deleted` = '1' WHERE `router_id` = ?",[date("YmdHis"),$router_id]);
+        DB::connection("mysql2")->update("UPDATE `remote_routers` SET `date_changed` = ?, `deleted` = '1' WHERE `router_id` = ?",[date("YmdHis"),$router_id]);
         
-        // DB::delete("DELETE FROM `router_tables` WHERE `router_id` = '".$router_id."'");
+        // DB::connection("mysql2")->delete("DELETE FROM `router_tables` WHERE `router_id` = '".$router_id."'");
         session()->flash("success_router","Router deleted Successfully!");
         return redirect(url()->route("my_routers"));
     }

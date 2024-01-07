@@ -14,6 +14,7 @@ class VerifyCsrfToken extends Middleware
     protected $except = [
         //
         '/Transact',
+        '/Validate',
         '/connect_router',
         '/remove_interface_bridge',
         '/add_bridge',

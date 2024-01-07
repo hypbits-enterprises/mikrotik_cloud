@@ -32,9 +32,13 @@ class admin extends Controller
 
     //all administrator activities
     function getAdmin(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         if (session("Userids")) {
             $admin_id = session("Userids");
-            $admin_data = DB::select("SELECT * FROM `admin_tables` WHERE `admin_id` = '$admin_id' AND `deleted` = '0'");
+            $admin_data = DB::select("SELECT * FROM `admin_tables` WHERE `admin_id` = '$admin_id' AND `organization_id` = '".session('organization_id')."' AND `deleted` = '0'");
             $date = $admin_data[0]->last_time_login;
 
             // privileged
@@ -56,7 +60,7 @@ class admin extends Controller
             $dates2 = date("D dS M-Y  h:i:sa", $d);
             $delete_sms = "";
             $delete_trans = "";
-            $settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'delete' AND `deleted` = '0'");
+            $settings = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'delete' AND `deleted` = '0'");
             if (count($settings) > 0) {
                 $delete_infor = $settings[0]->value;
                 $delete_infor = json_decode($delete_infor);
@@ -76,6 +80,10 @@ class admin extends Controller
         }
     }
     function updatePassword(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // insert the data into the database
         $username = $req->input('username');
         $admin_id = $req->input('admin_id');
@@ -107,6 +115,10 @@ class admin extends Controller
         }
     }
     function addAdmin(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get all the usernames present 
         $admin_data = DB::select("SELECT * FROM `admin_tables` WHERE `deleted` = '0'");
         $username = [];
@@ -135,7 +147,11 @@ class admin extends Controller
         return view("addadmin",["username" => $username, "admin_data" => $admin_data, "dates" => $date]);
     }
     function addAdministrator(Request $req){
-        // return $req;
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // return session("organization_id");
         // get the values
         $admin_name = $req->input('admin_name');
         $client_address = $req->input('client_address');
@@ -156,7 +172,7 @@ class admin extends Controller
             $admin_table->admin_username = $admin_username;
             $admin_table->admin_password = $admin_password;
             $admin_table->contacts = $client_address;
-            $admin_table->organization_id = "1";
+            $admin_table->organization_id = session("organization_id");
             $admin_table->user_status = "1";
             $admin_table->priviledges = $privileges;
             $admin_table->save();
@@ -171,6 +187,10 @@ class admin extends Controller
     }
     function upload_dp(Request $req)
     {
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         $req->validate([
             'mine_dp' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:8192',
         ]);
@@ -198,6 +218,10 @@ class admin extends Controller
         return redirect("/Accounts");
     }
     function update_admin(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req;
         $admin_id = $req->input('client_id');
         $update = DB::table("admin_tables")->where("admin_id",$admin_id)->update([
@@ -213,8 +237,12 @@ class admin extends Controller
     }
     // function update delete options
     function update_delete_option(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req;
-        $settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'delete' AND `deleted` = '0';");
+        $settings = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'delete' AND `deleted` = '0';");
         if (count($settings) > 0) {
             // get fields and check for the two delete options
             $delete_options = json_decode($settings[0]->value);
@@ -226,7 +254,7 @@ class admin extends Controller
             // merge options
             array_push($options,$option1,$option2);
             // update the setting table where the keyword is delete
-            $update = DB::table('settings')->where("keyword","delete")->update([
+            $update = DB::connection("mysql2")->table('settings')->where("keyword","delete")->update([
                 "value" => json_encode($options),
                 "date_changed" => date("YmdHis")
             ]);
@@ -242,7 +270,7 @@ class admin extends Controller
             $option2 = array("name" => "delete_transaction","period" => $req->input('delete_transactions'));
             // merge options
             array_push($options,$option1,$option2);
-            DB::table('settings')->insert([
+            DB::connection("mysql2")->table('settings')->insert([
                 "keyword" => "delete",
                 "value" => json_encode($options),
                 "status" => "1",
@@ -273,6 +301,10 @@ class admin extends Controller
       return false;
   }
     function viewAdmin($admin_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         $admin_data = DB::select("SELECT * FROM `admin_tables` WHERE `admin_id` = '$admin_id' AND `deleted` = '0'");
         if (count($admin_data) > 0) {
             return view("viewadmin", ["admin_data" => $admin_data]);
@@ -282,6 +314,10 @@ class admin extends Controller
         }
     }
     function updateAdmin(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req;
         $admin_id = $req->input('admin_id');
         $privileges = $req->input('privileges');
@@ -300,7 +336,25 @@ class admin extends Controller
         session()->flash('success',"Administrator data updates successfully!");
         return redirect("/Admin/View/$admin_id");
     }
+    function delete_admin($admin_id){
+        // get the administrator`s name
+        $administrator_detail = DB::select("SELECT * FROM `admin_tables` WHERE `admin_id` = '".$admin_id."'");
+        $admin_name = count($administrator_detail) > 0 ? $administrator_detail[0]->admin_fullname : "NULL";
+        // delete the user admin and record that as a log
+        DB::delete("DELETE FROM `admin_tables` WHERE `admin_id` = '".$admin_id."'");
+        session()->flash("success","The administrator \"".$admin_name."\" has been deleted successfully!");
+
+        // 
+        $new_client = new Clients();
+        $txt = ":The administrator \"".$admin_name."\" has been deleted successfully! by ".session('Usernames')."!";
+        $new_client->log($txt);
+        return redirect("/Accounts/add");
+    }
     function deactivateAdmin($admin_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $admin_id;
         DB::update("UPDATE `admin_tables` SET `activated` = '0', `user_status` = '0' WHERE `admin_id` = ?",[$admin_id]);
         session()->flash("success","The administrator has successfully deactivated.");
@@ -308,6 +362,10 @@ class admin extends Controller
 
     }
     function delete_pp($admin_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $admin_id;
         $client_data = DB::select("SELECT * FROM `admin_tables` WHERE `admin_id` = '$admin_id' AND `deleted` = '0'");
         // return $client_data;

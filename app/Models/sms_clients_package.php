@@ -9,4 +9,5 @@ class sms_clients_package extends Model
 {
     use HasFactory;
     public $timestamps = false;
+    protected $connection = "mysql2";
 }
