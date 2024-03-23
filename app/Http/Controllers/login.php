@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\sms_table;
 use App\Models\verification_code;
+use Illuminate\Support\Facades\Config;
 use routeros_api;
 
 date_default_timezone_set('Africa/Nairobi');
@@ -30,13 +31,20 @@ class login extends Controller
                     return redirect("/Login");
                 }
 
-                // if the username email is null redirect and show error
-                if ($result[0]->email == null || strlen($result[0]->email) < 1) {
-                    session()->flash('error',"Your email has not been set up! Contact your administrator to set it up for you!");
+                // check the organization details
+                $organization_details = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[$result[0]->organization_id]);
+                if (count($organization_details) == 0) {
+                    session()->flash('error',"Your organization is invalid. Kindly contact your administrator!");
                     return redirect("/Login");
                 }
-                // $req->session()->put("Usernames",$result[0]->admin_fullname);
-                // $req->session()->put("Userids",$result[0]->admin_id);
+
+                // store the database name in the session so that its connected to when needed
+                session()->put("database_name",$organization_details[0]->organization_database);
+                session()->put("organization_id",$organization_details[0]->organization_id);
+                session()->put("organization",$organization_details[0]);
+                session()->put("organization_logo",$organization_details[0]->organization_logo);
+
+
                 $req->session()->put("Userid",$result[0]->admin_id);
                 $req->session()->put("auth","admin");
                 $req->session()->put("dp_locale",$result[0]->dp_locale);
@@ -44,31 +52,33 @@ class login extends Controller
                 $admin_id = $result[0]->admin_id;
                 $contact = substr($contacts,0,4)."XXXX".substr($contacts,8);
                 $req->session()->put("priviledges",$result[0]->priviledges);
+                $mobile = $contacts; // Bulk messages can be comma separated
 
-                // GET THE SMS KEYS FROM THE DATABASE
-                $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
-                $sms_api_key = $sms_keys[0]->value;
-                $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
-                $sms_partner_id = $sms_keys[0]->value;
-                $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
-                $sms_shortcode = $sms_keys[0]->value;
+                // change the database
+                $this->change_db();
 
                 // return $contact;
                 $this->deleteSMSnTRANS();
 
                 $message_status = 0;
-                // if send sms is 1 we send  the sms
-                $partnerID = $sms_partner_id;
-                $apikey = $sms_api_key;
-                $shortcode = $sms_shortcode;
                 $random_no = rand(1000,9999);
-                $mobile = $contacts; // Bulk messages can be comma separated
                 $message = "Your verification code is ".$random_no.". It will expire in 5 minutes";
-                // return $partnerID."  &  ".$apikey." & ".$shortcode;
 
                 if ($send_code == "SMS") {
+                    // GET THE SMS KEYS FROM THE DATABASE
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
+                    $sms_api_key = $sms_keys[0]->value;
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
+                    $sms_partner_id = $sms_keys[0]->value;
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
+                    $sms_shortcode = $sms_keys[0]->value;
+
+                    // if send sms is 1 we send  the sms
+                    $partnerID = $sms_partner_id;
+                    $apikey = $sms_api_key;
+                    $shortcode = $sms_shortcode;
                 
-                    $finalURL = "https://mysms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
+                    $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
                     $ch = \curl_init();
                     \curl_setopt($ch, CURLOPT_URL, $finalURL);
                     \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -89,6 +99,12 @@ class login extends Controller
                         }
                     }
                 }elseif ($send_code == "EMAILS") {
+                    // if the username email is null redirect and show error
+                    if ($result[0]->email == null || strlen($result[0]->email) < 1) {
+                        session()->flash('error',"Your email has not been set up! Contact your administrator to set it up for you!");
+                        return redirect("/Login");
+                    }
+                    
                     $sender_name = "HypBits";
                     $email_username = "hypbits@gmail.com";
                     $sender_address = $result[0]->email;
@@ -103,7 +119,7 @@ class login extends Controller
                     // $mail->Host = $email_host_addr;
                     $mail->SMTPAuth = true;
                     $mail->Username = "hypbits@gmail.com";
-                    $mail->Password = "rdvafdolnhxaxnxg";
+                    $mail->Password = "kqlhimlxwekyzags";
                     // $mail->Username = $email_username;
                     // $mail->Password = $email_password;
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
@@ -198,7 +214,7 @@ class login extends Controller
                 $mobile = $contacts; // Bulk messages can be comma separated
                 $message = "Your verification code is ".$random_no.". It will expire in 5 minutes";
                 
-                $finalURL = "https://mysms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
+                $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
                 $ch = \curl_init();
                 \curl_setopt($ch, CURLOPT_URL, $finalURL);
                 \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -254,9 +270,18 @@ class login extends Controller
         }
     }
 
+    function change_db($database_name = null){
+        if (!session("database_name") && $database_name == null) {
+            return redirect("/");
+        }
+
+        // set the session of the database name
+        Config::set('database.connections.mysql2.database', ($database_name == null ? session("database_name") : $database_name));
+    }
+
     function deleteSMSnTRANS(){
         // get the period of deleting sms
-        $delete_data = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'delete'");
+        $delete_data = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'delete'");
         if (count($delete_data) > 0) {
             $values = $delete_data[0]->value;
             $json_del = json_decode($values);
@@ -280,7 +305,7 @@ class login extends Controller
             if ($real_time != "0") {
                 $delete_dates = date("YmdHis",strtotime($real_time));
                 // DB::delete("DELETE FROM `sms_tables` WHERE `deleted` = '0' AND `date_sent` < '".$delete_dates."'");
-                DB::update("UPDATE `sms_tables` SET `deleted` = '1', `date_changed` = '".date("YmdHis")."' WHERE `date_sent` < '".$delete_dates."'");
+                DB::connection("mysql2")->update("UPDATE `sms_tables` SET `deleted` = '1', `date_changed` = '".date("YmdHis")."' WHERE `date_sent` < '".$delete_dates."'");
             }
             $period_trans = $json_del[1]->period;
             $real_time = "";
@@ -302,7 +327,7 @@ class login extends Controller
             if ($real_time != "0") {
                 $delete_dates = date("YmdHis",strtotime($real_time));
                 // DB::delete("DELETE FROM `sms_tables` WHERE `deleted` = '0' AND `date_sent` < '".$delete_dates."'");
-                DB::update("UPDATE `sms_tables` SET `deleted` = '1' , `date_changed` = '".date("YmdHis")."' WHERE `date_sent` < '".$delete_dates."'");
+                DB::connection("mysql2")->update("UPDATE `sms_tables` SET `deleted` = '1' , `date_changed` = '".date("YmdHis")."' WHERE `date_sent` < '".$delete_dates."'");
             }
         }
     }
@@ -311,17 +336,18 @@ class login extends Controller
         // get the verifaction code
         // return $req->input('verification_code');
         // get the user id
+        $this->change_db();
         $code = $req->input('verification_code');
         $user_id = session('Userid');
         $dates = date("YmdHis");
         // get the user data
-        $verify = DB::select("SELECT * FROM `verification_codes` WHERE `deleted` = '0' AND `code` = '$code' AND `date_generated` > '$dates'  AND `status` = '0'");
+        $verify = DB::connection("mysql2")->select("SELECT * FROM `verification_codes` WHERE `deleted` = '0' AND `code` = '$code' AND `date_generated` > '$dates'  AND `status` = '0'");
         if (count($verify) > 0) {
             // this means that the code is valid
             // get the user data
             if (session('auth') == "admin") {
                 $user_data = DB::select("SELECT * FROM `admin_tables` WHERE `deleted` = '0' AND `admin_id` = '$user_id'");
-                DB::table("verification_codes")->where("code",$code)->update(["status" => "1", 'date_changed' => date("YmdHis")]);
+                DB::connection("mysql2")->table("verification_codes")->where("code",$code)->update(["status" => "1", 'date_changed' => date("YmdHis")]);
                 if (count($user_data) > 0) {
                 
                     $new_client = new Clients();

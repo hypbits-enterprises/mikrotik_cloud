@@ -18,8 +18,12 @@ class Router extends Controller
 {
     //responsible for the router
     function getRouterInfor($routerid){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get the router information and also connect to get all other basic information about the router
-        $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '$routerid'");
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '$routerid'");
         // get the router information after forming the connection
         $ip_address = $router_data[0]->router_ipaddr;
         $port = $router_data[0]->router_api_port;
@@ -55,15 +59,19 @@ class Router extends Controller
             array_push($router_details,$model,$identity,$uptime,$free_memory,$total_memory,$cpu_load,$free_hdd_space,$total_hdd_space,$board_name);
         }
         // get the users available in that router
-        $user_count = DB::select("SELECT  COUNT(*) AS 'Total' FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = '$routerid'");
+        $user_count = DB::connection("mysql2")->select("SELECT  COUNT(*) AS 'Total' FROM `client_tables` WHERE `deleted` = '0' AND `router_name` = '$routerid'");
         // return $user_count
         return view("routerinfor", ["router_data" => $router_data,"router_detail" => $router_details,"user_count" => $user_count]);
     }
 
     // reboot the router
     function reboot($routerid){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get the router information
-        $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '$routerid'");
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '$routerid'");
         $ip_address = $router_data[0]->router_ipaddr;
         $port = $router_data[0]->router_api_port;
         $username = $router_data[0]->router_api_username;
@@ -88,6 +96,10 @@ class Router extends Controller
         return redirect("/Router/View/$routerid");
     }
     function updateRoute(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // connect to the router first before updating the data
         $route_ip = $req->input("ip_address");
         $api_username = $req->input("api_username");
@@ -100,7 +112,7 @@ class Router extends Controller
         $API->debug = false;
         if ($API->connect($route_ip,$api_username,$router_api_password,$router_api_port)) {
             // disconnect and update the router data
-            DB::table("router_tables")
+            DB::connection("mysql2")->table("router_tables")
                     ->where("router_id", $req->input("router_id"))
                     ->update([
                         "router_name" => $router_name,
@@ -123,16 +135,24 @@ class Router extends Controller
         return redirect("/Router/View/".$req->input("router_id"));
     }
     function deleteRouter($router_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // delete users associated to the router
-        // $delete = DB::delete("DELETE FROM `client_tables` WHERE `router_name` = '".$router_id."'");
-        $UPDATE = DB::update("UPDATE `client_tables` SET `date_changed` = ?, `deleted` = ? WHERE `router_name` = ?",[date("YmdHis"),"1",$router_id]);
+        // $delete = DB::connection("mysql2")->delete("DELETE FROM `client_tables` WHERE `router_name` = '".$router_id."'");
+        $UPDATE = DB::connection("mysql2")->update("UPDATE `client_tables` SET `date_changed` = ?, `deleted` = ? WHERE `router_name` = ?",[date("YmdHis"),"1",$router_id]);
         // delete the router
-        DB::update("UPDATE `router_tables` SET `date_changed` = ?, `deleted` = '1' WHERE `router_id` = ?",[date("YmdHis"),$router_id]);
-        // DB::delete("DELETE FROM `router_tables` WHERE `router_id` = '".$router_id."'");
+        DB::connection("mysql2")->update("UPDATE `router_tables` SET `date_changed` = ?, `deleted` = '1' WHERE `router_id` = ?",[date("YmdHis"),$router_id]);
+        // DB::connection("mysql2")->delete("DELETE FROM `router_tables` WHERE `router_id` = '".$router_id."'");
         session()->flash("success_router","Router deleted Successfully!");
         return redirect("/Routers");
     }
     function test_router(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         $router_name = $req->input("router_name");
         $router_ip_address = $req->input("router_ip_address");
         $router_username = $req->input("router_username");
@@ -143,7 +163,7 @@ class Router extends Controller
         $API->debug = false;
         if ($API->connect($router_ip_address,$router_username,$router_password,$router_api_port)) {
             // return "Connected!";
-            $my_routers = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_name` = '".$router_name."'");
+            $my_routers = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_name` = '".$router_name."'");
             if (count($my_routers) > 0) {
                 return "<p class='text-danger'>The router name is already present please use another router name!</p>";
             }
@@ -179,6 +199,10 @@ class Router extends Controller
         }
     }
     function get_interface_config(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         $router_ip_address = $req->input("router_ip_address");
         $router_username = $req->input("router_username");
         $router_password = $req->input("router_password");
@@ -268,6 +292,10 @@ class Router extends Controller
         }
     }
     function process_interfaces(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // connect to the router get bridges and get all ports associated with the bridges then assign them ids and classes then give the listeners
         $router_ip_address = session("router_ipaddr");
         $router_username = session("router_username");
@@ -381,6 +409,10 @@ class Router extends Controller
         return "We cannot process any information as requested!";
     }
     function add_bridge(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         $bridge_name = $req->input("bridge_name");
         $bridge_ports = $req->input("bridge_ports");
         if (Session::has("router_ipaddr") || Session::has("router_username") || Session::has("router_password") || Session::has("router_api_port")) {
@@ -429,6 +461,10 @@ class Router extends Controller
         }
     }
     function remove_bridge(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         $remove_bridge = $req->input("remove_bridge");
         $bridge_name = $req->input("bridge_name");
         if (Session::has("router_ipaddr") || Session::has("router_username") || Session::has("router_password") || Session::has("router_api_port")) {
@@ -471,6 +507,10 @@ class Router extends Controller
         }
     }
     function change_bridge(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req->input();
         $bridge_name = $req->input("bridge_name");
         $interface_name = $req->input("interface_name");
@@ -498,6 +538,10 @@ class Router extends Controller
         }
     }
     function get_internet_access(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         $router_ip_address = $req->input("router_ip_address");
         $router_username = $req->input("router_username");
         $router_password = $req->input("router_password");
@@ -607,6 +651,10 @@ class Router extends Controller
         }
     }
     function get_setting(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         if (Session::has("router_ipaddr") || Session::has("router_username") || Session::has("router_password") || Session::has("router_api_port")) {
             // return $router_id;
             $router_ip_address = session("router_ipaddr");
@@ -679,6 +727,10 @@ class Router extends Controller
         }
     }
     function set_dynamic(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         if (Session::has("router_ipaddr") || Session::has("router_username") || Session::has("router_password") || Session::has("router_api_port")) {
             // return $router_id;
             $router_ip_address = session("router_ipaddr");
@@ -716,6 +768,10 @@ class Router extends Controller
         }
     }
     function set_static_access(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req->input();
         $ipaddress = $req->input("ipaddress");
         $gateway = $req->input("gateway");
@@ -752,6 +808,10 @@ class Router extends Controller
         }
     }
     function set_pppoe_assignment(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req->input();
         $username = $req->input("username");
         $password = $req->input("password");
@@ -783,6 +843,10 @@ class Router extends Controller
         }
     }
     function set_pool(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req->input();
         $pool_name = $req->input("pool_name");
         $pool_address = $req->input("pool_address");
@@ -818,6 +882,10 @@ class Router extends Controller
         }
     }
     function get_pools(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // we are getting pool addresses
         if (Session::has("router_ipaddr") || Session::has("router_username") || Session::has("router_password") || Session::has("router_api_port")) {
             // return $router_id;
@@ -851,6 +919,10 @@ class Router extends Controller
         }
     }
     function add_pppoe_profile(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req->input();
         $profile_name = $req->input("profile_name");
         $pool_name = $req->input("pool_name");
@@ -911,6 +983,10 @@ class Router extends Controller
         }
     }
     function get_pppoe_server(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return "We are here";
         // we are getting pool addresses
         if (Session::has("router_ipaddr") || Session::has("router_username") || Session::has("router_password") || Session::has("router_api_port")) {
@@ -975,6 +1051,10 @@ class Router extends Controller
         }
     }
     function save_ppoe_server(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req;
         $server_name = $req->input("server_name");
         $profile_name = $req->input("profile_name");
@@ -1009,6 +1089,10 @@ class Router extends Controller
         }
     }
     function add_security(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req->input();
         $profile_name = $req->input("profile_name");
         $profile_password = $req->input("profile_password");
@@ -1047,6 +1131,10 @@ class Router extends Controller
         }
     }
     function get_security_profile(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         if (Session::has("router_ipaddr") || Session::has("router_username") || Session::has("router_password") || Session::has("router_api_port")) {
             // return $router_id;
             $router_ip_address = session("router_ipaddr");
@@ -1074,6 +1162,10 @@ class Router extends Controller
         }
     }
     function save_ssid(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // return $req;
         $ssid = $req->input("ssid");
         $security_profile = $req->input("security_profile");
@@ -1116,6 +1208,10 @@ class Router extends Controller
         }
     }
     function wireless_settings(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         
         $router_ip_address = $req->input("router_ip_address");
         $router_username = $req->input("router_username");
@@ -1153,6 +1249,10 @@ class Router extends Controller
         }
     }
     function get_supply_method(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         $router_ip_address = $req->input("router_ip_address");
         $router_username = $req->input("router_username");
         $router_password = $req->input("router_password");
@@ -1187,6 +1287,10 @@ class Router extends Controller
         }
     }
     function get_interface_supply(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         if (Session::has("router_ipaddr") || Session::has("router_username") || Session::has("router_password") || Session::has("router_api_port")) {
             // return $router_id;
             $router_ip_address = session("router_ipaddr");
@@ -1220,6 +1324,10 @@ class Router extends Controller
         }
     }
     function get_wireless(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         // get the wireless setting
         if (Session::has("router_ipaddr") || Session::has("router_username") || Session::has("router_password") || Session::has("router_api_port")) {
             // return $router_id;
@@ -1257,6 +1365,10 @@ class Router extends Controller
         }
     }
     function getconnection(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         if (Session::has("router_ipaddr") || Session::has("router_username") || Session::has("router_password") || Session::has("router_api_port")) {
             // return $router_id;
             $router_ip_address = session("router_ipaddr");
@@ -1277,7 +1389,11 @@ class Router extends Controller
     }
 
     function writeRouterLogs($router_id){
-        $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '".$router_id."'");
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '".$router_id."'");
         if (count($router_data)>0) {
             // get the router logs and edit the file
             $curl_handle = curl_init();
@@ -1429,7 +1545,7 @@ class Router extends Controller
     }
 
     function readLogs($router_id){
-        $router_data = DB::select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '".$router_id."'");
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '".$router_id."'");
         if (count($router_data) > 0) {
             // return $router_id;
             // read data from the file of the logs of the user

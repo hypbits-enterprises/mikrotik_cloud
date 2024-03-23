@@ -147,11 +147,12 @@ date_default_timezone_set('Africa/Nairobi');
 
     <div class="main-menu menu-fixed menu-light menu-accordion menu-shadow " data-scroll-to-active="true"
         data-img="/theme-assets/images/backgrounds/02.jpg">
-        <div class="navbar-header">
+        <div class="navbar-header" style="height: 120px">
             <ul class="nav navbar-nav flex-row p-0 justify-content-center align-item-center">
-                <li class="nav-item mr-auto p-0 w-75" style="width: fit-content"><a class="navbar-brand "
-                        href="/Dashboard"><img class="brand-logo w-100 mb-1 " alt="Chameleon admin logo"
-                            src="/theme-assets/images/logo.jpeg" />
+                <li class="nav-item mr-auto p-0 w-75 text-center" style="width: fit-content"><a class="navbar-brand "
+                        href="/Dashboard">
+                        <img class="w-100 mx-auto" height="100" alt="Your Logo Appear Here"
+                            src="{{session("organization_logo") != null ? session("organization_logo") :'/theme-assets/images/logoplaceholder.svg'}}" />
                     </a></li>
                 <li class="nav-item d-md-none"><a class="nav-link close-navbar"><i class="ft-x"></i></a></li>
             </ul>
@@ -285,33 +286,43 @@ date_default_timezone_set('Africa/Nairobi');
                                         <button class="btn btn-sm btn-primary mb-2" id="send_to_clipboard"><i class="ft-copy" ></i> Copy</button>
                                         <h4 class="text-center">Router Configuration</h4>
                                         <p id="command_holder">
-                                            <span class="text-success">## Set the SSTP Profile</span><br>
-                                            /ppp profile add name="HYPBITS_SSTP" comment="Do not delete: Default Hypbits VPN profile"<br><br>
+                                            {{-- <span class="text-success">## Set the SSTP Profile</span><br> --}}
+                                            /ppp profile add name="SYSTEM_SSTP" comment="Do not delete: Default SYSTEM VPN profile"<br><br>
                                             
-                                            <span class="text-success">## Add the SSTP Interface</span><br>
-                                            /interface sstp-client add name="HYPBITS_SSTP_ONE" connect-to={{$ip_address}} user={{$router_data[0]->sstp_username}} password={{$router_data[0]->sstp_password}} profile="HYPBITS_SSTP" authentication=pap,chap,mschap1,mschap2 disabled=no comment="Do not delete: HYPBITS connection to {{$router_data[0]->router_name}}"<br><br>
+                                            {{-- <span class="text-success">## Add the SSTP Interface</span><br> --}}
+                                            /interface sstp-client add name="SYSTEM_SSTP_ONE" connect-to={{$ip_address}} user={{$router_data[0]->sstp_username}} password={{$router_data[0]->sstp_password}} profile="SYSTEM_SSTP" authentication=pap,chap,mschap1,mschap2 disabled=no comment="Do not delete: SYSTEM connection to {{$router_data[0]->router_name}}"<br><br>
                                             
-                                            <span class="text-success">## Configure routes</span><br>
-                                            /ip route add dst-address=192.168.4.0/24 gateway=192.168.4.1 comment="Do not delete: HYPBITS VPN SERVER NETWORK1"<br>
-                                            /ip route add dst-address=172.23.0.0/24 gateway=192.168.4.1 comment="Do not delete: HYPBITS VPN SERVER NETWORK2"<br><br>
+                                            {{-- <span class="text-success">## Configure routes</span><br> --}}
+                                            /ip route add dst-address=192.168.254.0/24 gateway=192.168.254.1 comment="Do not delete: SYSTEM VPN SERVER NETWORK1"<br>
+                                            /ip route add dst-address=192.168.253.0/24 gateway=192.168.254.1 comment="Do not delete: SYSTEM VPN SERVER NETWORK2"<br>
+                                            /ip route add dst-address=192.168.252.0/24 gateway=192.168.254.1 comment="Do not delete: SYSTEM VPN SERVER NETWORK3"<br><br>
                                             
-                                            <span class="text-success">## Configure firewall</span><br>
-                                            /ip firewall filter add chain=input action=accept in-interface=HYPBITS_SSTP_ONE log=no log-prefix="" comment="Do not delete: Allow HYPBITS remote access" disabled=no<br>
-                                            /ip firewall filter move [find where in-interface=HYPBITS_SSTP_ONE] destination 0<br><br>
+                                            {{-- <span class="text-success">## Configure firewall</span><br> --}}
+                                            /ip firewall filter add chain=input action=accept in-interface=SYSTEM_SSTP_ONE log=no log-prefix="" comment="Do not delete: Allow SYSTEM remote access" disabled=no<br>
+                                            /ip firewall filter move [find where in-interface=SYSTEM_SSTP_ONE] destination=0<br><br>
 
-                                            <span class="text-success">## Enable required services</span><br>
-                                            /ip service set api disabled=no port=8728<br>
-                                            /ip service set winbox disabled=no port=8291<br><br>
+                                            {{-- <span class="text-success">## Enable required services</span><br> --}}
+                                            /ip service set api disabled=no port={{$router_data[0]->api_port}}<br>
+                                            /ip service set winbox disabled=no port={{$router_data[0]->winbox_port}}<br>
+                                            /ip service set api-ssl disabled=yes<br>
+                                            /ip service set ftp disabled=yes<br>
+                                            /ip service set ssl disabled=yes<br>
+                                            /ip service set ftp disabled=yes<br>
+                                            /ip service set www disabled=yes<br>
+                                            /ip service set www-ssl disabled=yes<br><br>
                                             
-                                            <span class="text-success">## version 6.49.10</span><br>
-                                            /user group add name="HYPBITS_FULL" policy="local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,tikapp,!dude" comment="Do not delete: HYPBITS user group"<br>
+                                            {{-- <span class="text-success">## version 6.49.10</span><br> --}}
+                                            /user group add name="SYSTEM_FULL" policy="local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,tikapp,!dude" comment="Do not delete: SYSTEM user group"<br>
                                             <br>
                                             
-                                            <span class="text-success">## version 7.11.2</span><br>
-                                            /user group add name="HYPBITS_FULL" policy="local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,rest-api" comment="Do not delete: HYPBITS user group"<br>
+                                            {{-- <span class="text-success">## version 7.11.2</span><br> --}}
+                                            /user group add name="SYSTEM_FULL" policy="local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,rest-api" comment="Do not delete: SYSTEM user group"<br>
                                             
-                                            /user add name="{{$router_data[0]->sstp_username}}" password="{{$router_data[0]->sstp_password}}" group="HYPBITS_FULL" comment="Do not delete: Hypbits API User"</p>
-
+                                            /user add name="{{$router_data[0]->sstp_username}}" password="{{$router_data[0]->sstp_password}}" group="SYSTEM_FULL" comment="Do not delete: SYSTEM API User" <br>
+                                            
+                                            /beep
+                                            <br>
+                                        </p>
                                             <a href="{{url()->route("connect_router",$router_data[0]->router_id)}}" class="btn btn-success btn-sm mt-1 {{$router_data[0]->activated == 0 ? "" : "d-none"}}"><i class="ft-settings"></i> Connect</a>
                                     </div>
                                     <form action="{{url()->route("update_router")}}" method="post">
@@ -508,7 +519,7 @@ date_default_timezone_set('Africa/Nairobi');
                 class="float-md-left d-block d-md-inline-block"><?php echo date('Y'); ?> &copy; Copyright Hypbits
                 Enterprises</span>
             <ul class="list-inline float-md-right d-block d-md-inline-blockd-none d-lg-block mb-0">
-                <li class="list-inline-item">Created By<a class="my-1" href="https://ladybirdsmis.com/sims/"
+                <li class="list-inline-item">Created By<a class="my-1" href="https://ladybirdsmis.com"
                         target="_blank"> Ladybird Softech Co.</a></li>
             </ul>
         </div>

@@ -53,8 +53,8 @@ Route::view("/verify","verify");
 // Route::view("/Clients/NewStatic","newClient");
 
 //login controller router
-Route::post("/proc_login",[login::class,"processLogin"]);
-Route::post("/verifycode",[Login::class,"processVerification"]);
+Route::post("/process_login",[login::class,"processLogin"])->name("process_login");
+Route::post("/verifycode",[Login::class,"processVerification"])->name("verify_code");
 
 // save client route
 Route::post("addClient",[Clients::class,'processNewClient'])->name("clients.addstatic");
@@ -114,7 +114,11 @@ Route::post("addRouter",[Clients::class,'addRouter']);
 
 // de-activate and activate user the user
 Route::get("/deactivate/{userid}",[Clients::class,"deactivate"]);
+Route::get("/deactivate/{userid}/{db_name}",[Clients::class,"deactivate"]);
+Route::get("/deactivate/{userid}/{db_name}/{subdirectory}",[Clients::class,"deactivate"]);
 Route::get("/activate/{userid}",[Clients::class,"activate"]);
+Route::get("/activate/{userid}/{db_name}",[Clients::class,"activate"]);
+Route::get("/activate/{userid}/{db_name}/{subdirectory}",[Clients::class,"activate"]);
 
 // deactivate and activate the user api
 // Route::get("/deactivate_user/{userid}",[Clients::class,"deactivate2"]);
@@ -133,6 +137,7 @@ Route::get("/Transactions/View/{trans_id}",[Transaction::class,"transDetails"]);
 Route::get("/Assign/Transaction/{trans_id}/Client/{client_id}",[Transaction::class,"assignTransaction"]);
 Route::get("/confirmTransfer/{user_id}/{transaction_id}",[Transaction::class,"confirmTransfer"]);
 Route::post("/Transact",[Transaction::class,"mpesaTransactions"]);
+Route::post("/Validate",[Transaction::class,"verify_client_transaction"]);
 
 // Router section
 // Route::get("/Router/View/{routerid}",[Router::class,"getRouterInfor"]);
@@ -165,13 +170,18 @@ Route::post("/sendsms_routers",[Sms::class,"sendsms_routers"]);
 Route::get("/Accounts",[admin::class,"getAdmin"]);
 Route::post("/changePasswordAdmin", [admin::class,"updatePassword"]);
 Route::get("/Accounts/add",[admin::class,"addAdmin"]);
+Route::get("/Accounts/delete/{admin_id}",[admin::class,"delete_admin"])->name("delete_admin");
 Route::post("/addAdministrator", [admin::class,"addAdministrator"]);
 Route::get("/Admin/View/{admin_id}", [admin::class,"viewAdmin"]);
 Route::post("/updateAdministrator", [admin::class,"updateAdmin"]);
 Route::post("/update_dp", [admin::class,"upload_dp"]);
+Route::post("/update_company_dp", [admin::class,"update_company_dp"]);
 Route::post("/update_admin", [admin::class,"update_admin"]);
 Route::post("/update_delete_option", [admin::class,"update_delete_option"]);
 Route::get("/delete_pp/{admin_id}",[admin::class,"delete_pp"]);
+Route::get("/delete_pp_organization",[admin::class,"delete_pp_organization"]);
+Route::post("/update_organization_profile",[admin::class,"update_organization_profile"]);
+
 
 // routes for the clients information
 Route::get("/ClientDashboard",[Clients_data::class,"getClientInfor"]);

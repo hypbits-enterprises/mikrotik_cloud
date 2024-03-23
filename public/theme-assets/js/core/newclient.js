@@ -69,7 +69,7 @@ window.onload = function () {
             var present = 0;
             for (let index = 0; index < client_accounts.length; index++) {
                 const element = client_accounts[index].toUpperCase();
-                if (element.includes(acc_up)) {
+                if (element == acc_up) {
                     present = 1;
                     break;
                 }

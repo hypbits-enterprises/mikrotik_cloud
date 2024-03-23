@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Classes;
+
 /*****************************
  *
  * RouterOS PHP API class v1.4
@@ -28,7 +30,7 @@ class routeros_api
     var $timeout = 3;        // Connection attempt timeout and data read timeout
     var $socket;             // Variable for storing socket resource
     var $ssl;
-    
+
     /**
      * Print text for debug purposes
      *
@@ -41,8 +43,8 @@ class routeros_api
         if ($this->debug)
             echo $text . "\n";
     }
-	
-	
+
+
     /**
      * 
      *
@@ -67,8 +69,8 @@ class routeros_api
             $length = chr(0xF0) . chr(($length >> 24) & 0xFF) . chr(($length >> 16) & 0xFF) . chr(($length >> 8) & 0xFF) . chr($length & 0xFF);
         return $length;
     }
-	
-	
+
+
     /**
      * Login to RouterOS
      *
@@ -84,10 +86,10 @@ class routeros_api
         $this->port = $port;
         for ($ATTEMPT = 1; $ATTEMPT <= $this->attempts; $ATTEMPT++) {
             $this->connected = false;
-            $PROTOCOL = ($this->ssl ? 'ssl://' : '' );
+            $PROTOCOL = ($this->ssl ? 'ssl://' : '');
             $context = stream_context_create(array('ssl' => array('ciphers' => 'ADH:ALL', 'verify_peer' => false, 'verify_peer_name' => false)));
             $this->debug('Connection attempt #' . $ATTEMPT . ' to ' . $PROTOCOL . $ip . ':' . $this->port . '...');
-            $this->socket = @stream_socket_client($PROTOCOL . $ip.':'. $this->port, $this->error_no, $this->error_str, $this->timeout, STREAM_CLIENT_CONNECT,$context);
+            $this->socket = @stream_socket_client($PROTOCOL . $ip . ':' . $this->port, $this->error_no, $this->error_str, $this->timeout, STREAM_CLIENT_CONNECT, $context);
             if ($this->socket) {
                 socket_set_timeout($this->socket, $this->timeout);
                 $this->write('/login', false);
@@ -131,8 +133,8 @@ class routeros_api
         return $this->connected;
     }
 
-	
-	
+
+
     /**
      * Disconnect from RouterOS
      *
@@ -144,8 +146,8 @@ class routeros_api
         $this->connected = false;
         $this->debug('Disconnected...');
     }
-	
-	
+
+
     /**
      * Parse response from Router OS
      *
@@ -167,16 +169,16 @@ class routeros_api
                     '!trap'
                 ))) {
                     if ($x == '!re') {
-                        $CURRENT =& $PARSED[];
+                        $CURRENT = &$PARSED[];
                     } else
-                        $CURRENT =& $PARSED[$x][];
+                        $CURRENT = &$PARSED[$x][];
                 } else if ($x != '!done') {
                     if (preg_match_all('/[^=]+/i', $x, $MATCHES)) {
                         if ($MATCHES[0][0] == 'ret') {
                             $singlevalue = $MATCHES[0][1];
                         }
-						$CURRENT[$MATCHES[0][0]] = (isset($MATCHES[0][1]) ? $MATCHES[0][1] : '');
-					}
+                        $CURRENT[$MATCHES[0][0]] = (isset($MATCHES[0][1]) ? $MATCHES[0][1] : '');
+                    }
                 }
             }
             if (empty($PARSED) && !is_null($singlevalue)) {
@@ -186,8 +188,8 @@ class routeros_api
         } else
             return array();
     }
-	
-	
+
+
     /**
      * Parse response from Router OS
      *
@@ -208,16 +210,16 @@ class routeros_api
                     '!trap'
                 ))) {
                     if ($x == '!re')
-                        $CURRENT =& $PARSED[];
+                        $CURRENT = &$PARSED[];
                     else
-                        $CURRENT =& $PARSED[$x][];
+                        $CURRENT = &$PARSED[$x][];
                 } else if ($x != '!done') {
                     if (preg_match_all('/[^=]+/i', $x, $MATCHES)) {
                         if ($MATCHES[0][0] == 'ret') {
                             $singlevalue = $MATCHES[0][1];
                         }
                         $CURRENT[$MATCHES[0][0]] = (isset($MATCHES[0][1]) ? $MATCHES[0][1] : '');
-					}
+                    }
                 }
             }
             foreach ($PARSED as $key => $value) {
@@ -231,8 +233,8 @@ class routeros_api
             return array();
         }
     }
-	
-	
+
+
     /**
      * Change "-" and "/" from array key to "_"
      *
@@ -257,15 +259,15 @@ class routeros_api
             return $array;
         }
     }
-	
-	
+
+
     /**
      * Read data from Router OS
      *
      * @param boolean     $parse      Parse the data? default: true
      *
      * @return array                  Array with parsed or unparsed data
-     */function read($parse = true)
+     */ function read($parse = true)
     {
         $RESPONSE = array();
         while (true) {
@@ -301,7 +303,8 @@ class routeros_api
             } else {
                 $LENGTH = $BYTE;
             }
-            // If we have got more characters to read, read them in.
+            // If we have got more characters to read, read them in. 
+            $_ = "";
             if ($LENGTH > 0) {
                 $_      = "";
                 $retlen = 0;
@@ -320,15 +323,15 @@ class routeros_api
             $STATUS = socket_get_status($this->socket);
             if ($LENGTH > 0)
                 $this->debug('>>> [' . $LENGTH . ', ' . $STATUS['unread_bytes'] . ']' . $_);
-            if ((!$this->connected && !$STATUS['unread_bytes']) || ($this->connected && !$STATUS['unread_bytes'] && $receiveddone))
+            if ((!$this->connected && !$STATUS['unread_bytes']) || ($this->connected && !$STATUS['unread_bytes']))
                 break;
         }
         if ($parse)
             $RESPONSE = $this->parse_response($RESPONSE);
         return $RESPONSE;
     }
-	
-	
+
+
     /**
      * Write (send) data to Router OS
      *
@@ -358,8 +361,8 @@ class routeros_api
         } else
             return false;
     }
-	
-	
+
+
     /**
      * Write (send) data to Router OS
      *
@@ -391,4 +394,3 @@ class routeros_api
         return $this->read();
     }
 }
-

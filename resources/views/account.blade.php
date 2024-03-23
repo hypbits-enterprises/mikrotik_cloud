@@ -136,15 +136,16 @@
 
     <div class="main-menu menu-fixed menu-light menu-accordion menu-shadow" data-scroll-to-active="true"
         data-img="/theme-assets/images/backgrounds/02.jpg">
-        <div class="navbar-header">
-            <ul class="nav navbar-nav flex-row p-0 justify-content-center align-item-center">
-                <li class="nav-item mr-auto p-0 w-75" style="width: fit-content"><a class="navbar-brand "
-                        href="/Dashboard"><img class="brand-logo w-100 mb-1 " alt="Chameleon admin logo"
-                            src="/theme-assets/images/logo.jpeg" />
-                    </a></li>
-                <li class="nav-item d-md-none"><a class="nav-link close-navbar"><i class="ft-x"></i></a></li>
-            </ul>
-        </div>
+        <div class="navbar-header" style="height: 120px">
+          <ul class="nav navbar-nav flex-row p-0 justify-content-center align-item-center">
+              <li class="nav-item mr-auto p-0 w-75 text-center" style="width: fit-content"><a class="navbar-brand "
+                      href="/Dashboard">
+                      <img class="w-100 mx-auto" height="100" alt="Your Logo Appear Here"
+                          src="{{session("organization_logo") != null ? session("organization_logo") :'/theme-assets/images/logoplaceholder.svg'}}" />
+                  </a></li>
+              <li class="nav-item d-md-none"><a class="nav-link close-navbar"><i class="ft-x"></i></a></li>
+          </ul>
+      </div>
         <div class="main-menu-content">
             <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
                 <li class="nav-item"><a href="/Dashboard"><i class="ft-home"></i><span
@@ -266,7 +267,6 @@
                         <li class="nav-item">
                           <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#profile-overview">Overview</button>
                         </li>
-        
                         <li class="nav-item">
                           <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-edit">Edit Profile</button>
                         </li>
@@ -277,6 +277,10 @@
         
                         <li class="nav-item">
                           <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-settings">General Settings</button>
+                        </li>
+                        
+                        <li class="nav-item">
+                          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#company-profile-edit">Company Profile</button>
                         </li>
         
                       </ul>
@@ -292,17 +296,12 @@
         
                           <div class="row my-2">
                             <div class="col-lg-3 col-md-4 label">Company</div>
-                            <div class="col-lg-9 col-md-8">{{$admin_data[0]->CompanyName ?$admin_data[0]->CompanyName:"Null"}}</div>
+                            <div class="col-lg-9 col-md-8">{{$organization->organization_name ? $organization->organization_name :"Null"}}</div>
                           </div>
         
                           <div class="row my-2">
                             <div class="col-lg-3 col-md-4 label">Role</div>
                             <div class="col-lg-9 col-md-8">Administrator</div>
-                          </div>
-        
-                          <div class="row my-2">
-                            <div class="col-lg-3 col-md-4 label">Country</div>
-                            <div class="col-lg-9 col-md-8">{{$admin_data[0]->country ?$admin_data[0]->country:"Null"}}</div>
                           </div>
         
                           <div class="row my-2">
@@ -368,27 +367,6 @@
                               </div>
                             </div>
         
-                            <div class="row mb-3">
-                              <label for="company" class="col-md-4 col-lg-3 col-form-label">Company</label>
-                              <div class="col-md-8 col-lg-9">
-                                <input name="company" type="text" class="form-control" id="company" value="{{$admin_data[0]->CompanyName ?$admin_data[0]->CompanyName:""}}" placeholder="Company Name" >
-                              </div>
-                            </div>
-        
-                            {{-- <div class="row mb-3">
-                              <label for="Job" class="col-md-4 col-lg-3 col-form-label">Role</label>
-                              <div class="col-md-8 col-lg-9">
-                                <input name="job" type="text" class="form-control" id="Job" value="Web Designer">
-                              </div>
-                            </div> --}}
-        
-                            <div class="row mb-3">
-                              <label for="Country" class="col-md-4 col-lg-3 col-form-label">Country</label>
-                              <div class="col-md-8 col-lg-9">
-                                <input name="country" type="text" class="form-control" id="Country" value="{{$admin_data[0]->country ?$admin_data[0]->country:""}}" placeholder="Country" >
-                              </div>
-                            </div>
-        
         
                             <div class="row mb-3">
                               <label for="Phone" class="col-md-4 col-lg-3 col-form-label">Phone</label>
@@ -401,6 +379,90 @@
                               <label for="Email" class="col-md-4 col-lg-3 col-form-label">Email</label>
                               <div class="col-md-8 col-lg-9">
                                 <input name="email" type="email" class="form-control" id="Email" value="{{$admin_data[0]->email ?$admin_data[0]->email:""}}" placeholder="Email" >
+                              </div>
+                            </div>
+        
+                            <div class="text-center">
+                              <button type="submit" {{$readonly}} class="btn btn-primary">Save Changes</button>
+                            </div>
+                          </form><!-- End Profile Edit Form -->
+        
+                        </div>
+                        <div class="tab-pane fade profile-edit pt-3" id="company-profile-edit">
+        
+                          <div class="container">
+                            <div class="row mb-3">
+                              <label for="profileImage" class="col-md-4 col-lg-3 col-form-label">Company Profile Image</label>
+                              <div class="col-md-8 col-lg-9">
+                                <img class="border border-success rounded" style="width: 150px" src="{{$organization->organization_logo != null ? $organization->organization_logo :'/theme-assets/images/logo-placeholder-image.png'}}" alt="Profile">
+                                <div class="pt-2">
+                                  <button type="button" id="update_company_profile_btn" {{$readonly}} class="btn btn-primary btn-sm" title="Upload new profile image"><i class="ft-upload"></i></button>
+                                  <a href="/delete_pp_organization" class="btn btn-danger btn-sm {{$readonly}}" title="Remove my profile image"><i class="ft-trash"></i></a>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div class="container d-none" id="change_company_dp_window">
+                                <form action="/update_company_dp" method="post" enctype="multipart/form-data">
+                                    @csrf
+                                    <hr>
+                                    <h5 class="my-2">Change Profile Picture</h5>
+                                    <input type="hidden" name="client_id" value="{{$admin_data[0]->admin_id}}">
+                                    <p id="mine_dp_errors"></p>
+                                    <label for="mine_dp" class="form-control-label">Select an Image</label>
+                                    <input type="file" name="mine_dp" id="mine_dp" class="form-control" required>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <button type="submit" id="upload_image" {{$readonly}} class="btn btn-primary my-1 text-lg">Save Image</button>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <button type="button" id="close_company_profile_dp_window_btn" class="btn btn-secondary my-1 text-lg">Cancel</button>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                </form>
+                            </div>
+                          </div>
+                          <!-- Profile Edit Form -->
+                          <form action="/update_organization_profile"  enctype="multipart/form-data" method="POST">
+                            @csrf
+                            <div class="row mb-3">
+                              <label for="organization_name" class="col-md-4 col-lg-3 col-form-label">Company Name</label>
+                              <div class="col-md-8 col-lg-9">
+                                <input name="organization_name" type="text" class="form-control" id="organization_name" 
+                                value="{{$organization->organization_name ? $organization->organization_name : ""}}" placeholder="Company Name" >
+                              </div>
+                            </div>
+        
+                            {{-- <div class="row mb-3">
+                              <label for="Job" class="col-md-4 col-lg-3 col-form-label">Role</label>
+                              <div class="col-md-8 col-lg-9">
+                                <input name="job" type="text" class="form-control" id="Job" value="Web Designer">
+                              </div>
+                            </div> --}}
+
+                            <div class="row mb-3">
+                              <label for="organization_address" class="col-md-4 col-lg-3 col-form-label">Organization Address</label>
+                              <div class="col-md-8 col-lg-9">
+                                <input name="organization_address" required type="text" class="form-control" id="organization_address" value="{{$organization->organization_address ?$organization->organization_address:""}}" placeholder="Organization Address" >
+                              </div>
+                            </div>
+                            <div class="row mb-3">
+                              <label for="organization_main_contact" class="col-md-4 col-lg-3 col-form-label">Organization Main Contact</label>
+                              <div class="col-md-8 col-lg-9">
+                                <input name="organization_main_contact" type="text" class="form-control" id="organization_main_contact" value="{{$organization->organization_main_contact ?$organization->organization_main_contact:""}}" placeholder="Company`s Main Contact" >
+                              </div>
+                            </div>
+                            <div class="row mb-3">
+                              <label for="organization_email" class="col-md-4 col-lg-3 col-form-label">Organization Email</label>
+                              <div class="col-md-8 col-lg-9">
+                                <input name="organization_email" type="text" class="form-control" id="organization_email" value="{{$organization->organization_email ?$organization->organization_email:""}}" placeholder="Main E-mail" >
+                              </div>
+                            </div>
+                            <div class="row mb-3">
+                              <label for="BusinessShortCode" class="col-md-4 col-lg-3 col-form-label">Business Short Code (Paybill)</label>
+                              <div class="col-md-8 col-lg-9">
+                                <input name="BusinessShortCode" type="text" class="form-control" id="BusinessShortCode" value="{{$organization->BusinessShortCode ?$organization->BusinessShortCode:""}}" placeholder="Business Short Code" >
                               </div>
                             </div>
         
@@ -453,10 +515,10 @@
                               </div>
                             </div>
                             <div class="text-center">
-                              <button type="submit" {{$readonly}} class="btn btn-primary disabled">Save Changes</button>
+                              <button type="submit" {{$readonly}} class="btn btn-primary">Save Changes</button>
                             </div>
                           </form><!-- End settings Form -->
-                          <div class="container">
+                          <div class="container d-none">
                             <p><strong>Export user data</strong></p>
                             <a href="/Clients/Export" class="btn btn-secondary text-bolder {{$readonly}} disabled"><i class="ft-command"> </i>Export</a>
                             <hr>
@@ -524,7 +586,7 @@
                 class="float-md-left d-block d-md-inline-block"><?php echo date('Y'); ?> &copy; Copyright Hypbits
                 Enterprises</span>
             <ul class="list-inline float-md-right d-block d-md-inline-blockd-none d-lg-block mb-0">
-                <li class="list-inline-item">Created By<a class="my-1" href="https://ladybirdsmis.com/sims/"
+                <li class="list-inline-item">Created By<a class="my-1" href="https://ladybirdsmis.com"
                         target="_blank"> Ladybird Softech Co.</a></li>
             </ul>
         </div>
@@ -562,6 +624,12 @@
       }
       document.getElementById("close_window_btn").onclick = function () {
         document.getElementById("change_dp_window").classList.add("d-none");
+      }
+      document.getElementById("update_company_profile_btn").onclick = function () {
+        document.getElementById("change_company_dp_window").classList.remove("d-none");
+      }
+      document.getElementById("close_company_profile_dp_window_btn").onclick = function () {
+        document.getElementById("change_company_dp_window").classList.add("d-none");
       }
     </script>
     <script>

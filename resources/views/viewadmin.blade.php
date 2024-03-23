@@ -136,11 +136,12 @@ date_default_timezone_set('Africa/Nairobi');
 
     <div class="main-menu menu-fixed menu-light menu-accordion menu-shadow" data-scroll-to-active="true"
         data-img="/theme-assets/images/backgrounds/02.jpg">
-        <div class="navbar-header">
+        <div class="navbar-header" style="height: 120px">
             <ul class="nav navbar-nav flex-row p-0 justify-content-center align-item-center">
-                <li class="nav-item mr-auto p-0 w-75" style="width: fit-content"><a class="navbar-brand "
-                        href="/Dashboard"><img class="brand-logo w-100 mb-1 " alt="Chameleon admin logo"
-                            src="/theme-assets/images/logo.jpeg" />
+                <li class="nav-item mr-auto p-0 w-75 text-center" style="width: fit-content"><a class="navbar-brand "
+                        href="/Dashboard">
+                        <img class="w-100 mx-auto" height="100" alt="Your Logo Appear Here"
+                            src="{{session("organization_logo") != null ? session("organization_logo") :'/theme-assets/images/logoplaceholder.svg'}}" />
                     </a></li>
                 <li class="nav-item d-md-none"><a class="nav-link close-navbar"><i class="ft-x"></i></a></li>
             </ul>
@@ -228,8 +229,23 @@ date_default_timezone_set('Africa/Nairobi');
                                     @if (session('success'))
                                         <p class="text-success">{{ session('success') }}</p>
                                     @endif
-                                    <a href="/Accounts/add" class="btn btn-infor"><i class="ft-arrow-left"></i>
-                                        Back to list</a>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <a href="/Accounts/add" class="btn btn-infor"><i class="ft-arrow-left"></i>
+                                                Back to list</a>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <button id="delete_user" class="btn btn-danger text-lg float-right"><i class="ft-trash-2"> Delete</i></button>
+                                            <div class="container d-none mt-4" id="prompt_del_window">
+                                                <p class="text-secondary"><strong>Are you sure you want to permanently delete this user?</strong></p>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <a href="{{url()->route("delete_admin",[$admin_data[0]->admin_id])}}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Delete</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <h6><strong>Update Administrator</strong></h6>
                                     <p class="card-text">Fill all fields to add the Administrator.</p>
                                     <form action="/updateAdministrator" method="post">

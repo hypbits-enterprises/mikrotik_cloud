@@ -131,10 +131,12 @@
 
 
     <div class="main-menu menu-fixed menu-light menu-accordion menu-shadow" data-scroll-to-active="true" data-img="/theme-assets/images/backgrounds/02.jpg">
-        <div class="navbar-header">
+        <div class="navbar-header" style="height: 120px">
             <ul class="nav navbar-nav flex-row p-0 justify-content-center align-item-center">
-                <li class="nav-item mr-auto p-0 w-75" style="width: fit-content"><a class="navbar-brand " href="/Dashboard"><img class="brand-logo w-100 mb-1 "
-                            alt="Chameleon admin logo" src="/theme-assets/images/logo.jpeg" />
+                <li class="nav-item mr-auto p-0 w-75 text-center" style="width: fit-content"><a class="navbar-brand "
+                        href="/Dashboard">
+                        <img class="w-100 mx-auto" height="100" alt="Your Logo Appear Here"
+                            src="{{session("organization_logo") != null ? session("organization_logo") :'/theme-assets/images/logoplaceholder.svg'}}" />
                     </a></li>
                 <li class="nav-item d-md-none"><a class="nav-link close-navbar"><i class="ft-x"></i></a></li>
             </ul>
@@ -240,7 +242,7 @@
                                                 <input type="password" name="admin_password" id="admin_password" class="form-control rounded-lg p-1" placeholder="Administrator password" required >
                                             </div>
                                         </div>
-                                        <input type="hidden" name="privileges" id="privileged" value="[{&quot;option&quot;:&quot;My Clients&quot;,&quot;view&quot;:true,&quot;readonly&quot;:true},{&quot;option&quot;:&quot;Transactions&quot;,&quot;view&quot;:true,&quot;readonly&quot;:true},{&quot;option&quot;:&quot;Expenses&quot;,&quot;view&quot;:true,&quot;readonly&quot;:true},{&quot;option&quot;:&quot;My Routers&quot;,&quot;view&quot;:true,&quot;readonly&quot;:true},{&quot;option&quot;:&quot;SMS&quot;,&quot;view&quot;:true,&quot;readonly&quot;:true},{&quot;option&quot;:&quot;Account and Profile&quot;,&quot;view&quot;:true,&quot;readonly&quot;:true}]">
+                                        <input type="hidden" name="privileges" id="privileged" value="[{&quot;option&quot;:&quot;My Clients&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Transactions&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Expenses&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;My Routers&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;SMS&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Account and Profile&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false}]">
                                         {{-- <input type="hidden" name="privileges" id="privileged"> --}}
                                         <div class="container my-2">
                                             <h6 class="text-center">Assign Administrator Privileges</h6>
@@ -251,7 +253,7 @@
                                                             <th>#</th>
                                                             <th>Menu</th>
                                                             <th>View <input type="checkbox" checked id="all_view"></th>
-                                                            <th>Read-only <input checked type="checkbox" id="all_readonly"></th>
+                                                            <th>Read-only <input type="checkbox" id="all_readonly"></th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -259,41 +261,41 @@
                                                             <th scope="row">1</th>
                                                             <td><label for="my_clients_option" class="form-label"><b>My Clients</b></label></td>
                                                             <td><input class="all_view" checked type="checkbox" id="my_clients_option_view"></td>
-                                                            <td><input class="all_readonly" checked type="checkbox" id="my_clients_option_readonly"></td>
+                                                            <td><input class="all_readonly" type="checkbox" id="my_clients_option_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <th rowspan="3" scope="row">2</th>
                                                             <td ><label for="my_clients_option" class="form-label"><b>Accounts</b></label></td>
                                                             <td><input class="all_view" checked type="checkbox" id="accounts_option_view"></td>
-                                                            <td><input class="all_readonly" checked type="checkbox" id="accounts_option_readonly"></td>
+                                                            <td><input class="all_readonly"  type="checkbox" id="accounts_option_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <td ><label for="my_clients_option" class="form-label"><b><i>Transactions</i></b></label></td>
                                                             <td><input class="all_view account_options" checked type="checkbox" id="transactions_option_view"></td>
-                                                            <td><input class="all_readonly account_options_2" checked type="checkbox" id="transactions_option_readonly"></td>
+                                                            <td><input class="all_readonly account_options_2"  type="checkbox" id="transactions_option_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <td ><label for="my_clients_option" class="form-label"><b><i>Expenses</i></b></label></td>
                                                             <td><input class="all_view account_options" checked type="checkbox" id="expenses_option_view"></td>
-                                                            <td><input class="all_readonly account_options_2" checked type="checkbox" id="expenses_option_readonly"></td>
+                                                            <td><input class="all_readonly account_options_2"  type="checkbox" id="expenses_option_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <th scope="row">3</th>
                                                             <td ><label for="my_clients_option" class="form-label"><b>My Routers</b></label></td>
                                                             <td><input class="all_view" checked type="checkbox" id="my_routers_option_view"></td>
-                                                            <td><input class="all_readonly" checked type="checkbox" id="my_routers_option_readonly"></td>
+                                                            <td><input class="all_readonly" type="checkbox" id="my_routers_option_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <th scope="row">4</th>
                                                             <td ><label for="my_clients_option" class="form-label"><b>SMS</b></label></td>
                                                             <td><input class="all_view" checked type="checkbox" id="sms_option_view"></td>
-                                                            <td><input class="all_readonly" checked type="checkbox" id="sms_option_readonly"></td>
+                                                            <td><input class="all_readonly" type="checkbox" id="sms_option_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <th scope="row">5</th>
                                                             <td ><label for="my_clients_option" class="form-label"><b>Account & Profile</b></label></td>
                                                             <td><input class="all_view" checked type="checkbox" id="account_profile_option_view"></td>
-                                                            <td><input class="all_readonly" checked type="checkbox" id="account_profile_option_readonly"></td>
+                                                            <td><input class="all_readonly" type="checkbox" id="account_profile_option_readonly"></td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
@@ -341,7 +343,11 @@
                                         </div>
                                     </div>
                                     <div class="table-responsive" id="transDataReciever">
-                                        <table class="table">
+                                        <div class="container text-center my-2">
+                                            <img class=" mx-auto fa-beat-fade"  width="100" alt="Your Logo Appear Here"
+                                                src="{{session("organization_logo") != null ? session("organization_logo") :'/theme-assets/images/logoplaceholder.svg'}}" />
+                                        </div>
+                                        {{-- <table class="table">
                                             <thead>
                                                 <tr>
                                                     <th>#</th>
@@ -378,7 +384,7 @@
                                                     <td><a href="#" class="btn btn-sm btn-primary text-bolder" data-toggle="tooltip" title="View this User"><i class="ft-eye"></i></a> <a href="#" class="btn btn-sm btn-secondary text-bolder" data-toggle="tooltip" title="Edit this User"><i class="ft-edit"></i></a> <a href="#" class="btn btn-sm btn-warning text-bolder"  data-toggle="tooltip" title="Disable this User"><i class="ft-alert-octagon"></i></a> </td>
                                                 </tr>
                                             </tbody>
-                                        </table>
+                                        </table> --}}
                                     </div>
                                     <nav aria-label="Page navigation example" id="tablefooter">
                                         <ul class="pagination" id="datatable_paginate">
@@ -424,7 +430,7 @@
     <footer style="margin-bottom: 0% !important" class="footer footer-static footer-light navbar-border navbar-shadow">
     <div  class="clearfix blue-grey lighten-2 text-sm-center mb-0 px-2"><span class="float-md-left d-block d-md-inline-block"><?php echo date("Y"); ?> &copy; Copyright Hypbits Enterprises</span>
         <ul class="list-inline float-md-right d-block d-md-inline-blockd-none d-lg-block mb-0">
-            <li class="list-inline-item">Created By<a class="my-1" href="https://ladybirdsmis.com/sims/" target="_blank"> Ladybird Softech Co.</a></li>
+            <li class="list-inline-item">Created By<a class="my-1" href="https://ladybirdsmis.com" target="_blank"> Ladybird Softech Co.</a></li>
         </ul>
     </div>
 </footer>

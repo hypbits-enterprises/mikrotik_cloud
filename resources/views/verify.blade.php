@@ -89,7 +89,12 @@
                             <div class="col-lg-12">
                                 <div class="p-5">
                                     <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-4">Verify Your Account!</h1>
+                                        <div class="d-flex flex-column align-content-center container text-center">
+                                            <a href="/Login" style="width: 30%;margin: auto">
+                                                <img class="w-100" src="/theme-assets/images/logo2.jpeg" alt="" srcset="">
+                                            </a>
+                                        </div>
+                                        <h1 class="h4 text-gray-900 my-2">Verify Your Account!</h1>
                                     </div>
                                     <div class="text-center">
                                         <p class="text-success">
@@ -97,7 +102,7 @@
                                                 <span>We have sent you a verification code to {{session('contacts')}}</span>
                                             @endif.</p>
                                     </div>
-                                    <form class="user" action="/verifycode" method="POST">
+                                    <form class="user" action="{{url()->route("verify_code")}}" method="POST">
                                         @csrf
                                         <div class="form-group">
                                             @if(session('error'))
@@ -120,7 +125,7 @@
                                     </div>
                                     <hr>
                                     <div class="text-center">
-                                        <h6>&COPY; Copyright {{date("Y");}}</h6>
+                                        <h6>&COPY; Copyright HypBits {{date("Y");}}</h6>
                                     </div>
                                 </div>
                             </div>

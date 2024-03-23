@@ -20,12 +20,12 @@ window.onload = function() {
     // show that the username is already used
     var admin_username = document.getElementById("admin_username");
     admin_username.onkeyup = function () {
-        var values = this.value.toUpperCase();
+        var values = this.value.toUpperCase().trim();
         if (values.length > 0){
             var present = 0;
             for (let index = 0; index < username.length; index++) {
                 const element = username[index].toUpperCase();
-                if (element.includes(values)) {
+                if (element == values) {
                     present = 1;
                     break;
                 }
@@ -691,6 +691,7 @@ cObj("accounts_option_readonly").onchange = function () {
     }
     checkChecked();
 }
+
 
 function hasJsonStructure(str) {
     if (typeof str !== 'string') return false;

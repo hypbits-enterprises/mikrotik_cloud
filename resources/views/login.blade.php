@@ -42,48 +42,26 @@
     <!-- create the icons that customers will go to -->
     <div class="container">
         <!-- Outer Row -->
-        <div class="row justify-content-center align-content-center">
+        <div class="row col-md-8 mx-auto justify-content-center align-content-center">
             <div class="col-xl-10 col-lg-12 col-md-9">
                 <div class="card o-hidden border-0 shadow-lg my-5">
                     <div class="card-body p-0">
                         <!-- Nested Row within Card Body -->
                         <div class="row">
-                            <div class="col-lg-6 my-1 d-none d-lg-block border-right border-secondary">
-                                <div class="container  p-2">
-                                    <div class="d-flex flex-column align-content-center container text-center">
-                                        <a href="/Login" style="width: 30%;margin: auto">
-                                            <img class="w-100" src="/theme-assets/images/logo2.jpeg" alt="" srcset="">
-                                        </a>
-                                    </div>
-                                    <h3 class="text-center">Welcome to Hypbits Enterprises</h3>
-                                </div>
-                                <div class="mx-auto rounded text-lg">
-                                    <div class="card my-0">
-                                        <div class="card-header py-0 my-0">
-                                            <h4 class="card-title">Procedure to Login</h4>
-                                        </div>
-                                        <div class="card-body">
-                                            <span>- If you are our client, select the option <strong>Client</strong> and provide the username and password you were given.
-                                                <br>
-                                                - If the username and password you entered does not <strong>work</strong> or you have <strong>forgotten</strong> send us a message to <strong>+254717748569</strong> including your <strong>username</strong> and <strong>account number</strong> and we will send you your new password to your Phone number. <br><br>
-                                                <span>Sample Message: <strong>"Reset My Password. Username: your-username , Account Number: your-account-number."</strong></span>
-                                            </span>
-                                            <h6 class="mt-1"><strong>Note:</strong></h6>
-                                            <span>- You can only login if you have an account with us.</span><br>
-                                            <span>- Include your username and account number when sending us a message to reset your account password.</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
+                            <div class="col-lg-12">
                                 <div class="p-5">
                                     <div class="text-center">
-                                        <h1 class="h4 text-gray-900 mb-4">Please Login!</h1>
+                                        <div class="d-flex flex-column align-content-center container text-center">
+                                            <a href="/Login" style="width: 30%;margin: auto">
+                                                <img class="w-100" src="/theme-assets/images/logo2.jpeg" alt="" srcset="">
+                                            </a>
+                                        </div>
+                                        <h1 class="h4 text-gray-900 my-2">Login!</h1>
                                         @php
                                             Session::forget('Usernames');
                                         @endphp
                                     </div>
-                                    <form class="user" action="proc_login" method="POST">
+                                    <form class="user" action="{{url()->route("process_login")}}" method="POST">
                                         @csrf
                                         <div class="form-group">
                                             @if(session('error'))
@@ -98,9 +76,9 @@
                                             </select>
                                         </div>
                                         <div class="form-group">
-                                            <select name="authority" id="authority" class="form-control" required>
+                                            <select name="authority" id="authority" class="form-control d-none" required>
                                                 <option value="" hidden >Select an option to proceed!</option>
-                                                <option value="admin">Administrator</option>
+                                                <option selected value="admin">Administrator</option>
                                                 <option value="client">Clients</option>
                                             </select>
                                         </div>
@@ -123,7 +101,7 @@
                                     </div>
                                     <hr>
                                     <div class="text-center">
-                                        <h6>&COPY; Copyright {{date("Y");}}</h6>
+                                        <h6>&COPY; Copyright HypBits {{date("Y");}}</h6>
                                     </div>
                                 </div>
                             </div>

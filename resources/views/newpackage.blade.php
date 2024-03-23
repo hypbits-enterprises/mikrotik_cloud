@@ -129,11 +129,12 @@
 
     <div class="main-menu menu-fixed menu-light menu-accordion menu-shadow" data-scroll-to-active="true"
         data-img="/theme-assets/images/backgrounds/02.jpg">
-        <div class="navbar-header">
+        <div class="navbar-header" style="height: 120px">
             <ul class="nav navbar-nav flex-row p-0 justify-content-center align-item-center">
-                <li class="nav-item mr-auto p-0 w-75" style="width: fit-content"><a class="navbar-brand "
-                        href="/Dashboard"><img class="brand-logo w-100 mb-1 " alt="Company Logo"
-                            src="/theme-assets/images/logo.jpeg" />
+                <li class="nav-item mr-auto p-0 w-75 text-center" style="width: fit-content"><a class="navbar-brand "
+                        href="/Dashboard">
+                        <img class="w-100 mx-auto" height="100" alt="Your Logo Appear Here"
+                            src="{{session("organization_logo") != null ? session("organization_logo") :'/theme-assets/images/logoplaceholder.svg'}}" />
                     </a></li>
                 <li class="nav-item d-md-none"><a class="nav-link close-navbar"><i class="ft-x"></i></a></li>
             </ul>
@@ -292,7 +293,7 @@
                 class="float-md-left d-block d-md-inline-block"><?php echo date('Y'); ?> &copy; Copyright Hypbits
                 Enterprises</span>
             <ul class="list-inline float-md-right d-block d-md-inline-blockd-none d-lg-block mb-0">
-                <li class="list-inline-item">Created By<a class="my-1" href="https://ladybirdsmis.com/sims/"
+                <li class="list-inline-item">Created By<a class="my-1" href="https://ladybirdsmis.com"
                         target="_blank"> Ladybird Softech Co.</a></li>
             </ul>
         </div>
