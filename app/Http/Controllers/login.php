@@ -63,8 +63,16 @@ class login extends Controller
                 $message_status = 0;
                 $random_no = rand(1000,9999);
                 $message = "Your verification code is ".$random_no.". It will expire in 5 minutes";
+                
+                // check if the organization is allowed to send sms
+                $sms_status = 1;
+                $error_message = "";
+                if($organization_details[0]->send_sms == 0){
+                    $error_message = "\"You are not allowed to send SMS!\" ";
+                    $sms_status = 0;
+                }
 
-                if ($send_code == "SMS") {
+                if ($send_code == "SMS" && $sms_status == 1) {
                     // GET THE SMS KEYS FROM THE DATABASE
                     $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
                     $sms_api_key = $sms_keys[0]->value;
@@ -98,10 +106,10 @@ class login extends Controller
                             }
                         }
                     }
-                }elseif ($send_code == "EMAILS") {
+                }elseif ($send_code == "EMAILS" || ($send_code == "SMS" && $sms_status == 0)) {
                     // if the username email is null redirect and show error
                     if ($result[0]->email == null || strlen($result[0]->email) < 1) {
-                        session()->flash('error',"Your email has not been set up! Contact your administrator to set it up for you!");
+                        session()->flash('error',"Your email has not been set up! Contact your administrator to set it up for you! ".$error_message."");
                         return redirect("/Login");
                     }
                     
@@ -156,10 +164,13 @@ class login extends Controller
                 $verification_code->save();
                 
 
-                if ($send_code == "SMS"){
+                if ($send_code == "SMS" && $sms_status == 1){
                     $req->session()->flash("contacts",$contact);
-                }elseif ($send_code == "EMAILS") {
+                }elseif ($send_code == "EMAILS" || ($send_code == "SMS" && $sms_status == 0)) {
                     $contact = "".$result[0]->email."";
+                    if (($send_code == "SMS" && $sms_status == 0)) {
+                        $contact .= " --  (You are not allowed to send SMS!)";
+                    }
                     $req->session()->flash("contacts",$contact);
                 }
                 // update the last time they logged in;
@@ -188,10 +199,7 @@ class login extends Controller
             $result = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_username` = '$username' AND `client_password` = '$password'");
             // return $result;
             if (count($result) > 0) {
-                // get the student data 
-                // set session for the user id
-                // $req->session()->put("client_id",$result[0]->client_id);
-                // $req->session()->put("fullname",$result[0]->client_name);
+                // get the student data
                 $req->session()->put("Userid",$result[0]->client_id);
                 $req->session()->put("auth","client");
                 $contacts = $result[0]->clients_contacts;

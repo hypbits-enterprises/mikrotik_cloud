@@ -1116,11 +1116,19 @@ class Clients extends Controller
                 $partnerID = $sms_partner_id;
                 $apikey = $sms_api_key;
                 $shortcode = $sms_shortcode;
+                    
+                // check if the organization is allowed to send sms
+                $organization_dets = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[session("organization")->organization_id]);
+                // check if the organization is allowed to send sms
+                if($organization_dets[0]->send_sms == 0){
+                    session()->flash("error_sms", "You are not allowed to send SMS!");
+                    $send_sms = 0;
+                }
 
                 $message_contents = $this->get_sms();
                 $message = $message_contents[3]->messages[0]->message;
                 $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC LIMIT 1;");
-                if ($user_data && $req->input('send_sms') == "on") {
+                if ($user_data && $req->input('send_sms') == "on" && $organization_dets[0]->send_sms == 0) {
                     $client_id = $user_data[0]->client_id;
                     $mobile = $user_data[0]->clients_contacts;
                     $sms_type = 2;
@@ -1456,11 +1464,20 @@ class Clients extends Controller
                     $partnerID = $sms_partner_id;
                     $apikey = $sms_api_key;
                     $shortcode = $sms_shortcode;
+                    
+                    // check if the organization is allowed to send sms
+                    $organization_dets = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[session("organization")->organization_id]);
+                    // check if the organization is allowed to send sms
+                    if($organization_dets[0]->send_sms == 0){
+                        session()->flash("error_sms", "You are not allowed to send SMS!");
+                        $send_sms = 0;
+                    }
 
+                    // get message
                     $message_contents = $this->get_sms();
                     $message = $message_contents[3]->messages[0]->message;
                     $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC LIMIT 1;");
-                    if ($user_data && $req->input('send_sms') == "on") {
+                    if ($user_data && $req->input('send_sms') == "on" && $organization_dets[0]->send_sms == 1) {
                         $client_id = $user_data[0]->client_id;
                         $mobile = $user_data[0]->clients_contacts;
                         $sms_type = 2;

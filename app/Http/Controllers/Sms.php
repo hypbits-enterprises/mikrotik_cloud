@@ -296,6 +296,13 @@ class Sms extends Controller
                 return redirect("/sms/compose");
             }
         }
+        
+        $organization_dets = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[session("organization")->organization_id]);
+        // check if the organization is allowed to send sms
+        if($organization_dets[0]->send_sms == 0){
+            session()->flash("error_sms", "You are not allowed to send SMS!");
+            $send_sms = 0;
+        }
 
         // message status
         if ($send_sms == 1) {
@@ -362,6 +369,8 @@ class Sms extends Controller
                 // save the clients data one by one
             }
             session()->flash("message_success","Message has been successfully sent to the client");
+            return redirect("/sms/compose");
+        }else{
             return redirect("/sms/compose");
         }
     }
@@ -449,6 +458,13 @@ class Sms extends Controller
                 return redirect("/sms/compose");
             }
         }
+        
+        $organization_dets = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[session("organization")->organization_id]);
+        // check if the organization is allowed to send sms
+        if($organization_dets[0]->send_sms == 0){
+            session()->flash("error_sms", "You are not allowed to send SMS!");
+            $send_sms = 0;
+        }
 
         // message status
         if ($send_sms == 1) {
@@ -517,6 +533,8 @@ class Sms extends Controller
             session()->flash("message_success","Message has been successfully sent to the client");
             return redirect("/sms/compose");
         }
+        // session()->flash("message_success","Message has been successfully sent to the client");
+        return redirect("/sms/compose");
     }
     function customsms(){
         // change db
@@ -1159,69 +1177,78 @@ class Sms extends Controller
         // change db
         $change_db = new login();
         $change_db->change_db();
-
-        // return $req;
-        $hold_user_id_data = $req->input("hold_user_id_data");
-        $hold_user_id_data = json_decode($hold_user_id_data);
-
-        // GET THE SMS KEYS FROM THE DATABASE
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
-        $sms_api_key = $sms_keys[0]->value;
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
-        $sms_partner_id = $sms_keys[0]->value;
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
-        $sms_shortcode = $sms_keys[0]->value;
-
-        for ($index=0; $index < count($hold_user_id_data); $index++) { 
-            $sms_data = DB::connection("mysql2")->select("SELECT * FROM `sms_tables` WHERE `sms_id` = '".$hold_user_id_data[$index]."'");
-            if (count($sms_data) > 0) {
-                $recipient_phone = $sms_data[0]->recipient_phone;
-                $sms_content = $sms_data[0]->sms_content;
-
-
-                $message_status = 0;
-                // if send sms is 1 we send  the sms
-                $partnerID = $sms_partner_id;
-                $apikey = $sms_api_key;
-                $shortcode = $sms_shortcode;
-                
-                $mobile = $recipient_phone; // Bulk messages can be comma separated
-                $message = $sms_content;
-                
-                $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
-                $ch = \curl_init();
-                \curl_setopt($ch, CURLOPT_URL, $finalURL);
-                \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                $response = \curl_exec($ch);
-                \curl_close($ch);
-                $res = json_decode($response);
-                // return $res;
-                $values = $res->responses[0];
-                // return $values;
-                foreach ($values as  $key => $value) {
-                    // echo $key;
-                    if ($key == "response-code") {
-                        if ($value == "200") {
-                            // if its 200 the message is sent delete the
-                            $message_status = 1;
+        
+        $organization_dets = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[session("organization")->organization_id]);
+        
+        // check if the organization is allowed to send sms
+        $send_sms = $organization_dets[0]->send_sms;
+        if ($send_sms == 1) {
+            // return $req;
+            $hold_user_id_data = $req->input("hold_user_id_data");
+            $hold_user_id_data = json_decode($hold_user_id_data);
+    
+            // GET THE SMS KEYS FROM THE DATABASE
+            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
+            $sms_api_key = $sms_keys[0]->value;
+            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
+            $sms_partner_id = $sms_keys[0]->value;
+            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
+            $sms_shortcode = $sms_keys[0]->value;
+    
+            for ($index=0; $index < count($hold_user_id_data); $index++) { 
+                $sms_data = DB::connection("mysql2")->select("SELECT * FROM `sms_tables` WHERE `sms_id` = '".$hold_user_id_data[$index]."'");
+                if (count($sms_data) > 0) {
+                    $recipient_phone = $sms_data[0]->recipient_phone;
+                    $sms_content = $sms_data[0]->sms_content;
+    
+    
+                    $message_status = 0;
+                    // if send sms is 1 we send  the sms
+                    $partnerID = $sms_partner_id;
+                    $apikey = $sms_api_key;
+                    $shortcode = $sms_shortcode;
+                    
+                    $mobile = $recipient_phone; // Bulk messages can be comma separated
+                    $message = $sms_content;
+                    
+                    $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
+                    $ch = \curl_init();
+                    \curl_setopt($ch, CURLOPT_URL, $finalURL);
+                    \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                    $response = \curl_exec($ch);
+                    \curl_close($ch);
+                    $res = json_decode($response);
+                    // return $res;
+                    $values = $res->responses[0];
+                    // return $values;
+                    foreach ($values as  $key => $value) {
+                        // echo $key;
+                        if ($key == "response-code") {
+                            if ($value == "200") {
+                                // if its 200 the message is sent delete the
+                                $message_status = 1;
+                            }
                         }
                     }
+                    // if the message status is one the message is already sent to the user
+                    $sms_table = new sms_table();
+                    $sms_table->sms_content = $sms_content;
+                    $sms_table->date_sent = date("YmdHis");
+                    $sms_table->recipient_phone = $recipient_phone;
+                    $sms_table->sms_status = $message_status;
+                    $sms_table->account_id = $sms_data[0]->account_id;
+                    $sms_table->sms_type = $sms_data[0]->sms_type;
+                    $sms_table->save();
                 }
-                // if the message status is one the message is already sent to the user
-                $sms_table = new sms_table();
-                $sms_table->sms_content = $sms_content;
-                $sms_table->date_sent = date("YmdHis");
-                $sms_table->recipient_phone = $recipient_phone;
-                $sms_table->sms_status = $message_status;
-                $sms_table->account_id = $sms_data[0]->account_id;
-                $sms_table->sms_type = $sms_data[0]->sms_type;
-                $sms_table->save();
             }
+    
+            session()->flash("success_sms",count($hold_user_id_data)." messages have been re-sent successfully!");
+            return redirect("/sms");
+        }else{
+            session()->flash("error_sms","You are not allowed to send SMS!");
+            return redirect("/sms");
         }
-
-        session()->flash("success_sms",count($hold_user_id_data)." messages have been re-sent successfully!");
-        return redirect("/sms");
     }
 
     function generateReports(Request $req){
