@@ -66,6 +66,7 @@ window.onload = function () {
             col.push(element['comment']);
             col.push(element['location_coordinates']);
             col.push(element['assignment']);
+            col.push(element['client_default_gw']);
             // var col = element.split(":");
             rowsColStudents.push(col);
         }
@@ -422,7 +423,7 @@ function displayRecord(start, finish, arrays) {
     var fins = 0;
     //this is the table header to the start of the tbody
     var readonly_flag = cObj("readonly_flag").value;
-    var tableData = "<table class='table'><thead><tr><th><span  title='Sort by date registered' id='sort_by_reg_date' style='cursor:pointer;'># <i class='ft-chevron-down'></i></span></th><th><span id ='sort_by_name'   title='Sort by Client Name' style='cursor:pointer;'>Full Names <i class='ft-chevron-down'></i></span></th><th><span id ='sort_by_acc_number'   title='Sort by Account Number' style='cursor:pointer;'>Account Number <i class='ft-chevron-down'></i></span></th><th>Location</th><th><span  id ='sort_by_expiration'   title='Sort by Expiration Date' style='cursor:pointer;'>Due Date <i class='ft-chevron-down'></i></span></th><th>Action</th></tr></thead><tbody>";
+    var tableData = "<table class='table'><thead><tr><th><span  title='Sort by date registered' id='sort_by_reg_date' style='cursor:pointer;'># <i class='ft-chevron-down'></i></span></th><th><span id ='sort_by_name'   title='Sort by Client Name' style='cursor:pointer;'>Full Names <i class='ft-chevron-down'></i></span></th><th><span id ='sort_by_acc_number'   title='Sort by Account Number' style='cursor:pointer;'>Account Number <i class='ft-chevron-down'></i></span></th><th>Location</th><th><span  id ='sort_by_expiration'   title='Sort by Expiration Date' style='cursor:pointer;'>Due Date <i class='ft-chevron-down'></i></span></th><th>Network & Gateway</th><th>Action</th></tr></thead><tbody>";
     if (finish < total) {
         fins = finish;
         //create a table of the 50 records
@@ -462,7 +463,7 @@ function displayRecord(start, finish, arrays) {
                 assignment = "<span class='badge text-light' style = 'background:rgb(119, 105, 183);' data-toggle='tooltip' title='PPPoE Assigned'>P</span>";
             }
             var location = (arrays[index][14] != null && arrays[index][14].length > 0) ? "<a class='text-danger' href = 'https://www.google.com/maps/place/" + arrays[index][14] + "' target = '_blank'><u>Locate Client</u> </a>" : "";
-            tableData += "<tr><th scope='row'><input type='checkbox' class='actions_id' id='actions_id_"+arrays[index][11]+"'><input type='hidden' id='actions_value_"+arrays[index][11]+"' value='"+arrays[index][11]+"'> " + counter + "</th><td>" + assignment + " <a href='/Clients/View/" + arrays[index][0] + "' class='text-secondary'>" + ucwords(arrays[index][1]) + " " + status + "</a><br><small class='text-gray d-none d-xl-block'>" + ucword(arrays[index][13]) + "</small></td><td>" + arrays[index][11].toUpperCase() + " " + reffered + "</td><td>" + ucwords(arrays[index][5]) + "<br><small class='d-none d-md-block'>" + location + "</small></td><td>" + setDate(arrays[index][7]) + "</td><td><a href='/Clients/View/" + arrays[index][0] + "' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View this User'><i class='ft-eye'></i></a> <a href='/deactivate/" + arrays[index][0] + "' class='btn btn-sm btn-danger text-dark text-bolder "+readonly_flag+"'  data-toggle='tooltip' title='Disable this User'><i class='ft-x'></i></a></td></tr>";
+            tableData += "<tr><th scope='row'><input type='checkbox' class='actions_id' id='actions_id_"+arrays[index][11]+"'><input type='hidden' id='actions_value_"+arrays[index][11]+"' value='"+arrays[index][11]+"'> " + counter + "</th><td>" + assignment + " <a href='/Clients/View/" + arrays[index][0] + "' class='text-secondary'>" + ucwords(arrays[index][1]) + " " + status + "</a><br><small class='text-gray d-none d-xl-block'>" + ucword(arrays[index][13]) + "</small></td><td>" + arrays[index][11].toUpperCase() + " " + reffered + "</td><td>" + ucwords(arrays[index][5]) + "<br><small class='d-none d-md-block'>" + location + "</small></td><td>" + setDate(arrays[index][7]) + "</td><td><small>"+arrays[index][2]+" <br> "+arrays[index][16]+" </small></td><td><a href='/Clients/View/" + arrays[index][0] + "' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View this User'><i class='ft-eye'></i></a> <a href='/deactivate/" + arrays[index][0] + "' class='btn btn-sm btn-danger text-dark text-bolder "+readonly_flag+"'  data-toggle='tooltip' title='Disable this User'><i class='ft-x'></i></a></td></tr>";
             counter++;
         }
     } else {
@@ -505,7 +506,7 @@ function displayRecord(start, finish, arrays) {
             }
             var location = (arrays[index][14] != null && arrays[index][14].length > 0) ? "<a class='text-danger' href = 'https://www.google.com/maps/place/" + arrays[index][14] + "' target = '_blank'><u>Locate Client</u> </a>" : "";
             // console.log(location);
-            tableData += "<tr><th scope='row'><input type='checkbox' class='actions_id' id='actions_id_"+arrays[index][11]+"'><input type='hidden' id='actions_value_"+arrays[index][11]+"' value='"+arrays[index][11]+"'> " + counter + "</th><td>" + assignment + " <a href='/Clients/View/" + arrays[index][0] + "' class='text-secondary'>" + ucwords(arrays[index][1]) + " " + status + "</a><br><small class='text-gray d-none d-xl-block'>" + ucword(arrays[index][13]) + "</small></td><td>" + arrays[index][11].toUpperCase() + " " + reffered + "</td><td>" + ucwords(arrays[index][5]) + "<br><small class='d-none d-md-block'>" + location + "</small></td><td>" + setDate(arrays[index][7]) + "</td><td><a href='/Clients/View/" + arrays[index][0] + "' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View this User'><i class='ft-eye'></i></a> <a href='/deactivate/" + arrays[index][0] + "' class='btn btn-sm btn-danger text-dark text-bolder "+readonly_flag+"'  data-toggle='tooltip' title='Disable this User'><i class='ft-x'></i></a></td></tr>";
+            tableData += "<tr><th scope='row'><input type='checkbox' class='actions_id' id='actions_id_"+arrays[index][11]+"'><input type='hidden' id='actions_value_"+arrays[index][11]+"' value='"+arrays[index][11]+"'> " + counter + "</th><td>" + assignment + " <a href='/Clients/View/" + arrays[index][0] + "' class='text-secondary'>" + ucwords(arrays[index][1]) + " " + status + "</a><br><small class='text-gray d-none d-xl-block'>" + ucword(arrays[index][13]) + "</small></td><td>" + arrays[index][11].toUpperCase() + " " + reffered + "</td><td>" + ucwords(arrays[index][5]) + "<br><small class='d-none d-md-block'>" + location + "</small></td><td>" + setDate(arrays[index][7]) + "</td><td><small>"+arrays[index][2]+" <br> "+arrays[index][16]+" </small></td><td><a href='/Clients/View/" + arrays[index][0] + "' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View this User'><i class='ft-eye'></i></a> <a href='/deactivate/" + arrays[index][0] + "' class='btn btn-sm btn-danger text-dark text-bolder "+readonly_flag+"'  data-toggle='tooltip' title='Disable this User'><i class='ft-x'></i></a></td></tr>";
             counter++;
         }
         fins = total;
@@ -723,6 +724,13 @@ function checkName(keyword) {
             present++;
         }
         if (element[11].toLowerCase().includes(keylower)) {
+            present++;
+        }
+        console.log((element[2]+"").toLowerCase().includes(keylower));
+        if ((element[2]+"").toLowerCase().includes(keylower)) {
+            present++;
+        }
+        if ((element[16]+"").toLowerCase().includes(keylower)) {
             present++;
         }
         //here you can add any other columns to be searched for

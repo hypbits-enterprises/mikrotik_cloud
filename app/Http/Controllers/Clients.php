@@ -53,6 +53,7 @@ class Clients extends Controller
         for ($index=0; $index < count($client_data); $index++) { 
             $client_data[$index]->reffered_by = str_replace("'","\"",$client_data[$index]->reffered_by);
         }
+        // return $client_data;
         return view('myclients',["frozen_clients" => $frozen_clients,'client_data'=>$client_data,"router_infor" => $router_data]);
     }
     
@@ -1208,6 +1209,7 @@ class Clients extends Controller
         $expiration_dates = date("Ymd",strtotime($expiration_date));
         $expiration_dates = date("YmdHis",strtotime($expiration_dates."235959"));
         $minimum_payment = $req->input("minimum_payment");
+        
         // return $req->input();
         // return $location_coordinates;
         // return $expiration_dates;
