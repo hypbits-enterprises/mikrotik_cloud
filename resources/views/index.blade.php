@@ -262,7 +262,7 @@
                                     @if (count($sms_sent) > 0)
                                         {{-- display the sms data --}}
                                         @for ($i = 0; $i < count($sms_sent); $i++)
-                                                @if ($readonly_2 == "disabled")
+                                                @if ($readonly_2 != "disabled")
                                                     <a href="/sms/View/{{$sms_sent[$i]->sms_id}}" class="media border-0">
                                                 @else
                                                     <a href="#" class="media border-0">
@@ -339,7 +339,7 @@
                                     @if (count($transaction_data) > 0)
                                         {{-- display the transaction messages --}}
                                         @for ($i = 0; $i < count($transaction_data); $i++)
-                                            @if ($readonly_1 == "disabled")
+                                            @if ($readonly_1 != "disabled")
                                                 <a href="/Transactions/View/{{$transaction_data[$i]->transaction_id}}" class="media border-0">
                                             @else
                                                 <a href="#" class="media border-0">
@@ -419,7 +419,7 @@
                                 <div id="recent-buyers" class="media-list">
                                     @if (count($client_data) > 0)
                                         @for ($i = 0; $i < count($client_data); $i++)
-                                            @if ($readonly_3 == "disabled")
+                                            @if ($readonly_3 != "disabled")
                                                 <a href="/Clients/View/{{$client_data[$i]->client_id}}" class="media border-0">
                                             @else
                                                 <a href="#" class="media border-0">

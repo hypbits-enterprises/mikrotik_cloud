@@ -86,6 +86,8 @@ window.onload = function () {
             cObj("sort_by_name").addEventListener("click", sortByName);
             cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
             cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+            cObj("sort_by_location").addEventListener("click", sort_by_location);
+            cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
 
             // check and uncheck all fields that have been selected
             checkedUnchecked();
@@ -331,6 +333,8 @@ function sortByRegDate() {
         cObj("sort_by_name").addEventListener("click", sortByName);
         cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
         cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+        cObj("sort_by_location").addEventListener("click", sort_by_location);
+        cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
         // check and uncheck all fields that have been selected
         checkedUnchecked();
     }
@@ -359,6 +363,8 @@ function sortByExpDate() {
         cObj("sort_by_name").addEventListener("click", sortByName);
         cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
         cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+        cObj("sort_by_location").addEventListener("click", sort_by_location);
+        cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
         // check and uncheck all fields that have been selected
         checkedUnchecked();
     }
@@ -386,6 +392,8 @@ function sortByName() {
         cObj("sort_by_name").addEventListener("click", sortByName);
         cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
         cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+        cObj("sort_by_location").addEventListener("click", sort_by_location);
+        cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
         // check and uncheck all fields that have been selected
         checkedUnchecked();
     }
@@ -412,6 +420,68 @@ function sortByAccNo() {
         cObj("sort_by_name").addEventListener("click", sortByName);
         cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
         cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+        cObj("sort_by_location").addEventListener("click", sort_by_location);
+        cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
+        // check and uncheck all fields that have been selected
+        checkedUnchecked();
+    }
+}
+
+// sort by location
+var sortByLocation = 0;
+function sort_by_location() {
+    rowsColStudents = sortAsc(rowsColStudents, 5);
+    if (sortByLocation == 0) {
+        sortByLocation = 1;
+        rowsColStudents = sortAsc(rowsColStudents, 5);
+    } else {
+        sortByLocation = 0;
+        rowsColStudents = sortDesc(rowsColStudents, 5);
+    }
+    // console.log(sortByLocation);
+    cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+    if (sortByLocation == 0) {
+        cObj("sort_by_location").innerHTML = "Location <i class='ft-chevron-down'></i>";
+    } else {
+        cObj("sort_by_location").innerHTML = "Location <i class='ft-chevron-up'></i>";
+    }
+    if (rowsColStudents.length > 0) {
+        cObj("sort_by_reg_date").addEventListener("click", sortByRegDate);
+        cObj("sort_by_name").addEventListener("click", sortByName);
+        cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
+        cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+        cObj("sort_by_location").addEventListener("click", sort_by_location);
+        cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
+        // check and uncheck all fields that have been selected
+        checkedUnchecked();
+    }
+}
+
+// sort by location
+var sort_by_net = 0;
+function sort_by_network() {
+    rowsColStudents = sortAsc(rowsColStudents, 2);
+    if (sort_by_net == 0) {
+        sort_by_net = 1;
+        rowsColStudents = sortAsc(rowsColStudents, 2);
+    } else {
+        sort_by_net = 0;
+        rowsColStudents = sortDesc(rowsColStudents, 2);
+    }
+    // console.log(sort_by_net);
+    cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+    if (sort_by_net == 0) {
+        cObj("sort_by_network_gateway").innerHTML = "Location <i class='ft-chevron-down'></i>";
+    } else {
+        cObj("sort_by_network_gateway").innerHTML = "Location <i class='ft-chevron-up'></i>";
+    }
+    if (rowsColStudents.length > 0) {
+        cObj("sort_by_reg_date").addEventListener("click", sortByRegDate);
+        cObj("sort_by_name").addEventListener("click", sortByName);
+        cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
+        cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+        cObj("sort_by_location").addEventListener("click", sort_by_location);
+        cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
         // check and uncheck all fields that have been selected
         checkedUnchecked();
     }
@@ -423,7 +493,7 @@ function displayRecord(start, finish, arrays) {
     var fins = 0;
     //this is the table header to the start of the tbody
     var readonly_flag = cObj("readonly_flag").value;
-    var tableData = "<table class='table'><thead><tr><th><span  title='Sort by date registered' id='sort_by_reg_date' style='cursor:pointer;'># <i class='ft-chevron-down'></i></span></th><th><span id ='sort_by_name'   title='Sort by Client Name' style='cursor:pointer;'>Full Names <i class='ft-chevron-down'></i></span></th><th><span id ='sort_by_acc_number'   title='Sort by Account Number' style='cursor:pointer;'>Account Number <i class='ft-chevron-down'></i></span></th><th>Location</th><th><span  id ='sort_by_expiration'   title='Sort by Expiration Date' style='cursor:pointer;'>Due Date <i class='ft-chevron-down'></i></span></th><th>Network & Gateway</th><th>Action</th></tr></thead><tbody>";
+    var tableData = "<table class='table'><thead><tr><th><span  title='Sort by date registered' id='sort_by_reg_date' style='cursor:pointer;'># <i class='ft-chevron-down'></i></span></th><th><span id ='sort_by_name'   title='Sort by Client Name' style='cursor:pointer;'>Full Names <i class='ft-chevron-down'></i></span></th><th><span id ='sort_by_acc_number'   title='Sort by Account Number' style='cursor:pointer;'>Account Number <i class='ft-chevron-down'></i></span></th><th><span id ='sort_by_location'   title='Sort by Location' style='cursor:pointer;'>Location <i class='ft-chevron-down'></i></span></th><th><span  id ='sort_by_expiration'   title='Sort by Expiration Date' style='cursor:pointer;'>Due Date <i class='ft-chevron-down'></i></span></th><th><span id ='sort_by_network_gateway'   title='Sort by Network & Gateway' style='cursor:pointer;'>Network & Gateway <i class='ft-chevron-down'></i></span></th><th>Action</th></tr></thead><tbody>";
     if (finish < total) {
         fins = finish;
         //create a table of the 50 records
@@ -628,6 +698,8 @@ cObj("tonextNav").onclick = function () {
             cObj("sort_by_name").addEventListener("click", sortByName);
             cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
             cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+            cObj("sort_by_location").addEventListener("click", sort_by_location);
+            cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
             // check and uncheck all fields that have been selected
             checkedUnchecked();
         }
@@ -647,6 +719,8 @@ cObj("toprevNac").onclick = function () {
             cObj("sort_by_name").addEventListener("click", sortByName);
             cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
             cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+            cObj("sort_by_location").addEventListener("click", sort_by_location);
+            cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
 
             // check and uncheck all fields that have been selected
             checkedUnchecked();
@@ -664,6 +738,8 @@ cObj("tofirstNav").onclick = function () {
             cObj("sort_by_name").addEventListener("click", sortByName);
             cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
             cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+            cObj("sort_by_location").addEventListener("click", sort_by_location);
+            cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
             // check and uncheck all fields that have been selected
             checkedUnchecked();
         }
@@ -680,6 +756,8 @@ cObj("tolastNav").onclick = function () {
             cObj("sort_by_name").addEventListener("click", sortByName);
             cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
             cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+            cObj("sort_by_location").addEventListener("click", sort_by_location);
+            cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
 
             // check and uncheck all fields that have been selected
             checkedUnchecked();
@@ -750,6 +828,8 @@ function checkName(keyword) {
             cObj("sort_by_name").addEventListener("click", sortByName);
             cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
             cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+            cObj("sort_by_location").addEventListener("click", sort_by_location);
+            cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
 
             // check and uncheck all fields that have been selected
             checkedUnchecked();
@@ -797,6 +877,8 @@ cObj("client_status").onchange = function () {
                 cObj("sort_by_name").addEventListener("click", sortByName);
                 cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
                 cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+                cObj("sort_by_location").addEventListener("click", sort_by_location);
+                cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
 
                 // check and uncheck all fields that have been selected
                 checkedUnchecked();
@@ -825,6 +907,8 @@ cObj("client_status").onchange = function () {
                 cObj("sort_by_name").addEventListener("click", sortByName);
                 cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
                 cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+                cObj("sort_by_location").addEventListener("click", sort_by_location);
+                cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
 
                 // check and uncheck all fields that have been selected
                 checkedUnchecked();
@@ -862,6 +946,8 @@ cObj("client_status").onchange = function () {
                 cObj("sort_by_name").addEventListener("click", sortByName);
                 cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
                 cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+                cObj("sort_by_location").addEventListener("click", sort_by_location);
+                cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
 
                 // check and uncheck all fields that have been selected
                 checkedUnchecked();
@@ -899,6 +985,8 @@ cObj("client_status").onchange = function () {
                 cObj("sort_by_name").addEventListener("click", sortByName);
                 cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
                 cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+                cObj("sort_by_location").addEventListener("click", sort_by_location);
+                cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
 
                 // check and uncheck all fields that have been selected
                 checkedUnchecked();
@@ -936,6 +1024,8 @@ cObj("client_status").onchange = function () {
                 cObj("sort_by_name").addEventListener("click", sortByName);
                 cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
                 cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+                cObj("sort_by_location").addEventListener("click", sort_by_location);
+                cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
 
                 // check and uncheck all fields that have been selected
                 checkedUnchecked();
@@ -985,6 +1075,8 @@ cObj("select_router").onchange = function () {
                 cObj("sort_by_name").addEventListener("click", sortByName);
                 cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
                 cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+                cObj("sort_by_location").addEventListener("click", sort_by_location);
+                cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
 
                 // check and uncheck all fields that have been selected
                 checkedUnchecked();
@@ -1012,6 +1104,8 @@ cObj("select_router").onchange = function () {
                 cObj("sort_by_name").addEventListener("click", sortByName);
                 cObj("sort_by_acc_number").addEventListener("click", sortByAccNo);
                 cObj("sort_by_expiration").addEventListener("click", sortByExpDate);
+                cObj("sort_by_location").addEventListener("click", sort_by_location);
+                cObj("sort_by_network_gateway").addEventListener("click",sort_by_network);
 
                 // check and uncheck all fields that have been selected
                 checkedUnchecked();
