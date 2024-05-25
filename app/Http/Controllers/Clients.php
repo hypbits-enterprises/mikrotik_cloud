@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\router_table;
 use App\Models\client_table;
 use App\Models\sms_table;
+use DateInterval;
+use DateTime;
 use Illuminate\Routing\Route;
 use mysqli;
 
@@ -2773,7 +2775,6 @@ class Clients extends Controller
         $next_expiration_date = $client[0]->next_expiration_date;
         $freeze_date = date("Ymd",strtotime($client[0]->freeze_date)) > date("Ymd") ? date("Ymd",strtotime($client[0]->freeze_date)) : date("Ymd");
         $client_freeze_untill = $client[0]->client_freeze_untill;
-        // return $next_expiration_date;
         // take the difference of todays date and the client freeze date
         // $$next_expiration_date = 0;//days
 
@@ -2787,6 +2788,22 @@ class Clients extends Controller
             $date=date_create($next_expiration_date);
             date_add($date,date_interval_create_from_date_string($days));
             $next_expiration_date = date_format($date,"YmdHis");
+        }else{
+            // take the freeze date and the date today 
+            // and get the difference and 
+            // the number of days got should be added to the expiry date
+            $today = date("YmdHis");
+            $date1=date_create($freeze_date);
+            $date2=date_create($today);
+            $diff=date_diff($date1,$date2);
+            $days =  $diff->format("%a");
+
+            // add the date
+            if ($days > 0) {
+                // add the days to the expiry date
+                $next_expiration_date = $this->addDaysToDate($next_expiration_date, $days);
+            }
+
         }
 
         // update the client freeze status deactivated status to 
@@ -2876,6 +2893,21 @@ class Clients extends Controller
         session()->flash("success","Client Unfrozen successfully".($full_days != "" ? " and ".$full_days." has been deducted to the expiration date":"")."!");
         return redirect("Clients/View/".$client_id);
     }
+
+    function addDaysToDate($date, $days) {
+        // Create a DateTime object from the given date
+        $dateTime = new DateTime($date);
+        
+        // Create a DateInterval object for the specified number of days
+        $interval = new DateInterval('P' . $days . 'D');
+        
+        // Add the interval to the date
+        $dateTime->add($interval);
+        
+        // Return the modified date as a string
+        return $dateTime->format('YmdHis');
+    }
+    
     // deactivate user from freeze
     function activatefreeze($client_id){
         // change db
