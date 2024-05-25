@@ -2743,7 +2743,7 @@ class Clients extends Controller
         $change_db = new login();
         $change_db->change_db();
 
-        $new_expiration = date("Ymd",strtotime($req->input('expiration_date_edits')))."235959";
+        $new_expiration = date("Ymd",strtotime($req->input('expiration_date_edits'))).str_replace(":","",$req->input("expiration_time_edits")). "00";
         $client_id = $req->input('clients_id');
         DB::connection("mysql2")->table('client_tables')
         ->where('client_id', $client_id)
@@ -3196,7 +3196,7 @@ class Clients extends Controller
                                 ));
     
                                 if(count($result) > 0){
-                                    // this means there is an error
+                                    // this means there is an error redo
                                     $API_2->comm("/ip/address/set",
                                     array(
                                         "interface" => $req->input('interface_name'),

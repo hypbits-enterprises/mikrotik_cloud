@@ -346,8 +346,13 @@
                                                     <h6 class="text-center" >Change Expiration Date</h6>
                                                     <input type="hidden" name="clients_id"
                                                         value="{{ $clients_data[0]->client_id }}">
+
                                                     <label for="expiration_date_edits" class="form-control-label" id="">New Expiration Date</label>
-                                                    <input type="date" required name="expiration_date_edits" id="expiration_date_edits" class="form-control" placeholder="New Expiration Date">
+                                                    <input type="date" value="<?=date("Y-m-d", strtotime($clients_data[0]->next_expiration_date))?>" required name="expiration_date_edits" id="expiration_date_edits" class="form-control" placeholder="New Expiration Date">
+
+                                                    <label for="expiration_time_edits" class="form-control-label" id="">New Expiration Time</label>
+                                                    <input type="time" value="<?=date("H:i", strtotime($clients_data[0]->next_expiration_date))?>" required name="expiration_time_edits" id="expiration_time_edits" class="form-control" placeholder="New Expiration Time">
+
                                                     <div class="row">
                                                         <div class="col-md-6">
                                                             <button type="submit" class="btn btn-primary my-1" {{$readonly}}><i class="fas fa-save"></i> Save</button>
