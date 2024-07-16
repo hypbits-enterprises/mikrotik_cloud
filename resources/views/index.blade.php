@@ -190,57 +190,12 @@
                         <p class="text-danger">{{ session('danger') }}</p>
                     @endif</p>
                 </div>
-                {{-- <div class="row">
-                    <div class="col-xl-4 col-lg-6 col-md-12">
-                        <div class="card pull-up ecom-card-1 bg-white">
-                            <div class="card-content ecom-card2 height-180">
-                                <h5 class="text-muted danger position-absolute p-1">SMS Usage</h5>
-                                <div>
-                                    <i class="ft-cloud danger font-large-1 float-right p-1"></i>
-                                </div>
-                                <div class="progress-stats-container ct-golden-section height-75 position-relative pt-3  ">
-                                    <div id="progress-stats-bar-chart"></div>
-                                    <div id="progress-stats-line-chart" class="progress-stats-shadow"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xl-4 col-lg-6 col-md-12">
-                        <div class="card pull-up ecom-card-1 bg-white">
-                            <div class="card-content ecom-card2 height-180">
-                                <h5 class="text-muted info position-absolute p-1">Active Clients</h5>
-                                <div>
-                                    <i class="ft-user-check info font-large-1 float-right p-1"></i>
-                                </div>
-                                <div class="progress-stats-container ct-golden-section height-75 position-relative pt-3">
-                                    <div id="progress-stats-bar-chart1"></div>
-                                    <div id="progress-stats-line-chart1" class="progress-stats-shadow"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-xl-4 col-lg-12">
-                        <div class="card pull-up ecom-card-1 bg-white">
-                            <div class="card-content ecom-card2 height-180">
-                                <h5 class="text-muted warning position-absolute p-1">Income Stats</h5>
-                                <div>
-                                    <i class="ft-refresh-ccw warning font-large-1 float-right p-1"></i>
-                                </div>
-                                <div class="progress-stats-container ct-golden-section height-75 position-relative pt-3">
-                                    <div id="progress-stats-bar-chart2"></div>
-                                    <div id="progress-stats-line-chart2" class="progress-stats-shadow"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div> --}}
-                <!--/ eCommerce statistic -->
 
                 <!-- Statistics -->
                 <!-- Statistics -->
                 <div class="row match-height">
                 <!-- SMS Statistics -->
-                    <div class="col-xl-4 col-lg-12">
+                    <div class="{{showOption($priviledges,"SMS")}} col-xl-4 col-lg-12">
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">Recent SMS Sent</h4>
@@ -317,7 +272,7 @@
                         </div>
                     </div>
                 <!-- end of sms statistics -->
-                    <div class="col-xl-4 col-lg-12">
+                    <div class="{{showOption($priviledges,"Transactions")}} col-xl-4 col-lg-12">
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">Recent Transaction Recieved</h4>
@@ -398,7 +353,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-xl-4 col-lg-12">
+                    <div class="{{showOption($priviledges,"My Clients")}} col-xl-4 col-lg-12">
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">Recent Registered Clients</h4>

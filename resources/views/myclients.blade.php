@@ -29,6 +29,11 @@
     <!-- END Page Level CSS-->
     <!-- BEGIN Custom CSS-->
     <!-- END Custom CSS-->
+    <style>
+        .hide{
+            display: none;
+        }
+    </style>
 </head>
 @php
     date_default_timezone_set('Africa/Nairobi');
