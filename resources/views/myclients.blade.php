@@ -45,7 +45,7 @@
                 }
             }
         }
-        return "hide";
+        return "d-none";
     }
     function readOnlyOption($priviledges,$name){
         $name = trim($name);
@@ -71,11 +71,6 @@
     }
 @endphp
 
-<style>
-    .hide{
-        display: none;
-    }
-</style>
 
 <body class="vertical-layout vertical-menu 2-columns  menu-expanded fixed-navbar" data-open="click" data-menu="vertical-menu" data-color="bg-chartbg" data-col="2-columns">
 
@@ -151,7 +146,7 @@
                 </li>
                 <li class="{{showOption($priviledges,"My Clients")}} active"><a href="/Clients"><i class="ft-users"></i><span class="menu-title" data-i18n="">My Clients</span></a>
                 </li>
-                <li class="{{(showOption($priviledges,"Transactions") == "hide" && showOption($priviledges,"Expenses") == "hide") ? "hide" : ""}} nav-item has-sub"><a href="#"><i class="ft-activity"></i><span class="menu-title" data-i18n="">Accounts</span></a>
+                <li class="{{(showOption($priviledges,"Transactions") == "d-none" && showOption($priviledges,"Expenses") == "d-none") ? "d-none" : ""}} nav-item has-sub"><a href="#"><i class="ft-activity"></i><span class="menu-title" data-i18n="">Accounts</span></a>
                     <ul class="menu-content" style="">
                         <li class="{{showOption($priviledges,"Transactions")}} nav-item"><a href="/Transactions"><span><i class="ft-award"></i> Transactions</span></a>
                         </li>

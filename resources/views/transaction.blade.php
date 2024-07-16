@@ -54,7 +54,7 @@ date_default_timezone_set('Africa/Nairobi');
                 }
             }
         }
-        return "hide";
+        return "d-none";
     }
     function readOnly($priviledges,$name){
         if (isJson($priviledges)){
@@ -157,7 +157,7 @@ date_default_timezone_set('Africa/Nairobi');
                 <li class="{{showOption($priviledges,"My Clients")}} nav-item"><a href="/Clients"><i class="ft-users"></i><span class="menu-title"
                             data-i18n="">My Clients</span></a>
                 </li>
-                <li class="{{(showOption($priviledges,"Transactions") == "hide" && showOption($priviledges,"Expenses") == "hide") ? "hide" : ""}} active has-sub open"><a href="#"><i class="ft-activity"></i><span class="menu-title" data-i18n="">Accounts</span></a>
+                <li class="{{(showOption($priviledges,"Transactions") == "d-none" && showOption($priviledges,"Expenses") == "d-none") ? "d-none" : ""}} active has-sub open"><a href="#"><i class="ft-activity"></i><span class="menu-title" data-i18n="">Accounts</span></a>
                     <ul class="menu-content" style="">
                         <li class="{{showOption($priviledges,"Transactions")}} active"><a href="/Transactions"><span><i class="ft-award"></i> Transactions</span></a>
                         </li>

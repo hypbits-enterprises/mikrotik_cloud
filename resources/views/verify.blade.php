@@ -44,7 +44,7 @@
                 }
             }
         }
-        return "hide";
+        return "d-none";
     }
     function readOnly($priviledges,$name){
         if (isJson($priviledges)){

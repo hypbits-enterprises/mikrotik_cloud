@@ -30,11 +30,6 @@
     <!-- END Page Level CSS-->
     <!-- BEGIN Custom CSS-->
     <!-- END Custom CSS-->
-    <style>
-        .hide:{
-            display: none;
-        }
-    </style>
 </head>
 
 @php
@@ -52,7 +47,7 @@
                 }
             }
         }
-        return "hide";
+        return "d-none";
     }
     function readOnly($priviledges,$name){
         if (isJson($priviledges)){
@@ -112,6 +107,9 @@
     .autocomplete-active {
         background-color: DodgerBlue !important;
         color: #ffffff;
+    }
+    .hide:{
+        display: none;
     }
 
 </style>
@@ -185,29 +183,25 @@
                 <li class="nav-item d-md-none"><a class="nav-link close-navbar"><i class="ft-x"></i></a></li>
             </ul>
         </div>
+        
         <div class="main-menu-content">
             <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
-                <li class="nav-item"><a href="/Dashboard"><i class="ft-home"></i><span
-                            class="menu-title" data-i18n="">Dashboard</span></a>
+                <li class="nav-item"><a href="/Dashboard"><i class="ft-home"></i><span class="menu-title" data-i18n="">Dashboard</span></a>
                 </li>
-                <li class="{{showOption($priviledges,"My Clients")}} active"><a href="/Clients"><i class="ft-users"></i><span class="menu-title"
-                            data-i18n="">My Clients</span></a>
+                <li class="{{showOption($priviledges,"My Clients")}} active"><a href="/Clients"><i class="ft-users"></i><span class="menu-title" data-i18n="">My Clients</span></a>
                 </li>
-                <li class="{{(showOption($priviledges,"Transactions") == "hide" && showOption($priviledges,"Expenses") == "hide") ? "hide" : ""}} nav-item has-sub"><a href="#"><i class="ft-activity"></i><span class="menu-title" data-i18n="">Accounts</span></a>
+                <li class="{{(showOption($priviledges,"Transactions") == "d-none" && showOption($priviledges,"Expenses") == "d-none") ? "d-none" : ""}} nav-item has-sub"><a href="#"><i class="ft-activity"></i><span class="menu-title" data-i18n="">Accounts</span></a>
                     <ul class="menu-content" style="">
                         <li class="{{showOption($priviledges,"Transactions")}} nav-item"><a href="/Transactions"><span><i class="ft-award"></i> Transactions</span></a>
                         </li>
                       <li class="{{showOption($priviledges,"Expenses")}} nav-item"><a href="/Expenses"><i class="ft-bar-chart-2"></i> Expenses</a></li>
                     </ul>
                 </li>
-                <li class="{{showOption($priviledges,"My Routers")}} nav-item"><a href="/Routers"><i class="ft-layers"></i><span class="menu-title"
-                            data-i18n="">My Routers</span></a>
+                <li class="{{showOption($priviledges,"My Routers")}} nav-item"><a href="/Routers"><i class="ft-layers"></i><span class="menu-title" data-i18n="">My Routers</span></a>
                 </li>
-                <li class="{{showOption($priviledges,"SMS")}} nav-item"><a href="/sms"><i class="ft-mail"></i><span class="menu-title"
-                            data-i18n="">SMS</span></a>
+                <li class="{{showOption($priviledges,"SMS")}} nav-item"><a href="/sms"><i class="ft-mail"></i><span class="menu-title" data-i18n="">SMS</span></a>
                 </li>
-                <li class="{{showOption($priviledges,"Account and Profile")}} nav-item"><a href="/Accounts"><i class="ft-lock"></i><span
-                            class="menu-title" data-i18n="">Account and Profile</span></a>
+                <li class="{{showOption($priviledges,"Account and Profile")}} nav-item"><a href="/Accounts"><i class="ft-lock"></i><span class="menu-title" data-i18n="">Account and Profile</span></a>
                 </li>
             </ul>
         </div>

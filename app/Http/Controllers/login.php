@@ -127,7 +127,7 @@ class login extends Controller
                     // $mail->Host = $email_host_addr;
                     $mail->SMTPAuth = true;
                     $mail->Username = "hypbits@gmail.com";
-                    $mail->Password = "kqlhimlxwekyzags";
+                    $mail->Password = "urcijdmtatjftroc";
                     // $mail->Username = $email_username;
                     // $mail->Password = $email_password;
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
