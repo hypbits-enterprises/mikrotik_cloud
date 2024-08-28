@@ -465,7 +465,34 @@
                                 <input name="BusinessShortCode" type="text" class="form-control" id="BusinessShortCode" value="{{$organization->BusinessShortCode ?$organization->BusinessShortCode:""}}" placeholder="Business Short Code" >
                               </div>
                             </div>
-        
+                            <div class="row mb-3">
+                              <label for="sms_sender" class="col-md-4 col-lg-3 col-form-label">SMS SENDER</label>
+                              <div class="col-md-8 col-lg-9">
+                                <select name="sms_sender" id="sms_sender" class="form-control">
+                                  <option value="" hidden>Select Sender</option>
+                                  <option {{$organization->sms_sender == "celcom" ? "selected" : ""}} value="celcom">Celcom Kenya</option>
+                                  <option {{$organization->sms_sender == "afrokatt" ? "selected" : ""}} value="afrokatt">Afrokatt Kenya</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div class="row mb-3">
+                              <label for="sms_api_key" class="col-md-4 col-lg-3 col-form-label">SMS API Key</label>
+                              <div class="col-md-8 col-lg-9">
+                                <input name="sms_api_key" type="text" class="form-control" id="sms_api_key" value="{{$organization->sms_api_key ?$organization->sms_api_key:""}}" placeholder="(leave blank if not present)" >
+                              </div>
+                            </div>
+                            <div class="row mb-3">
+                              <label for="sms_partner_id" class="col-md-4 col-lg-3 col-form-label">SMS PATNER ID</label>
+                              <div class="col-md-8 col-lg-9">
+                                <input name="sms_partner_id" type="text" class="form-control" id="sms_partner_id" value="{{$organization->sms_partner_id ?$organization->sms_partner_id:""}}" placeholder="(leave blank if not present)" >
+                              </div>
+                            </div>
+                            <div class="row mb-3">
+                              <label for="sms_short_code" class="col-md-4 col-lg-3 col-form-label">SMS SHORT CODE / SENDER ID</label>
+                              <div class="col-md-8 col-lg-9">
+                                <input name="sms_short_code" type="text" class="form-control" id="sms_short_code" value="{{$organization->sms_shortcode ?$organization->sms_shortcode:""}}" placeholder="(leave blank if not present)" >
+                              </div>
+                            </div>
                             <div class="text-center">
                               <button type="submit" {{$readonly}} class="btn btn-primary">Save Changes</button>
                             </div>

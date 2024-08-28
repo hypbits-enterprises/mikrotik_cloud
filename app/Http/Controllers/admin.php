@@ -85,6 +85,23 @@ class admin extends Controller
             }
             // return $organization;
 
+            // GET THE SMS API LINK
+            $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+            $sms_sender = count($select) > 0 ? $select[0]->value : "";
+            $organization[0]->sms_sender = $sms_sender;
+            // GET THE SMS API LINK
+            $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_api_key'");
+            $sms_api_key = count($select) > 0 ? $select[0]->value : "";
+            $organization[0]->sms_api_key = $sms_api_key;
+            // GET THE SMS API LINK
+            $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_partner_id'");
+            $sms_partner_id = count($select) > 0 ? $select[0]->value : "";
+            $organization[0]->sms_partner_id = $sms_partner_id;
+            // GET THE SMS API LINK
+            $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_shortcode'");
+            $sms_shortcode = count($select) > 0 ? $select[0]->value : "";
+            $organization[0]->sms_shortcode = $sms_shortcode;
+
             return view("account",["admin_data" => $admin_data , "date_time" => $dates2, "delete_trans" => $delete_trans,"delete_sms"=>$delete_sms, "organization" => $organization[0]]);
         }else{
             session()->flash("error","Please login again to proceed to view your profile");
@@ -448,6 +465,9 @@ class admin extends Controller
         return redirect("/Accounts");
     }
     function update_organization_profile(Request $req){
+        // return request
+        // return $req;
+
         // update
         $update = DB::table("organizations")->where("organization_id",session("organization_id"))->update([
             "organization_name" => $req->input("organization_name"),
@@ -456,6 +476,42 @@ class admin extends Controller
             "organization_email" => $req->input("organization_email"),
             "BusinessShortCode" => $req->input("BusinessShortCode")
         ]);
+
+        // insert or update the API SENDER
+        $api_link = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+        if (count($api_link) > 0) {
+            $api_link_id = $api_link[0]->id;
+            DB::connection("mysql2")->update("UPDATE `settings` SET `value` = '".$req->input("sms_sender")."' WHERE `id` = '".$api_link_id."'");
+        }else{
+            $insert = DB::connection("mysql2")->insert("INSERT INTO `settings` (`keyword`, `value`,`status`) VALUES ('sms_sender','".$req->input("sms_sender")."','1')");
+        }
+
+        // insert or update the PATNER ID
+        $api_link = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_partner_id'");
+        if (count($api_link) > 0) {
+            $api_link_id = $api_link[0]->id;
+            DB::connection("mysql2")->update("UPDATE `settings` SET `value` = '".$req->input("sms_partner_id")."' WHERE `id` = '".$api_link_id."'");
+        }else{
+            $insert = DB::connection("mysql2")->insert("INSERT INTO `settings` (`keyword`, `value`,`status`) VALUES ('sms_partner_id','".$req->input("sms_partner_id")."','1')");
+        }
+
+        // insert or update the SHORT CODE
+        $api_link = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_shortcode'");
+        if (count($api_link) > 0) {
+            $api_link_id = $api_link[0]->id;
+            DB::connection("mysql2")->update("UPDATE `settings` SET `value` = '".$req->input("sms_short_code")."' WHERE `id` = '".$api_link_id."'");
+        }else{
+            $insert = DB::connection("mysql2")->insert("INSERT INTO `settings` (`keyword`, `value`,`status`) VALUES ('sms_shortcode','".$req->input("sms_short_code")."','1')");
+        }
+
+        // insert or update the API KEY
+        $api_link = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_api_key'");
+        if (count($api_link) > 0) {
+            $api_link_id = $api_link[0]->id;
+            DB::connection("mysql2")->update("UPDATE `settings` SET `value` = '".$req->input("sms_api_key")."' WHERE `id` = '".$api_link_id."'");
+        }else{
+            $insert = DB::connection("mysql2")->insert("INSERT INTO `settings` (`keyword`, `value`,`status`) VALUES ('sms_api_key','".$req->input("sms_api_key")."','1')");
+        }
 
         $organization = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[session("organization_id")]);
         session()->put("organization",$organization[0]);

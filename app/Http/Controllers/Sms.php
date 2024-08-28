@@ -93,30 +93,62 @@ class Sms extends Controller
         $change_db = new login();
         $change_db->change_db();
 
-        // GET THE SMS KEYS FROM THE DATABASE
+        // GET THE SMS SENDER
         $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
-        $sms_api_key = $sms_keys[0]->value;
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
-        $sms_partner_id = $sms_keys[0]->value;
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
-        $sms_shortcode = $sms_keys[0]->value;
+        $sms_sender = $sms_keys[0]->value;
+        if ($sms_sender == "celcom") {
 
-
-        // if send sms is 1 we send  the sms
-        $partnerID = $sms_partner_id;
-        $apikey = $sms_api_key;
-        $shortcode = $sms_shortcode;
-        // get the sms balance
-        $finalURL = "https://isms.celcomafrica.com/api/services/getbalance/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID);
-        $ch = \curl_init();
-        \curl_setopt($ch, CURLOPT_URL, $finalURL);
-        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $response = \curl_exec($ch);
-        \curl_close($ch);
-        $res = json_decode($response);
-        $credit_balance = $res->credit;
-        return round($credit_balance)." SMS";
+            // GET THE SMS KEYS FROM THE DATABASE
+            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
+            $sms_api_key = $sms_keys[0]->value;
+            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
+            $sms_partner_id = $sms_keys[0]->value;
+            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
+            $sms_shortcode = $sms_keys[0]->value;
+    
+    
+            // if send sms is 1 we send  the sms
+            $partnerID = $sms_partner_id;
+            $apikey = $sms_api_key;
+            // get the sms balance
+            $finalURL = "https://isms.celcomafrica.com/api/services/getbalance/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID);
+            $ch = \curl_init();
+            \curl_setopt($ch, CURLOPT_URL, $finalURL);
+            \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            $response = \curl_exec($ch);
+            \curl_close($ch);
+            $res = json_decode($response);
+            $credit_balance = $res->credit;
+            return round($credit_balance)." SMS";
+        }elseif("afrokatt"){
+            // GET THE SMS KEYS FROM THE DATABASE
+            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
+            $sms_api_key = $sms_keys[0]->value;
+            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
+            $sms_partner_id = $sms_keys[0]->value;
+            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
+            $sms_shortcode = $sms_keys[0]->value;
+    
+    
+            // if send sms is 1 we send  the sms
+            $apikey = $sms_api_key;
+            // get the sms balance
+            $finalURL = "https://account.afrokatt.com/sms/api?action=check-balance&api_key=".urlencode($apikey)."&response=json";
+            $ch = \curl_init();
+            \curl_setopt($ch, CURLOPT_URL, $finalURL);
+            \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            $response = \curl_exec($ch);
+            \curl_close($ch);
+            $res = json_decode($response);
+            if(isset($res->balance)){
+                $credit_balance = $res->balance;
+            }else{
+                $credit_balance = 0;
+            }
+            return round($credit_balance)." SMS";
+        }
     }
 
     // get the sms id
