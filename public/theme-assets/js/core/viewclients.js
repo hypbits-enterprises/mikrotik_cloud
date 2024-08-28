@@ -306,3 +306,18 @@ cObj("freeze_date").onchange = function () {
 cObj("edit_minimum_amount").onclick = function () {
     cObj("hide_min_pay_window").classList.toggle("d-none");
 }
+
+cObj("edit_phone_number").onclick = function (params) {
+    cObj("phone_number_window").classList.toggle("d-none");
+}
+cObj("cancel_phone_updates").onclick = function () {
+    cObj("phone_number_window").classList.add("d-none");
+}
+
+cObj("edit_monthly_payments").onclick = function () {
+    cObj("monthly_payment_window").classList.toggle("d-none");
+}
+
+cObj("cancel_monthly_updates").onclick = function () {
+    cObj("monthly_payment_window").classList.add("d-none");
+}

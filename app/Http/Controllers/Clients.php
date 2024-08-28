@@ -2956,6 +2956,82 @@ class Clients extends Controller
         session()->flash("success","Wallet balance has been successfully changed!");
         return redirect("Clients/View/".$client_id);
     }
+    function change_phone_number(Request $req){
+        // return $req;
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+
+        // GET THE DATA
+        $client_id = $req->input('clients_id');
+        $client_new_phone = $req->input('client_new_phone');
+
+
+        // check if its a valid phone number
+        if(!ctype_digit($client_new_phone) || (strlen(trim($client_new_phone)) != 10 && strlen(trim($client_new_phone)) != 12)){
+            session()->flash("error","The phone number given is invalid : Format 0712345678 or 254712345678");
+            return redirect("Clients/View/".$client_id);
+        }
+
+        $client = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
+
+        DB::connection("mysql2")->table('client_tables')
+        ->where('client_id', $client_id)
+        ->update([
+            'clients_contacts' => $client_new_phone,
+            'last_changed' => date("YmdHis"),
+            'date_changed' => date("YmdHis")
+        ]);
+
+        $client_name = $client[0]->client_name;
+        $old_phone = $client[0]->clients_contacts;
+        
+        $txt = ":Client ( $client_name ) contact has been changed from (".$old_phone.") to (".$client_new_phone.") by ".session('Usernames').""."!";
+        $this->log($txt);
+        // end of log file
+        session()->flash("success","Client contact has been successfully changed!");
+        return redirect("Clients/View/".$client_id);
+    }
+
+    // change_client_monthly_payment
+    function change_client_monthly_payment(Request $req){
+        // return $req;
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+
+        // GET THE DATA
+        $client_id = $req->input('clients_id');
+        $client_monthly_payment = $req->input('client_monthly_payment');
+
+
+        // check if its a valid phone number
+        if($client_monthly_payment <= 0){
+            session()->flash("error","Monthly Payments cant be less or equals to zero");
+            return redirect("Clients/View/".$client_id);
+        }
+
+        $client = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
+
+        DB::connection("mysql2")->table('client_tables')
+        ->where('client_id', $client_id)
+        ->update([
+            'monthly_payment' => $client_monthly_payment,
+            'last_changed' => date("YmdHis"),
+            'date_changed' => date("YmdHis")
+        ]);
+
+        $client_name = $client[0]->client_name;
+        $monthly_payment = $client[0]->monthly_payment;
+        
+        $txt = ":Client ( $client_name ) monthly payment has been changed from (Kes ".number_format($monthly_payment).") to (Kes ".number_format($client_monthly_payment).") by ".session('Usernames').""."!";
+        $this->log($txt);
+        // end of log file
+        session()->flash("success","Client monthly payment has been successfully changed!");
+        return redirect("Clients/View/".$client_id);
+    }
 
     // update user
     function updateClients(Request $req){

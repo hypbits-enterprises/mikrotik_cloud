@@ -97,6 +97,10 @@ Route::get("/ClientSync",[Clients::class,"syncclient"]);
 Route::get("/TransactionSync",[Clients::class,"synctrans"]);
 // change wallet balance
 Route::post("/changeWallet",[Clients::class,"changeWalletBal"]);
+// change the clients phone number
+Route::post("/change_client_phone",[Clients::class,"change_phone_number"]);
+// cchange monthly payments
+Route::post("/change_client_monthly_payment",[Clients::class,"change_client_monthly_payment"]);
 //export my clients
 Route::get("/Clients/Export",[export_client::class,"exportClients"]);
 // get detailed router information in order to export

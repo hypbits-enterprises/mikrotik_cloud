@@ -237,7 +237,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 id="view_clients_inform" class="card-title">View <span class="text-secondary">{{ ucwords(strtolower($clients_data[0]->client_name)) }}</span></h4>
+                                <h4 id="view_clients_inform" class="card-title">View <span class="text-secondary">{{ ucwords(strtolower($clients_data[0]->client_name)) }} - {{ (($clients_data[0]->client_account)) }}</span></h4>
                                 <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
                                 <div class="heading-elements">
                                     <ul class="list-inline mb-0">
@@ -358,6 +358,32 @@
                                                 </form>
                                                 <hr>
                                             </div>
+                                            <div class="row my-1 border-bottom border-light py-1">
+                                                <div class="col-sm-6"><strong>Monthly Payment:</strong><button class="text-secondary btn btn-infor btn-sm mx-1" {{$readonly}} style="width: fit-content;" id="edit_monthly_payments"><i class="fas fa-pen"></i> Edit</button></div>
+                                                <div class="col-sm-6">Kes {{ number_format($clients_data[0]->monthly_payment) }}
+                                                </div>
+                                            </div>
+
+                                            <div class="w-100 d-none" id="monthly_payment_window">
+                                                <hr class="mt-0">
+                                                <form action="/change_client_monthly_payment" method="post" class="form-control-group">
+                                                    @csrf
+                                                    <h6 class="text-center" >Change Monthly Payment</h6>
+                                                    <input type="hidden" name="clients_id"
+                                                        value="{{ $clients_data[0]->client_id }}">
+                                                    <label for="client_monthly_payment" class="form-control-label" id="">New Monthly Payment</label>
+                                                    <input type="number" required name="client_monthly_payment" id="client_monthly_payment" class="form-control" value="{{ $clients_data[0]->monthly_payment }}" placeholder="New Phone Number">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <button {{$readonly}} type="submit" class="btn btn-primary my-1"><i class="fas fa-save"></i> Save</button>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <button class="btn btn-secondary my-1" type="button" id="cancel_monthly_updates">Cancel</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                                <hr>
+                                            </div>
                                             <div class="row my-1 border-bottom border-light">
                                                 <div class="col-sm-7"><strong class="text-secondary">Freeze Client:</strong> <span class="badge {{$clients_data[0]->client_freeze_status == "1" || date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "badge-success" : "badge-danger";}}">{{$clients_data[0]->client_freeze_status == "1" || date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "Active" : "In-Active";}}</span> <button class="text-secondary btn btn-infor btn-sm mx-1" {{$readonly}} id="edit_freeze_client"><i class="fas fa-pen"></i> Edit</button></div>
                                                 <div class="col-sm-5">
@@ -466,6 +492,32 @@
                                                         </div>
                                                         <div class="col-md-6">
                                                             <button class="btn btn-secondary btn-sm my-1" type="button" id="cancel_wallet_updates">Cancel</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                                <hr>
+                                            </div>
+                                            <div class="row my-1 border-bottom border-light py-1">
+                                                <div class="col-sm-6"><strong>Phone Number:</strong><button class="text-secondary btn btn-infor btn-sm mx-1" {{$readonly}} style="width: fit-content;" id="edit_phone_number"><i class="fas fa-pen"></i> Edit</button></div>
+                                                <div class="col-sm-6">{{ $clients_data[0]->clients_contacts }}
+                                                </div>
+                                            </div>
+
+                                            <div class="w-100 d-none" id="phone_number_window">
+                                                <hr class="mt-0">
+                                                <form action="/change_client_phone" method="post" class="form-control-group">
+                                                    @csrf
+                                                    <h6 class="text-center" >Change Phone Number</h6>
+                                                    <input type="hidden" name="clients_id"
+                                                        value="{{ $clients_data[0]->client_id }}">
+                                                    <label for="client_new_phone" class="form-control-label" id="">New Phone Number</label>
+                                                    <input type="number" required name="client_new_phone" id="client_new_phone" class="form-control" value="{{ $clients_data[0]->clients_contacts }}" placeholder="New Phone Number">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <button {{$readonly}} type="submit" class="btn btn-primary my-1"><i class="fas fa-save"></i> Save</button>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <button class="btn btn-secondary my-1" type="button" id="cancel_phone_updates">Cancel</button>
                                                         </div>
                                                     </div>
                                                 </form>
@@ -623,7 +675,7 @@
                                                     onpaste="return pasted(event,'location_coordinates');">
                                             </div>
                                         </div>
-                                        <div class="row">
+                                        <div class="row d-none">
                                             <div class="col-md-4 form-group">
                                                 <label for="client_phone" class="form-control-label">Clients Phone
                                                     number { <span
