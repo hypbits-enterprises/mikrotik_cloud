@@ -465,8 +465,9 @@ class admin extends Controller
         return redirect("/Accounts");
     }
     function update_organization_profile(Request $req){
-        // return request
-        // return $req;
+        // change_db
+        $change_db = new login();
+        $change_db->change_db();
 
         // update
         $update = DB::table("organizations")->where("organization_id",session("organization_id"))->update([

@@ -74,6 +74,8 @@ class login extends Controller
 
                 if ($send_code == "SMS" && $sms_status == 1) {
                     // GET THE SMS KEYS FROM THE DATABASE
+                    $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+                    $sms_sender = count($select) > 0 ? $select[0]->value : "";
                     $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
                     $sms_api_key = $sms_keys[0]->value;
                     $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
@@ -86,22 +88,39 @@ class login extends Controller
                     $apikey = $sms_api_key;
                     $shortcode = $sms_shortcode;
                 
-                    $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
-                    $ch = \curl_init();
-                    \curl_setopt($ch, CURLOPT_URL, $finalURL);
-                    \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                    $response = \curl_exec($ch);
-                    \curl_close($ch);
-                    $res = json_decode($response);
-                    // return $res;
-                    $values = $res->responses[0] ? $res->responses[0] : [];
-                    // return $values;
-                    foreach ($values as  $key => $value) {
-                        // echo $key;
-                        if ($key == "response-code") {
-                            if ($value == "200") {
-                                // if its 200 the message is sent delete the
+                    if($sms_sender == "celcom"){
+                        $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
+                        $ch = \curl_init();
+                        \curl_setopt($ch, CURLOPT_URL, $finalURL);
+                        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                        \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                        $response = \curl_exec($ch);
+                        \curl_close($ch);
+                        $res = json_decode($response);
+                        // return $res;
+                        $values = isset($res->responses) ? ($res->responses[0] ? $res->responses[0] : []) : [];
+                        // return $values;
+                        foreach ($values as  $key => $value) {
+                            // echo $key;
+                            if ($key == "response-code") {
+                                if ($value == "200") {
+                                    // if its 200 the message is sent delete the
+                                    $message_status = 1;
+                                }
+                            }
+                        }
+                    }elseif($sms_sender == "afrokatt"){
+                        $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$mobile."&from=".$shortcode."&sms=".urlencode($message)."&unicode=1";
+                        $ch = \curl_init();
+                        \curl_setopt($ch, CURLOPT_URL, $finalURL);
+                        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                        \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                        $response = \curl_exec($ch);
+                        \curl_close($ch);
+                        $res = json_decode($response);
+                        $values = $res->code;
+                        if (isset($res->code)) {
+                            if($res->code == "200"){
                                 $message_status = 1;
                             }
                         }
