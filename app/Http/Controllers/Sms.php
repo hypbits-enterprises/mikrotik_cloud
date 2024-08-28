@@ -215,6 +215,9 @@ class Sms extends Controller
         $change_db->change_db();
 
         // GET THE SMS KEYS FROM THE DATABASE
+            // GET THE SMS API LINK
+        $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+        $sms_sender = count($select) > 0 ? $select[0]->value : "";
         $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
         $sms_api_key = $sms_keys[0]->value;
         $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
@@ -336,6 +339,10 @@ class Sms extends Controller
             $send_sms = 0;
         }
 
+        if ($sms_sender == "") {
+            $send_sms == 0;
+        }
+
         // message status
         if ($send_sms == 1) {
             $message_status = 0;
@@ -346,24 +353,44 @@ class Sms extends Controller
             
             $mobile = $phone_number; // Bulk messages can be comma separated
             $message = $messages;
-            
-            $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
-            $ch = \curl_init();
-            \curl_setopt($ch, CURLOPT_URL, $finalURL);
-            \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            $response = \curl_exec($ch);
-            \curl_close($ch);
-            $res = json_decode($response);
-            // return $res;
-            $values = $res->responses[0];
-            // return $values;
-            foreach ($values as  $key => $value) {
-                // echo $key;
-                if ($key == "response-code") {
-                    if ($value == "200") {
-                        // if its 200 the message is sent delete the
-                        $message_status = 1;
+
+            if($sms_sender == "celcom"){
+                $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
+                $ch = \curl_init();
+                \curl_setopt($ch, CURLOPT_URL, $finalURL);
+                \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                $response = \curl_exec($ch);
+                \curl_close($ch);
+                $res = json_decode($response);
+                // return $res;
+                $values = $res->responses[0];
+                // return $values;
+                foreach ($values as  $key => $value) {
+                    // echo $key;
+                    if ($key == "response-code") {
+                        if ($value == "200") {
+                            // if its 200 the message is sent delete the
+                            $message_status = 1;
+                        }
+                    }
+                }
+            }elseif ($sms_sender == "afrokatt") {
+                $client_phone = explode(",",$phone_number);
+                foreach ($client_phone as $key => $phone) {
+                    $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$phone."&from=".$shortcode."&sms=".urlencode($message)."&unicode=1";
+                    $ch = \curl_init();
+                    \curl_setopt($ch, CURLOPT_URL, $finalURL);
+                    \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                    $response = \curl_exec($ch);
+                    \curl_close($ch);
+                    $res = json_decode($response);
+                    $values = $res->code;
+                    if (isset($res->code)) {
+                        if($res->code == "200"){
+                            $message_status = 1;
+                        }
                     }
                 }
             }
@@ -412,7 +439,9 @@ class Sms extends Controller
         $change_db->change_db();
 
         // return $req->input();
-        // GET THE SMS KEYS FROM THE DATABASE
+        // GET THE SMS API LINK
+        $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+        $sms_sender = count($select) > 0 ? $select[0]->value : "";
         $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
         $sms_api_key = $sms_keys[0]->value;
         $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
@@ -431,6 +460,7 @@ class Sms extends Controller
         if (count($router_in) > 0) {
             $router_name = $router_in[0]->router_name;
         }
+
 
         // from the 1
         // send sms
@@ -498,6 +528,11 @@ class Sms extends Controller
             $send_sms = 0;
         }
 
+        if ($sms_sender == "") {
+            session()->flash("error_sms", "Sender not defined!");
+            $send_sms = 0;
+        }
+
         // message status
         if ($send_sms == 1) {
             $message_status = 0;
@@ -509,26 +544,48 @@ class Sms extends Controller
             $mobile = $phone_number; // Bulk messages can be comma separated
             $message = $messages;
             
-            $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
-            $ch = \curl_init();
-            \curl_setopt($ch, CURLOPT_URL, $finalURL);
-            \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            $response = \curl_exec($ch);
-            \curl_close($ch);
-            $res = json_decode($response);
-            // return $res;
-            $values = $res->responses[0];
-            // return $values;
-            foreach ($values as  $key => $value) {
-                // echo $key;
-                if ($key == "response-code") {
-                    if ($value == "200") {
-                        // if its 200 the message is sent delete the
-                        $message_status = 1;
+            if($sms_sender == "celcom"){
+                $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
+                $ch = \curl_init();
+                \curl_setopt($ch, CURLOPT_URL, $finalURL);
+                \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                $response = \curl_exec($ch);
+                \curl_close($ch);
+                $res = json_decode($response);
+                // return $res;
+                $values = $res->responses[0];
+                // return $values;
+                foreach ($values as  $key => $value) {
+                    // echo $key;
+                    if ($key == "response-code") {
+                        if ($value == "200") {
+                            // if its 200 the message is sent delete the
+                            $message_status = 1;
+                        }
+                    }
+                }
+            }elseif ($sms_sender == "afrokatt") {
+                $client_phone = explode(",",$phone_number);
+                // sms sender
+                foreach ($client_phone as $key => $phone) {
+                    $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$phone."&from=".$shortcode."&sms=".urlencode($message)."&unicode=1";
+                    $ch = \curl_init();
+                    \curl_setopt($ch, CURLOPT_URL, $finalURL);
+                    \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                    $response = \curl_exec($ch);
+                    \curl_close($ch);
+                    $res = json_decode($response);
+                    $values = $res->code;
+                    if (isset($res->code)) {
+                        if($res->code == "200"){
+                            $message_status = 1;
+                        }
                     }
                 }
             }
+
             // check if the phone numbers are connected as an array
             $client_phone = explode(",",$phone_number);
             if (count($client_phone) > 1) {
