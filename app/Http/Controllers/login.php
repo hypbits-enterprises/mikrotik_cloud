@@ -110,7 +110,7 @@ class login extends Controller
                             }
                         }
                     }elseif($sms_sender == "afrokatt"){
-                        $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$mobile."&from=".$shortcode."&sms=".urlencode($message)."&unicode=1";
+                        $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$mobile."&from=".$shortcode."&sms=".urlencode($message);
                         $ch = \curl_init();
                         \curl_setopt($ch, CURLOPT_URL, $finalURL);
                         \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

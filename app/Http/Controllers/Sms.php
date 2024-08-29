@@ -569,7 +569,7 @@ class Sms extends Controller
                 $client_phone = explode(",",$phone_number);
                 // sms sender
                 foreach ($client_phone as $key => $phone) {
-                    $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$phone."&from=".$shortcode."&sms=".urlencode($message)."&unicode=1";
+                    $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$phone."&from=".$shortcode."&sms=".urlencode($message);
                     $ch = \curl_init();
                     \curl_setopt($ch, CURLOPT_URL, $finalURL);
                     \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -1324,7 +1324,7 @@ class Sms extends Controller
                             }
                         }
                     }elseif ($sms_sender == "afrokatt") {
-                        $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$mobile."&from=".$shortcode."&sms=".urlencode($message)."&unicode=1";
+                        $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$mobile."&from=".$shortcode."&sms=".urlencode($message);
                         $ch = \curl_init();
                         \curl_setopt($ch, CURLOPT_URL, $finalURL);
                         \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
