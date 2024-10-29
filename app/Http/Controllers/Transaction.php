@@ -146,11 +146,10 @@ class Transaction extends Controller
         $pdf->SetFont('Helvetica', 'BU', 9);
         $pdf->Cell(200,8,"Payment(s) Table",0,1,"C",false);
         $pdf->SetFont('Helvetica', 'B', 7);
-        $width = array(6,20,40,20,20,40,40,15);
-        $header = array('No', 'M-Pesa Code', 'Linked To {Acc Paid To}', 'Phone Number', 'Amount','Date','M-Pesa Fullname', 'Status');
+        $width = array(6,25,40,25,40,40,20);
+        $header = array('No', 'M-Pesa Code', 'Linked To {Acc Paid To}', 'Amount','Date','M-Pesa Fullname', 'Status');
         $pdf->transactionReports($header,$new_transaction_data,$width);
         $pdf->Output("I","transaction_data.pdf",false);
-
     }
     //create functions to process transactions requests
 

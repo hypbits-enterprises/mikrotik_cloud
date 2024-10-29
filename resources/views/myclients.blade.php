@@ -253,11 +253,11 @@
                                 </div>
                             </div>
                             <div class="card-header">
-                                <p>- Syncs Clients only!</p>
+                                <p>- Manage Clients Further!</p>
                                 {{-- <span class='badge badge-warning text-dark'>Reffered</span> --}}
-                                <a href="/ClientSync" class="btn btn-primary disabled"><i class="ft-refresh-ccw"></i> Sync Clients</a>
-                                <a href="/Client-Statistics" data-toggle="tooltip" title="Client`s Statistics" class="btn btn-secondary"><i class="ft-bar-chart-2"></i></a>
-                                <span data-toggle="tooltip" title="Client`s Reports" class="btn btn-info" id="client_reports_btn"><i class="ft-file-text"></i></span>
+                                <a href="/ClientSync" class="btn btn-primary disabled d-none"><i class="ft-refresh-ccw"></i> Sync Clients</a>
+                                <a href="/Client-Statistics" data-toggle="tooltip" title="Client`s Statistics" class="btn btn-secondary"><i class="ft-bar-chart-2"></i> Client`s Statistics</a>
+                                <span data-toggle="tooltip" title="Client`s Reports" class="btn btn-info" id="client_reports_btn"><i class="ft-file-text"></i> Client`s Reports</span>
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">

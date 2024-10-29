@@ -266,7 +266,7 @@
                                     @endif
                                     <div class="w-20">
                                         <a href="/sms/system_sms" class="btn btn-secondary text-bolder {{$readonly}}">Customize SMS</a>
-                                        <span data-toggle="tooltip" title="SMS Reports" class="btn btn-info" id="sms_reports_btn"><i class="ft-file-text"></i></span>
+                                        <span data-toggle="tooltip" title="SMS Reports" class="btn btn-info" id="sms_reports_btn"><i class="ft-file-text"></i> SMS Reports</span>
                                     </div>
                                     <div class="row  my-2">
                                         <div class="col-md-12 border border-primary rounded p-1 hide" id="show_generate_reports_window">

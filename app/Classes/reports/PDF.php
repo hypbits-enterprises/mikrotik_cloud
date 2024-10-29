@@ -283,11 +283,10 @@ class PDF extends FPDF
             $this->Cell($w[0], 5, $counter, 1, 0, 'L', $fill);
             $this->Cell($w[1], 5, $row[0], 1, 0, 'L', $fill);
             $this->Cell($w[2], 5, $row[1], 1, 0, 'L', $fill);
-            $this->Cell($w[3], 5, $row[2], 1, 0, 'L', $fill);
-            $this->Cell($w[4], 5, "Kes ".number_format($row[3]), 1, 0, 'L', $fill);
-            $this->Cell($w[5], 5, date("D dS M Y @ h:i:s A",strtotime($row[4])), 1, 0, 'L', $fill);
-            $this->Cell($w[6], 5, $row[5], 1, 0, 'L', $fill);
-            $this->Cell($w[7], 5, $row[6], 1, 0, 'L', $fill);
+            $this->Cell($w[3], 5, "Kes ".number_format($row[3]), 1, 0, 'L', $fill);
+            $this->Cell($w[4], 5, date("D dS M Y @ h:i:s A",strtotime($row[4])), 1, 0, 'L', $fill);
+            $this->Cell($w[5], 5, $row[5], 1, 0, 'L', $fill);
+            $this->Cell($w[6], 5, $row[6], 1, 0, 'L', $fill);
             $this->Ln();
             $fill = !$fill;
             $counter++;
@@ -326,6 +325,7 @@ class PDF extends FPDF
         // Closing line
         $this->Cell(array_sum($w), 0, '', 'T');
     }
+    
     function ExpenseTable($header, $data, $width)
     {
         // Colors, line width and bold fontrgb(82, 170, 216)

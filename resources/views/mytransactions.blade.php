@@ -254,9 +254,9 @@
                             </div>
                             <div class="card-header">
                                 <p>- Syncs Transaction only!</p>
-                                <a href="/TransactionSync" class="btn btn-primary {{$readonly}}"><i class="ft-refresh-ccw"></i> Sync Transaction</a>
-                                <a href="/Transactions/Statistics" data-toggle="tooltip" title="Transaction`s Statistics" class="btn btn-secondary"><i class="ft-bar-chart-2"></i></a>
-                                <span data-toggle="tooltip" title="Transaction Reports" class="btn btn-info" id="transaction_reports_btn"><i class="ft-file-text"></i></span>
+                                <a href="/TransactionSync" class="btn btn-primary {{$readonly}} d-none"><i class="ft-refresh-ccw"></i> Sync Transaction</a>
+                                <a href="/Transactions/Statistics" data-toggle="tooltip" title="Transaction`s Statistics" class="btn btn-secondary"><i class="ft-bar-chart-2"></i> Transaction`s Statistics</a>
+                                <span data-toggle="tooltip" title="Transaction Reports" class="btn btn-info" id="transaction_reports_btn"><i class="ft-file-text"></i> Transaction Reports</span>
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
