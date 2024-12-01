@@ -23,7 +23,7 @@ class routeros_api
     var $debug = false;      // Show debug information
     var $error_no;           // Variable for storing connection error number, if any
     var $error_str;          // Variable for storing connection error text, if any
-    var $attempts = 1;       // Connection attempt count
+    var $attempts = 3;       // Connection attempt count
     var $connected = false;  // Connection state
     var $delay = 1;          // Delay between connection attempts in seconds
     var $port = 8728;        // Port to connect to

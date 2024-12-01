@@ -290,7 +290,7 @@ date_default_timezone_set('Africa/Nairobi');
                                             /ppp profile add name="SYSTEM_SSTP" comment="Do not delete: Default SYSTEM VPN profile"<br><br>
                                             
                                             {{-- <span class="text-success">## Add the SSTP Interface</span><br> --}}
-                                            /interface sstp-client add name="SYSTEM_SSTP_ONE" connect-to={{$ip_address}} user={{$router_data[0]->sstp_username}} password={{$router_data[0]->sstp_password}} profile="SYSTEM_SSTP" authentication=pap,chap,mschap1,mschap2 disabled=no comment="Do not delete: SYSTEM connection to {{$router_data[0]->router_name}}"<br><br>
+                                            /interface sstp-client add name="SYSTEM_SSTP_TWO" connect-to={{$ip_address}} user={{$router_data[0]->sstp_username}} password={{$router_data[0]->sstp_password}} profile="SYSTEM_SSTP" authentication=pap,chap,mschap1,mschap2 disabled=no comment="Do not delete: SYSTEM connection to {{$router_data[0]->router_name}}"<br><br>
                                             
                                             {{-- <span class="text-success">## Configure routes</span><br> --}}
                                             /ip route add dst-address=192.168.254.0/24 gateway=192.168.254.1 comment="Do not delete: SYSTEM VPN SERVER NETWORK1"<br>
@@ -298,8 +298,8 @@ date_default_timezone_set('Africa/Nairobi');
                                             /ip route add dst-address=192.168.252.0/24 gateway=192.168.254.1 comment="Do not delete: SYSTEM VPN SERVER NETWORK3"<br><br>
                                             
                                             {{-- <span class="text-success">## Configure firewall</span><br> --}}
-                                            /ip firewall filter add chain=input action=accept in-interface=SYSTEM_SSTP_ONE log=no log-prefix="" comment="Do not delete: Allow SYSTEM remote access" disabled=no<br>
-                                            /ip firewall filter move [find where in-interface=SYSTEM_SSTP_ONE] destination=0<br><br>
+                                            /ip firewall filter add chain=input action=accept in-interface=SYSTEM_SSTP_TWO log=no log-prefix="" comment="Do not delete: Allow SYSTEM remote access" disabled=no<br>
+                                            /ip firewall filter move [find where in-interface=SYSTEM_SSTP_TWO] destination=0<br><br>
 
                                             {{-- <span class="text-success">## Enable required services</span><br> --}}
                                             /ip service set api disabled=no port={{$router_data[0]->api_port}}<br>
