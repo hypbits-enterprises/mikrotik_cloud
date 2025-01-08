@@ -2572,9 +2572,10 @@ class Clients extends Controller
 
             // message contents
             $message_contents = $this->get_sms();
-            // return $message_contents;
+            
             // get difference in todays date and the day selected
             $date_today = date_create(date("Y-m-d"));
+
             // return $date_today;
             $selected_date = date_create($req->input('freez_dates_edit'));
             $diff = date_diff($date_today, $selected_date);
@@ -2860,10 +2861,8 @@ class Clients extends Controller
         $client = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
         $client_name = $client[0]->client_name;
         $next_expiration_date = $client[0]->next_expiration_date;
-        $freeze_date = date("Ymd", strtotime($client[0]->freeze_date)) > date("Ymd") ? date("Ymd", strtotime($client[0]->freeze_date)) : date("Ymd");
+        $freeze_date = $client[0]->freeze_date != null ? date("YmdHis", strtotime($client[0]->freeze_date)) : date("YmdHis");
         $client_freeze_untill = $client[0]->client_freeze_untill;
-        // take the difference of todays date and the client freeze date
-        // $$next_expiration_date = 0;//days
 
         $full_days = "";
         if ($freeze_date < $client_freeze_untill) {
@@ -2934,7 +2933,7 @@ class Clients extends Controller
                 $shortcode = $sms_shortcode;
 
 
-                $client_id = $client_id;
+                // $client_id = $client_id;
                 $mobile = $client[0]->clients_contacts;
                 $sms_type = 2;
                 $message = $new_message;
