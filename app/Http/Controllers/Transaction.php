@@ -1093,9 +1093,11 @@ class Transaction extends Controller
         $last_week_start = date("YmdHis",strtotime(-$date_index." days"));
         $last_end_week = $this->addDays($last_week_start,6);
 
-        // get when the first client made their payment
+        // get when the first client made their payment or the last six month
         $first_payment = DB::connection("mysql2")->select("SELECT * FROM `transaction_tables` WHERE `deleted`= '0' ORDER BY `transaction_date` ASC LIMIT 1");
-        $first_payment_date = count($first_payment) > 0 ? $first_payment[0]->transaction_date : date("YmdHis");
+        // return $first_payment;
+        $last_six_month = date("YmdHis", strtotime("-3 months"));
+        $first_payment_date = count($first_payment) > 0 ? ($first_payment[0]->transaction_date*1 > $last_six_month*1 ? $first_payment[0]->transaction_date : $last_six_month) : date("YmdHis");
         // return $first_payment_date;
 
         // get when the week started when the first payment was made
@@ -1125,7 +1127,7 @@ class Transaction extends Controller
             $trans_records = [];
             for ($index=0; $index < 7; $index++) {
                 $get_amount_per_day = DB::connection("mysql2")->select("SELECT SUM(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` LIKE '".date("Ymd",strtotime($day_1))."%'");
-                $daily_trans_records = DB::connection("mysql2")->select("SELECT * FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` LIKE '".date("Ymd",strtotime($day_1))."%' ORDER BY `transaction_date` DESC");
+                $daily_trans_records = DB::connection("mysql2")->select("SELECT * FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` LIKE '".date("Ymd",strtotime($day_1))."%' ORDER BY `transaction_date` DESC LIMIT 200");
                 $trans_amount = $get_amount_per_day[0]->Total == null ? 0 : $get_amount_per_day[0]->Total;
 
 
@@ -1177,8 +1179,9 @@ class Transaction extends Controller
  
          // get when the first client made their payment
          $first_payment = DB::connection("mysql2")->select("SELECT * FROM `transaction_tables` WHERE `deleted`= '0'  ORDER BY `transaction_date` ASC LIMIT 1");
-         $first_payment_date = count($first_payment) > 0 ? $first_payment[0]->transaction_date : date("YmdHis");
-         // return $first_payment_date;
+         $date_now = date("YmdHis", strtotime("-1 years"));
+         $first_payment_date = count($first_payment) > 0 ? ($date_now*1 >= $first_payment[0]->transaction_date*1 ? $date_now : $first_payment[0]->transaction_date) : date("YmdHis");
+        //  return $first_payment_date;
  
          // get when the week started when the first payment was made
          $first_pay_month = date("M",strtotime($first_payment_date));
@@ -1190,12 +1193,10 @@ class Transaction extends Controller
              }
              $months_index++;
          }
-        //  return $months_index;
  
          // get when the week start date
          $first_pay_month_start = $this->addMonths($first_payment_date,-$months_index);
          $day_1 = $first_pay_month_start;
-        //  return date("D dS M Y",strtotime($day_1));
  
          $transaction_stats_monthly = [];
          $transaction_records_monthly = [];
@@ -1206,7 +1207,7 @@ class Transaction extends Controller
              $trans_records = [];
              for ($index=0; $index < 12; $index++) {
                  $get_amount_per_day = DB::connection("mysql2")->select("SELECT SUM(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` LIKE '".date("Ym",strtotime($day_1))."%'");
-                 $daily_trans_records = DB::connection("mysql2")->select("SELECT * FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` LIKE '".date("Ym",strtotime($day_1))."%' ORDER BY `transaction_date` DESC");
+                 $daily_trans_records = DB::connection("mysql2")->select("SELECT * FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` LIKE '".date("Ym",strtotime($day_1))."%' ORDER BY `transaction_date` DESC LIMIT 50");
                  $trans_amount = $get_amount_per_day[0]->Total == null ? 0 : $get_amount_per_day[0]->Total;
 
                 for ($indexex=0; $indexex < count($daily_trans_records); $indexex++) { 
@@ -1229,12 +1230,15 @@ class Transaction extends Controller
              $counter++;
              // echo $counter." Weeks <hr>";
              array_push($transaction_stats_monthly,$trans_stats);
-             array_push($transaction_records_monthly,$trans_records);
+            
+             //only 500 records allowed
+             if(count($transaction_records_monthly) < 500){
+                array_push($transaction_records_monthly,$trans_records);
+             }
              if ($break) {
                  break;
              }
          }
-        // return $transaction_stats_monthly;
 
         // get the yearly data
         $first_payment = DB::connection("mysql2")->select("SELECT * FROM `transaction_tables` WHERE `deleted`= '0' ORDER BY `transaction_date` ASC LIMIT 1");
@@ -1245,7 +1249,7 @@ class Transaction extends Controller
 
         for ($index=(date("Y",strtotime($first_payment_year))*1); $index <= (date("Y")*1); $index++) {
             $get_amount_per_day = DB::connection("mysql2")->select("SELECT SUM(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` LIKE '".$index."%'");
-            $daily_trans_records = DB::connection("mysql2")->select("SELECT * FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` LIKE '".$index."%' ORDER BY `transaction_date` DESC");
+            $daily_trans_records = DB::connection("mysql2")->select("SELECT * FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` LIKE '".$index."%' ORDER BY `transaction_date` DESC LIMIT 150");
             $trans_amount = $get_amount_per_day[0]->Total == null ? 0 : $get_amount_per_day[0]->Total;
 
             for ($indexex=0; $indexex < count($daily_trans_records); $indexex++) { 
@@ -1259,9 +1263,6 @@ class Transaction extends Controller
             array_push($transaction_yearly_stats,$transaction_data);
             array_push($transaction_yearly_records,$daily_trans_records);
         }
-
-        // return $transaction_yearly_records;
-
         
         // proceed to the next year
         return view("trans-stats",["transaction_stats_weekly" => $transaction_stats_weekly,"transaction_records_weekly" => $transaction_records_weekly,"transaction_stats_monthly" => $transaction_stats_monthly,"transaction_records_monthly" => $transaction_records_monthly,"transaction_yearly_stats" => $transaction_yearly_stats,"transaction_yearly_records" => $transaction_yearly_records]);

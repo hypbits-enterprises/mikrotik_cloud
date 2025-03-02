@@ -303,25 +303,25 @@ function checkName(keyword) {
         const element = rowsColStudents[index];
         //column break
         var present = 0;
-        if (element[0].toString().includes(keylower) || element[0].toString().includes(keyUpper)) {
+        if (element[0] !== null & (element[0].toString().includes(keylower) || element[0].toString().includes(keyUpper))) {
             present++;
         }
-        if (element[4].toString().includes(keylower) || element[4].toString().includes(keyUpper)) {
+        if (element[4] !== null & (element[4].toString().includes(keylower) || element[4].toString().includes(keyUpper))) {
             present++;
         }
-        if (element[7].toString().includes(keylower) || element[7].toString().includes(keyUpper)) {
+        if (element[7] !== null & (element[7].toString().includes(keylower) || element[7].toString().includes(keyUpper))) {
             present++;
         }
-        if (element[1].toString().includes(keylower) || element[1].toString().includes(keyUpper)) {
+        if (element[1]!==null && (element[1].toString().includes(keylower) || element[1].toString().includes(keyUpper))) {
             present++;
         }
-        if (element[8].toString().includes(keylower) || element[8].toString().includes(keyUpper)) {
+        if (element[8] !== null && (element[8].toString().includes(keylower) || element[8].toString().includes(keyUpper))) {
             present++;
         }
-        if (element[12].toString().includes(keylower) || element[12].toString().includes(keyUpper)) {
+        if (element[12] !== null && (element[12].toString().includes(keylower) || element[12].toString().includes(keyUpper))) {
             present++;
         }
-        if (element[10].toString().includes(keylower) || element[10].toString().includes(keyUpper)) {
+        if (element[10] !== null && (element[10].toString().includes(keylower) || element[10].toString().includes(keyUpper))) {
             present++;
         }
         //here you can add any other columns to be searched for
