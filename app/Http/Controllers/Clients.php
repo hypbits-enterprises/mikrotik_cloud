@@ -3995,7 +3995,7 @@ class Clients extends Controller
                             session()->flash("success", "User has been successfully deactivated");
                             return redirect("/Clients/View/$userid");
                         } else {
-                            return ["success" => false, "message" => "User has been successfully deactivated!"];
+                            return ["success" => true, "message" => "User has been successfully deactivated!"];
                         }
                     } else {
                         if (session('Usernames')) {
