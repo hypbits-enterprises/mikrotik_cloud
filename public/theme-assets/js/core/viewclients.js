@@ -200,7 +200,7 @@ cObj("cancel_exp_update").onclick = function () {
 }
 
 cObj("prompt_delete").onclick = function () {
-    cObj("prompt_del_window").classList.remove("d-none");
+    cObj("prompt_del_window").classList.toggle("d-none");
 }
 cObj("delet_user_no").onclick = function () {
     cObj("prompt_del_window").classList.add("d-none");

@@ -4669,4 +4669,142 @@ class Clients extends Controller
         $data = str_replace("[unfreeze_date]", ($freeze_date == "Indefinite" ? "Indefinite Date" : date("dS M Y \a\\t h:iA", strtotime($freeze_date))), $data);
         return $data;
     }
+
+    function client_issues(){
+        // get the client reports
+        $client_reports = DB::select("SELECT CR.*, CT.client_name, CT.client_account, AT.admin_fullname AS 'admin_reporter_fullname', ATS.admin_fullname AS 'admin_attender_fullname' FROM mikrotik_cloud.client_reports AS CR 
+                                        LEFT JOIN mikrotik_cloud.client_tables AS CT ON CT.client_id = CR.client_id 
+                                        LEFT JOIN mikrotik_cloud_manager.admin_tables AS AT ON AT.admin_id = CR.admin_reporter
+                                        LEFT JOIN mikrotik_cloud_manager.admin_tables AS ATS ON ATS.admin_id = CR.admin_attender
+                                        ORDER BY CR.report_date DESC;");
+        
+        // return $client_reports;
+        return view("client_reports", ["client_reports" => $client_reports]);
+    }
+
+    function newReports(){
+        $old_title_reports = DB::connection("mysql2")->select("SELECT report_title FROM `client_reports` GROUP BY report_title ORDER BY report_date DESC LIMIT 10;");
+        $my_clients = DB::connection("mysql2")->select("SELECT client_id, client_name, client_account, clients_contacts FROM client_tables");
+        $admin_tables = DB::connection("mysql")->select("SELECT * FROM admin_tables WHERE organization_id = ? ORDER BY admin_id DESC",[session("organization")->organization_id]);
+        
+        // get the organization id
+        return view("new_client_report", ["old_title_reports" => $old_title_reports, "my_clients" => $my_clients, "admin_tables" => $admin_tables]);
+    }
+
+    function saveReports(Request $request){
+        session()->flash("report_title", $request->input("report_title"));
+        session()->flash("client_account", $request->input("client_account"));
+        session()->flash("report_date", $request->input("report_date"));
+        session()->flash("comments", $request->input("comments"));
+        session()->flash("admin_attender", $request->input("admin_attender"));
+        session()->flash("report_status", $request->input("report_status"));
+
+        // check if its a valid client
+        $client_acc_number = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE client_account = ?", [$request->input("client_account")]);
+        if (count($client_acc_number) == 0) {
+            session()->flash("error", "Client account number is invalid!");
+            return redirect()->back();
+        }
+
+        // the recording admin
+        $recording_admin = DB::select("SELECT * FROM admin_tables WHERE admin_id = ?", [session("Userids")]);
+        if(count($recording_admin) == 0){
+            session()->flash("error", "Invalid recording admin!");
+            return redirect()->back();
+        }
+
+        // save the record
+        $admin_recorder_fullname = $recording_admin[0]->admin_fullname;
+        $report_date = date("Ymd", strtotime($request->input("report_date"))).date("His");
+
+        $insert = DB::connection("mysql2")->insert("INSERT INTO client_reports (`report_title`, `report_description`, `client_id`, `admin_reporter`, `admin_attender`, `report_date`, `status`) 
+        VALUES (?,?,?,?,?,?,?)", [$request->input("report_title"), $request->input("comments"), $client_acc_number[0]->client_id, session("Userids"), $request->input("admin_attender"), $report_date, $request->input("report_status")]);
+
+        session()->flash("success", "Client report recorded successfully!");
+        return redirect("/Client-Reports");
+    }
+
+    function viewReports($report_id){
+        $old_title_reports = DB::connection("mysql2")->select("SELECT report_title FROM `client_reports` GROUP BY report_title ORDER BY report_date DESC LIMIT 10;");
+        $my_clients = DB::connection("mysql2")->select("SELECT client_id, client_name, client_account, clients_contacts FROM client_tables");
+        $admin_tables = DB::connection("mysql")->select("SELECT * FROM admin_tables WHERE organization_id = ? ORDER BY admin_id DESC",[session("organization")->organization_id]);
+        $report_details = DB::connection("mysql2")->select("SELECT CR.*, CT.client_name, CT.client_account, AT.admin_fullname AS 'admin_reporter_fullname', ATS.admin_fullname AS 'admin_attender_fullname' FROM mikrotik_cloud.client_reports AS CR 
+                        LEFT JOIN mikrotik_cloud.client_tables AS CT ON CT.client_id = CR.client_id 
+                        LEFT JOIN mikrotik_cloud_manager.admin_tables AS AT ON AT.admin_id = CR.admin_reporter
+                        LEFT JOIN mikrotik_cloud_manager.admin_tables AS ATS ON ATS.admin_id = CR.admin_attender WHERE CR.report_id = ?
+                        ORDER BY CR.report_date DESC;", [$report_id]);
+                        
+        if (count($report_details) == 0) {
+            session()->flash("error", "Invalid report, try again!");
+            return redirect()->back();
+        }
+        // return $report_details;
+        return view("client_report_infor", ["admin_tables" => $admin_tables, "old_title_reports" => $old_title_reports, "my_clients" => $my_clients, "report_details" => $report_details[0]]);
+
+    }
+
+    function updateReports(Request $request){
+        session()->flash("report_title", $request->input("report_title"));
+        session()->flash("client_account", $request->input("client_account"));
+        session()->flash("report_date", $request->input("report_date"));
+        session()->flash("comments", $request->input("comments"));
+        session()->flash("admin_attender", $request->input("admin_attender"));
+        session()->flash("report_status", $request->input("report_status"));
+
+        // check if its a valid report
+        $reports = DB::connection("mysql2")->select("SELECT * FROM client_reports WHERE report_id = ?", [$request->input("report_id")]);
+        // return $reports;
+        if(count($reports) == 0){
+            return redirect("/Client-Reports");
+        }
+
+        // check if its a valid client
+        $client_acc_number = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE client_account = ?", [$request->input("client_account")]);
+        if (count($client_acc_number) == 0) {
+            session()->flash("error", "Client account number is invalid!");
+            return redirect()->back();
+        }
+
+        // the recording admin
+        $recording_admin = DB::select("SELECT * FROM admin_tables WHERE admin_id = ?", [session("Userids")]);
+        if(count($recording_admin) == 0){
+            session()->flash("error", "Invalid recording admin!");
+            return redirect()->back();
+        }
+        $update = DB::connection("mysql2")->update("UPDATE client_reports SET report_title = ?, report_description = ?, client_id = ?,  admin_attender = ? WHERE report_id = ?", 
+                    [$request->input("report_title"), $request->input("comments"), $client_acc_number[0]->client_id, $request->input("admin_attender"), $request->input("report_id")]);
+
+        session()->flash("success", "Data updated successfully!");
+        return redirect()->back();
+    }
+
+    function changeReportStatus(Request $request){
+        $report_id = $request->input("report_id");
+        $report_status = $request->input("report_status");
+        $admin_attender = $request->input("admin_attender");
+        $resolve_date = $request->input("resolve_date");
+        $resolve_time = $request->input("resolve_time");
+        // get the report status
+        $report = DB::connection("mysql2")->select("SELECT * FROM client_reports WHERE report_id = ?",[$report_id]);
+        if (count($report)) {
+            $date_resolved = date("Ymd", strtotime($resolve_date))."".date("His", strtotime($resolve_time));
+            $update = DB::connection("mysql2")->update("UPDATE client_reports SET status = ?, resolve_time = ?, admin_attender = ? WHERE report_id = ?", [$report_status, $date_resolved, $admin_attender, $report_id]);
+            session()->flash("success", "Status updated successfully!");
+        }else{
+            session()->flash("error", "Invalid report!");
+        }
+        return redirect()->back();
+    }
+
+    function deleteReport($report_id){
+        // get the report status
+        $report = DB::connection("mysql2")->select("SELECT * FROM client_reports WHERE report_id = ?",[$report_id]);
+        if (count($report)) {
+            $update = DB::connection("mysql2")->update("DELETE FROM client_reports WHERE report_id = ?", [$report_id]);
+            session()->flash("success", "Delete report successfully!");
+        }else{
+            session()->flash("error", "Invalid report!");
+        }
+        return redirect("/Client-Reports");
+    }
 }

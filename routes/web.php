@@ -67,6 +67,13 @@ Route::get("/Clients", [Clients::class, 'getClientData'])->name("myclients");
 // get the router information for the new client
 Route::get("/Clients/NewStatic", [Clients::class, "getRouterDataClients"]);
 Route::get("/Clients/NewPPPoE", [Clients::class, "getRouterDatappoe"])->name("newclient.pppoe");
+Route::get("/Client-Reports", [Clients::class, "client_issues"])->name("client_issues");
+Route::get("/Client-Reports/New", [Clients::class, "newReports"])->name("newReports");
+Route::get("/Client-Reports/View/{client_id}", [Clients::class, "viewReports"])->name("viewReports");
+Route::post("/Client-Reports/Save-Report", [Clients::class, "saveReports"])->name("saveReports");
+Route::post("/Client-Reports/Update-Report", [Clients::class, "updateReports"])->name("updateReports");
+Route::post("/Client-Reports/Change-Status", [Clients::class, "changeReportStatus"])->name("changeReportStatus");
+Route::get("/Client-Reports/Delete-Report/{report_id}", [Clients::class, "deleteReport"])->name("deleteReport");
 // get the router interface
 Route::get("/router/{routerid}", [Clients::class, "getRouterInterfaces"]);
 // get the router profile
