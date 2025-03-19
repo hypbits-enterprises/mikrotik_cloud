@@ -358,7 +358,7 @@
                                                             @endif
                                                         </th>
                                                         <td>{{$report->report_title}}</td>
-                                                        <td>{{$report->report_description}}</td>
+                                                        <td data-toggle="tooltip" title="" data-original-title="{{$report->report_description}}">{{strlen($report->report_description) > 100 ? substr($report->report_description, 0, 100)."...." : $report->report_description}}</td>
                                                         <td><a href="/Clients/View/{{$report->client_id}}" target="_blank" class="text-dark">{{ucwords(strtolower($report->client_name))}} - ({{$report->client_account}})</a></td>
                                                         <td>{{date("D dS M Y H:i:sA", strtotime($report->report_date))}}</td>
                                                         <td><a href="/Client-Reports/View/{{$report->report_id}}" class="btn btn-sm btn-purple text-bolder"

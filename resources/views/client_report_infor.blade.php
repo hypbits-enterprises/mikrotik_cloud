@@ -291,12 +291,12 @@
                                                                         <option {{session('report_status') ? (session('report_status') == 'cleared' ? 'selected' : '') : ($report_details->status == "cleared" ? 'selected' : '')}} value="cleared">Cleared</option>
                                                                     </select>
                                                                 </div>
-                                                                <div class="form-group">
+                                                                <div class="form-group" id="hide_the_technician_field">
                                                                     <label for="admin_attender" class="form-control-label"><b>Resolved By(Technician)</b></label>
                                                                     <div class="autocomplete">
                                                                         <input type="text" name="admin_attender" id="admin_attender"
                                                                             class="form-control rounded-lg p-1"
-                                                                            placeholder="Resolved By" required
+                                                                            placeholder="Type your technician name..."
                                                                             value="{{ session('admin_attender') ? session('admin_attender') : $report_details->admin_attender}}">
                                                                     </div>
                                                                 </div>
@@ -399,12 +399,12 @@
                                                 </div>
                                             </div>
                                             <div class="col-md-4 mt-1">
-                                                <label for="admin_attender" class="form-control-label"><b>Resolved By(Technician)</b></label>
+                                                <label for="report_date" class="form-control-label"><b>Report Date</b></label>
                                                 <div class="autocomplete">
-                                                    <input type="text" name="admin_attender" id="admin_attender"
+                                                    <input type="date" name="report_date" id="report_date"
                                                         class="form-control rounded-lg p-1"
                                                         placeholder="Resolved By" required
-                                                        value="{{ session('admin_attender') ? session('admin_attender') : $report_details->admin_attender}}">
+                                                        value="{{ session('report_date') ? date("Y-m-d", strtotime(session('report_date'))) : date("Y-m-d", strtotime($report_details->report_date))}}">
                                                 </div>
                                             </div>
                                             <div class="col-md-12 mt-1">
@@ -506,6 +506,15 @@
             cObj("change_issue_status").classList.remove("hide");
             cObj("change_issue_status").classList.add("show");
             cObj("change_issue_status").classList.add("showBlock");
+        }
+
+        if (cObj("report_status").value == "pending") {
+            cObj("hide_the_technician_field").classList.add("d-none");
+            cObj("admin_attender").disabled = true;
+            cObj("admin_attender").value = "";
+        }else{
+            cObj("hide_the_technician_field").classList.remove("d-none");
+            cObj("admin_attender").disabled = false;
         }
 
         cObj("hide_delete_issue_2").onclick = function () {
@@ -801,6 +810,18 @@
             document.addEventListener("click", function(e) {
                 closeAllLists(e.target);
             });
+        }
+
+        // report status
+        cObj("report_status").onchange = function () {
+            if (this.value == "pending") {
+                cObj("hide_the_technician_field").classList.add("d-none");
+                cObj("admin_attender").disabled = true;
+                cObj("admin_attender").value = "";
+            }else{
+                cObj("hide_the_technician_field").classList.remove("d-none");
+                cObj("admin_attender").disabled = false;
+            }
         }
     </script>
     <script src="/theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>

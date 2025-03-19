@@ -307,7 +307,7 @@
                                                 <div class="autocomplete">
                                                     <input type="text" name="admin_attender" id="admin_attender"
                                                         class="form-control rounded-lg p-1"
-                                                        placeholder="Resolved By:"
+                                                        placeholder="Type technician name:"
                                                         value="{{ session('admin_attender') ? session('admin_attender') : '' }}">
                                                 </div>
                                             </div>

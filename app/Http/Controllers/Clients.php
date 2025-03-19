@@ -56,6 +56,8 @@ class Clients extends Controller
         // return $frozen_clients;
         for ($index = 0; $index < count($client_data); $index++) {
             $client_data[$index]->reffered_by = str_replace("'", "\"", $client_data[$index]->reffered_by);
+            $latest_issue = DB::connection("mysql2")->select("SELECT * FROM `client_reports` WHERE client_id = ? ORDER BY report_date DESC LIMIT 1;", [$client_data[$index]->client_id]);
+            $client_data[$index]->latest_issue = count($latest_issue) > 0 ? "<b>Report title:</b> ".$latest_issue[0]->report_title."<br> <b>Description:</b>".$latest_issue[0]->report_description : "No reports";
         }
         // return $client_data;
         return view('myclients', ["frozen_clients" => $frozen_clients, 'client_data' => $client_data, "router_infor" => $router_data]);
@@ -4744,17 +4746,19 @@ class Clients extends Controller
     }
 
     function updateReports(Request $request){
-        session()->flash("report_title", $request->input("report_title"));
-        session()->flash("client_account", $request->input("client_account"));
-        session()->flash("report_date", $request->input("report_date"));
-        session()->flash("comments", $request->input("comments"));
-        session()->flash("admin_attender", $request->input("admin_attender"));
-        session()->flash("report_status", $request->input("report_status"));
 
         // check if its a valid report
         $reports = DB::connection("mysql2")->select("SELECT * FROM client_reports WHERE report_id = ?", [$request->input("report_id")]);
         // return $reports;
         if(count($reports) == 0){
+            session()->flash("report_title", $request->input("report_title"));
+            session()->flash("client_account", $request->input("client_account"));
+            session()->flash("report_date", $request->input("report_date"));
+            session()->flash("comments", $request->input("comments"));
+            session()->flash("admin_attender", $request->input("admin_attender"));
+            session()->flash("report_status", $request->input("report_status"));
+
+            session()->flash("error", "Invalid report, probably it was deleted!");
             return redirect("/Client-Reports");
         }
 
@@ -4768,11 +4772,19 @@ class Clients extends Controller
         // the recording admin
         $recording_admin = DB::select("SELECT * FROM admin_tables WHERE admin_id = ?", [session("Userids")]);
         if(count($recording_admin) == 0){
+            session()->flash("report_title", $request->input("report_title"));
+            session()->flash("client_account", $request->input("client_account"));
+            session()->flash("report_date", $request->input("report_date"));
+            session()->flash("comments", $request->input("comments"));
+            session()->flash("admin_attender", $request->input("admin_attender"));
+            session()->flash("report_status", $request->input("report_status"));
             session()->flash("error", "Invalid recording admin!");
             return redirect()->back();
         }
-        $update = DB::connection("mysql2")->update("UPDATE client_reports SET report_title = ?, report_description = ?, client_id = ?,  admin_attender = ? WHERE report_id = ?", 
-                    [$request->input("report_title"), $request->input("comments"), $client_acc_number[0]->client_id, $request->input("admin_attender"), $request->input("report_id")]);
+
+        $report_date = date("Ymd", strtotime($request->input("report_date")))."".date("His", strtotime($reports[0]->report_date));
+        $update = DB::connection("mysql2")->update("UPDATE client_reports SET report_date = ?, report_title = ?, report_description = ?, client_id = ?,  admin_attender = ? WHERE report_id = ?", 
+                    [$report_date, $request->input("report_title"), $request->input("comments"), $client_acc_number[0]->client_id, $request->input("admin_attender"), $request->input("report_id")]);
 
         session()->flash("success", "Data updated successfully!");
         return redirect()->back();
