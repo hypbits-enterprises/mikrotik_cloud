@@ -271,7 +271,16 @@
                                     <form action="{{route("saveReports")}}" method="post">
                                         @csrf
                                         <div class="row">
-                                            <div class="col-md-4 form-group mt-1">
+                                            <div class="col-md-3 form-group mt-1">
+                                                <label for="ticket_number" class="form-control-label"><b>Ticket Number</b></label>
+                                                <input type="text" disabled id="ticket_number"
+                                                    class="form-control rounded-lg p-1"
+                                                    placeholder="e.g., Unstable Internet" required
+                                                    value="{{$ticket_number}}">
+                                                <input type="hidden" name="ticket_number" value="{{$ticket_number}}">
+
+                                            </div>
+                                            <div class="col-md-3 form-group mt-1">
                                                 <label for="report_title" class="form-control-label"><b>Report Title</b></label>
                                                 <div class="autocomplete">
                                                     <input type="text" name="report_title" id="report_title"
@@ -280,7 +289,7 @@
                                                         value="{{ session('report_title') ? session('report_title') : '' }}">
                                                 </div>
                                             </div>
-                                            <div class="col-md-4 mt-1">
+                                            <div class="col-md-3 mt-1">
                                                 <label for="client_account" class="form-control-label"><b>Reported By (Client):</b></label>
                                                 <div class="autocomplete">
                                                     <input type="text" name="client_account" id="client_account"
@@ -289,7 +298,7 @@
                                                         value="{{ session('client_account') ? session('client_account') : '' }}">
                                                 </div>
                                             </div>
-                                            <div class="col-md-4 mt-1">
+                                            <div class="col-md-3 mt-1">
                                                 <label for="report_date" class="form-control-label"><b>Date Reported</b></label>
                                                 <input type="date" name="report_date" id="report_date"
                                                     class="form-control rounded-lg p-1"

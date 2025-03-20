@@ -306,7 +306,7 @@
                                                                         <input type="date" name="resolve_date" id="resolve_date"
                                                                             class="form-control rounded-lg p-1"
                                                                             placeholder="Resolved By" required
-                                                                            value="{{ session('resolve_date') ? session('resolve_date') : date("Y-m-d", strtotime($report_details->resolve_time))}}">
+                                                                            value="{{ session('resolve_date') ? session('resolve_date') : ($report_details->resolve_time != null ? date("Y-m-d", strtotime($report_details->resolve_time)) : date("Y-m-d"))}}">
                                                                     </div>
                                                                 </div>
                                                                 <div class="form-group">
@@ -315,7 +315,7 @@
                                                                         <input type="time" name="resolve_time" id="resolve_time"
                                                                             class="form-control rounded-lg p-1"
                                                                             placeholder="Resolved By" required
-                                                                            value="{{ session('resolve_time') ? session('resolve_time') : date("H:i", strtotime($report_details->resolve_time))}}">
+                                                                            value="{{ session('resolve_time') ? session('resolve_time') : ($report_details->resolve_time != null ? date("H:i", strtotime($report_details->resolve_time)) : date("H:i"))}}">
                                                                     </div>
                                                                 </div>
                                                                 <div class="container">
@@ -337,6 +337,10 @@
                                         <div class="row">
                                             <div class="col-md-12">
                                                 <table class="my-2">
+                                                    <tr>
+                                                        <td class="px-1 text-right"><b>Ticket Number:</b></td>
+                                                        <td class="px-1">{{$report_details->report_code}}</td>
+                                                    </tr>
                                                     <tr>
                                                         <td class="px-1 text-right"><b>Reported By(Client) :</b></td>
                                                         <td class="px-1">{{$report_details->client_name}} - ({{$report_details->client_account}})</td>

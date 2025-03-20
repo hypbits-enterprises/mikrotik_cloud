@@ -67,6 +67,13 @@ window.onload = function () {
             col.push(element['location_coordinates']);
             col.push(element['assignment']);
             col.push(element['client_default_gw']);
+            col.push(element['latest_issue']);
+            col.push(element['report_description']);
+            col.push(element['date_reported']);
+            col.push(element['ticket_number']);
+            col.push(element['report_status']);
+            col.push(element['router_fullname']);
+            col.push(element['report_id']);
             // var col = element.split(":");
             rowsColStudents.push(col);
         }
@@ -534,7 +541,7 @@ function displayRecord(start, finish, arrays) {
                 assignment = "<span class='badge text-light' style = 'background:rgb(119, 105, 183);' data-toggle='tooltip' title='PPPoE Assigned'>P</span>";
             }
             var location = (arrays[index][14] != null && arrays[index][14].length > 0) ? "<a class='text-danger' href = 'https://www.google.com/maps/place/" + arrays[index][14] + "' target = '_blank'><u>Locate Client</u> </a>" : "";
-            tableData += "<tr><th scope='row'><input type='checkbox' class='actions_id' id='actions_id_"+arrays[index][11]+"'><input type='hidden' id='actions_value_"+arrays[index][11]+"' value='"+arrays[index][11]+"'> " + counter + "</th><td>" + assignment + " <a href='/Clients/View/" + arrays[index][0] + "' class='text-secondary'>" + ucwords(arrays[index][1]) + " " + status + "</a><br><small class='text-gray d-none d-xl-block'>" + ucword(arrays[index][13]) + "</small></td><td>" + arrays[index][11].toUpperCase() + " " + reffered + "</td><td>" + ucwords(arrays[index][5]) + "<br><small class='d-none d-md-block'>" + location + "</small></td><td>" + setDate(arrays[index][7]) + "</td><td><small>"+arrays[index][2]+" <br> "+arrays[index][16]+" </small></td><td><a href='/Clients/View/" + arrays[index][0] + "' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View this User'><i class='ft-eye'></i></a> <a href='/deactivate/" + arrays[index][0] + "' class='btn btn-sm btn-danger text-dark text-bolder "+readonly_flag+"'  data-toggle='tooltip' title='Disable this User'><i class='ft-x'></i></a></td></tr>";
+            tableData += "<tr><th scope='row'><input type='checkbox' class='actions_id' id='actions_id_"+arrays[index][11]+"'><input type='hidden' id='actions_value_"+arrays[index][11]+"' value='"+arrays[index][11]+"'> " + counter + "</th><td>" + assignment + " <a href='/Clients/View/" + arrays[index][0] + "' class='text-secondary'>" + ucwords(arrays[index][1]) + " " + status + "</a><br><small class='text-gray d-none d-xl-block'>" + ucword(arrays[index][13]) + "</small></td><td data-html='true' data-toggle='tooltip'  title='"+(arrays[index][17] != null ? "<b>Last Report :</b> "+arrays[index][17]+" <br> <b>Description : </b>"+arrays[index][18]+"<br> <b>Status : </b> "+(arrays[index][21] == "cleared" ? "RESOLVED" : arrays[index][21].toUpperCase())+"<br><b>Date Reported</b> : "+arrays[index][19]+"" : "No Issues Yet!")+"' "+ (arrays[index][17] != null ? "<a href='/Client-Reports/View/" + arrays[index][23] + "' class='text-secondary'>"+arrays[index][11].toUpperCase()+"</a>" : arrays[index][11].toUpperCase()) + " " + reffered + "</td><td>" + ucwords(arrays[index][5]) + "<br><small class='d-none d-md-block'>" + location + "</small></td><td>" + setDate(arrays[index][7]) + "</td><td><small>"+arrays[index][2]+" <br> "+arrays[index][16]+" </small> iii- <small class='text-gray d-xl-block'>{" + ucword(arrays[index][22]) + "}</small></td><td><a href='/Clients/View/" + arrays[index][0] + "' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View this User'><i class='ft-eye'></i></a> <a href='/deactivate/" + arrays[index][0] + "' class='btn btn-sm btn-danger text-dark text-bolder "+readonly_flag+"'  data-toggle='tooltip' title='Disable this User'><i class='ft-x'></i></a></td></tr>";
             counter++;
         }
     } else {
@@ -553,7 +560,6 @@ function displayRecord(start, finish, arrays) {
                     mainData = mainData.substr(1, mainData.length - 2);
                     mainData = mainData.replace(/\\/g, "");
                 }
-                console.log(mainData);
                 if (hasJsonStructure(mainData)) {
                     var data = JSON.parse(mainData);
                     // get the client name
@@ -577,7 +583,7 @@ function displayRecord(start, finish, arrays) {
             }
             var location = (arrays[index][14] != null && arrays[index][14].length > 0) ? "<a class='text-danger' href = 'https://www.google.com/maps/place/" + arrays[index][14] + "' target = '_blank'><u>Locate Client</u> </a>" : "";
             // console.log(location);
-            tableData += "<tr><th scope='row'><input type='checkbox' class='actions_id' id='actions_id_"+arrays[index][11]+"'><input type='hidden' id='actions_value_"+arrays[index][11]+"' value='"+arrays[index][11]+"'> " + counter + "</th><td>" + assignment + " <a href='/Clients/View/" + arrays[index][0] + "' class='text-secondary'>" + ucwords(arrays[index][1]) + " " + status + "</a><br><small class='text-gray d-none d-xl-block'>" + ucword(arrays[index][13]) + "</small></td><td>" + arrays[index][11].toUpperCase() + " " + reffered + "</td><td>" + ucwords(arrays[index][5]) + "<br><small class='d-none d-md-block'>" + location + "</small></td><td>" + setDate(arrays[index][7]) + "</td><td><small>"+arrays[index][2]+" <br> "+arrays[index][16]+" </small></td><td><a href='/Clients/View/" + arrays[index][0] + "' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View this User'><i class='ft-eye'></i></a> <a href='/deactivate/" + arrays[index][0] + "' class='btn btn-sm btn-danger text-dark text-bolder "+readonly_flag+"'  data-toggle='tooltip' title='Disable this User'><i class='ft-x'></i></a></td></tr>";
+            tableData += "<tr><th scope='row'><input type='checkbox' class='actions_id' id='actions_id_"+arrays[index][11]+"'><input type='hidden' id='actions_value_"+arrays[index][11]+"' value='"+arrays[index][11]+"'> " + counter + "</th><td>" + assignment + " <a href='/Clients/View/" + arrays[index][0] + "' class='text-secondary'>" + ucwords(arrays[index][1]) + " " + status + "</a><br><small class='text-gray d-none d-xl-block'>" + ucword(arrays[index][13]) + "</small></td><td data-html='true' data-toggle='tooltip' title='"+(arrays[index][17] != null ? "<b>Last Report :</b> "+arrays[index][17]+" <br> <b>Description : </b>"+arrays[index][18]+"<br> <b>Status : </b> "+(arrays[index][21] == "cleared" ? "RESOLVED" : arrays[index][21].toUpperCase())+"<br><b>Date Reported</b> : "+arrays[index][19]+"" : "No Issues Yet!")+"'>" + (arrays[index][17] != null ? "<a href='/Client-Reports/View/" + arrays[index][23] + "' class='text-secondary'>"+arrays[index][11].toUpperCase()+"</a>" : arrays[index][11].toUpperCase()) + " " + reffered + "</td><td>" + ucwords(arrays[index][5]) + "<br><small class='d-none d-md-block'>" + location + "</small></td><td>" + setDate(arrays[index][7]) + "</td><td><small>"+arrays[index][2]+" <br> "+arrays[index][16]+" </small> - <small class='text-gray d-xl-block'>{" + ucword(arrays[index][22]) + "}</small></td><td><a href='/Clients/View/" + arrays[index][0] + "' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View this User'><i class='ft-eye'></i></a> <a href='/deactivate/" + arrays[index][0] + "' class='btn btn-sm btn-danger text-dark text-bolder "+readonly_flag+"'  data-toggle='tooltip' title='Disable this User'><i class='ft-x'></i></a></td></tr>";
             counter++;
         }
         fins = total;
@@ -792,10 +798,9 @@ function checkName(keyword) {
         if (element[1].toLowerCase().includes(keylower) || element[1].toUpperCase().includes(keyUpper)) {
             present++;
         }
-        // console.log(element);
-        // if (element[13].toLowerCase().includes(keylower) || element[13].toUpperCase().includes(keyUpper)) {
-        //     present++;
-        // }
+        if (element[22].toLowerCase().includes(keylower) || element[22].toUpperCase().includes(keyUpper)) {
+            present++;
+        }
         if (element[4].toLowerCase().includes(keylower) || element[4].toUpperCase().includes(keyUpper)) {
             present++;
         }
@@ -805,7 +810,7 @@ function checkName(keyword) {
         if (element[11].toLowerCase().includes(keylower)) {
             present++;
         }
-        console.log((element[2]+"").toLowerCase().includes(keylower));
+        // console.log((element[2]+"").toLowerCase().includes(keylower));
         if ((element[2]+"").toLowerCase().includes(keylower)) {
             present++;
         }
@@ -822,6 +827,7 @@ function checkName(keyword) {
         rowsColStudents = rowsNcol2;
         var counted = rowsNcol2.length / 50;
         pagecountTransaction = Math.ceil(counted);
+        // console.log(rowsNcol2);
         cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsNcol2);
         cObj("tot_records").innerText = rowsNcol2.length;
         if (rowsColStudents.length > 0) {

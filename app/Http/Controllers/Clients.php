@@ -34,9 +34,17 @@ class Clients extends Controller
         $change_db = new login();
         $change_db->change_db();
 
-        $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC;");
+        $client_data = DB::connection("mysql2")->select("SELECT client_tables.*, 
+        (SELECT report_title FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'latest_issue', 
+        (SELECT report_description FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'report_description',
+        (SELECT report_date FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'date_reported',
+        (SELECT report_id FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'ticket_number',
+        (SELECT `status` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'report_status',
+        (SELECT `report_id` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'report_id',
+        (SELECT router_name FROM remote_routers WHERE router_id = client_tables.router_name) AS 'router_fullname'
+         FROM `client_tables`
+         WHERE `deleted` = '0' ORDER BY `client_id` DESC;");
         $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
-        // return $client_data;
         // get all the clients that have been frozen
         $frozen_clients = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_freeze_status` = '1'");
         for ($index = 0; $index < count($frozen_clients); $index++) {
@@ -53,13 +61,12 @@ class Clients extends Controller
 
             $frozen_clients[$index]->freeze_days_left = $days;
         }
-        // return $frozen_clients;
+        
         for ($index = 0; $index < count($client_data); $index++) {
             $client_data[$index]->reffered_by = str_replace("'", "\"", $client_data[$index]->reffered_by);
             $latest_issue = DB::connection("mysql2")->select("SELECT * FROM `client_reports` WHERE client_id = ? ORDER BY report_date DESC LIMIT 1;", [$client_data[$index]->client_id]);
-            $client_data[$index]->latest_issue = count($latest_issue) > 0 ? "<b>Report title:</b> ".$latest_issue[0]->report_title."<br> <b>Description:</b>".$latest_issue[0]->report_description : "No reports";
+            $client_data[$index]->date_reported = $client_data[$index]->date_reported != null ? date("D dS M Y H:iA", strtotime($client_data[$index]->date_reported)) : $client_data[$index]->date_reported;
         }
-        // return $client_data;
         return view('myclients', ["frozen_clients" => $frozen_clients, 'client_data' => $client_data, "router_infor" => $router_data]);
     }
 
@@ -4688,9 +4695,67 @@ class Clients extends Controller
         $old_title_reports = DB::connection("mysql2")->select("SELECT report_title FROM `client_reports` GROUP BY report_title ORDER BY report_date DESC LIMIT 10;");
         $my_clients = DB::connection("mysql2")->select("SELECT client_id, client_name, client_account, clients_contacts FROM client_tables");
         $admin_tables = DB::connection("mysql")->select("SELECT * FROM admin_tables WHERE organization_id = ? ORDER BY admin_id DESC",[session("organization")->organization_id]);
+        $index_code = $this->generate_new_report_code();
         
         // get the organization id
-        return view("new_client_report", ["old_title_reports" => $old_title_reports, "my_clients" => $my_clients, "admin_tables" => $admin_tables]);
+        return view("new_client_report", ["old_title_reports" => $old_title_reports, "my_clients" => $my_clients, "admin_tables" => $admin_tables, "ticket_number" => $index_code]);
+    }
+
+    function generate_new_report_code(){
+        $date_today = date("Ymd");
+        $last_code_today = DB::connection("mysql2")->select("SELECT * FROM client_reports WHERE report_date LIKE '$date_today%' ORDER BY report_date DESC LIMIT 1;");
+        $new_code = null;
+        if (count($last_code_today) > 0) {
+            $prefix = substr($last_code_today[0]->report_code, 0,3);
+            $series = (substr($last_code_today[0]->report_code, 3) * 1) + 1;
+            $series = strlen($series) == 1 ? "00".$series : (strlen($series) == 2 ? "0".$series : $series);
+            $new_code = $prefix.$series;
+        }else{
+            $new_code = $this->year_code_generator(date("Y")).$this->ticket_code_generator(date("m"),"month").$this->ticket_code_generator(date("d"),"day")."001";
+        }
+        return $new_code ? $new_code : "001";
+    }
+
+    function ticket_code_generator($index, $period = "month"){
+        $index -= 1;
+        $array_codes = ['1','2','3','4','5','6','7','8','9','A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+        $array_codes_month = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+        return $period == "day" ? $array_codes[($index < 0 ? 0 : $index)] : $array_codes_month[($index < 0 ? 0 : $index)];
+    }
+
+    function year_code_generator($year){
+        $year_code = array(
+            "2025" => "A",
+            "2026" => "B",
+            "2027" => "A",
+            "2028" => "C",
+            "2029" => "D",
+            "2030" => "E",
+            "2031" => "F",
+            "2032" => "G",
+            "2033" => "H",
+            "2034" => "I",
+            "2035" => "J",
+            "2036" => "K",
+            "2037" => "L",
+            "2038" => "M",
+            "2039" => "N",
+            "2040" => "O",
+            "2041" => "P",
+            "2042" => "Q",
+            "2043" => "R",
+            "2044" => "S",
+            "2045" => "T",
+            "2046" => "U",
+            "2047" => "V",
+            "2048" => "W",
+            "2049" => "X",
+            "2050" => "Y",
+            "2050" => "Z"
+
+        );
+
+        return isset($year_code[$year.""]) ? $year_code[$year.""] : "A";
     }
 
     function saveReports(Request $request){
@@ -4718,9 +4783,10 @@ class Clients extends Controller
         // save the record
         $admin_recorder_fullname = $recording_admin[0]->admin_fullname;
         $report_date = date("Ymd", strtotime($request->input("report_date"))).date("His");
+        $ticket_number = $request->input("ticket_number");
 
-        $insert = DB::connection("mysql2")->insert("INSERT INTO client_reports (`report_title`, `report_description`, `client_id`, `admin_reporter`, `admin_attender`, `report_date`, `status`) 
-        VALUES (?,?,?,?,?,?,?)", [$request->input("report_title"), $request->input("comments"), $client_acc_number[0]->client_id, session("Userids"), $request->input("admin_attender"), $report_date, $request->input("report_status")]);
+        $insert = DB::connection("mysql2")->insert("INSERT INTO client_reports (`report_code`, `report_title`, `report_description`, `client_id`, `admin_reporter`, `admin_attender`, `report_date`, `status`) 
+        VALUES (?,?,?,?,?,?,?,?)", [$ticket_number, $request->input("report_title"), $request->input("comments"), $client_acc_number[0]->client_id, session("Userids"), $request->input("admin_attender"), $report_date, $request->input("report_status")]);
 
         session()->flash("success", "Client report recorded successfully!");
         return redirect("/Client-Reports");
@@ -4799,7 +4865,7 @@ class Clients extends Controller
         // get the report status
         $report = DB::connection("mysql2")->select("SELECT * FROM client_reports WHERE report_id = ?",[$report_id]);
         if (count($report)) {
-            $date_resolved = date("Ymd", strtotime($resolve_date))."".date("His", strtotime($resolve_time));
+            $date_resolved = $report_status == "cleared" ? date("Ymd", strtotime($resolve_date))."".date("His", strtotime($resolve_time)) : null;
             $update = DB::connection("mysql2")->update("UPDATE client_reports SET status = ?, resolve_time = ?, admin_attender = ? WHERE report_id = ?", [$report_status, $date_resolved, $admin_attender, $report_id]);
             session()->flash("success", "Status updated successfully!");
         }else{
