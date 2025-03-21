@@ -2298,6 +2298,14 @@ class Clients extends Controller
         // get the clients information from the database
         $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = '$clientid'");
         if (count($clients_data) > 0) {
+            // get the client issues
+            $client_issues = DB::connection("mysql2")->select("SELECT CR.*, CT.client_name, CT.client_account, AT.admin_fullname AS 'admin_reporter_fullname', ATS.admin_fullname AS 'admin_attender_fullname' FROM mikrotik_cloud.client_reports AS CR 
+                                        LEFT JOIN mikrotik_cloud.client_tables AS CT ON CT.client_id = CR.client_id 
+                                        LEFT JOIN mikrotik_cloud_manager.admin_tables AS AT ON AT.admin_id = CR.admin_reporter
+                                        LEFT JOIN mikrotik_cloud_manager.admin_tables AS ATS ON ATS.admin_id = CR.admin_attender
+                                        WHERE CR.client_id = ? ORDER BY CR.report_date DESC;",[$clientid]);
+            $pending_issues = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `client_reports` WHERE `client_id` = ? AND `status` = 'pending';", [$clientid]);
+            
             // here we get the router data
             // check if the client is static or pppoe
             $assignment = $clients_data[0]->assignment;
@@ -2390,7 +2398,7 @@ class Clients extends Controller
                         }
                     }
                 }
-                return view("clientInfor", ['clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
+                return view("clientInfor", ["pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
             } elseif ($assignment == "pppoe") {
                 $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
                 // get the clients expiration date
@@ -2478,7 +2486,7 @@ class Clients extends Controller
                         }
                     }
                 }
-                return view("clientInforPppoe", ['clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
+                return view("clientInforPppoe", ["pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
             } else {
                 session()->flash("error_clients", "Invalid Assignment!!");
                 return redirect("/Clients");
@@ -4692,7 +4700,7 @@ class Clients extends Controller
     }
 
     function newReports(){
-        $old_title_reports = DB::connection("mysql2")->select("SELECT report_title FROM `client_reports` GROUP BY report_title ORDER BY report_date DESC LIMIT 10;");
+        $old_title_reports = DB::connection("mysql2")->select("SELECT report_title, MAX(report_date) as latest_date FROM `client_reports` GROUP BY report_title ORDER BY latest_date DESC LIMIT 10;");
         $my_clients = DB::connection("mysql2")->select("SELECT client_id, client_name, client_account, clients_contacts FROM client_tables");
         $admin_tables = DB::connection("mysql")->select("SELECT * FROM admin_tables WHERE organization_id = ? ORDER BY admin_id DESC",[session("organization")->organization_id]);
         $index_code = $this->generate_new_report_code();
@@ -4793,7 +4801,7 @@ class Clients extends Controller
     }
 
     function viewReports($report_id){
-        $old_title_reports = DB::connection("mysql2")->select("SELECT report_title FROM `client_reports` GROUP BY report_title ORDER BY report_date DESC LIMIT 10;");
+        $old_title_reports = DB::connection("mysql2")->select("SELECT report_title, MAX(report_date) AS latest_date FROM `client_reports` GROUP BY report_title ORDER BY latest_date DESC LIMIT 10;");
         $my_clients = DB::connection("mysql2")->select("SELECT client_id, client_name, client_account, clients_contacts FROM client_tables");
         $admin_tables = DB::connection("mysql")->select("SELECT * FROM admin_tables WHERE organization_id = ? ORDER BY admin_id DESC",[session("organization")->organization_id]);
         $report_details = DB::connection("mysql2")->select("SELECT CR.*, CT.client_name, CT.client_account, AT.admin_fullname AS 'admin_reporter_fullname', ATS.admin_fullname AS 'admin_attender_fullname' FROM mikrotik_cloud.client_reports AS CR 

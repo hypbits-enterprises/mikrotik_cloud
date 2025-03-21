@@ -253,7 +253,7 @@
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                <a href="/Client-Reports" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
+                                <a href="{{url()->previous()}}" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
                                     to list</a>
                                 <div class="card-body">
                                     @if ($errors->any())
