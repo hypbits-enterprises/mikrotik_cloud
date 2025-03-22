@@ -3,7 +3,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    {{-- <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> --}}
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
     <meta name="description" content="My ISP is the number one kenyan webserver software that helps you manage and monitor your webserver.">
@@ -46,11 +46,13 @@
                 if ($priviledges[$index]->option == $name) {
                     if ($priviledges[$index]->view) {
                         return "";
+                    }else {
+                        return "d-none";
                     }
                 }
             }
         }
-        return "d-none";
+        return "";
     }
     function readOnly($priviledges,$name){
         if (isJson($priviledges)){
@@ -145,7 +147,11 @@
             <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
                 <li class="nav-item"><a href="/Dashboard"><i class="ft-home"></i><span class="menu-title" data-i18n="">Dashboard</span></a>
                 </li>
-                <li class="{{showOption($priviledges,"My Clients")}} nav-item"><a href="/Clients"><i class="ft-users"></i><span class="menu-title" data-i18n="">My Clients</span></a>
+                <li class="{{showOption($priviledges,"My Clients") == "d-none" && showOption($priviledges,"Clients Issues") == "d-none" ? "d-none" : ""}} nav-item has-sub"><a href="#"><i class="ft-users"></i><span class="menu-title" data-i18n="">Clients</span></a>
+                    <ul class="menu-content" style="">
+                        <li class="{{showOption($priviledges,"My Clients")}} nav-item"><a href="/Clients"><span><i class="ft-user"></i> My Clients</span></a></li>
+                        <li class="{{showOption($priviledges,"Clients Issues")}} nav-item"><a href="/Client-Reports"><i class="ft-flag"></i> Client Issues</a></li>
+                    </ul>
                 </li>
                 <li class="{{(showOption($priviledges,"Transactions") == "d-none" && showOption($priviledges,"Expenses") == "d-none") ? "d-none" : ""}} nav-item has-sub"><a href="#"><i class="ft-activity"></i><span class="menu-title" data-i18n="">Accounts</span></a>
                     <ul class="menu-content" style="">
@@ -242,7 +248,7 @@
                                                 <input type="password" name="admin_password" id="admin_password" class="form-control rounded-lg p-1" placeholder="Administrator password" required >
                                             </div>
                                         </div>
-                                        <input type="hidden" name="privileges" id="privileged" value="[{&quot;option&quot;:&quot;My Clients&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Transactions&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Expenses&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;My Routers&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;SMS&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Account and Profile&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false}]">
+                                        <input type="hidden" name="privileges" id="privileged" value="[{&quot;option&quot;:&quot;My Clients&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Transactions&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Expenses&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;My Routers&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;SMS&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Account and Profile&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Clients Issues&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false}]">
                                         {{-- <input type="hidden" name="privileges" id="privileged"> --}}
                                         <div class="container my-2">
                                             <h6 class="text-center">Assign Administrator Privileges</h6>
@@ -258,16 +264,26 @@
                                                     </thead>
                                                     <tbody>
                                                         <tr>
-                                                            <th scope="row">1</th>
+                                                            <th rowspan="3" scope="row">1</th>
+                                                            <td><label for="my_clients_option" class="form-label"><b>Clients</b></label></td>
+                                                            <td><input class="" type="checkbox" checked id="clients_option_view"></td>
+                                                            <td><input class="" type="checkbox"  id="clients_option_readonly"></td>
+                                                        </tr>
+                                                        <tr>
                                                             <td><label for="my_clients_option" class="form-label"><b>My Clients</b></label></td>
-                                                            <td><input class="all_view" checked type="checkbox" id="my_clients_option_view"></td>
-                                                            <td><input class="all_readonly" type="checkbox" id="my_clients_option_readonly"></td>
+                                                            <td><input class="all_view client_options" checked type="checkbox" id="my_clients_option_view"></td>
+                                                            <td><input class="all_readonly client_options_2"  type="checkbox" id="my_clients_option_readonly"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><label for="my_clients_option" class="form-label"><b>Clients Issues</b></label></td>
+                                                            <td><input class="all_view client_options" checked type="checkbox" id="clients_issues_view"></td>
+                                                            <td><input class="all_readonly client_options_2" type="checkbox" id="clients_issues_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <th rowspan="3" scope="row">2</th>
                                                             <td ><label for="my_clients_option" class="form-label"><b>Accounts</b></label></td>
-                                                            <td><input class="all_view" checked type="checkbox" id="accounts_option_view"></td>
-                                                            <td><input class="all_readonly"  type="checkbox" id="accounts_option_readonly"></td>
+                                                            <td><input class="" checked type="checkbox" id="accounts_option_view"></td>
+                                                            <td><input class=""  type="checkbox" id="accounts_option_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <td ><label for="my_clients_option" class="form-label"><b><i>Transactions</i></b></label></td>

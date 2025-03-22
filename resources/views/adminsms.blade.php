@@ -4,7 +4,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    {{-- <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> --}}
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
     <meta name="description" content="My ISP is the number one kenyan webserver software that helps you manage and monitor your webserver.">
     <meta name="keywords" content="admin template, Client template, dashboard template, gradient admin template, responsive client template, webapp, eCommerce dashboard, analytic dashboard">
@@ -42,11 +42,13 @@
                 if ($priviledges[$index]->option == $name) {
                     if ($priviledges[$index]->view) {
                         return "";
+                    }else {
+                        return "d-none";
                     }
                 }
             }
         }
-        return "d-none";
+        return "";
     }
     function readOnly($priviledges,$name){
         if (isJson($priviledges)){
@@ -184,7 +186,11 @@
             <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
                 <li class="nav-item"><a href="/Dashboard"><i class="ft-home"></i><span class="menu-title" data-i18n="">Dashboard</span></a>
                 </li>
-                <li class="{{showOption($priviledges,"My Clients")}} nav-item"><a href="/Clients"><i class="ft-users"></i><span class="menu-title" data-i18n="">My Clients</span></a>
+                <li class="{{showOption($priviledges,"My Clients") == "d-none" && showOption($priviledges,"Clients Issues") == "d-none" ? "d-none" : ""}} nav-item has-sub"><a href="#"><i class="ft-users"></i><span class="menu-title" data-i18n="">Clients</span></a>
+                    <ul class="menu-content" style="">
+                        <li class="{{showOption($priviledges,"My Clients")}} nav-item"><a href="/Clients"><span><i class="ft-user"></i> My Clients</span></a></li>
+                        <li class="{{showOption($priviledges,"Clients Issues")}} nav-item"><a href="/Client-Reports"><i class="ft-flag"></i> Client Issues</a></li>
+                    </ul>
                 </li>
                 <li class="{{(showOption($priviledges,"Transactions") == "d-none" && showOption($priviledges,"Expenses") == "d-none") ? "d-none" : ""}} nav-item has-sub"><a href="#"><i class="ft-activity"></i><span class="menu-title" data-i18n="">Accounts</span></a>
                     <ul class="menu-content" style="">

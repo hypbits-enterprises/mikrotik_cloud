@@ -4797,6 +4797,8 @@ class Clients extends Controller
         VALUES (?,?,?,?,?,?,?,?)", [$ticket_number, $request->input("report_title"), $request->input("comments"), $client_acc_number[0]->client_id, session("Userids"), $request->input("admin_attender"), $report_date, $request->input("report_status")]);
 
         session()->flash("success", "Client report recorded successfully!");
+        $txt = ":New issue {".$ticket_number."} reported by - (".ucwords(strtolower($client_acc_number[0]->client_name))." - ".$client_acc_number[0]->client_account.") has been successfully registered! by " . session('Usernames') . "!";
+        $this->log($txt);
         return redirect("/Client-Reports");
     }
 
@@ -4860,6 +4862,8 @@ class Clients extends Controller
         $update = DB::connection("mysql2")->update("UPDATE client_reports SET report_date = ?, report_title = ?, report_description = ?, client_id = ?,  admin_attender = ? WHERE report_id = ?", 
                     [$report_date, $request->input("report_title"), $request->input("comments"), $client_acc_number[0]->client_id, $request->input("admin_attender"), $request->input("report_id")]);
 
+        $txt = ":Issue {".$reports[0]->report_code."} reported by client - (".ucwords(strtolower($client_acc_number[0]->client_name))." - ".$client_acc_number[0]->client_account.") has been updated successfully! by " . session('Usernames') . "!";
+        $this->log($txt);
         session()->flash("success", "Data updated successfully!");
         return redirect()->back();
     }
@@ -4873,9 +4877,19 @@ class Clients extends Controller
         // get the report status
         $report = DB::connection("mysql2")->select("SELECT * FROM client_reports WHERE report_id = ?",[$report_id]);
         if (count($report)) {
+            // check if its a valid client
+            $client_acc_number = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE client_id = ?", [$report[0]->client_id]);
+            if (count($client_acc_number) == 0) {
+                session()->flash("error", "Client account number is invalid!");
+                return redirect()->back();
+            }
+
+            // date resolved
             $date_resolved = $report_status == "cleared" ? date("Ymd", strtotime($resolve_date))."".date("His", strtotime($resolve_time)) : null;
             $update = DB::connection("mysql2")->update("UPDATE client_reports SET status = ?, resolve_time = ?, admin_attender = ? WHERE report_id = ?", [$report_status, $date_resolved, $admin_attender, $report_id]);
             session()->flash("success", "Status updated successfully!");
+            $txt = ":Issue {".$report[0]->report_code."} reported by Client - (".ucwords(strtolower($client_acc_number[0]->client_name))." - ".$client_acc_number[0]->client_account.") status has been updated successfully! by " . session('Usernames') . "!";
+            $this->log($txt);
         }else{
             session()->flash("error", "Invalid report!");
         }
@@ -4888,6 +4902,12 @@ class Clients extends Controller
         if (count($report)) {
             $update = DB::connection("mysql2")->update("DELETE FROM client_reports WHERE report_id = ?", [$report_id]);
             session()->flash("success", "Delete report successfully!");
+
+            // check if its a valid client
+            $client_acc_number = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE client_id = ?", [$report[0]->client_id]);
+
+            $txt = ":Issue {".$report[0]->report_code."} reported by Client - (".ucwords(strtolower(count($client_acc_number) > 0 ? $client_acc_number[0]->client_name : "Null")).") has been deleted successfully! by " . session('Usernames') . "!";
+            $this->log($txt);
         }else{
             session()->flash("error", "Invalid report!");
         }

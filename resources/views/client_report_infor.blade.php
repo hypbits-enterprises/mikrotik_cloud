@@ -87,12 +87,15 @@
                 if ($priviledges[$index]->option == $name) {
                     if ($priviledges[$index]->view) {
                         return "";
+                    }else {
+                        return "d-none";
                     }
                 }
             }
         }
-        return "d-none";
+        return "";
     }
+
     function readOnly($priviledges,$name){
         if (isJson($priviledges)){
             $priviledges = json_decode($priviledges);
@@ -191,8 +194,11 @@
                 <li class="nav-item"><a href="/Dashboard"><i class="ft-home"></i><span
                             class="menu-title" data-i18n="">Dashboard</span></a>
                 </li>
-                <li class="{{showOption($priviledges,"My Clients")}} active"><a href="/Clients"><i class="ft-users"></i><span class="menu-title"
-                            data-i18n="">My Clients</span></a>
+                <li class="{{showOption($priviledges,"My Clients") == "d-none" && showOption($priviledges,"Clients Issues") == "d-none" ? "d-none" : ""}} open active nav-item has-sub"><a href="#"><i class="ft-users"></i><span class="menu-title" data-i18n="">Clients</span></a>
+                    <ul class="menu-content" style="">
+                        <li class="{{showOption($priviledges,"My Clients")}} nav-item"><a href="/Clients"><span><i class="ft-user"></i> My Clients</span></a></li>
+                        <li class="{{showOption($priviledges,"Clients Issues")}} active nav-item"><a href="/Client-Reports"><i class="ft-flag"></i> Client Issues</a></li>
+                    </ul>
                 </li>
                 <li class="{{(showOption($priviledges,"Transactions") == "d-none" && showOption($priviledges,"Expenses") == "d-none") ? "d-none" : ""}} nav-item has-sub"><a href="#"><i class="ft-activity"></i><span class="menu-title" data-i18n="">Accounts</span></a>
                     <ul class="menu-content" style="">
@@ -288,7 +294,7 @@
                                                                     <select name="report_status" id="report_status" class="form-control" required>
                                                                         <option hidden>Select Report Status</option>
                                                                         <option {{session('report_status') ? (session('report_status') == 'pending' ? 'selected' : '') : ($report_details->status == "pending" ? 'selected' : '')}} value="pending">Pending</option>
-                                                                        <option {{session('report_status') ? (session('report_status') == 'cleared' ? 'selected' : '') : ($report_details->status == "cleared" ? 'selected' : '')}} value="cleared">Cleared</option>
+                                                                        <option {{session('report_status') ? (session('report_status') == 'cleared' ? 'selected' : '') : ($report_details->status == "cleared" ? 'selected' : '')}} value="cleared">Resolved</option>
                                                                     </select>
                                                                 </div>
                                                                 <div class="form-group" id="hide_the_technician_field">
@@ -367,7 +373,7 @@
                                                             @if ($report_details->status == "pending")
                                                                 <span class="badge text-light bg-danger text-dark" data-toggle="tooltip" title="" data-original-title="Pending!">Pending</span>
                                                             @else
-                                                                <span class="badge text-light bg-success text-dark" data-toggle="tooltip" title="" data-original-title="Cleared!">Cleared</span>
+                                                                <span class="badge text-light bg-success text-dark" data-toggle="tooltip" title="" data-original-title="Resolved!">Resolved</span>
                                                             @endif
                                                             <button class="btn btn-sm btn-outline-success" id="change_status" type="button"><i class="ft-refresh"></i> Change Status</button>
                                                             {{-- <a href="/Client-Reports/View/Change-Status/{{$report_details->report_id}}" data-toggle="tooltip" title="" data-original-title="Click me to change status!" class="btn btn-sm btn-outline-success">Change Status</a> --}}

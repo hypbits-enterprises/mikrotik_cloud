@@ -50,11 +50,13 @@
                 if ($priviledges[$index]->option == $name) {
                     if ($priviledges[$index]->view) {
                         return "";
+                    }else {
+                        return "d-none";
                     }
                 }
             }
         }
-        return "d-none";
+        return "";
     }
     function readOnly($priviledges,$name){
         if (isJson($priviledges)){
@@ -70,7 +72,7 @@
         return "";
     }
     // get the readonly value
-    $readonly = readOnly($priviledges,"Transactions");
+    $readonly = readOnly($priviledges,"Clients Issues");
 
     function isJson($string) {
         return ((is_string($string) &&
@@ -197,8 +199,11 @@
                 <li class="nav-item"><a href="/Dashboard"><i class="ft-home"></i><span
                             class="menu-title" data-i18n="">Dashboard</span></a>
                 </li>
-                <li class="{{showOption($priviledges,"My Clients")}} nav-item active"><a href="/Clients"><i class="ft-users"></i><span class="menu-title"
-                            data-i18n="">My Clients</span></a>
+                <li class="{{showOption($priviledges,"My Clients") == "d-none" && showOption($priviledges,"Clients Issues") == "d-none" ? "d-none" : ""}} active open nav-item has-sub"><a href="#"><i class="ft-users"></i><span class="menu-title" data-i18n="">Clients</span></a>
+                    <ul class="menu-content" style="">
+                        <li class="{{showOption($priviledges,"My Clients")}} nav-item"><a href="/Clients"><span><i class="ft-user"></i> My Clients</span></a></li>
+                        <li class="{{showOption($priviledges,"Clients Issues")}} nav-item active"><a href="/Client-Reports"><i class="ft-flag"></i> Client Issues</a></li>
+                    </ul>
                 </li>
                 <li class="{{(showOption($priviledges,"Transactions") == "d-none" && showOption($priviledges,"Expenses") == "d-none") ? "d-none" : ""}} has-sub"><a href="#"><i class="ft-activity"></i><span class="menu-title" data-i18n="">Accounts</span></a>
                     <ul class="menu-content" style="">
@@ -263,7 +268,6 @@
                                 <span data-toggle="tooltip" title="Transaction Reports" class="btn btn-info d-none" id="transaction_reports_btn"><i class="ft-download"></i> Download Reports</span>
                             </div>
                             <div class="card-content collapse show">
-                                <a href="/Clients" class="btn btn-infor text-purple"><i class="fas fa-arrow-left"></i> Back to My Clients</a>
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-12 border border-primary rounded p-1 hide" id="show_generate_reports_window">

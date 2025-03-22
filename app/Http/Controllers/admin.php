@@ -175,6 +175,7 @@ class admin extends Controller
         return view("addadmin",["username" => $username, "admin_data" => $admin_data, "dates" => $date]);
     }
     function addAdministrator(Request $req){
+        // return json_decode($req->input("privileges"));
         // change db
         $change_db = new login();
         $change_db->change_db();
@@ -202,6 +203,7 @@ class admin extends Controller
             $admin_table->contacts = $client_address;
             $admin_table->organization_id = session("organization_id");
             $admin_table->user_status = "1";
+            $admin_table->activated = "1";
             $admin_table->priviledges = $privileges;
             $admin_table->save();
                 
@@ -374,6 +376,7 @@ class admin extends Controller
     }
 
     function updateAdmin(Request $req){
+        // return json_decode($req->input("privileges"));
         // change db
         $change_db = new login();
         $change_db->change_db();

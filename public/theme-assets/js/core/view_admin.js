@@ -8,7 +8,7 @@ function stopInterval(id) {
 
 window.onload = function () {
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
 }
 
@@ -63,6 +63,70 @@ function checkChecked() {
     }
 }
 
+cObj("clients_issues_view").onchange = function () {
+    var privileged = cObj("privileged").value;
+    if (hasJsonStructure(privileged)) {
+        privileged = JSON.parse(privileged);
+
+        // loop through the privileged to add the change or change if present
+        var present = 0;
+        var readonly = cObj("clients_issues_readonly").checked;
+        var your_data = {option:"Clients Issues",view:this.checked,readonly:readonly};
+        for (let index = 0; index < privileged.length; index++) {
+            const element = privileged[index];
+            if (element.option == "Clients Issues") {
+                privileged[index] = your_data;
+                present=1;
+            }
+        }
+        if (present == 0) {
+            privileged.push(your_data);
+        }
+        cObj("privileged").value = JSON.stringify(privileged);
+    }else{
+        var privileges = [];
+        var readonly = cObj("clients_issues_readonly").checked;
+        var your_data = {option:"Clients Issues",view:this.checked,readonly:readonly};
+        privileges.push(your_data);
+        cObj("privileged").value = JSON.stringify(privileges);
+    }
+    account_options();
+    client_options();
+    checkChecked();
+}
+
+cObj("clients_issues_readonly").onchange = function () {
+    var privileged = cObj("privileged").value;
+    if (hasJsonStructure(privileged)) {
+        privileged = JSON.parse(privileged);
+
+        // loop through the privileged to add the change or change if present
+        var present = 0;
+        var view = cObj("clients_issues_view").checked;
+        var your_data = {option:"Clients Issues",view:view,readonly:this.checked};
+        for (let index = 0; index < privileged.length; index++) {
+            const element = privileged[index];
+            if (element.option == "Clients Issues") {
+                privileged[index] = your_data;
+                present=1;
+            }
+        }
+        if (present == 0) {
+            privileged.push(your_data);
+        }
+        cObj("privileged").value = JSON.stringify(privileged);
+    }else{
+        var privileges = [];
+        var view = cObj("clients_issues_view").checked;
+        var your_data = {option:"Clients Issues",view:view,readonly:this.checked};
+        privileges.push(your_data);
+        cObj("privileged").value = JSON.stringify(privileges);
+    }
+    account_options();
+    client_options();
+    checkChecked();
+}
+
 cObj("my_clients_option_view").onchange = function () {
     var privileged = cObj("privileged").value;
     if (hasJsonStructure(privileged)) {
@@ -70,7 +134,7 @@ cObj("my_clients_option_view").onchange = function () {
 
         // loop through the privileged to add the change or change if present
         var present = 0;
-        var readonly = cObj("my_clients_option_readonly").checked == true ? true : false;
+        var readonly = cObj("my_clients_option_readonly").checked;
         var your_data = {option:"My Clients",view:this.checked,readonly:readonly};
         for (let index = 0; index < privileged.length; index++) {
             const element = privileged[index];
@@ -85,13 +149,13 @@ cObj("my_clients_option_view").onchange = function () {
         cObj("privileged").value = JSON.stringify(privileged);
     }else{
         var privileges = [];
-        var readonly = cObj("my_clients_option_readonly").checked == true ? true : false;
+        var readonly = cObj("my_clients_option_readonly").checked;
         var your_data = {option:"My Clients",view:this.checked,readonly:readonly};
         privileges.push(your_data);
         cObj("privileged").value = JSON.stringify(privileges);
     }
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
 }
 
@@ -102,7 +166,7 @@ cObj("my_clients_option_readonly").onchange = function () {
 
         // loop through the privileged to add the change or change if present
         var present = 0;
-        var view = cObj("my_clients_option_view").checked == true ? true : false;
+        var view = cObj("my_clients_option_view").checked;
         var your_data = {option:"My Clients",view:view,readonly:this.checked};
         for (let index = 0; index < privileged.length; index++) {
             const element = privileged[index];
@@ -117,13 +181,13 @@ cObj("my_clients_option_readonly").onchange = function () {
         cObj("privileged").value = JSON.stringify(privileged);
     }else{
         var privileges = [];
-        var view = cObj("my_clients_option_view").checked == true ? true : false;
+        var view = cObj("my_clients_option_view").checked;
         var your_data = {option:"My Clients",view:view,readonly:this.checked};
         privileges.push(your_data);
         cObj("privileged").value = JSON.stringify(privileges);
     }
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
 }
 
@@ -134,7 +198,7 @@ cObj("transactions_option_view").onchange = function () {
 
         // loop through the privileged to add the change or change if present
         var present = 0;
-        var readonly = cObj("transactions_option_readonly").checked == true ? true : false;
+        var readonly = cObj("transactions_option_readonly").checked;
         var your_data = {option:"Transactions",view:this.checked,readonly:readonly};
         for (let index = 0; index < privileged.length; index++) {
             const element = privileged[index];
@@ -149,13 +213,13 @@ cObj("transactions_option_view").onchange = function () {
         cObj("privileged").value = JSON.stringify(privileged);
     }else{
         var privileges = [];
-        var readonly = cObj("transactions_option_readonly").checked == true ? true : false;
+        var readonly = cObj("transactions_option_readonly").checked;
         var your_data = {option:"Transactions",view:this.checked,readonly:readonly};
         privileges.push(your_data);
         cObj("privileged").value = JSON.stringify(privileges);
     }
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
 }
 
@@ -166,7 +230,7 @@ cObj("transactions_option_readonly").onchange = function () {
 
         // loop through the privileged to add the change or change if present
         var present = 0;
-        var view = cObj("transactions_option_view").checked == true ? true : false;
+        var view = cObj("transactions_option_view").checked;
         var your_data = {option:"Transactions",view:view,readonly:this.checked};
         for (let index = 0; index < privileged.length; index++) {
             const element = privileged[index];
@@ -181,13 +245,13 @@ cObj("transactions_option_readonly").onchange = function () {
         cObj("privileged").value = JSON.stringify(privileged);
     }else{
         var privileges = [];
-        var view = cObj("transactions_option_view").checked == true ? true : false;
+        var view = cObj("transactions_option_view").checked;
         var your_data = {option:"Transactions",view:view,readonly:this.checked};
         privileges.push(your_data);
         cObj("privileged").value = JSON.stringify(privileges);
     }
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
 }
 
@@ -198,7 +262,7 @@ cObj("expenses_option_view").onchange = function () {
 
         // loop through the privileged to add the change or change if present
         var present = 0;
-        var readonly = cObj("expenses_option_readonly").checked == true ? true : false;
+        var readonly = cObj("expenses_option_readonly").checked;
         var your_data = {option:"Expenses",view:this.checked,readonly:readonly};
         for (let index = 0; index < privileged.length; index++) {
             const element = privileged[index];
@@ -213,13 +277,13 @@ cObj("expenses_option_view").onchange = function () {
         cObj("privileged").value = JSON.stringify(privileged);
     }else{
         var privileges = [];
-        var readonly = cObj("expenses_option_readonly").checked == true ? true : false;
+        var readonly = cObj("expenses_option_readonly").checked;
         var your_data = {option:"Expenses",view:this.checked,readonly:readonly};
         privileges.push(your_data);
         cObj("privileged").value = JSON.stringify(privileges);
     }
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
 }
 
@@ -230,7 +294,7 @@ cObj("expenses_option_readonly").onchange = function () {
 
         // loop through the privileged to add the change or change if present
         var present = 0;
-        var view = cObj("expenses_option_view").checked == true ? true : false;
+        var view = cObj("expenses_option_view").checked;
         var your_data = {option:"Expenses",view:view,readonly:this.checked};
         for (let index = 0; index < privileged.length; index++) {
             const element = privileged[index];
@@ -245,13 +309,13 @@ cObj("expenses_option_readonly").onchange = function () {
         cObj("privileged").value = JSON.stringify(privileged);
     }else{
         var privileges = [];
-        var view = cObj("expenses_option_view").checked == true ? true : false;
+        var view = cObj("expenses_option_view").checked;
         var your_data = {option:"Expenses",view:view,readonly:this.checked};
         privileges.push(your_data);
         cObj("privileged").value = JSON.stringify(privileges);
     }
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
 }
 
@@ -262,7 +326,7 @@ cObj("my_routers_option_view").onchange = function () {
 
         // loop through the privileged to add the change or change if present
         var present = 0;
-        var readonly = cObj("my_routers_option_readonly").checked == true ? true : false;
+        var readonly = cObj("my_routers_option_readonly").checked;
         var your_data = {option:"My Routers",view:this.checked,readonly:readonly};
         for (let index = 0; index < privileged.length; index++) {
             const element = privileged[index];
@@ -277,13 +341,13 @@ cObj("my_routers_option_view").onchange = function () {
         cObj("privileged").value = JSON.stringify(privileged);
     }else{
         var privileges = [];
-        var readonly = cObj("my_routers_option_readonly").checked == true ? true : false;
+        var readonly = cObj("my_routers_option_readonly").checked;
         var your_data = {option:"My Routers",view:this.checked,readonly:readonly};
         privileges.push(your_data);
         cObj("privileged").value = JSON.stringify(privileges);
     }
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
 }
 
@@ -294,7 +358,7 @@ cObj("my_routers_option_readonly").onchange = function () {
 
         // loop through the privileged to add the change or change if present
         var present = 0;
-        var view = cObj("my_routers_option_view").checked == true ? true : false;
+        var view = cObj("my_routers_option_view").checked;
         var your_data = {option:"My Routers",view:view,readonly:this.checked};
         for (let index = 0; index < privileged.length; index++) {
             const element = privileged[index];
@@ -309,13 +373,13 @@ cObj("my_routers_option_readonly").onchange = function () {
         cObj("privileged").value = JSON.stringify(privileged);
     }else{
         var privileges = [];
-        var view = cObj("my_routers_option_view").checked == true ? true : false;
+        var view = cObj("my_routers_option_view").checked;
         var your_data = {option:"My Routers",view:view,readonly:this.checked};
         privileges.push(your_data);
         cObj("privileged").value = JSON.stringify(privileges);
     }
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
 }
 
@@ -326,7 +390,7 @@ cObj("sms_option_view").onchange = function () {
 
         // loop through the privileged to add the change or change if present
         var present = 0;
-        var readonly = cObj("sms_option_readonly").checked == true ? true : false;
+        var readonly = cObj("sms_option_readonly").checked;
         var your_data = {option:"SMS",view:this.checked,readonly:readonly};
         for (let index = 0; index < privileged.length; index++) {
             const element = privileged[index];
@@ -341,13 +405,13 @@ cObj("sms_option_view").onchange = function () {
         cObj("privileged").value = JSON.stringify(privileged);
     }else{
         var privileges = [];
-        var readonly = cObj("sms_option_readonly").checked == true ? true : false;
+        var readonly = cObj("sms_option_readonly").checked;
         var your_data = {option:"SMS",view:this.checked,readonly:readonly};
         privileges.push(your_data);
         cObj("privileged").value = JSON.stringify(privileges);
     }
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
 }
 
@@ -358,7 +422,7 @@ cObj("sms_option_readonly").onchange = function () {
 
         // loop through the privileged to add the change or change if present
         var present = 0;
-        var view = cObj("sms_option_view").checked == true ? true : false;
+        var view = cObj("sms_option_view").checked;
         var your_data = {option:"SMS",view:view,readonly:this.checked};
         for (let index = 0; index < privileged.length; index++) {
             const element = privileged[index];
@@ -373,13 +437,13 @@ cObj("sms_option_readonly").onchange = function () {
         cObj("privileged").value = JSON.stringify(privileged);
     }else{
         var privileges = [];
-        var view = cObj("sms_option_view").checked == true ? true : false;
+        var view = cObj("sms_option_view").checked;
         var your_data = {option:"SMS",view:view,readonly:this.checked};
         privileges.push(your_data);
         cObj("privileged").value = JSON.stringify(privileges);
     }
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
 }
 
@@ -390,7 +454,7 @@ cObj("account_profile_option_view").onchange = function () {
 
         // loop through the privileged to add the change or change if present
         var present = 0;
-        var readonly = cObj("account_profile_option_readonly").checked == true ? true : false;
+        var readonly = cObj("account_profile_option_readonly").checked;
         var your_data = {option:"Account and Profile",view:this.checked,readonly:readonly};
         for (let index = 0; index < privileged.length; index++) {
             const element = privileged[index];
@@ -405,13 +469,13 @@ cObj("account_profile_option_view").onchange = function () {
         cObj("privileged").value = JSON.stringify(privileged);
     }else{
         var privileges = [];
-        var readonly = cObj("account_profile_option_readonly").checked == true ? true : false;
+        var readonly = cObj("account_profile_option_readonly").checked;
         var your_data = {option:"Account and Profile",view:this.checked,readonly:readonly};
         privileges.push(your_data);
         cObj("privileged").value = JSON.stringify(privileges);
     }
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
 }
 
@@ -422,7 +486,7 @@ cObj("account_profile_option_readonly").onchange = function () {
 
         // loop through the privileged to add the change or change if present
         var present = 0;
-        var view = cObj("account_profile_option_view").checked == true ? true : false;
+        var view = cObj("account_profile_option_view").checked;
         var your_data = {option:"Account and Profile",view:view,readonly:this.checked};
         for (let index = 0; index < privileged.length; index++) {
             const element = privileged[index];
@@ -437,13 +501,37 @@ cObj("account_profile_option_readonly").onchange = function () {
         cObj("privileged").value = JSON.stringify(privileged);
     }else{
         var privileges = [];
-        var view = cObj("account_profile_option_view").checked == true ? true : false;
+        var view = cObj("account_profile_option_view").checked;
         var your_data = {option:"Account and Profile",view:view,readonly:this.checked};
         privileges.push(your_data);
         cObj("privileged").value = JSON.stringify(privileges);
     }
     account_options();
-    account_options_2();
+    client_options();
+    checkChecked();
+}
+
+cObj("clients_option_view").onchange = function () {
+    cObj("my_clients_option_view").checked = this.checked;
+    cObj("clients_issues_view").checked = this.checked;
+
+    cObj("my_clients_option_view").dispatchEvent(new Event("change"));
+    cObj("clients_issues_view").dispatchEvent(new Event("change"));
+
+    account_options();
+    client_options();
+    checkChecked();
+}
+
+cObj("clients_option_readonly").onchange = function () {
+    cObj("my_clients_option_readonly").checked = this.checked;
+    cObj("clients_issues_readonly").checked = this.checked;
+
+    cObj("my_clients_option_readonly").dispatchEvent(new Event("change"));
+    cObj("clients_issues_readonly").dispatchEvent(new Event("change"));
+
+    account_options();
+    client_options();
     checkChecked();
 }
 
@@ -462,9 +550,10 @@ cObj("accounts_option_view").onchange = function () {
         cObj("privileged").value = JSON.stringify(privileged);
     }
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
 }
+
 cObj("all_view").onchange = function () {
     var all_view = document.getElementsByClassName("all_view");
     for (let index = 0; index < all_view.length; index++) {
@@ -479,8 +568,9 @@ cObj("all_view").onchange = function () {
         });
         cObj("privileged").value = JSON.stringify(privileged);
     }
+
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
     
 }
@@ -503,10 +593,23 @@ cObj("all_readonly").onchange = function () {
     }
 
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
 }
 
+function validateForm() {
+    var all_view = document.getElementsByClassName("all_view");
+    for (let index = 0; index < all_view.length; index++) {
+        all_view[index].dispatchEvent(new Event("change"));
+    }
+
+    var all_readonly = document.getElementsByClassName("all_readonly");
+    for (let index = 0; index < all_readonly.length; index++) {
+        all_readonly[index].dispatchEvent(new Event("change"));
+    }
+
+    return true;
+}
 cObj("accounts_option_readonly").onchange = function () {
     var account_optioned = document.getElementsByClassName("account_options_2");
     for (let index = 0; index < account_optioned.length; index++) {
@@ -525,7 +628,7 @@ cObj("accounts_option_readonly").onchange = function () {
         cObj("privileged").value = JSON.stringify(privileged);
     }
     account_options();
-    account_options_2();
+    client_options();
     checkChecked();
 }
 
@@ -564,9 +667,8 @@ function account_options() {
         cObj("accounts_option_view").checked = false;
         cObj("accounts_option_view").indeterminate = false;
     }
-}
 
-function account_options_2() {
+
     var account_options = document.getElementsByClassName("account_options_2");
     var count = account_options.length;
     var checked = 0;
@@ -587,5 +689,54 @@ function account_options_2() {
     }else{
         cObj("accounts_option_readonly").checked = false;
         cObj("accounts_option_readonly").indeterminate = false;
+    }
+}
+
+function client_options() {
+    var client_options = document.getElementsByClassName("client_options");
+    var count = client_options.length;
+    var checked = 0;
+    for (let index = 0; index < client_options.length; index++) {
+        const element = client_options[index];
+        if (element.checked) {
+            checked++;
+        }
+    }
+
+    if (checked > 0) {
+        if (checked == count) {
+            cObj("clients_option_view").checked = true;
+            cObj("clients_option_view").indeterminate = false;
+        }else{
+            cObj("clients_option_view").checked = false;
+            cObj("clients_option_view").indeterminate = true;
+        }
+    }else{
+        cObj("clients_option_view").checked = false;
+        cObj("clients_option_view").indeterminate = false;
+    }
+
+
+    var client_options_2 = document.getElementsByClassName("client_options_2");
+    var count = client_options_2.length;
+    var checked = 0;
+    for (let index = 0; index < client_options_2.length; index++) {
+        const element = client_options_2[index];
+        if (element.checked) {
+            checked++;
+        }
+    }
+
+    if (checked > 0) {
+        if (checked == count) {
+            cObj("clients_option_readonly").checked = true;
+            cObj("clients_option_readonly").indeterminate = false;
+        }else{
+            cObj("clients_option_readonly").checked = false;
+            cObj("clients_option_readonly").indeterminate = true;
+        }
+    }else{
+        cObj("clients_option_readonly").checked = false;
+        cObj("clients_option_readonly").indeterminate = false;
     }
 }
