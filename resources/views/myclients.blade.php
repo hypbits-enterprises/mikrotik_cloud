@@ -33,6 +33,9 @@
         .hide{
             display: none;
         }
+        .tooltip-inner {
+            text-align: left !important;
+        }
     </style>
 </head>
 @php

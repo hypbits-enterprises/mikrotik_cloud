@@ -37,14 +37,21 @@ class Clients extends Controller
         $client_data = DB::connection("mysql2")->select("SELECT client_tables.*, 
         (SELECT report_title FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'latest_issue', 
         (SELECT report_description FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'report_description',
+        (SELECT problem FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'problem', 
+        (SELECT solution FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'solution', 
+        (SELECT diagnosis FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'diagnosis',
         (SELECT report_date FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'date_reported',
-        (SELECT report_id FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'ticket_number',
+        (SELECT report_code FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'ticket_number',
         (SELECT `status` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'report_status',
         (SELECT `report_id` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'report_id',
-        (SELECT router_name FROM remote_routers WHERE router_id = client_tables.router_name) AS 'router_fullname'
+        (SELECT `report_id` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'report_id',
+        (SELECT (SELECT admin_tables.admin_fullname FROM mikrotik_cloud.client_reports LEFT JOIN mikrotik_cloud_manager.admin_tables ON admin_tables.admin_id = client_reports.closed_by WHERE client_reports.report_id = CR.report_id LIMIT 1) AS admin_fullname FROM `client_reports` AS CR WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'closed_by'
          FROM `client_tables`
          WHERE `deleted` = '0' ORDER BY `client_id` DESC;");
+        //  return $client_data;
+        //  router_data
         $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
+
         // get all the clients that have been frozen
         $frozen_clients = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_freeze_status` = '1'");
         for ($index = 0; $index < count($frozen_clients); $index++) {
@@ -4689,7 +4696,7 @@ class Clients extends Controller
 
     function client_issues(){
         // get the client reports
-        $client_reports = DB::select("SELECT CR.*, CT.client_name, CT.client_account, AT.admin_fullname AS 'admin_reporter_fullname', ATS.admin_fullname AS 'admin_attender_fullname' FROM mikrotik_cloud.client_reports AS CR 
+        $client_reports = DB::connection("mysql2")->select("SELECT CR.*, CT.client_name, CT.client_account, AT.admin_fullname AS 'admin_reporter_fullname', ATS.admin_fullname AS 'admin_attender_fullname' FROM mikrotik_cloud.client_reports AS CR 
                                         LEFT JOIN mikrotik_cloud.client_tables AS CT ON CT.client_id = CR.client_id 
                                         LEFT JOIN mikrotik_cloud_manager.admin_tables AS AT ON AT.admin_id = CR.admin_reporter
                                         LEFT JOIN mikrotik_cloud_manager.admin_tables AS ATS ON ATS.admin_id = CR.admin_attender
@@ -4770,7 +4777,9 @@ class Clients extends Controller
         session()->flash("report_title", $request->input("report_title"));
         session()->flash("client_account", $request->input("client_account"));
         session()->flash("report_date", $request->input("report_date"));
-        session()->flash("comments", $request->input("comments"));
+        session()->flash("comment", $request->input("comment"));
+        session()->flash("problem", $request->input("problem"));
+        session()->flash("diagnosis", $request->input("diagnosis"));
         session()->flash("admin_attender", $request->input("admin_attender"));
         session()->flash("report_status", $request->input("report_status"));
 
@@ -4793,8 +4802,8 @@ class Clients extends Controller
         $report_date = date("Ymd", strtotime($request->input("report_date"))).date("His");
         $ticket_number = $request->input("ticket_number");
 
-        $insert = DB::connection("mysql2")->insert("INSERT INTO client_reports (`report_code`, `report_title`, `report_description`, `client_id`, `admin_reporter`, `admin_attender`, `report_date`, `status`) 
-        VALUES (?,?,?,?,?,?,?,?)", [$ticket_number, $request->input("report_title"), $request->input("comments"), $client_acc_number[0]->client_id, session("Userids"), $request->input("admin_attender"), $report_date, $request->input("report_status")]);
+        $insert = DB::connection("mysql2")->insert("INSERT INTO client_reports (`report_code`, `report_title`, `report_description`, `client_id`, `admin_reporter`, `admin_attender`, `report_date`, `status`, problem, diagnosis)
+        VALUES (?,?,?,?,?,?,?,?,?,?)", [$ticket_number, $request->input("report_title"), $request->input("comment"), $client_acc_number[0]->client_id, session("Userids"), $request->input("admin_attender"), $report_date, $request->input("report_status"), $request->input("problem"), $request->input("diagnosis")]);
 
         session()->flash("success", "Client report recorded successfully!");
         $txt = ":New issue {".$ticket_number."} reported by - (".ucwords(strtolower($client_acc_number[0]->client_name))." - ".$client_acc_number[0]->client_account.") has been successfully registered! by " . session('Usernames') . "!";
@@ -4806,12 +4815,13 @@ class Clients extends Controller
         $old_title_reports = DB::connection("mysql2")->select("SELECT report_title, MAX(report_date) AS latest_date FROM `client_reports` GROUP BY report_title ORDER BY latest_date DESC LIMIT 10;");
         $my_clients = DB::connection("mysql2")->select("SELECT client_id, client_name, client_account, clients_contacts FROM client_tables");
         $admin_tables = DB::connection("mysql")->select("SELECT * FROM admin_tables WHERE organization_id = ? ORDER BY admin_id DESC",[session("organization")->organization_id]);
-        $report_details = DB::connection("mysql2")->select("SELECT CR.*, CT.client_name, CT.client_account, AT.admin_fullname AS 'admin_reporter_fullname', ATS.admin_fullname AS 'admin_attender_fullname' FROM mikrotik_cloud.client_reports AS CR 
+        $report_details = DB::connection("mysql2")->select("SELECT CR.*, CT.client_name, CT.client_account, AT.admin_fullname AS 'admin_reporter_fullname', ATS.admin_fullname AS 'admin_attender_fullname', ATS_1.admin_fullname AS 'closed_by' FROM mikrotik_cloud.client_reports AS CR 
                         LEFT JOIN mikrotik_cloud.client_tables AS CT ON CT.client_id = CR.client_id 
                         LEFT JOIN mikrotik_cloud_manager.admin_tables AS AT ON AT.admin_id = CR.admin_reporter
+                        LEFT JOIN mikrotik_cloud_manager.admin_tables AS ATS_1 ON ATS_1.admin_id = CR.closed_by
                         LEFT JOIN mikrotik_cloud_manager.admin_tables AS ATS ON ATS.admin_id = CR.admin_attender WHERE CR.report_id = ?
                         ORDER BY CR.report_date DESC;", [$report_id]);
-                        
+                                       
         if (count($report_details) == 0) {
             session()->flash("error", "Invalid report, try again!");
             return redirect()->back();
@@ -4830,7 +4840,7 @@ class Clients extends Controller
             session()->flash("report_title", $request->input("report_title"));
             session()->flash("client_account", $request->input("client_account"));
             session()->flash("report_date", $request->input("report_date"));
-            session()->flash("comments", $request->input("comments"));
+            session()->flash("comment", $request->input("comment"));
             session()->flash("admin_attender", $request->input("admin_attender"));
             session()->flash("report_status", $request->input("report_status"));
 
@@ -4851,7 +4861,7 @@ class Clients extends Controller
             session()->flash("report_title", $request->input("report_title"));
             session()->flash("client_account", $request->input("client_account"));
             session()->flash("report_date", $request->input("report_date"));
-            session()->flash("comments", $request->input("comments"));
+            session()->flash("comment", $request->input("comment"));
             session()->flash("admin_attender", $request->input("admin_attender"));
             session()->flash("report_status", $request->input("report_status"));
             session()->flash("error", "Invalid recording admin!");
@@ -4860,7 +4870,7 @@ class Clients extends Controller
 
         $report_date = date("Ymd", strtotime($request->input("report_date")))."".date("His", strtotime($reports[0]->report_date));
         $update = DB::connection("mysql2")->update("UPDATE client_reports SET report_date = ?, report_title = ?, report_description = ?, client_id = ?,  admin_attender = ? WHERE report_id = ?", 
-                    [$report_date, $request->input("report_title"), $request->input("comments"), $client_acc_number[0]->client_id, $request->input("admin_attender"), $request->input("report_id")]);
+                    [$report_date, $request->input("report_title"), $request->input("comment"), $client_acc_number[0]->client_id, $request->input("admin_attender"), $request->input("report_id")]);
 
         $txt = ":Issue {".$reports[0]->report_code."} reported by client - (".ucwords(strtolower($client_acc_number[0]->client_name))." - ".$client_acc_number[0]->client_account.") has been updated successfully! by " . session('Usernames') . "!";
         $this->log($txt);
@@ -4874,6 +4884,7 @@ class Clients extends Controller
         $admin_attender = $request->input("admin_attender");
         $resolve_date = $request->input("resolve_date");
         $resolve_time = $request->input("resolve_time");
+        $solution = $request->input("solution");
         // get the report status
         $report = DB::connection("mysql2")->select("SELECT * FROM client_reports WHERE report_id = ?",[$report_id]);
         if (count($report)) {
@@ -4885,8 +4896,9 @@ class Clients extends Controller
             }
 
             // date resolved
+            $admin_id = $report_status == "cleared" ? session("Userids") : null;
             $date_resolved = $report_status == "cleared" ? date("Ymd", strtotime($resolve_date))."".date("His", strtotime($resolve_time)) : null;
-            $update = DB::connection("mysql2")->update("UPDATE client_reports SET status = ?, resolve_time = ?, admin_attender = ? WHERE report_id = ?", [$report_status, $date_resolved, $admin_attender, $report_id]);
+            $update = DB::connection("mysql2")->update("UPDATE client_reports SET `status` = ?, `resolve_time` = ?, `admin_attender` = ?, `solution` = ?, `closed_by` = ? WHERE `report_id` = ?", [$report_status, $date_resolved, $admin_attender, $solution, $admin_id, $report_id]);
             session()->flash("success", "Status updated successfully!");
             $txt = ":Issue {".$report[0]->report_code."} reported by Client - (".ucwords(strtolower($client_acc_number[0]->client_name))." - ".$client_acc_number[0]->client_account.") status has been updated successfully! by " . session('Usernames') . "!";
             $this->log($txt);

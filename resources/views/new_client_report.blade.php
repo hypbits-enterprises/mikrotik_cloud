@@ -39,7 +39,7 @@
     .autocomplete {
         position: relative;
         display: inline-block;
-        width: 100%
+        width: 100%;
     }
 
     .autocomplete-items {
@@ -52,6 +52,8 @@
         top: 100%;
         left: 0;
         right: 0;
+        max-height: 350; /* Set the maximum height */
+        overflow-y: auto; /* Enable vertical scrolling */
     }
 
     .autocomplete-items div {
@@ -313,26 +315,23 @@
                                             </div>
                                             <div class="col-md-12 mt-1">
                                                 <label for="client_address"
-                                                    class="form-control-label"><b>Report Description:</b></label>
-                                                <textarea name="comments" id="comments" cols="30" rows="3" class="form-control"
-                                                    placeholder="e.g., The client`s tenda router was faulty">{{ session('comments') ? session('comments') : '' }}</textarea>
+                                                    class="form-control-label"><b>Problem:</b></label>
+                                                <textarea name="problem" id="problem" cols="30" rows="3" class="form-control"
+                                                    placeholder="e.g., The client`s tenda router was faulty">{{ session('problem') ? session('problem') : '' }}</textarea>
                                             </div>
-                                            <div class="col-md-4 mt-1">
-                                                <label for="admin_attender" class="form-control-label"><b>Resolved By (Technician):</b></label>
-                                                <div class="autocomplete">
-                                                    <input type="text" name="admin_attender" id="admin_attender"
-                                                        class="form-control rounded-lg p-1"
-                                                        placeholder="Type technician name:"
-                                                        value="{{ session('admin_attender') ? session('admin_attender') : '' }}">
-                                                </div>
+                                            <div class="col-md-12 mt-1">
+                                                <label for="client_address"
+                                                    class="form-control-label"><b> Diagnosis:</b></label>
+                                                <textarea name="diagnosis" id="diagnosis" cols="30" rows="3" class="form-control"
+                                                    placeholder="e.g., Router is unreachable...">{{ session('diagnosis') ? session('diagnosis') : '' }}</textarea>
                                             </div>
-                                            <div class="col-md-4 mt-1">
-                                                <label for="report_status" class="form-control-label"><b>Report Status</b></label>
-                                                <select name="report_status" id="report_status" class="form-control" required>
-                                                    <option hidden>Select Report Status</option>
-                                                    <option {{session('report_status') ? (session('report_status') == 'pending' ? 'selected' : '') : ''}} value="pending">Pending</option>
-                                                    <option {{session('report_status') ? (session('report_status') == 'cleared' ? 'selected' : '') : ''}} value="cleared">Resolved</option>
-                                                </select>
+                                            <div class="col-md-12 mt-1">
+                                                <input type="hidden" name="report_status" value="pending">
+                                                <input type="hidden" name="admin_attender" value="">
+                                                <label for="client_address"
+                                                    class="form-control-label"><b> Comment:</b></label>
+                                                <textarea name="comment" id="comment" cols="30" rows="3" class="form-control"
+                                                    placeholder="e.g., To be attended to by technician tommorrow">{{ session('comment') ? session('comment') : '' }}</textarea>
                                             </div>
                                         </div>
                                         <div class="row mt-2">
@@ -404,7 +403,7 @@
             const element = admin_tables[index];
             attendees.push(element['admin_fullname']);
         }
-        autocomplete1(document.getElementById("admin_attender"), attendees);
+        // autocomplete1(document.getElementById("admin_attender"), attendees);
 
 
         function autocomplete(inp, arr, arr2, arr3) {
@@ -507,6 +506,9 @@
                 if (currentFocus < 0) currentFocus = (x.length - 1);
                 /*add class "autocomplete-active":*/
                 x[currentFocus].classList.add("autocomplete-active");
+
+                // Scroll the active item into view
+                x[currentFocus].scrollIntoView({ block: "nearest", behavior: "smooth" });
             }
 
             function removeActive(x) {

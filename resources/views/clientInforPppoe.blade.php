@@ -98,6 +98,8 @@
         top: 100%;
         left: 0;
         right: 0;
+        max-height: 350; /* Set the maximum height */
+        overflow-y: auto; /* Enable vertical scrolling */
     }
 
     .autocomplete-items div {

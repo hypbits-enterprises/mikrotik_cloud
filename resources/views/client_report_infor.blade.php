@@ -55,6 +55,8 @@
         top: 100%;
         left: 0;
         right: 0;
+        max-height: 350; /* Set the maximum height */
+        overflow-y: auto; /* Enable vertical scrolling */
     }
 
     .autocomplete-items div {
@@ -110,7 +112,7 @@
         return "";
     }
     // get the readonly value
-    $readonly = readOnly($priviledges,"My Clients");
+    $readonly = readOnly($priviledges,"Clients Issues");
 
     function isJson($string) {
         return ((is_string($string) &&
@@ -259,7 +261,7 @@
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                <a href="{{url()->previous()}}" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
+                                <a href="/Client-Reports" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
                                     to list</a>
                                 <div class="card-body">
                                     @if ($errors->any())
@@ -306,26 +308,34 @@
                                                                             value="{{ session('admin_attender') ? session('admin_attender') : $report_details->admin_attender}}">
                                                                     </div>
                                                                 </div>
-                                                                <div class="form-group">
-                                                                    <label for="resolve_date" class="form-control-label"><b>Resolved Date</b></label>
-                                                                    <div class="autocomplete">
-                                                                        <input type="date" name="resolve_date" id="resolve_date"
-                                                                            class="form-control rounded-lg p-1"
-                                                                            placeholder="Resolved By" required
-                                                                            value="{{ session('resolve_date') ? session('resolve_date') : ($report_details->resolve_time != null ? date("Y-m-d", strtotime($report_details->resolve_time)) : date("Y-m-d"))}}">
+                                                                <div class="row">
+                                                                    <div class="form-group col-md-6">
+                                                                        <label for="resolve_date" class="form-control-label"><b>Resolved Date</b></label>
+                                                                        <div class="autocomplete">
+                                                                            <input type="date" name="resolve_date" id="resolve_date"
+                                                                                class="form-control rounded-lg p-1"
+                                                                                placeholder="Resolved By" required
+                                                                                value="{{ session('resolve_date') ? session('resolve_date') : ($report_details->resolve_time != null ? date("Y-m-d", strtotime($report_details->resolve_time)) : date("Y-m-d"))}}">
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                                <div class="form-group">
-                                                                    <label for="resolve_time" class="form-control-label"><b>Resolved Time</b></label>
-                                                                    <div class="autocomplete">
-                                                                        <input type="time" name="resolve_time" id="resolve_time"
-                                                                            class="form-control rounded-lg p-1"
-                                                                            placeholder="Resolved By" required
-                                                                            value="{{ session('resolve_time') ? session('resolve_time') : ($report_details->resolve_time != null ? date("H:i", strtotime($report_details->resolve_time)) : date("H:i"))}}">
+                                                                    <div class="form-group col-md-6">
+                                                                        <label for="resolve_time" class="form-control-label"><b>Resolved Time</b></label>
+                                                                        <div class="autocomplete">
+                                                                            <input type="time" name="resolve_time" id="resolve_time"
+                                                                                class="form-control rounded-lg p-1"
+                                                                                placeholder="Resolved By" required
+                                                                                value="{{ session('resolve_time') ? session('resolve_time') : ($report_details->resolve_time != null ? date("H:i", strtotime($report_details->resolve_time)) : date("H:i"))}}">
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-md-12 mb-1">
+                                                                        <label for="client_address"
+                                                                            class="form-control-label"><b>Solution:</b></label>
+                                                                        <textarea name="solution" id="solution" cols="30" rows="3" class="form-control"
+                                                                            placeholder="e.g., The client`s tenda router was faulty">{{ session('solution') ? session('solution') : $report_details->solution }}</textarea>
                                                                     </div>
                                                                 </div>
                                                                 <div class="container">
-                                                                    <button class="btn btn-success btn-sm" type="submit"><i class="ft-save"></i> Save</button>
+                                                                    <button class="btn btn-success btn-sm {{$readonly}}" type="submit"><i class="ft-save"></i> Save</button>
                                                                 </div>
                                                             </form>
                                                         </div>
@@ -360,12 +370,16 @@
                                                         <td class="px-1">{{$report_details->resolve_time ? date("D dS M Y H:iA", strtotime($report_details->resolve_time)) : "Not Resolved Yet"}}</td>
                                                     </tr>
                                                     <tr>
-                                                        <td class="px-1 text-right"><b>Recorded By :</b></td>
+                                                        <td class="px-1 text-right"><b>Opened By (Admin):</b></td>
                                                         <td class="px-1">{{$report_details->admin_reporter_fullname ?? "Invalid Administrator"}}</td>
                                                     </tr>
                                                     <tr>
                                                         <td class="px-1 text-right"><b>Resolved By (Technician):</b></td>
-                                                        <td class="px-1">{{$report_details->status == "pending" ? "Still pending!" : ($report_details->admin_attender ?? "Cleared but no technician set!")}}</td>
+                                                        <td class="px-1">{{$report_details->status == "pending" ? "Still pending!" : ($report_details->admin_attender ?? "Resolved but no technician set!")}}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="px-1 text-right"><b>Closed By (Admin):</b></td>
+                                                        <td class="px-1">{{$report_details->status == "pending" ? "Still pending!" : ($report_details->closed_by ?? "Resolved but at the time of closing no Admin was set!")}}</td>
                                                     </tr>
                                                     <tr>
                                                         <td class="px-1 text-right"><b>Status:</b></td>
@@ -375,7 +389,7 @@
                                                             @else
                                                                 <span class="badge text-light bg-success text-dark" data-toggle="tooltip" title="" data-original-title="Resolved!">Resolved</span>
                                                             @endif
-                                                            <button class="btn btn-sm btn-outline-success" id="change_status" type="button"><i class="ft-refresh"></i> Change Status</button>
+                                                            <button class="btn btn-sm btn-outline-success" {{$readonly}} id="change_status" type="button"><i class="ft-refresh"></i> Change Status</button>
                                                             {{-- <a href="/Client-Reports/View/Change-Status/{{$report_details->report_id}}" data-toggle="tooltip" title="" data-original-title="Click me to change status!" class="btn btn-sm btn-outline-success">Change Status</a> --}}
                                                         </td>
                                                     </tr>
@@ -419,9 +433,27 @@
                                             </div>
                                             <div class="col-md-12 mt-1">
                                                 <label for="client_address"
-                                                    class="form-control-label"><b>Report Description:</b></label>
-                                                <textarea name="comments" id="comments" cols="30" rows="3" class="form-control"
-                                                    placeholder="e.g., The client`s tenda router was faulty">{{ session('comments') ? session('comments') : $report_details->report_description }}</textarea>
+                                                    class="form-control-label"><b>Problem:</b></label>
+                                                <textarea name="problem" id="problem" cols="30" rows="3" class="form-control"
+                                                    placeholder="e.g., The client`s tenda router was faulty">{{ session('problem') ? session('problem') : $report_details->problem }}</textarea>
+                                            </div>
+                                            <div class="col-md-12 mt-1">
+                                                <label for="client_address"
+                                                    class="form-control-label"><b>Diagnosis:</b></label>
+                                                <textarea name="diagnosis" id="diagnosis" cols="30" rows="3" class="form-control"
+                                                    placeholder="e.g., The client`s tenda router was faulty">{{ session('diagnosis') ? session('diagnosis') : $report_details->diagnosis }}</textarea>
+                                            </div>
+                                            <div class="col-md-12 mt-1">
+                                                <label for="client_address"
+                                                    class="form-control-label"><b>Comment:</b></label>
+                                                <textarea name="comment" id="comment" cols="30" rows="3" class="form-control"
+                                                    placeholder="e.g., The client`s tenda router was faulty">{{ session('comment') ? session('comment') : $report_details->report_description }}</textarea>
+                                            </div>
+                                            <div class="col-md-12 mt-1">
+                                                <label for="client_address"
+                                                    class="form-control-label"><b>Solution:</b></label>
+                                                <textarea name="solution" disabled id="solution" cols="30" rows="3" class="form-control"
+                                                    placeholder="e.g., The client`s tenda router was faulty">{{ session('solution') ? session('solution') : $report_details->solution }}</textarea>
                                             </div>
                                         </div>
                                         <div class="row mt-2">
@@ -429,7 +461,7 @@
                                                 <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i class="ft-upload"></i> Update Report</button>
                                             </div>
                                             <div class="col-md-4">
-                                                <button type="button" class="btn btn-outline-purple" id="DeleteTable"><i class="ft-trash"></i> Delete</button>
+                                                <button type="button" class="btn btn-outline-purple" {{$readonly}} id="DeleteTable"><i class="ft-trash"></i> Delete</button>
                                                 <div class="container">
                                                     <div class="modal fade text-left" id="delete_client_report" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
                                                         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -521,8 +553,10 @@
         if (cObj("report_status").value == "pending") {
             cObj("hide_the_technician_field").classList.add("d-none");
             cObj("admin_attender").disabled = true;
+            cObj("admin_attender").disabled = true;
             cObj("admin_attender").value = "";
         }else{
+            cObj("admin_attender").disabled = false;
             cObj("hide_the_technician_field").classList.remove("d-none");
             cObj("admin_attender").disabled = false;
         }
