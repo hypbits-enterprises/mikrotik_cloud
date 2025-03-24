@@ -229,13 +229,17 @@
                                         <p class="card-text">Fill all fields to add the Administrator.</p>
                                         @csrf
                                         <div class="row">
-                                            <div class="col-md-6 form-group">
+                                            <div class="col-md-4 form-group">
                                                 <label for="admin_name" class="form-control-label">Fullname</label>
                                                 <input type="text" name="admin_name" id="admin_name" class="form-control rounded-lg p-1" placeholder="Admin Fullname .." required  >
                                             </div>
-                                            <div class="col-md-6">
+                                            <div class="col-md-4">
                                                 <label for="client_address" class="form-control-label">Contacts</label>
                                                 <input type="text" name="client_address" id="client_address" class="form-control rounded-lg p-1" placeholder="Administrator contacts" required  >
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="admin_email" class="form-control-label">E-mail</label>
+                                                <input type="email" name="admin_email" id="admin_email" class="form-control rounded-lg p-1" placeholder="Administrator E-Mail" required >
                                             </div>
                                         </div>
                                         <div class="row">

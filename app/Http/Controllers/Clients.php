@@ -44,12 +44,14 @@ class Clients extends Controller
         (SELECT report_code FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'ticket_number',
         (SELECT `status` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'report_status',
         (SELECT `report_id` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'report_id',
-        (SELECT `report_id` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'report_id',
-        (SELECT (SELECT admin_tables.admin_fullname FROM mikrotik_cloud.client_reports LEFT JOIN mikrotik_cloud_manager.admin_tables ON admin_tables.admin_id = client_reports.closed_by WHERE client_reports.report_id = CR.report_id LIMIT 1) AS admin_fullname FROM `client_reports` AS CR WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'closed_by'
+        (SELECT router_name FROM remote_routers WHERE router_id = client_tables.router_name) AS 'router_fullname',
+        (SELECT (SELECT admin_tables.admin_fullname FROM ".session("database_name").".client_reports LEFT JOIN mikrotik_cloud_manager.admin_tables ON admin_tables.admin_id = client_reports.admin_reporter WHERE client_reports.report_id = CR.report_id LIMIT 1) AS admin_fullname FROM `client_reports` AS CR WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'opened_by',
+        (SELECT (SELECT admin_tables.admin_fullname FROM ".session("database_name").".client_reports LEFT JOIN mikrotik_cloud_manager.admin_tables ON admin_tables.admin_id = client_reports.closed_by WHERE client_reports.report_id = CR.report_id LIMIT 1) AS admin_fullname FROM `client_reports` AS CR WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'closed_by',
+        (SELECT `admin_attender` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'admin_attender'
          FROM `client_tables`
          WHERE `deleted` = '0' ORDER BY `client_id` DESC;");
-        //  return $client_data;
-        //  router_data
+         
+        // router data
         $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
 
         // get all the clients that have been frozen
@@ -637,12 +639,17 @@ class Clients extends Controller
 
         $week_starts = date("YmdHis", strtotime("-" . $days_index . " days"));
         $week_ends = $this->addDays($week_starts, 6);
+        
         // return $week_ends;
-
         $clients_statistics = [];
         $clients_data = [];
 
         $clientd_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `clients_reg_date` ASC");
+
+        if (count($clientd_data) == 0) {
+            return view('client-stats', ["clients_weekly" => [], "client_metrics_weekly" => [], "clients_statistics_monthly" => [], "clients_monthly" => [], "clients_statistics_yearly" => [], "clients_data_yearly" => []]);
+        }
+
         $client_reg_date = date("D", strtotime($clientd_data[0]->clients_reg_date));
         $client_reg_date_mon = date("M", strtotime($clientd_data[0]->clients_reg_date));
 
@@ -2306,8 +2313,8 @@ class Clients extends Controller
         $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = '$clientid'");
         if (count($clients_data) > 0) {
             // get the client issues
-            $client_issues = DB::connection("mysql2")->select("SELECT CR.*, CT.client_name, CT.client_account, AT.admin_fullname AS 'admin_reporter_fullname', ATS.admin_fullname AS 'admin_attender_fullname' FROM mikrotik_cloud.client_reports AS CR 
-                                        LEFT JOIN mikrotik_cloud.client_tables AS CT ON CT.client_id = CR.client_id 
+            $client_issues = DB::connection("mysql2")->select("SELECT CR.*, CT.client_name, CT.client_account, AT.admin_fullname AS 'admin_reporter_fullname', ATS.admin_fullname AS 'admin_attender_fullname' FROM ".session("database_name").".client_reports AS CR 
+                                        LEFT JOIN ".session("database_name").".client_tables AS CT ON CT.client_id = CR.client_id 
                                         LEFT JOIN mikrotik_cloud_manager.admin_tables AS AT ON AT.admin_id = CR.admin_reporter
                                         LEFT JOIN mikrotik_cloud_manager.admin_tables AS ATS ON ATS.admin_id = CR.admin_attender
                                         WHERE CR.client_id = ? ORDER BY CR.report_date DESC;",[$clientid]);
@@ -4695,9 +4702,12 @@ class Clients extends Controller
     }
 
     function client_issues(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
         // get the client reports
-        $client_reports = DB::connection("mysql2")->select("SELECT CR.*, CT.client_name, CT.client_account, AT.admin_fullname AS 'admin_reporter_fullname', ATS.admin_fullname AS 'admin_attender_fullname' FROM mikrotik_cloud.client_reports AS CR 
-                                        LEFT JOIN mikrotik_cloud.client_tables AS CT ON CT.client_id = CR.client_id 
+        $client_reports = DB::connection("mysql2")->select("SELECT CR.*, CT.client_name, CT.client_account, AT.admin_fullname AS 'admin_reporter_fullname', ATS.admin_fullname AS 'admin_attender_fullname' FROM ".session("database_name").".client_reports AS CR 
+                                        LEFT JOIN ".session("database_name").".client_tables AS CT ON CT.client_id = CR.client_id 
                                         LEFT JOIN mikrotik_cloud_manager.admin_tables AS AT ON AT.admin_id = CR.admin_reporter
                                         LEFT JOIN mikrotik_cloud_manager.admin_tables AS ATS ON ATS.admin_id = CR.admin_attender
                                         ORDER BY CR.report_date DESC;");
@@ -4707,6 +4717,9 @@ class Clients extends Controller
     }
 
     function newReports(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
         $old_title_reports = DB::connection("mysql2")->select("SELECT report_title, MAX(report_date) as latest_date FROM `client_reports` GROUP BY report_title ORDER BY latest_date DESC LIMIT 10;");
         $my_clients = DB::connection("mysql2")->select("SELECT client_id, client_name, client_account, clients_contacts FROM client_tables");
         $admin_tables = DB::connection("mysql")->select("SELECT * FROM admin_tables WHERE organization_id = ? ORDER BY admin_id DESC",[session("organization")->organization_id]);
@@ -4774,6 +4787,9 @@ class Clients extends Controller
     }
 
     function saveReports(Request $request){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
         session()->flash("report_title", $request->input("report_title"));
         session()->flash("client_account", $request->input("client_account"));
         session()->flash("report_date", $request->input("report_date"));
@@ -4812,11 +4828,14 @@ class Clients extends Controller
     }
 
     function viewReports($report_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
         $old_title_reports = DB::connection("mysql2")->select("SELECT report_title, MAX(report_date) AS latest_date FROM `client_reports` GROUP BY report_title ORDER BY latest_date DESC LIMIT 10;");
         $my_clients = DB::connection("mysql2")->select("SELECT client_id, client_name, client_account, clients_contacts FROM client_tables");
         $admin_tables = DB::connection("mysql")->select("SELECT * FROM admin_tables WHERE organization_id = ? ORDER BY admin_id DESC",[session("organization")->organization_id]);
-        $report_details = DB::connection("mysql2")->select("SELECT CR.*, CT.client_name, CT.client_account, AT.admin_fullname AS 'admin_reporter_fullname', ATS.admin_fullname AS 'admin_attender_fullname', ATS_1.admin_fullname AS 'closed_by' FROM mikrotik_cloud.client_reports AS CR 
-                        LEFT JOIN mikrotik_cloud.client_tables AS CT ON CT.client_id = CR.client_id 
+        $report_details = DB::connection("mysql2")->select("SELECT CR.*, CT.client_name, CT.client_account, AT.admin_fullname AS 'admin_reporter_fullname', ATS.admin_fullname AS 'admin_attender_fullname', ATS_1.admin_fullname AS 'closed_by' FROM ".session("database_name").".client_reports AS CR 
+                        LEFT JOIN ".session("database_name").".client_tables AS CT ON CT.client_id = CR.client_id 
                         LEFT JOIN mikrotik_cloud_manager.admin_tables AS AT ON AT.admin_id = CR.admin_reporter
                         LEFT JOIN mikrotik_cloud_manager.admin_tables AS ATS_1 ON ATS_1.admin_id = CR.closed_by
                         LEFT JOIN mikrotik_cloud_manager.admin_tables AS ATS ON ATS.admin_id = CR.admin_attender WHERE CR.report_id = ?
@@ -4832,6 +4851,9 @@ class Clients extends Controller
     }
 
     function updateReports(Request $request){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
 
         // check if its a valid report
         $reports = DB::connection("mysql2")->select("SELECT * FROM client_reports WHERE report_id = ?", [$request->input("report_id")]);
@@ -4869,8 +4891,8 @@ class Clients extends Controller
         }
 
         $report_date = date("Ymd", strtotime($request->input("report_date")))."".date("His", strtotime($reports[0]->report_date));
-        $update = DB::connection("mysql2")->update("UPDATE client_reports SET report_date = ?, report_title = ?, report_description = ?, client_id = ?,  admin_attender = ? WHERE report_id = ?", 
-                    [$report_date, $request->input("report_title"), $request->input("comment"), $client_acc_number[0]->client_id, $request->input("admin_attender"), $request->input("report_id")]);
+        $update = DB::connection("mysql2")->update("UPDATE client_reports SET report_date = ?, report_title = ?, report_description = ?, client_id = ? WHERE report_id = ?", 
+                    [$report_date, $request->input("report_title"), $request->input("comment"), $client_acc_number[0]->client_id, $request->input("report_id")]);
 
         $txt = ":Issue {".$reports[0]->report_code."} reported by client - (".ucwords(strtolower($client_acc_number[0]->client_name))." - ".$client_acc_number[0]->client_account.") has been updated successfully! by " . session('Usernames') . "!";
         $this->log($txt);
@@ -4879,6 +4901,9 @@ class Clients extends Controller
     }
 
     function changeReportStatus(Request $request){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
         $report_id = $request->input("report_id");
         $report_status = $request->input("report_status");
         $admin_attender = $request->input("admin_attender");
@@ -4909,6 +4934,9 @@ class Clients extends Controller
     }
 
     function deleteReport($report_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
         // get the report status
         $report = DB::connection("mysql2")->select("SELECT * FROM client_reports WHERE report_id = ?",[$report_id]);
         if (count($report)) {

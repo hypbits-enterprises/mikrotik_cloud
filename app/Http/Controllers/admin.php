@@ -187,6 +187,7 @@ class admin extends Controller
         $admin_username = $req->input('admin_username');
         $admin_password = $req->input('admin_password');
         $privileges = $req->input('privileges');
+        $admin_email = $req->input('admin_email');
 
         // get the username if its already used
         $admin_data = DB::select("SELECT * FROM `admin_tables` WHERE `admin_username` = '$admin_username' AND `deleted` = '0'");
@@ -205,6 +206,7 @@ class admin extends Controller
             $admin_table->user_status = "1";
             $admin_table->activated = "1";
             $admin_table->priviledges = $privileges;
+            $admin_table->email = $admin_email;
             $admin_table->save();
                 
             $new_client = new Clients();
@@ -394,6 +396,7 @@ class admin extends Controller
             "user_status" => $req->input('status'),
             "date_changed" => date("YmdHis"),
             "activated" => $status,
+            "email" => $req->input("client_email"),
             "priviledges" => $privileges
         ]);
         session()->flash('success',"Administrator data updates successfully!");

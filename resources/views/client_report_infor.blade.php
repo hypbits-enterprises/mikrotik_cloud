@@ -329,7 +329,7 @@
                                                                     </div>
                                                                     <div class="col-md-12 mb-1">
                                                                         <label for="client_address"
-                                                                            class="form-control-label"><b>Solution:</b></label>
+                                                                            class="form-control-label"><b>Resolution:</b></label>
                                                                         <textarea name="solution" id="solution" cols="30" rows="3" class="form-control"
                                                                             placeholder="e.g., The client`s tenda router was faulty">{{ session('solution') ? session('solution') : $report_details->solution }}</textarea>
                                                                     </div>
@@ -451,7 +451,7 @@
                                             </div>
                                             <div class="col-md-12 mt-1">
                                                 <label for="client_address"
-                                                    class="form-control-label"><b>Solution:</b></label>
+                                                    class="form-control-label"><b>Resolution:</b></label>
                                                 <textarea name="solution" disabled id="solution" cols="30" rows="3" class="form-control"
                                                     placeholder="e.g., The client`s tenda router was faulty">{{ session('solution') ? session('solution') : $report_details->solution }}</textarea>
                                             </div>
