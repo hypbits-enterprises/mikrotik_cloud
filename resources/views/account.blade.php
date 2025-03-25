@@ -335,8 +335,8 @@
                               <div class="col-md-8 col-lg-9">
                                 <img style="width: 150px" src="{{session('dp_locale') ? session('dp_locale') :'/theme-assets/images/pngegg.png'}}" alt="Profile">
                                 <div class="pt-2">
-                                  <button type="button" id="update_dp_btn" {{$readonly}} class="btn btn-primary btn-sm" title="Upload new profile image"><i class="ft-upload"></i></button>
-                                  <a href="/delete_pp/{{$admin_data[0]->admin_id}}" class="btn btn-danger btn-sm {{$readonly}}" title="Remove my profile image"><i class="ft-trash"></i></a>
+                                  <button type="button" id="update_dp_btn" class="btn btn-primary btn-sm" title="Upload new profile image"><i class="ft-upload"></i></button>
+                                  <a href="/delete_pp/{{$admin_data[0]->admin_id}}" class="btn btn-danger btn-sm" title="Remove my profile image"><i class="ft-trash"></i></a>
                                 </div>
                               </div>
                             </div>
@@ -352,7 +352,7 @@
                                     <input type="file" name="mine_dp" id="mine_dp" class="form-control" required>
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <button type="submit" id="upload_image" {{$readonly}} class="btn btn-primary my-1 text-lg">Save Image</button>
+                                            <button type="submit" id="upload_image" class="btn btn-primary my-1 text-lg">Save Image</button>
                                         </div>
                                         <div class="col-md-6">
                                             <button type="button" id="close_window_btn" class="btn btn-secondary my-1 text-lg">Cancel</button>
@@ -389,7 +389,7 @@
                             </div>
         
                             <div class="text-center">
-                              <button type="submit" {{$readonly}} class="btn btn-primary">Save Changes</button>
+                              <button type="submit" class="btn btn-primary">Save Changes</button>
                             </div>
                           </form><!-- End Profile Edit Form -->
         
@@ -594,7 +594,7 @@
                                 <hr>
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <button class="btn btn-primary" {{$readonly}} type="submit">Save Changes</button>
+                                        <button class="btn btn-primary" type="submit">Save Changes</button>
                                     </div>
                                 </div>
                             </form>
