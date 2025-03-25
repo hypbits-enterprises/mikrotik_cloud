@@ -109,7 +109,7 @@
         return "";
     }
     // get the readonly value
-    $readonly = readOnly($priviledges,"My Clients");
+    $readonly = readOnly($priviledges,"Clients Issues");
 
     function isJson($string) {
         return ((is_string($string) &&

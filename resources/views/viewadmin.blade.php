@@ -241,7 +241,7 @@ date_default_timezone_set('Africa/Nairobi');
                                                 Back to list</a>
                                         </div>
                                         <div class="col-md-6">
-                                            <button id="delete_user" class="btn btn-danger text-lg float-right"><i class="ft-trash-2"> Delete</i></button>
+                                            <button id="delete_user" class="btn btn-danger text-lg float-right" {{$readonly}}><i class="ft-trash-2"> Delete</i></button>
                                             <div class="container d-none mt-4" id="prompt_del_window">
                                                 <p class="text-secondary"><strong>Are you sure you want to permanently delete this user?</strong></p>
                                                 <div class="row">

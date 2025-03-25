@@ -4865,6 +4865,8 @@ class Clients extends Controller
             session()->flash("comment", $request->input("comment"));
             session()->flash("admin_attender", $request->input("admin_attender"));
             session()->flash("report_status", $request->input("report_status"));
+            session()->flash("problem", $request->input("problem"));
+            session()->flash("diagnosis", $request->input("diagnosis"));
 
             session()->flash("error", "Invalid report, probably it was deleted!");
             return redirect("/Client-Reports");
@@ -4887,12 +4889,14 @@ class Clients extends Controller
             session()->flash("admin_attender", $request->input("admin_attender"));
             session()->flash("report_status", $request->input("report_status"));
             session()->flash("error", "Invalid recording admin!");
+            session()->flash("problem", $request->input("problem"));
+            session()->flash("diagnosis", $request->input("diagnosis"));
             return redirect()->back();
         }
 
         $report_date = date("Ymd", strtotime($request->input("report_date")))."".date("His", strtotime($reports[0]->report_date));
-        $update = DB::connection("mysql2")->update("UPDATE client_reports SET report_date = ?, report_title = ?, report_description = ?, client_id = ? WHERE report_id = ?", 
-                    [$report_date, $request->input("report_title"), $request->input("comment"), $client_acc_number[0]->client_id, $request->input("report_id")]);
+        $update = DB::connection("mysql2")->update("UPDATE client_reports SET report_date = ?, report_title = ?, report_description = ?, client_id = ?, problem = ?, diagnosis = ? WHERE report_id = ?", 
+                    [$report_date, $request->input("report_title"), $request->input("comment"), $client_acc_number[0]->client_id, $request->input("problem"), $request->input("diagnosis"), $request->input("report_id")]);
 
         $txt = ":Issue {".$reports[0]->report_code."} reported by client - (".ucwords(strtolower($client_acc_number[0]->client_name))." - ".$client_acc_number[0]->client_account.") has been updated successfully! by " . session('Usernames') . "!";
         $this->log($txt);

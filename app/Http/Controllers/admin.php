@@ -42,12 +42,12 @@ class admin extends Controller
             $date = $admin_data[0]->last_time_login;
 
             // privileged
-            $priviledges = $admin_data[0]->priviledges;
-            $show_hides = $this->showOption($priviledges,"Account and Profile");
-            if ($show_hides == "hide") {
-                session()->flash("danger","You cannot access the Account and Profile section. Contact your administrator!");
-                return redirect("/Dashboard");
-            }
+            // $priviledges = $admin_data[0]->priviledges;
+            // $show_hides = $this->showOption($priviledges,"Account and Profile");
+            // if ($show_hides == "hide") {
+            //     session()->flash("danger","You cannot access the Account and Profile section. Contact your administrator!");
+            //     return redirect("/Dashboard");
+            // }
 
             $date_data = $date;
             $year = substr($date_data,0,4);

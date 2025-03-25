@@ -71,6 +71,7 @@
 
     // get the readonly value
     $readonly = readOnly($priviledges,"Account and Profile");
+    $view = showOption($priviledges,"Account and Profile");
 
     function isJson($string) {
         return ((is_string($string) &&
@@ -231,9 +232,9 @@
                                     @if (session('network_presence'))
                                         <p class="text-danger">{{ session('network_presence') }}</p>
                                     @endif
-                                    <a href="/Accounts/add" class="btn btn-primary "><i class="ft-plus"></i> Manage
+                                    <a href="/Accounts/add" class="btn btn-primary {{$readonly}} {{$view}}" ><i class="ft-plus"></i> Manage
                                         Admin</a>
-                                    <a href="/SharedTables" class="btn btn-info "><i class="ft-wind"></i> Shared Tables</a>
+                                    <a href="/SharedTables" class="btn btn-info {{$readonly}} {{$view}}"><i class="ft-wind"></i> Shared Tables</a>
                                 </div>
                             </div>
                         </div>
@@ -280,11 +281,11 @@
                           <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-change-password">Change Password</button>
                         </li>
         
-                        <li class="nav-item">
+                        <li class="nav-item {{$view}}">
                           <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-settings">General Settings</button>
                         </li>
                         
-                        <li class="nav-item">
+                        <li class="nav-item {{$view}}">
                           <button class="nav-link" data-bs-toggle="tab" data-bs-target="#company-profile-edit">Company Profile</button>
                         </li>
         
