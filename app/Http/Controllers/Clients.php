@@ -3984,38 +3984,32 @@ class Clients extends Controller
 
                     // loop through the ip addresses and get the clents ip address id
                     $client_network = $client_data[0]->client_network;
-                    $present = 0;
                     $ip_id = "";
+                    $found = false;
                     foreach ($ip_addresses as $key => $value) {
-                        foreach ($value as $key1 => $value1) {
-                            if ($key1 == ".id") {
-                                $ip_id = $value1;
-                            }
-                            if ($value1 == $client_network) {
-                                $present = 1;
-                                break;
-                            }
-                        }
-                        if ($present == 1) {
+                        if ($value['network'] == $client_network) {
+                            $ip_id = $value['.id'];
+                            $found = true;
                             break;
                         }
                     }
 
 
                     // deactivate the id
-                    if (strlen($ip_id) > 0) {
+                    if ($found) {
                         // deactivate
                         $deactivate = $API->comm("/ip/address/set", array(
                             "disabled" => "true",
                             ".id" => $ip_id
                         ));
+
                         // update the user data to de-activated
                         DB::connection("mysql2")->table('client_tables')
                             ->where('client_id', $userid)
                             ->update([
                                 'client_status' => "0",
                                 'date_changed' => date("YmdHis")
-                            ]);
+                        ]);
 
                         // log message
                         $txt = ":Client (" . $client_data[0]->client_name . " - " . $client_data[0]->client_account . ") deactivated by " . (session('Usernames') ? session('Usernames') : "System");
@@ -4026,7 +4020,8 @@ class Clients extends Controller
                             session()->flash("success", "User has been successfully deactivated");
                             return redirect("/Clients/View/$userid");
                         } else {
-                            return ["success" => true, "message" => "User has been successfully deactivated!"];
+                            $client_ip = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+                            return ["success" => true, "message" => "User has been successfully deactivated!", "log" => $txt." ". $client_ip];
                         }
                     } else {
                         if (session('Usernames')) {
@@ -4120,8 +4115,7 @@ class Clients extends Controller
                 $API = new routeros_api();
                 $API->debug = false;
                 if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
-
-                    // get the IP ADDRES
+                    // get the IP ADDRESS
                     $curl_handle = curl_init();
                     $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session('database_name') . "&r_id=" . $router_id . "&r_active_secrets=true";
                     curl_setopt($curl_handle, CURLOPT_URL, $url);
@@ -4307,25 +4301,34 @@ class Clients extends Controller
 
                     // loop through the ip addresses and get the clents ip address id
                     $client_network = $client_data[0]->client_network;
-                    $present = 0;
+                    // $present = 0;
+                    // $ip_id = "";
+                    // foreach ($ip_addresses as $key => $value) {
+                    //     foreach ($value as $key1 => $value1) {
+                    //         if ($key1 == ".id") {
+                    //             $ip_id = $value1;
+                    //         }
+                    //         if ($value1 == $client_network) {
+                    //             $present = 1;
+                    //             break;
+                    //         }
+                    //     }
+                    //     if ($present == 1) {
+                    //         break;
+                    //     }
+                    // }
                     $ip_id = "";
+                    $found = false;
                     foreach ($ip_addresses as $key => $value) {
-                        foreach ($value as $key1 => $value1) {
-                            if ($key1 == ".id") {
-                                $ip_id = $value1;
-                            }
-                            if ($value1 == $client_network) {
-                                $present = 1;
-                                break;
-                            }
-                        }
-                        if ($present == 1) {
+                        if ($value['network'] == $client_network) {
+                            $ip_id = $value['.id'];
+                            $found = true;
                             break;
                         }
                     }
                     // return $ip_addresses;
                     // deactivate the id
-                    if (strlen($ip_id) > 0) {
+                    if ($found) {
                         // deactivate
                         $deactivate = $API->comm("/ip/address/set", array(
                             "disabled" => "false",
@@ -4348,7 +4351,7 @@ class Clients extends Controller
                             session()->flash("success", "User has been successfully activated");
                             return redirect("/Clients/View/$userid");
                         } else {
-                            return ["success" => true, "message" => $client_data[0]->client_name . " activated successfully!"];
+                            return ["success" => true, "message" => $client_data[0]->client_name . " activated successfully!", "log" => $txt];
                         }
                     } else {
                         if (session('Usernames')) {
