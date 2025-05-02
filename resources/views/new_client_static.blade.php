@@ -10,7 +10,7 @@
     <meta name="keywords"
         content="admin template, Client template, dashboard template, gradient admin template, responsive client template, webapp, eCommerce dashboard, analytic dashboard">
     <meta name="author" content="ThemeSelect">
-    <title>Hypbits - New Clients Static Assignment</title>
+    <title>Hypbits - New Quick Register Client - Static Assignment</title>
     <link rel="apple-touch-icon" href="/theme-assets/images/logo2.jpeg">
     <link rel="shortcut icon" href="/theme-assets/images/logo2.jpeg">
 
@@ -29,7 +29,7 @@
     data-menu="vertical-menu" data-color="bg-chartbg" data-col="2-columns">
 
     <!-- fixed-top-->
-    <x-menu active="myclients"></x-menu>
+    <x-menu active="quick_register"></x-menu>
     @php
         $priviledges = session("priviledges");
         $readonly = readOnly($priviledges,"My Clients");
@@ -47,7 +47,7 @@
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a>
                                 </li>
-                                <li class="breadcrumb-item"><a href="/Clients">My Clients</a>
+                                <li class="breadcrumb-item"><a href="/Quick-Register">Quick-Register</a>
                                 </li>
                                 <li class="breadcrumb-item">Static Assignment
                                 </li>
@@ -62,7 +62,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Client Static Assignment</h4>
+                                <h4 class="card-title">Quick Register Client - Static Assignment</h4>
                                 <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
                                 <div class="heading-elements">
                                     <ul class="list-inline mb-0">
@@ -74,8 +74,7 @@
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                    to list</a>
+                                <a href="/Quick-Register" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back</a>
                                 <div class="card-body">
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
@@ -89,7 +88,7 @@
                                         <p class="text-danger">{{ session('network_presence') }}</p>
                                     @endif
                                     <p class="card-text">Fill all the fields to add the client.</p>
-                                    <form action="{{route("clients.addstatic")}}" method="post">
+                                    <form action="{{route("clients.quick_register_static")}}" method="post">
                                         @csrf
                                         <div class="row">
                                             <div class="col-md-4">
@@ -226,14 +225,14 @@
                                             </div>
                                         </div>
                                         <div class="row my-1">
-                                            <div class="col-md-4 form-group">
+                                            {{-- <div class="col-md-4 form-group">
                                                 <label for="expiration_date" class="form-control-label">Expiration
                                                     Date</label>
                                                 <input type="date" name="expiration_date" id="expiration_date"
                                                     class="form-control" placeholder="Customer Expiration Date" min="{{date("Y-m-d",strtotime("-1 Day"))}}"
                                                     value="{{ session('expiration_date') ? session('expiration_date') : '' }}">
-                                            </div>
-                                            <div class="col-md-4 form-group">
+                                            </div> --}}
+                                            <div class="col-md-6 form-group">
                                                 <label for="router_name" class="form-control-label">Router Name
                                                     {{ session('router_name') ? '{' . session('router_name') . '}' : '' }}<span
                                                         class="invisible" id="interface_load"><i
@@ -242,7 +241,7 @@
                                                         appear here.. If this message is still present you have no
                                                         routers present in your database.</span></p>
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-6">
                                                 <label for="client_address" class="form-control-label">Router
                                                     Interface
                                                     {{ session('interface_name') ? '{' . session('interface_name') . '}' : '' }}
@@ -287,7 +286,7 @@
                                                         class="ft-plus"></i> Add User</button>
                                             </div>
                                             <div class="col-md-6">
-                                                <a class="btn btn-secondary btn-outline" href="/Clients"><i
+                                                <a class="btn btn-secondary btn-outline" href="/Quick-Register"><i
                                                         class="ft-x"></i> Cancel</a>
                                             </div>
                                         </div>

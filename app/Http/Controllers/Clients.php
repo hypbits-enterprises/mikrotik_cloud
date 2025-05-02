@@ -27,6 +27,53 @@ class Clients extends Controller
             (is_object(json_decode($string)) ||
                 is_array(json_decode($string))))) ? true : false;
     }
+
+    function newStaticClient(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // here we get the router data
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
+        // GET ALL THE ACCOUNT NUMBERS PRESENT AND STORE THEM AS ARRAYS
+        $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC;");
+        $last_client_details = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = 'static' ORDER BY `client_id` DESC LIMIT 1;");
+        // return $last_client_details;
+
+        // get the clients account numbers and usernames
+        $client_accounts = [];
+        $client_username = [];
+        foreach ($clients_data as $key => $value) {
+            // store the clients account number
+            array_push($client_accounts, $value->client_account);
+            array_push($client_username, $value->client_username);
+        }
+        // return $client_accounts;
+        return view("new_client_static", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "last_client_details" => $last_client_details]);
+    }
+
+    function newPPPOEClient(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // here we get the router data
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0' ");
+        // GET ALL THE ACCOUNT NUMBERS PRESENT AND STORE THEM AS ARRAYS
+        $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC;");
+
+        // get the clients account numbers and usernames
+        $client_accounts = [];
+        $client_username = [];
+        foreach ($clients_data as $key => $value) {
+            // store the clients account number
+            array_push($client_accounts, $value->client_account);
+            array_push($client_username, $value->client_username);
+        }
+        // return $client_accounts;
+        return view("new_client_pppoe", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username]);
+    }
+
     //here we get the clients information from the database
     function getClientData()
     {
@@ -77,6 +124,28 @@ class Clients extends Controller
             $client_data[$index]->date_reported = $client_data[$index]->date_reported != null ? date("D dS M Y H:iA", strtotime($client_data[$index]->date_reported)) : $client_data[$index]->date_reported;
         }
         return view('myclients', ["frozen_clients" => $frozen_clients, 'client_data' => $client_data, "router_infor" => $router_data]);
+    }
+
+    function validate_user(Request $request){
+        $client_ids = $request->input("client_ids");
+        $expiry_date = $request->input("expiry_date");
+        $expiry_time = $request->input("expiry_time");
+        $validated = "1";
+        $expiration_date = date("YmdHis", strtotime($expiry_date."".$expiry_time));
+
+        // client_data
+        $client_data = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE client_id = ?", [$client_ids]);
+
+        if (count($client_data) > 0) {
+            // update data
+            $update = DB::connection("mysql2")->update("UPDATE client_tables SET next_expiration_date = ?, validated = ? WHERE client_id = ?", [$expiration_date, $validated, $client_ids]);
+            session()->flash("success", "User has been validated successfully!");
+        }else{
+            session()->flash("error", "User is invalid!");
+        }
+
+        // client_ids
+        return redirect("/Clients/View/$client_ids");
     }
 
     function generateReports(Request $req)
@@ -900,6 +969,8 @@ class Clients extends Controller
         $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
         // GET ALL THE ACCOUNT NUMBERS PRESENT AND STORE THEM AS ARRAYS
         $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC;");
+        $last_client_details = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = 'static' ORDER BY `client_id` DESC LIMIT 1;");
+        // return $last_client_details;
 
         // get the clients account numbers and usernames
         $client_accounts = [];
@@ -910,7 +981,7 @@ class Clients extends Controller
             array_push($client_username, $value->client_username);
         }
         // return $client_accounts;
-        return view("newClient", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username]);
+        return view("newClient", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "last_client_details" => $last_client_details]);
     }
 
 
@@ -1233,6 +1304,291 @@ class Clients extends Controller
                     }
                 }
                 return redirect("/Clients");
+            } else {
+                $error = "New client is not added, check if the Hypbits credentials are still present and not altered!";
+                session()->flash("network_presence", $error);
+                return redirect(url()->previous());
+            }
+        } else {
+            // return the user to the new client
+            // display an error that the account number is already used
+            session()->flash("network_presence", "The passwords provided does not match!");
+            return redirect("/Clients/NewPPPoE");
+        }
+    }
+
+    // save client in PPPoE
+    function processQuickRegisterNewClientPPPoE(Request $req)
+    {
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // ADD IP ADDRESS ADD QUEUE AND ADD FILTER WHEN NEEDED
+        // FIRST GET THE USER DATA
+        $client_name = $req->input('client_name');
+        $client_address = $req->input('client_address');
+        $client_phone = $req->input('client_phone');
+        $client_monthly_pay = $req->input('client_monthly_pay');
+        $pppoe_profile = $req->input('pppoe_profile');
+        $router_name = $req->input('router_name');
+        $comments = $req->input('comments');
+        $allow_router_changes = $req->input('allow_router_changes');
+        $client_username = $req->input('client_username');
+        $client_password = $req->input('client_password');
+        $client_acc_number = $req->input("client_acc_number");
+        $location_coordinates = $req->input('location_coordinates');
+        $client_secret_username = $req->input('client_secret_username');
+        $client_secret_password = $req->input('client_secret_password');
+        $repeat_secret_password = $req->input('repeat_secret_password');
+        $expiration_dates = date("YmdHis", strtotime("3 hours"));
+        $minimum_payment = $req->input("minimum_payment");
+        // return $req->input();
+        // return $location_coordinates;
+        // return $expiration_dates;
+        session()->flash('client_secret_username', $client_secret_username);
+        session()->flash('client_name', $client_name);
+        session()->flash('client_address', $client_address);
+        session()->flash('client_phone', $client_phone);
+        session()->flash('client_monthly_pay', $client_monthly_pay);
+        session()->flash('comments', $comments);
+        session()->flash('client_username', $client_username);
+        session()->flash('client_password', $client_password);
+        session()->flash('client_acc_number', $client_acc_number);
+        session()->flash('location_coordinates', $location_coordinates);
+        session()->flash('minimum_payment', $minimum_payment);
+        // validate the user
+        $req->validate([
+            'client_phone' => 'max:12|min:10',
+            'pppoe_profile' => 'required',
+            'router_name' => 'required'
+        ]);
+
+        $client_account = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_account` = '$client_acc_number'");
+        if (count($client_account) > 0) {
+            // display an error that the account number is already used
+            session()->flash("network_presence", "The account number provided is already present");
+            session()->flash("account_number_present", "The account number provided is already present!");
+            return redirect(route("newclient.pppoe"));
+        }
+
+        // check if the passwords match
+        if ($client_secret_password == $repeat_secret_password) {
+            // first check if the users router is connected
+            // get the router data
+            $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'", [$router_name]);
+            if (count($router_data) == 0) {
+                $error = "Router selected does not exist!";
+                session()->flash("network_presence", $error);
+                return redirect(url()->previous());
+            }
+
+            // get the sstp credentails they are also the api usernames
+            $sstp_username = $router_data[0]->sstp_username;
+            $sstp_password = $router_data[0]->sstp_password;
+            $api_port = $router_data[0]->api_port;
+
+            // connect to the router and set the sstp client
+            $sstp_value = $this->getSSTPAddress();
+            if ($sstp_value == null) {
+                $error = "The SSTP server is not set, Contact your administrator!";
+                session()->flash("network_presence", $error);
+                return redirect(url()->previous());
+            }
+
+            // server settings
+            $server_ip_address = $sstp_value->ip_address;
+            $user = $sstp_value->username;
+            $pass = $sstp_value->password;
+            $port = $sstp_value->port;
+
+            // check if the router is actively connected
+            $client_router_ip = $this->checkActive($server_ip_address, $user, $pass, $port, $sstp_username);
+            // return $client_router_ip;
+
+            // connect to the router
+            $API = new routeros_api();
+            $API->debug = false;
+            if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
+                if ($allow_router_changes == "on") {
+                    // get the IP ADDRES
+                    $curl_handle = curl_init();
+                    $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_name . "&r_ppoe_secrets=true";
+                    curl_setopt($curl_handle, CURLOPT_URL, $url);
+                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
+                    $curl_data = curl_exec($curl_handle);
+                    curl_close($curl_handle);
+                    $ppp_secrets = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+
+                    // loop through the secrets to see if its present
+                    $present_ppp_profile = 0;
+                    $secret_id = 0;
+                    for ($index = 0; $index < count($ppp_secrets); $index++) {
+                        if ($ppp_secrets[$index]['name'] == $client_secret_username) {
+                            $present_ppp_profile = 1;
+                            $secret_id = $ppp_secrets[$index]['.id'];
+                            break;
+                        }
+                    }
+
+                    // create a ppp profile
+                    if ($present_ppp_profile == 1) {
+                        // update the password and the service
+                        // add a new ip address
+                        $API->comm(
+                            "/ppp/secret/set",
+                            array(
+                                "name"     => $client_secret_username,
+                                "service" => "pppoe",
+                                "password" => $client_secret_password,
+                                "profile"  => $pppoe_profile,
+                                "comment"  => $client_name . " (" . $client_address . " - " . $location_coordinates . ") - " . $client_acc_number,
+                                "disabled" => "false",
+                                ".id" => $secret_id
+                            )
+                        );
+
+                        // log message
+                        $txt = ":New Client (" . $client_name . ") successfully registered by  " . session('Usernames') . " added! PPPoE Assignment! but settings overwritten";
+                        $this->log($txt);
+                        // end of log file
+                    } else {
+                        // add the ppp profile
+                        // add a new ip address
+                        $API->comm(
+                            "/ppp/secret/add",
+                            array(
+                                "name"     => $client_secret_username,
+                                "service" => "pppoe",
+                                "password" => $client_secret_password,
+                                "profile"  => $pppoe_profile,
+                                "comment"  => $client_name . " (" . $client_address . " - " . $location_coordinates . ") - " . $client_acc_number,
+                                "disabled" => "false"
+                            )
+                        );
+
+                        // log message
+                        $txt = ":New Client (" . $client_name . ") successfully registered by  " . session('Usernames') . " added! PPPoE Assignment!";
+                        $this->log($txt);
+                        // end of log file
+                    }
+                }
+
+                if ($allow_router_changes == "off") {
+                    // log message
+                    $txt = ":New Client (" . $client_name . ") successfully registered by  " . session('Usernames') . " added to the database only!";
+                    $this->log($txt);
+                    // end of log file
+                }
+
+                // proceed and add the user data in the database
+                // add the clients information in the database
+                $clients_table = new client_table();
+                $clients_table->client_name = $client_name;
+                $clients_table->client_address = $client_address;
+                $clients_table->client_secret = $client_secret_username;
+                $clients_table->client_secret_password = $client_secret_password;
+                $clients_table->next_expiration_date = $expiration_dates;
+                $clients_table->monthly_payment = $client_monthly_pay;
+                $clients_table->router_name = $router_name;
+                $clients_table->comment = $req->input('comments');
+                $clients_table->clients_contacts = $client_phone;
+                $clients_table->client_status = "1";
+                $clients_table->payments_status = "1";
+                $clients_table->clients_reg_date = date("YmdHis");
+                $clients_table->client_profile = $pppoe_profile;
+                $clients_table->client_username = $client_username;
+                $clients_table->client_password = $client_password;
+                $clients_table->client_account = $client_acc_number;
+                $clients_table->location_coordinates = $req->input('location_coordinates');
+                $clients_table->assignment = "pppoe";
+                $clients_table->min_amount = $minimum_payment;
+                $clients_table->validated = "0";
+                $clients_table->save();
+                session()->flash("success_reg", "The user data has been successfully registered!");
+
+                // get the sms keys
+                $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+                $sms_sender = count($select) > 0 ? $select[0]->value : "";
+                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
+                $sms_api_key = $sms_keys[0]->value;
+                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
+                $sms_partner_id = $sms_keys[0]->value;
+                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
+                $sms_shortcode = $sms_keys[0]->value;
+                $partnerID = $sms_partner_id;
+                $apikey = $sms_api_key;
+                $shortcode = $sms_shortcode;
+
+                // check if the organization is allowed to send sms
+                $organization_dets = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?", [session("organization")->organization_id]);
+                // check if the organization is allowed to send sms
+                if ($organization_dets[0]->send_sms == 0) {
+                    session()->flash("error_sms", "You are not allowed to send SMS!");
+                    $send_sms = 0;
+                }
+
+                $message_contents = $this->get_sms();
+                $message = $message_contents[3]->messages[0]->message;
+                $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC LIMIT 1;");
+                if ($user_data && $req->input('send_sms') == "on" && $organization_dets[0]->send_sms == 0) {
+                    $client_id = $user_data[0]->client_id;
+                    $mobile = $user_data[0]->clients_contacts;
+                    $sms_type = 2;
+                    if ($message) {
+                        $trans_amount = 0;
+                        $message_status = 0;
+                        $message = $this->message_content($message, $client_id, $trans_amount);
+                        if ($sms_sender == "celcom") {
+                            $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
+                            $ch = \curl_init();
+                            \curl_setopt($ch, CURLOPT_URL, $finalURL);
+                            \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                            \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                            $response = \curl_exec($ch);
+                            \curl_close($ch);
+                            $res = json_decode($response);
+                            // return $res;
+                            $values = $res->responses[0];
+                            // return $values;
+                            foreach ($values as  $key => $value) {
+                                // echo $key;
+                                if ($key == "response-code") {
+                                    if ($value == "200") {
+                                        // if its 200 the message is sent delete the
+                                        $message_status = 1;
+                                    }
+                                }
+                            }
+                        } elseif ($sms_sender == "afrokatt") {
+                            $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=" . urlencode($apikey) . "&to=" . $mobile . "&from=" . $shortcode . "&sms=" . urlencode($message);
+                            $ch = \curl_init();
+                            \curl_setopt($ch, CURLOPT_URL, $finalURL);
+                            \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                            \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                            $response = \curl_exec($ch);
+                            \curl_close($ch);
+                            $res = json_decode($response);
+                            $values = $res->code;
+                            if (isset($res->code)) {
+                                if ($res->code == "200") {
+                                    $message_status = 1;
+                                }
+                            }
+                        }
+
+                        // if the message status is one the message is already sent to the user
+                        $sms_table = new sms_table();
+                        $sms_table->sms_content = $message;
+                        $sms_table->date_sent = date("YmdHis");
+                        $sms_table->recipient_phone = $mobile;
+                        $sms_table->sms_status = $message_status;
+                        $sms_table->account_id = $client_id;
+                        $sms_table->sms_type = $sms_type;
+                        $sms_table->save();
+                    }
+                }
+                return redirect("/Quick-Register");
             } else {
                 $error = "New client is not added, check if the Hypbits credentials are still present and not altered!";
                 session()->flash("network_presence", $error);
@@ -1621,6 +1977,387 @@ class Clients extends Controller
                     // return to the main page
                     session()->flash("success_reg", "The user has been successfully registered!");
                     return redirect(url()->route("myclients"));
+                } else {
+                    session()->flash("network_presence", "Cannot connect to the router, Check is the credentials are all setup well!");
+                    return redirect(url()->previous());
+                }
+            }
+        }
+        session()->flash("network_presence", "Cannot add user, contact your administrator for further guidance!");
+        return redirect(url()->previous());
+    }
+    // save a new client in the database
+    function processNewQuickRegisterStaticClient(Request $req)
+    {
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // ADD IP ADDRESS ADD QUEUE AND ADD FILTER WHEN NEEDED
+        // FIRST GET THE USER DATA
+        $client_name = $req->input('client_name');
+        $client_address = $req->input('client_address');
+        $client_phone = $req->input('client_phone');
+        $client_monthly_pay = $req->input('client_monthly_pay');
+        $client_network = $req->input('client_network');
+        $client_gw = $req->input('client_gw');
+        $upload_speed = $req->input('upload_speed');
+        $unit1 = $req->input('unit1');
+        $download_speed = $req->input('download_speed');
+        $unit2 = $req->input('unit2');
+        $router_name = $req->input('router_name');
+        $interface_name = $req->input('interface_name');
+        $comments = $req->input('comments');
+        $client_username = $req->input('client_username');
+        $client_password = $req->input('client_password');
+        $client_acc_number = $req->input("client_acc_number");
+        $location_coordinates = $req->input('location_coordinates');
+        $expiration_dates = date("YmdHis", strtotime("3 hours"));
+        $minimum_payment = $req->input("minimum_payment");
+
+        // return $req->input();
+        // return $location_coordinates;
+        // return $expiration_dates;
+        session()->flash('client_name', $client_name);
+        session()->flash('client_address', $client_address);
+        session()->flash('client_phone', $client_phone);
+        session()->flash('client_monthly_pay', $client_monthly_pay);
+        session()->flash('client_network', $client_network);
+        session()->flash('client_gw', $client_gw);
+        session()->flash('upload_speed', $upload_speed);
+        session()->flash('unit1', $unit1);
+        session()->flash('download_speed', $download_speed);
+        session()->flash('unit2', $unit2);
+        session()->flash('router_name', $router_name);
+        session()->flash('interface_name', $interface_name);
+        session()->flash('comments', $comments);
+        session()->flash('client_username', $client_username);
+        session()->flash('client_password', $client_password);
+        session()->flash('client_acc_number', $client_acc_number);
+        session()->flash('location_coordinates', $location_coordinates);
+        session()->flash('minimum_payment', $minimum_payment);
+
+        // validate the user
+        // return $client_gw;
+        $req->validate([
+            'client_phone' => 'max:12|min:10',
+            'interface_name' => 'required',
+            'router_name' => 'required'
+        ]);
+
+
+        // if the clients account number is present dont accept any inputs
+        $client_usernamed = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_username` = '$client_username'");
+        if (count($client_usernamed) > 0) {
+            // display an error that the account number is already used
+            session()->flash("network_presence", "The username provided is already present!");
+            session()->flash("client_username_present", "The username provided is already present!");
+            return redirect("/Clients/NewStatic");
+        }
+
+        $client_account = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_account` = '$client_acc_number'");
+        if (count($client_account) > 0) {
+            // display an error that the account number is already used
+            session()->flash("network_presence", "The account number provided is already present");
+            session()->flash("account_number_present", "The account number provided is already present!");
+            return redirect("/Clients/NewStatic");
+        } else {
+            // check if the client with that username OR client default gateway is present in the system
+            $user_information = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_default_gw` = '$client_gw' AND  `router_name` = '" . $router_name . "'");
+
+            if (count($user_information) > 0) {
+                // the phone number or the client gw is shared
+                $error = "The clients address (" . $client_gw . ") is present in the database and used by " . $user_information[0]->client_name . "(" . $user_information[0]->client_address . ") use another value to proceed or change the user information to suit your new user.";
+                session()->flash("network_presence", $error);
+                return redirect("Clients/NewStatic");
+            } else {
+                // check if the selected router is connected
+                // get the router data
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'", [$router_name]);
+                if (count($router_data) == 0) {
+                    $error = "Router selected does not exist!";
+                    session()->flash("network_presence", $error);
+                    return redirect(url()->previous());
+                }
+
+                // get the sstp credentails they are also the api usernames
+                $sstp_username = $router_data[0]->sstp_username;
+                $sstp_password = $router_data[0]->sstp_password;
+                $api_port = $router_data[0]->api_port;
+
+                // connect to the router and set the sstp client
+                $sstp_value = $this->getSSTPAddress();
+                if ($sstp_value == null) {
+                    $error = "The SSTP server is not set, Contact your administrator!";
+                    session()->flash("network_presence", $error);
+                    return redirect(url()->previous());
+                }
+
+                // connect to the router and set the sstp client
+                $server_ip_address = $sstp_value->ip_address;
+                $user = $sstp_value->username;
+                $pass = $sstp_value->password;
+                $port = $sstp_value->port;
+
+                // check if the router is actively connected
+                $client_router_ip = $this->checkActive($server_ip_address, $user, $pass, $port, $sstp_username);
+                // return $client_router_ip;
+
+                // get ip address and queues
+                // start with IP address
+                // connect to the router and add the ip address and queues to the interface
+                $API = new routeros_api();
+                $API->debug = false;
+
+                $router_ip_addresses = [];
+                $router_simple_queues = [];
+                if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
+                    // get the IP ADDRES
+                    $curl_handle = curl_init();
+                    $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_name . "&r_ip=true";
+                    curl_setopt($curl_handle, CURLOPT_URL, $url);
+                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
+                    $curl_data = curl_exec($curl_handle);
+                    curl_close($curl_handle);
+                    $router_ip_addresses = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+                    // save the router ip address
+                    $ip_addr = $router_ip_addresses;
+
+                    // get the SIMPLE QUEUES
+                    $curl_handle = curl_init();
+                    $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_name . "&r_queues=true";
+                    curl_setopt($curl_handle, CURLOPT_URL, $url);
+                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
+                    $curl_data = curl_exec($curl_handle);
+                    curl_close($curl_handle);
+                    $router_simple_queues = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+                    $simple_queues = $router_simple_queues;
+
+                    // set the target key for simple queues because this changes in different routers.
+                    $target_key = 'target';
+                    $first_simple_queues = count($simple_queues) > 0 ? $simple_queues[0] : null;
+                    if ($first_simple_queues != null) {
+                        foreach ($first_simple_queues as $key => $simple_queue) {
+                            if ($key == 'address') {
+                                $target_key = $key;
+                            }
+                        }
+                    }
+
+                    // proceed and add the client to the router
+                    if ($req->input('allow_router_changes') == "on") {
+                        // check if the ip address is present
+                        $present_ip = 0;
+                        $ip_id = 0;
+
+                        // loop through the ip address
+                        foreach ($router_ip_addresses as $key => $value_address) {
+                            if ($value_address['network'] == $req->input('client_network')) {
+                                $present_ip = 1;
+                                $ip_id = $value_address['.id'];
+                                break;
+                            }
+                        }
+                        // return $present_ip;
+
+                        if ($present_ip == 1) {
+                            // update the ip address
+                            // set the ip address using its id
+                            $result = $API->comm(
+                                "/ip/address/set",
+                                array(
+                                    "address"     => $req->input('client_gw'),
+                                    "interface" => $req->input('interface_name'),
+                                    "comment"  => $req->input('client_name') . " (" . $req->input('client_address') . " - " . $location_coordinates . ") - " . $client_acc_number,
+                                    ".id" => $ip_id
+                                )
+                            );
+                            if (count($result) > 0) {
+                                // this means there is an error
+                                $API->comm(
+                                    "/ip/address/set",
+                                    array(
+                                        "interface" => $req->input('interface_name'),
+                                        "comment"  => $req->input('client_name') . " (" . $req->input('client_address') . " - " . $location_coordinates . ") - " . $client_acc_number,
+                                        ".id" => $ip_id
+                                    )
+                                );
+                            }
+                        } else {
+                            // add the ip address
+                            // add a new ip address
+                            $result = $API->comm(
+                                "/ip/address/add",
+                                array(
+                                    "address"     => $req->input('client_gw'),
+                                    "interface" => $req->input('interface_name'),
+                                    "network" => $req->input('client_network'),
+                                    "comment"  => $req->input('client_name') . " (" . $req->input('client_address') . " - " . $location_coordinates . ") - " . $client_acc_number
+                                )
+                            );
+                        }
+
+                        // proceed and add the queues 
+                        // first check the queues
+                        $queue_present = 0;
+                        $queue_id = 0;
+                        foreach ($router_simple_queues as $key => $value_simple_queues) {
+                            if ($value_simple_queues['target'] == $client_network . "/" . explode("/", $client_gw)[1]) {
+                                $queue_id = $value_simple_queues['.id'];
+                                $queue_present = 1;
+                                break;
+                            }
+                        }
+
+                        $upload = $upload_speed . $unit1;
+                        $download = $download_speed . $unit2;
+                        // queue present
+                        if ($queue_present == 1) {
+                            // set the queue
+                            // set the queue using the ip address
+                            $API->comm(
+                                "/queue/simple/set",
+                                array(
+                                    "name" => $req->input('client_name') . " (" . $req->input('client_address') . " - " . $location_coordinates . ") - " . $client_acc_number,
+                                    "$target_key" => $client_network . "/" . explode("/", $client_gw)[1],
+                                    "max-limit" => $upload . "/" . $download,
+                                    ".id" => $queue_id
+                                )
+                            );
+                        } else {
+                            // add the queue to the list
+                            $API->comm(
+                                "/queue/simple/add",
+                                array(
+                                    "name" => $req->input('client_name') . " (" . $req->input('client_address') . " - " . $location_coordinates . ") - " . $client_acc_number,
+                                    "$target_key" => $client_network . "/" . explode("/", $client_gw)[1],
+                                    "max-limit" => $upload . "/" . $download
+                                )
+                            );
+                        }
+                    }
+                    // disconnect the api
+                    $API->disconnect();
+
+                    // save to the databases
+
+                    // add the clients information in the database
+                    $clients_table = new client_table();
+                    $clients_table->client_name = $client_name;
+                    $clients_table->client_address = $client_address;
+                    $clients_table->client_network = $client_network;
+                    $clients_table->client_default_gw = $client_gw;
+                    $clients_table->next_expiration_date = $expiration_dates;
+                    $clients_table->max_upload_download = $upload_speed . $unit1 . "/" . $download_speed . $unit2;
+                    $clients_table->monthly_payment = $client_monthly_pay;
+                    $clients_table->router_name = $router_name;
+                    $clients_table->comment = $req->input('comments');
+                    $clients_table->clients_contacts = $client_phone;
+                    $clients_table->client_status = "1";
+                    $clients_table->payments_status = "1";
+                    $clients_table->clients_reg_date = date("YmdHis");
+                    $clients_table->client_interface = $interface_name;
+                    $clients_table->client_username = $client_username;
+                    $clients_table->client_password = $client_password;
+                    $clients_table->client_account = $client_acc_number;
+                    $clients_table->location_coordinates = $req->input('location_coordinates');
+                    $clients_table->assignment = "static";
+                    $clients_table->min_amount = $minimum_payment;
+                    $clients_table->validated = "0";
+                    $clients_table->save();
+
+
+                    // get the sms keys
+
+                    // GET THE SMS API LINK
+                    $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+                    $sms_sender = count($select) > 0 ? $select[0]->value : "";
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
+                    $sms_api_key = $sms_keys[0]->value;
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
+                    $sms_partner_id = $sms_keys[0]->value;
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
+                    $sms_shortcode = $sms_keys[0]->value;
+                    $partnerID = $sms_partner_id;
+                    $apikey = $sms_api_key;
+                    $shortcode = $sms_shortcode;
+
+                    // check if the organization is allowed to send sms
+                    $organization_dets = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?", [session("organization")->organization_id]);
+                    // check if the organization is allowed to send sms
+                    if ($organization_dets[0]->send_sms == 0) {
+                        session()->flash("error_sms", "You are not allowed to send SMS!");
+                        $send_sms = 0;
+                    }
+
+                    // get message
+                    $message_contents = $this->get_sms();
+                    $message = $message_contents[3]->messages[0]->message;
+                    $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC LIMIT 1;");
+                    if ($user_data && $req->input('send_sms') == "on" && $organization_dets[0]->send_sms == 1) {
+                        $client_id = $user_data[0]->client_id;
+                        $mobile = $user_data[0]->clients_contacts;
+                        $sms_type = 2;
+                        if ($message) {
+                            $trans_amount = 0;
+                            $message = $this->message_content($message, $client_id, $trans_amount);
+                            if ($sms_sender == "celcom") {
+                                $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
+                                $ch = \curl_init();
+                                \curl_setopt($ch, CURLOPT_URL, $finalURL);
+                                \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                                \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                                $response = \curl_exec($ch);
+                                \curl_close($ch);
+                                $res = json_decode($response);
+                                // return $res;
+                                $values = $res->responses[0];
+                                // return $values;
+                                foreach ($values as  $key => $value) {
+                                    // echo $key;
+                                    if ($key == "response-code") {
+                                        if ($value == "200") {
+                                            // if its 200 the message is sent delete the
+                                            $message_status = 1;
+                                        }
+                                    }
+                                }
+                            } elseif ($sms_sender == "afrokatt") {
+                                $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=" . urlencode($apikey) . "&to=" . $mobile . "&from=" . $shortcode . "&sms=" . urlencode($message);
+                                $ch = \curl_init();
+                                \curl_setopt($ch, CURLOPT_URL, $finalURL);
+                                \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                                \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                                $response = \curl_exec($ch);
+                                \curl_close($ch);
+                                $res = json_decode($response);
+                                $values = $res->code;
+                                if (isset($res->code)) {
+                                    if ($res->code == "200") {
+                                        $message_status = 1;
+                                    }
+                                }
+                            }
+                            // if the message status is one the message is already sent to the user
+                            $sms_table = new sms_table();
+                            $sms_table->sms_content = $message;
+                            $sms_table->date_sent = date("YmdHis");
+                            $sms_table->recipient_phone = $mobile;
+                            $sms_table->sms_status = $message_status;
+                            $sms_table->account_id = $client_id;
+                            $sms_table->sms_type = $sms_type;
+                            $sms_table->save();
+                        }
+                    }
+
+                    // log message
+                    $txt = ":New Client (" . $client_name . ") successfully registered by  " . session('Usernames') . " to database and router! Static Assignment!";
+                    $this->log($txt);
+                    // end of log file
+
+                    // return to the main page
+                    session()->flash("success_reg", "The user has been successfully registered!");
+                    return redirect("/Quick-Register");
                 } else {
                     session()->flash("network_presence", "Cannot connect to the router, Check is the credentials are all setup well!");
                     return redirect(url()->previous());

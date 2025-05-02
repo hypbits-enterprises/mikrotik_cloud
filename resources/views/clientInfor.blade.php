@@ -26,6 +26,9 @@
     <!-- END Custom CSS-->
 </head>
 <style>
+    .showBlock{
+      display: block;
+    }
     /*the container must be positioned relative:*/
     .autocomplete {
         position: relative;
@@ -131,6 +134,61 @@
                                     </ul>
                                     <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
                                         to list</a>
+                                    <div class="container">
+                                        <div class="modal fade text-left" id="change_issue_status" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11_2" style="padding-right: 17px;" aria-modal="true">
+                                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-success white">
+                                                    <h4 class="modal-title white" id="myModalLabel11_2">Validate User!</h4>
+                                                    <input type="hidden" id="delete_columns_ids_2">
+                                                    <button id="hide_delete_issue_2" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">×</span>
+                                                    </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="container">
+                                                            <form action="{{route("validate_user")}}" method="post">
+                                                                @csrf
+                                                                <div class="form-group">
+                                                                    <button type="button" id="delete_user_from_the_system" class="btn btn-sm btn-outline-danger"><i class="ft-trash"></i></button>
+                                                                    <div class="container my-1 border border-dark rounded p-1 d-none" id="delete_the_user">
+                                                                        <h4 class="text-center">Delete User!</h4>
+                                                                        <p><b>Delete this user from the system?</b></p>
+                                                                        <a href="/delete_user/{{$clients_data[0]->client_id}}" class="btn btn-sm btn-outline-danger btn-block"><i class="ft-trash"></i> Delete User</a>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label for="expiry_date" class="form-control-label"><b>Expiry Date</b></label>
+                                                                    <input type="hidden" name="client_ids" id="client_ids" value="{{$clients_data[0]->client_id}}">
+                                                                    <div class="autocomplete">
+                                                                        <input type="date" name="expiry_date" id="expiry_date"
+                                                                            class="form-control rounded-lg p-1"
+                                                                            placeholder="Resolved By" required
+                                                                            value="{{date("Y-m-d", strtotime("1 month"))}}">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label for="expiry_time" class="form-control-label"><b>Expiry Time</b></label>
+                                                                    <div class="autocomplete">
+                                                                        <input type="time" name="expiry_time" id="expiry_time"
+                                                                            class="form-control rounded-lg p-1"
+                                                                            placeholder="Resolved By" required
+                                                                            value="{{date("H:i", strtotime("20250101000000"))}}">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="container">
+                                                                    <button class="btn btn-success btn-sm {{$readonly}}" type="submit"><i class="ft-save"></i> Save</button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" id="close_update_status_window" class="btn btn-sm btn-secondary" data-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     @if (session('success'))
                                         <p class="success">{{ session('success') }}</p>
                                     @endif
@@ -151,6 +209,11 @@
                                             </li>
                                         </ul>
                                     </div>
+                                    <div class="mx-auto my-2 {{$clients_data[0]->validated == 1 ? "d-none" : ""}}">
+                                        <div class="d-flex justify-content-center">
+                                            <button class="btn btn-sm btn-block btn-success" {{$readonly}} id="change_status" type="button"><i class="ft-refresh"></i> Validate User</button>
+                                        </div>
+                                    </div>
                                     <div class="tab-content" id="myTabsContent">
                                         <div class="tab-pane fade show active" id="tab1" role="tabpanel">
                                             <div class="row">
@@ -163,7 +226,7 @@
                                                     </p>
                                                 </div>
                                                 <div class="col-md-3 border-left border-secondary">
-                                                    <button id="prompt_delete" class="btn btn-secondary float-right btn-sm " {{$readonly}}><i class="fas fa-trash"></i> Delete</button>
+                                                    <button id="prompt_delete" class="btn btn-secondary float-right btn-sm {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}}><i class="fas fa-trash"></i> Delete</button>
                                                     <div class="container d-none" id="prompt_del_window">
                                                         <p class="text-primary" ><strong>Are you sure you want to permanently delete this client?</strong></p>
                                                         <div class="row">
@@ -180,42 +243,61 @@
                                             <div class="row">
                                                 <div class="col-md-6 card shadow-lg border-right border-infor">
                                                     {{-- client active status --}}
-                                                    @if ($clients_data[0]->client_status == 1)
+                                                    @if ($clients_data[0]->validated == "1")
+                                                        @if ($clients_data[0]->client_status == 1)
+                                                            <div class="row my-1 border-bottom border-light p-1">
+                                                                <div class="col-sm-6"><strong>User status:</strong></div>
+                                                                <div class="col-sm-6"><a
+                                                                        href="/deactivate/{{ $clients_data[0]->client_id }}"
+                                                                        class="btn btn-sm btn-danger {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}} my-1">De-Activate</a><p class="text-success d-none"><b>Activated</b></p></div>
+                                                            </div>
+                                                        @else
+                                                            <div class="row my-1 border-bottom border-light">
+                                                                <div class="col-sm-6"><strong>User status:</strong></div>
+                                                                    <div class="col-sm-6"><a
+                                                                            href="/activate/{{ $clients_data[0]->client_id }}"
+                                                                            class="btn btn-sm btn-success {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}} my-1">Activate</a><p class="text-danger d-none"><b>De-activated</b></p>
+                                                                    </div>
+                                                            </div>
+                                                        @endif
+                                                    @else
                                                         <div class="row my-1 border-bottom border-light p-1">
                                                             <div class="col-sm-6"><strong>User status:</strong></div>
-                                                            <div class="col-sm-6"><a
-                                                                    href="/deactivate/{{ $clients_data[0]->client_id }}"
-                                                                    class="btn btn-sm btn-danger {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}} my-1">De-Activate</a><p class="text-success d-none"><b>Activated</b></p></div>
-                                                        </div>
-                                                    @else
-                                                        <div class="row my-1 border-bottom border-light">
-                                                            <div class="col-sm-6"><strong>User status:</strong></div>
-                                                            <div class="col-sm-6"><a
-                                                                    href="/activate/{{ $clients_data[0]->client_id }}"
-                                                                    class="btn btn-sm btn-success {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}} my-1">Activate</a><p class="text-danger d-none"><b>De-activated</b></p></div>
+                                                            <div class="col-sm-6">
+                                                                <p>User is not validated yet!</p>
+                                                            </div>
                                                         </div>
                                                     @endif
         
                                                     {{-- client payment automatiom --}}
-                                                    @if ($clients_data[0]->payments_status == 1)
-                                                        <div class="row my-1 border-bottom border-light py-1">
-                                                            <div class="col-sm-6"><strong>Automate Transaction:</strong>
+                                                    @if ($clients_data[0]->validated == "1")
+                                                        @if ($clients_data[0]->payments_status == 1)
+                                                            <div class="row my-1 border-bottom border-light py-1">
+                                                                <div class="col-sm-6"><strong>Automate Transaction:</strong>
+                                                                </div>
+                                                                <div class="col-sm-6"><a
+                                                                        href="/deactivatePayment/{{ $clients_data[0]->client_id }}"
+                                                                        class="btn btn-sm btn-danger {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}}">De-Activate</a><p class="text-success d-none"><b>Activated</b></p></div>
                                                             </div>
-                                                            <div class="col-sm-6"><a
-                                                                    href="/deactivatePayment/{{ $clients_data[0]->client_id }}"
-                                                                    class="btn btn-sm btn-danger {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}}">De-Activate</a><p class="text-success d-none"><b>Activated</b></p></div>
-                                                        </div>
+                                                        @else
+                                                            <div class="row my-1 border-bottom border-light py-1">
+                                                                <div class="col-sm-6"><strong>Automate Transaction:</strong>
+                                                                </div>
+                                                                <div class="col-sm-6"><a
+                                                                        href="/activatePayment/{{ $clients_data[0]->client_id }}"
+                                                                        class="btn btn-sm btn-success {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}}">Activate</a><p class="text-danger d-none"><b>De-activated</b></p></div>
+                                                            </div>
+                                                        @endif
                                                     @else
-                                                        <div class="row my-1 border-bottom border-light py-1">
-                                                            <div class="col-sm-6"><strong>Automate Transaction:</strong>
+                                                        <div class="row my-1 border-bottom border-light p-1">
+                                                            <div class="col-sm-6"><strong>Automate Transaction:</strong></div>
+                                                            <div class="col-sm-6">
+                                                                <p>User is not validated yet!</p>
                                                             </div>
-                                                            <div class="col-sm-6"><a
-                                                                    href="/activatePayment/{{ $clients_data[0]->client_id }}"
-                                                                    class="btn btn-sm btn-success {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}}">Activate</a><p class="text-danger d-none"><b>De-activated</b></p></div>
                                                         </div>
                                                     @endif
                                                     <div class="row border-bottom border-light py-2">
-                                                        <div class="col-sm-6"><strong>Expiration Date:</strong><button class="text-secondary btn btn-infor btn-sm mx-1" {{$readonly}} style="width: fit-content;" id="edit_epiration"><i class="fas fa-pen"></i> Edit</button>
+                                                        <div class="col-sm-6"><strong>Expiration Date:</strong><button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_epiration"><i class="fas fa-pen"></i> Edit</button>
                                                         </div>
                                                         <div class="col-sm-6">{{$expire_date ? $expire_date : "Null"}}</div>
                                                     </div>
@@ -244,7 +326,7 @@
                                                         <hr>
                                                     </div>
                                                     <div class="row my-1 border-bottom border-light py-1">
-                                                        <div class="col-sm-6"><strong>Monthly Payment:</strong><button class="text-secondary btn btn-infor btn-sm mx-1" {{$readonly}} style="width: fit-content;" id="edit_monthly_payments"><i class="fas fa-pen"></i> Edit</button></div>
+                                                        <div class="col-sm-6"><strong>Monthly Payment:</strong><button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_monthly_payments"><i class="fas fa-pen"></i> Edit</button></div>
                                                         <div class="col-sm-6">Kes {{ number_format($clients_data[0]->monthly_payment) }}
                                                         </div>
                                                     </div>
@@ -270,7 +352,7 @@
                                                         <hr>
                                                     </div>
                                                     <div class="row my-1 border-bottom border-light py-2">
-                                                        <div class="col-sm-7"><strong class="text-secondary">Freeze Client:</strong> <span class="badge {{$clients_data[0]->client_freeze_status == "1" || date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "badge-success" : "badge-danger";}}">{{$clients_data[0]->client_freeze_status == "1" || date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "Active" : "In-Active";}}</span> <button class="text-secondary btn btn-infor btn-sm mx-1" {{$readonly}} id="edit_freeze_client"><i class="fas fa-pen"></i> Edit</button></div>
+                                                        <div class="col-sm-7"><strong class="text-secondary">Freeze Client:</strong> <span class="badge {{$clients_data[0]->client_freeze_status == "1" || date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "badge-success" : "badge-danger";}}">{{$clients_data[0]->client_freeze_status == "1" || date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "Active" : "In-Active";}}</span> <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} id="edit_freeze_client"><i class="fas fa-pen"></i> Edit</button></div>
                                                         <div class="col-sm-5">
                                                             <p>{{date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "Client will be frozen on : ".date("D dS M Y",strtotime($clients_data[0]->freeze_date))." until " : "Frozen Until:"}} {{isset($freeze_date) && strlen($freeze_date) > 0 ? $freeze_date : "Not Set"}}</p>
                                                         </div>
@@ -327,7 +409,7 @@
                                                         <hr>
                                                     </div>
                                                     <div class="row my-1 border-bottom border-light py-2">
-                                                        <div class="col-sm-7"><strong class="text-secondary">Minimum Payment:</strong> <button class="text-secondary btn btn-infor btn-sm mx-1" {{$readonly}} id="edit_minimum_amount"><i class="fas fa-pen"></i> Edit</button></div>
+                                                        <div class="col-sm-7"><strong class="text-secondary">Minimum Payment:</strong> <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} id="edit_minimum_amount"><i class="fas fa-pen"></i> Edit</button></div>
                                                         <div class="col-sm-5">
                                                             {{$clients_data[0]->min_amount != 100 ? "Kes ".number_format(($clients_data[0]->min_amount / 100) * $clients_data[0]->monthly_payment)." (".$clients_data[0]->min_amount."%) of Kes ".number_format($clients_data[0]->monthly_payment) : "Full Payment (Kes ".number_format($clients_data[0]->monthly_payment).")"}}
                                                         </div>
@@ -358,7 +440,7 @@
                                                         </div>
                                                     </div>
                                                     <div class="row my-1 border-bottom border-light py-1">
-                                                        <div class="col-sm-6"><strong>Wallet Amount:</strong><button class="text-secondary btn btn-infor btn-sm mx-1" {{$readonly}} style="width: fit-content;" id="edit_wallet"><i class="fas fa-pen"></i> Edit</button></div>
+                                                        <div class="col-sm-6"><strong>Wallet Amount:</strong><button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_wallet"><i class="fas fa-pen"></i> Edit</button></div>
                                                         <div class="col-sm-6">Kes {{ number_format($clients_data[0]->wallet_amount) }}
                                                         </div>
                                                     </div>
@@ -383,7 +465,7 @@
                                                         <hr>
                                                     </div>
                                                     <div class="row my-1 border-bottom border-light py-1">
-                                                        <div class="col-sm-6"><strong>Phone Number:</strong><button class="text-secondary btn btn-infor btn-sm mx-1" {{$readonly}} style="width: fit-content;" id="edit_phone_number"><i class="fas fa-pen"></i> Edit</button></div>
+                                                        <div class="col-sm-6"><strong>Phone Number:</strong><button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_phone_number"><i class="fas fa-pen"></i> Edit</button></div>
                                                         <div class="col-sm-6">{{ $clients_data[0]->clients_contacts }}
                                                         </div>
                                                     </div>
@@ -422,7 +504,7 @@
                                                         </div>
                                                     </div>
                                                     <div class="row my-1 border-bottom border-light py-1">
-                                                        <div class="col-sm-6"><strong>Reffered By:<button class="text-secondary btn btn-infor btn-sm mx-1" {{$readonly}} id="edit_refferal"><i class="fas fa-pen"></i> Edit</button></strong></div>
+                                                        <div class="col-sm-6"><strong>Reffered By:<button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} id="edit_refferal"><i class="fas fa-pen"></i> Edit</button></strong></div>
                                                         <div class="col-sm-6">
                                                             <p>{{$client_refferal ?? 'Refferal Not set'}} </p>
                                                         </div>
@@ -491,7 +573,11 @@
                                                                 </div>
                                                                 <div class="row">
                                                                     <div class="col-md-6">
-                                                                        <button type="submit" class="btn btn-primary my-1" {{$readonly}} id="save_data_inside"><i class="fas fa-save"></i> Set</button>
+                                                                        @if ($clients_data[0]->validated == 1)
+                                                                            <button type="submit" class="btn btn-primary my-1" {{$readonly}} id="save_data_inside"><i class="fas fa-save"></i> Set</button>
+                                                                        @else
+                                                                            <p>User is not validated yet!</p>
+                                                                        @endif
                                                                     </div>
                                                                     <div class="col-md-6">
                                                                         <button class="btn btn-secondary my-1" type="button" id="cancel_refferer_updates">Cancel</button>
@@ -688,8 +774,12 @@
                                                 <hr>
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <button {{$readonly}} class="btn btn-success text-dark" type="submit"><i
-                                                                class="ft-upload"></i> Update User</button>
+                                                        @if ($clients_data[0]->validated == 1)
+                                                            <button {{$readonly}} class="btn btn-success text-dark" type="submit"><i
+                                                                    class="ft-upload"></i> Update User</button>
+                                                        @else
+                                                            <p>Update button appears here but user is not validated yet!</p>
+                                                        @endif
                                                     </div>
                                                     <div class="col-md-6">
                                                         <a class="btn btn-secondary btn-outline" href="/Clients"><i
@@ -1114,6 +1204,28 @@
 
         function cObj(object_id) {
             return document.getElementById(object_id);
+        }
+
+        cObj("change_status").onclick = function () {
+            cObj("change_issue_status").classList.remove("hide");
+            cObj("change_issue_status").classList.add("show");
+            cObj("change_issue_status").classList.add("showBlock");
+        }
+
+        cObj("hide_delete_issue_2").onclick = function () {
+            cObj("change_issue_status").classList.add("hide");
+            cObj("change_issue_status").classList.remove("show");
+            cObj("change_issue_status").classList.remove("showBlock");
+        }
+
+        cObj("delete_user_from_the_system").onclick = function () {
+            cObj("delete_the_user").classList.toggle("d-none");
+        }
+
+        cObj("close_update_status_window").onclick = function () {
+            cObj("change_issue_status").classList.add("hide");
+            cObj("change_issue_status").classList.remove("show");
+            cObj("change_issue_status").classList.remove("showBlock");
         }
     </script>
     <script src="/theme-assets/js/core/refferer.js"></script>

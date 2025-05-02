@@ -1,5 +1,5 @@
 @import url('bootstrap.css');
-@import url('../fonts/feather/style.min.css');
-@import url('../fonts/line-awesome/css/line-awesome.min.css');
-@import url('../fonts/flag-icon-css/css/flag-icon.min.css');
-@import url('../vendors/css/extensions/pace.css');
+@import url('/theme-assets/fonts/feather/style.min.css');
+@import url('/theme-assets/fonts/line-awesome/css/line-awesome.min.css');
+@import url('/theme-assets/fonts/flag-icon-css/css/flag-icon.min.css');
+@import url('/theme-assets/vendors/css/extensions/pace.css');

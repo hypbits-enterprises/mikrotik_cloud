@@ -16,15 +16,96 @@
                         exit();
                     @endphp
                 @endif
+                @php
+                    $validated_users = 0;
+                    if(Session::has("unvalidated_users")){
+                        $validated_users = session("unvalidated_users");
+                    }
+                @endphp
                 <ul class="nav navbar-nav float-right">
-                    <li class="dropdown dropdown-notification nav-item"><a class="nav-link nav-link-label" href="#" data-toggle="dropdown" aria-expanded="false"><i class="ficon ft-bell bell-shake" id="notification-navbar-link"></i><span class="badge badge-pill badge-sm badge-danger badge-up badge-glow">5</span></a>
+                    <li class="dropdown dropdown-notification nav-item"><a class="nav-link nav-link-label" href="#" data-toggle="dropdown" aria-expanded="false"><i class="ficon ft-bell {{$validated_users == "0" ? "" : "bell-shake"}}" id="notification-navbar-link"></i><span class="badge badge-pill badge-sm badge-danger badge-up badge-glow {{$validated_users == "0" ? "d-none" : ""}}">{{$validated_users}}</span></a>
                         <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right">
                             <div class="arrow_box_right">
                                 <li class="dropdown-menu-header">
                                     <h6 class="dropdown-header m-0"><span class="grey darken-2">Notifications</span></h6>
                                 </li>
-                                <div class="scrollable-container media-list w-100" style="overflow: scroll">
-                                    <a href="javascript:void(0)">
+                                <div class="scrollable-container media-list w-100" style="overflow-y: auto">
+                                    @if ($validated_users > 0)
+                                        @php
+                                            $collection_items = session("unvalidated");
+                                            function timeAgo($datetime)
+                                            {
+                                                // Convert string to DateTime object
+                                                $dt = DateTime::createFromFormat('YmdHis', $datetime);
+                                                if (!$dt) {
+                                                    return "Invalid date format.";
+                                                }
+
+                                                $now = new DateTime();
+                                                $timestamp = $dt->getTimestamp();
+                                                $nowTimestamp = $now->getTimestamp();
+                                                $seconds = $nowTimestamp - $timestamp;
+
+                                                if ($seconds < 0) {
+                                                    return "In the future";
+                                                }
+
+                                                if ($seconds < 60) {
+                                                    return $seconds . ' second' . ($seconds !== 1 ? 's' : '') . ' ago';
+                                                }
+
+                                                $minutes = floor($seconds / 60);
+                                                if ($minutes < 60) {
+                                                    return $minutes . ' minute' . ($minutes !== 1 ? 's' : '') . ' ago';
+                                                }
+
+                                                $hours = floor($minutes / 60);
+                                                if ($hours < 24) {
+                                                    return $hours . ' hour' . ($hours !== 1 ? 's' : '') . ' ago';
+                                                }
+
+                                                $days = floor($hours / 24);
+                                                if ($days < 7) {
+                                                    return $days . ' day' . ($days !== 1 ? 's' : '') . ' ago';
+                                                }
+
+                                                $weeks = floor($days / 7);
+                                                if ($days < 30) {
+                                                    return $weeks . ' week' . ($weeks !== 1 ? 's' : '') . ' ago';
+                                                }
+
+                                                $months = floor($days / 30);
+                                                if ($months < 12) {
+                                                    return $months . ' month' . ($months !== 1 ? 's' : '') . ' ago';
+                                                }
+
+                                                $years = floor($months / 12);
+                                                return $years . ' year' . ($years !== 1 ? 's' : '') . ' ago';
+                                            }
+                                        @endphp
+                                        @foreach ($collection_items as $item)
+                                            <a href="/Clients/View/{{$item->client_id}}">
+                                                <div class="media">
+                                                    <div class="media-left align-self-center"><i class="ft-users info font-medium-4 mt-2"></i></div>
+                                                    <div class="media-body">
+                                                        <h6 class="media-heading info">Client ({{ucwords(strtolower($item->client_name))}}) Registered Successfully!</h6>
+                                                        <p class="notification-text font-small-3 text-muted text-bold-600">{{ucwords(strtolower($item->client_name))}} was registered at {{date("H:i:sA", strtotime($item->clients_reg_date))}} on {{date("D dS M Y", strtotime($item->clients_reg_date))}}!</p><small>
+                                                            <time class="media-meta text-muted" datetime="2015-06-11T18:29:20+08:00">{{timeAgo($item->clients_reg_date)}}</time></small>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        @endforeach
+                                    @else
+                                        <a href="javascript:void(0)">
+                                            <div class="media">
+                                                <div class="media-left align-self-center"><i class="ft-stop-circle danger font-medium-4 mt-2"></i></div>
+                                                <div class="media-body">
+                                                    <p class="notification-text font-small-3 text-muted text-bold-600">No Notifications Present!</p>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    @endif
+                                    {{-- <a href="javascript:void(0)">
                                         <div class="media">
                                             <div class="media-left align-self-center"><i class="ft-share info font-medium-4 mt-2"></i></div>
                                             <div class="media-body">
@@ -67,7 +148,7 @@
                                                     <time class="media-meta text-muted" datetime="2015-06-11T18:29:20+08:00">Last month</time></small>
                                             </div>
                                         </div>
-                                    </a>
+                                    </a> --}}
                                     <div class="ps__rail-x" style="left: 0px; bottom: -224px;">
                                         <div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div>
                                     </div>
@@ -75,7 +156,7 @@
                                         <div class="ps__thumb-y" tabindex="0" style="top: 120px; height: 135px;"></div>
                                     </div>
                                 </div>
-                                <li class="dropdown-menu-footer"><a class="dropdown-item info text-right pr-1" href="javascript:void(0)">Read all</a></li>
+                                {{-- <li class="dropdown-menu-footer"><a class="dropdown-item info text-right pr-1" href="javascript:void(0)">Read all</a></li> --}}
                             </div>
                         </ul>
                     </li>
