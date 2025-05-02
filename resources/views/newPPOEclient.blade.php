@@ -32,7 +32,7 @@
     <x-menu active="myclients"></x-menu>
     @php
         $priviledges = session("priviledges");
-        $readonly = readOnly($priviledges,"My Clients");
+        $readonly = readOnly($priviledges,"Quick Register");
     @endphp
     <div class="app-content content">
         <div class="content-wrapper">
@@ -258,8 +258,8 @@
                                         <hr>
                                         <div class="row">
                                             <div class="col-lg-6">
-                                                <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i
-                                                        class="ft-plus"></i> Add User</button>
+                                                <button class="btn btn-success text-dark {{$readonly}}" type="submit"><i
+                                                        class="ft-plus"></i> Add User </button>
                                             </div>
                                             <div class="col-lg-6">
                                                 <a class="btn btn-secondary btn-outline" href="/Clients"><i

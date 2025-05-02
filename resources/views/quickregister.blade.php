@@ -32,7 +32,7 @@
     <x-menu active="quick_register"></x-menu>
     @php
         $priviledges = session("priviledges");
-        $readonly = readOnly($priviledges,"My Clients");
+        $readonly = readOnly($priviledges,"Quick Register");
     @endphp
     <div class="app-content content">
         <div class="content-wrapper">
@@ -47,7 +47,7 @@
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a>
                                 </li>
-                                <li class="breadcrumb-item active">Client Quick Register
+                                <li class="breadcrumb-item active">Client Quick Register 
                                 </li>
                             </ol>
                         </div>
@@ -73,8 +73,8 @@
                             </div>
                             <div class="card-header">
                                 <p>- Register clients in either of the following ways!</p>
-                                <a href="/Quick-Register/New-Static" data-toggle="tooltip" title="Register new statically assigned client!" class="btn btn-primary"><i class="ft-user-check"></i> Register Static Client</a>
-                                <a href="/Quick-Register/New-PPPoE" data-toggle="tooltip" title="Register new PPPoE assigned client!" class="btn btn-secondary"><i class="ft-user-plus"></i> Register PPPoE Client</a>
+                                <a href="/Quick-Register/New-Static" data-toggle="tooltip" title="Register new statically assigned client!" class="btn btn-primary {{$readonly}}"><i class="ft-user-check"></i> Register Static Client</a>
+                                <a href="/Quick-Register/New-PPPoE" data-toggle="tooltip" title="Register new PPPoE assigned client!" class="btn btn-secondary {{$readonly}}"><i class="ft-user-plus"></i> Register PPPoE Client</a>
                             </div>
                         </div>
                     </div>

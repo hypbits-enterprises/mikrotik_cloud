@@ -254,7 +254,7 @@
                 <ul class="menu-content" style="">
                     <li class="{{showOption($priviledges,"My Clients")}} {{$active == "myclients" ? "active" : ""}} nav-item"><a href="/Clients"><span><i class="ft-user"></i> My Clients</span></a></li>
                     <li class="{{showOption($priviledges,"Clients Issues")}} {{$active == "client_issues" ? "active" : ""}} nav-item"><a href="/Client-Reports"><i class="ft-flag"></i> Client Issues</a></li>
-                    <li class="{{showOption($priviledges,"Clients Issues")}} {{$active == "quick_register" ? "active" : ""}} nav-item"><a href="/Quick-Register"><i class="ft-cloud-lightning"></i> Quick Register</a></li>
+                    <li class="{{showOption($priviledges,"Quick Register")}} {{$active == "quick_register" ? "active" : ""}} nav-item"><a href="/Quick-Register"><i class="ft-cloud-lightning"></i> Quick Register</a></li>
                 </ul>
             </li>
             <li class="{{(showOption($priviledges,"Transactions") == "d-none" && showOption($priviledges,"Expenses") == "d-none") ? "d-none" : ""}} {{$active == "transactions" || $active == "expenses" ? "active open" : ""}} nav-item has-sub"><a href="#"><i class="ft-activity"></i><span class="menu-title" data-i18n="">Accounts</span></a>

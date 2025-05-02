@@ -172,6 +172,10 @@
                                         @if (session('success'))
                                             <p class="success">{{ session('success') }}</p>
                                         @endif
+
+                                        @if (session('error'))
+                                            <p class="text-danger">{{ session('error') }}</p>
+                                        @endif
                                     <p><span class="text-bold-600">Transaction Table:</span></p>
                                     <div class="row">
                                         <div class="col-md-6 form-group">

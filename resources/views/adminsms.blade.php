@@ -130,6 +130,9 @@
                                     @if(session('error_sms'))
                                         <p class='text-danger'>{{session('error_sms')}}</p>
                                     @endif
+                                    @if (session('error'))
+                                        <p class="text-danger">{{ session('error') }}</p>
+                                    @endif
                                     <div class="w-20">
                                         <a href="/sms/system_sms" class="btn btn-secondary text-bolder {{$readonly}}">Customize SMS</a>
                                         <span data-toggle="tooltip" title="SMS Reports" class="btn btn-info" id="sms_reports_btn"><i class="ft-file-text"></i> SMS Reports</span>

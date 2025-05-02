@@ -113,7 +113,7 @@
                                                 <input type="password" name="admin_password" id="admin_password" class="form-control rounded-lg p-1" placeholder="Administrator password" required >
                                             </div>
                                         </div>
-                                        <input type="hidden" name="privileges" id="privileged" value="[{&quot;option&quot;:&quot;My Clients&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Transactions&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Expenses&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;My Routers&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;SMS&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Account and Profile&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Clients Issues&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false}]">
+                                        <input type="hidden" name="privileges" id="privileged" value="[{&quot;option&quot;:&quot;My Clients&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Transactions&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Expenses&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;My Routers&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;SMS&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Account and Profile&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Clients Issues&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false},{&quot;option&quot;:&quot;Quick Register&quot;,&quot;view&quot;:true,&quot;readonly&quot;:false}]">
                                         {{-- <input type="hidden" name="privileges" id="privileged"> --}}
                                         <div class="container my-2">
                                             <h6 class="text-center">Assign Administrator Privileges</h6>
@@ -129,7 +129,7 @@
                                                     </thead>
                                                     <tbody>
                                                         <tr>
-                                                            <th rowspan="3" scope="row">1</th>
+                                                            <th rowspan="4" scope="row">1</th>
                                                             <td><label for="my_clients_option" class="form-label"><b>Clients</b></label></td>
                                                             <td><input class="" type="checkbox" checked id="clients_option_view"></td>
                                                             <td><input class="" type="checkbox"  id="clients_option_readonly"></td>
@@ -143,6 +143,11 @@
                                                             <td><label for="my_clients_option" class="form-label"><b>Clients Issues</b></label></td>
                                                             <td><input class="all_view client_options" checked type="checkbox" id="clients_issues_view"></td>
                                                             <td><input class="all_readonly client_options_2" type="checkbox" id="clients_issues_readonly"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><label for="my_clients_option" class="form-label"><b>Quick Register</b></label></td>
+                                                            <td><input class="all_view client_options" checked type="checkbox" id="quick_register_view"></td>
+                                                            <td><input class="all_readonly client_options_2" type="checkbox" id="quick_register_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <th rowspan="3" scope="row">2</th>

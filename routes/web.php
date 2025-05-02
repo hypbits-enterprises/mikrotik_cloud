@@ -34,7 +34,7 @@ Route::get("/", function () {
     return redirect('/Hypbits');
 });
 // Route::view("/Dashboard","index");
-Route::get("/Dashboard", [Transaction::class, "getDashboard"]);
+Route::get("/Dashboard", [Transaction::class, "getDashboard"])->middleware("validated");
 // Route::view("/Clients","myclients");
 // Route::view("/Transactions","mytransactions");
 // Route::view("/Routers","myRouter");

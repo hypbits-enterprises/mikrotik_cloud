@@ -32,7 +32,7 @@
     <x-menu active="quick_register"></x-menu>
     @php
         $priviledges = session("priviledges");
-        $readonly = readOnly($priviledges,"My Clients");
+        $readonly = readOnly($priviledges,"Quick Register");
     @endphp
     <div class="app-content content">
         <div class="content-wrapper">

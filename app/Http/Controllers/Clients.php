@@ -3038,6 +3038,22 @@ class Clients extends Controller
         return redirect(route("client.viewinformation", ['clientid' => $client_id]));
     }
 
+    function showOption($priviledges,$name){
+        if ($this->isJson($priviledges)) {
+            $priviledges = json_decode($priviledges);
+            for ($index=0; $index < count($priviledges); $index++) { 
+                if ($priviledges[$index]->option == $name) {
+                    if ($priviledges[$index]->view) {
+                        return true;
+                    }else {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
 
     // get the client information
     function getClientInformation($clientid)
@@ -3045,6 +3061,14 @@ class Clients extends Controller
         // change db
         $change_db = new login();
         $change_db->change_db();
+
+        // show privilleges
+        $privilleged = session("priviledges");
+        $show_option = $this->showOption($privilleged, "My Clients");
+        if (!$show_option) {
+            session()->flash("error", "You have no rights to access clients data, consult your administrator you`ll be adviced accordingly");
+            return redirect(url()->previous());
+        }
 
         // get the clients information from the database
         $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = '$clientid'");

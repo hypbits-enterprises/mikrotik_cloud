@@ -63,6 +63,38 @@ function checkChecked() {
     }
 }
 
+cObj("quick_register_view").onchange = function () {
+    var privileged = cObj("privileged").value;
+    if (hasJsonStructure(privileged)) {
+        privileged = JSON.parse(privileged);
+
+        // loop through the privileged to add the change or change if present
+        var present = 0;
+        var readonly = cObj("quick_register_readonly").checked;
+        var your_data = {option:"Quick Register",view:this.checked,readonly:readonly};
+        for (let index = 0; index < privileged.length; index++) {
+            const element = privileged[index];
+            if (element.option == "Quick Register") {
+                privileged[index] = your_data;
+                present=1;
+            }
+        }
+        if (present == 0) {
+            privileged.push(your_data);
+        }
+        cObj("privileged").value = JSON.stringify(privileged);
+    }else{
+        var privileges = [];
+        var readonly = cObj("quick_register_readonly").checked;
+        var your_data = {option:"Quick Register",view:this.checked,readonly:readonly};
+        privileges.push(your_data);
+        cObj("privileged").value = JSON.stringify(privileges);
+    }
+    account_options();
+    client_options();
+    checkChecked();
+}
+
 cObj("clients_issues_view").onchange = function () {
     var privileged = cObj("privileged").value;
     if (hasJsonStructure(privileged)) {
@@ -87,6 +119,38 @@ cObj("clients_issues_view").onchange = function () {
         var privileges = [];
         var readonly = cObj("clients_issues_readonly").checked;
         var your_data = {option:"Clients Issues",view:this.checked,readonly:readonly};
+        privileges.push(your_data);
+        cObj("privileged").value = JSON.stringify(privileges);
+    }
+    account_options();
+    client_options();
+    checkChecked();
+}
+
+cObj("quick_register_readonly").onchange = function () {
+    var privileged = cObj("privileged").value;
+    if (hasJsonStructure(privileged)) {
+        privileged = JSON.parse(privileged);
+
+        // loop through the privileged to add the change or change if present
+        var present = 0;
+        var view = cObj("quick_register_view").checked;
+        var your_data = {option:"Quick Register",view:view,readonly:this.checked};
+        for (let index = 0; index < privileged.length; index++) {
+            const element = privileged[index];
+            if (element.option == "Quick Register") {
+                privileged[index] = your_data;
+                present=1;
+            }
+        }
+        if (present == 0) {
+            privileged.push(your_data);
+        }
+        cObj("privileged").value = JSON.stringify(privileged);
+    }else{
+        var privileges = [];
+        var view = cObj("quick_register_view").checked;
+        var your_data = {option:"Quick Register",view:view,readonly:this.checked};
         privileges.push(your_data);
         cObj("privileged").value = JSON.stringify(privileges);
     }
@@ -514,9 +578,11 @@ cObj("account_profile_option_readonly").onchange = function () {
 cObj("clients_option_view").onchange = function () {
     cObj("my_clients_option_view").checked = this.checked;
     cObj("clients_issues_view").checked = this.checked;
+    cObj("quick_register_view").checked = this.checked;
 
     cObj("my_clients_option_view").dispatchEvent(new Event("change"));
     cObj("clients_issues_view").dispatchEvent(new Event("change"));
+    cObj("quick_register_view").dispatchEvent(new Event("change"));
 
     account_options();
     client_options();
@@ -526,9 +592,11 @@ cObj("clients_option_view").onchange = function () {
 cObj("clients_option_readonly").onchange = function () {
     cObj("my_clients_option_readonly").checked = this.checked;
     cObj("clients_issues_readonly").checked = this.checked;
+    cObj("quick_register_readonly").checked = this.checked;
 
     cObj("my_clients_option_readonly").dispatchEvent(new Event("change"));
     cObj("clients_issues_readonly").dispatchEvent(new Event("change"));
+    cObj("quick_register_readonly").dispatchEvent(new Event("change"));
 
     account_options();
     client_options();

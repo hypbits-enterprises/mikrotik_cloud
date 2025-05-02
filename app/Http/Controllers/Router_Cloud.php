@@ -58,6 +58,9 @@ class Router_Cloud extends Controller
         $pass = $sstp_value->password;
         $port = $sstp_value->port;
 
+        $organization_data = DB::select("SELECT * FROM `organizations` WHERE organization_id = ?", [session("organization_id")]);
+        $organization_name = count($organization_data) > 0 ? $organization_data[0]->organization_name : "N/A";
+        $organization_account_no = count($organization_data) > 0 ? $organization_data[0]->account_no : "N/A";
 
         // connect to the router
         $API = new routeros_api();
@@ -70,7 +73,8 @@ class Router_Cloud extends Controller
                 "name" => $username,
                 "password" => $password,
                 "profile" => "SSTP_PROFILE",
-                "service" => "sstp"
+                "service" => "sstp",
+                "comment" => "Router Name($router_name) of ($organization_name - $organization_account_no)"
             ));
             $API->disconnect();
         }else{
