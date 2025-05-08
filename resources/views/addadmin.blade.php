@@ -140,14 +140,14 @@
                                                             <td><input class="all_readonly client_options_2"  type="checkbox" id="my_clients_option_readonly"></td>
                                                         </tr>
                                                         <tr>
-                                                            <td><label for="my_clients_option" class="form-label"><b>Clients Issues</b></label></td>
-                                                            <td><input class="all_view client_options" checked type="checkbox" id="clients_issues_view"></td>
-                                                            <td><input class="all_readonly client_options_2" type="checkbox" id="clients_issues_readonly"></td>
-                                                        </tr>
-                                                        <tr>
                                                             <td><label for="my_clients_option" class="form-label"><b>Quick Register</b></label></td>
                                                             <td><input class="all_view client_options" checked type="checkbox" id="quick_register_view"></td>
                                                             <td><input class="all_readonly client_options_2" type="checkbox" id="quick_register_readonly"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td><label for="my_clients_option" class="form-label"><b>Clients Issues</b></label></td>
+                                                            <td><input class="all_view client_options" checked type="checkbox" id="clients_issues_view"></td>
+                                                            <td><input class="all_readonly client_options_2" type="checkbox" id="clients_issues_readonly"></td>
                                                         </tr>
                                                         <tr>
                                                             <th rowspan="3" scope="row">2</th>

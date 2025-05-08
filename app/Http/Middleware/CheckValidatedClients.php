@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Http\Controllers\login;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,9 @@ class CheckValidatedClients
      */
     public function handle(Request $request, Closure $next)
     {
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
         $unvalidated = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE validated = '0';");
 
         // check if the user has been given rights to manage clients

@@ -74,7 +74,7 @@ class Router_Cloud extends Controller
                 "password" => $password,
                 "profile" => "SSTP_PROFILE",
                 "service" => "sstp",
-                "comment" => "Router Name($router_name) of ($organization_name - $organization_account_no)"
+                "comment" => "Router Name ($router_name) of ($organization_name - $organization_account_no)"
             ));
             $API->disconnect();
         }else{
