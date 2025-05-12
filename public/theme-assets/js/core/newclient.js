@@ -64,6 +64,8 @@ window.onload = function () {
     var client_acc_number = document.getElementById("client_acc_number");
     client_acc_number.onkeyup = function () {
         var acc_no = this.value;
+        cObj("client_password").value = this.value;
+        cObj("client_username").value = this.value;
         var acc_up = acc_no.toUpperCase();
         if (acc_up.length > 0) {
             var present = 0;

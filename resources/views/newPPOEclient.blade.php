@@ -235,7 +235,7 @@
                                                     placeholder="Comment here">{{ session('comments') ? session('comments') : '' }}</textarea>
                                             </div>
                                         </div>
-                                        <div class="row my-1">
+                                        <div class="row my-1 d-none">
                                             <div class="col-lg-6">
                                                 <label for="client_username" class="form-control-label">Client Username
                                                     <span class="text-danger"
