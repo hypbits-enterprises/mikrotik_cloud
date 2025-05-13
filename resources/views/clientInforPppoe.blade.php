@@ -38,13 +38,13 @@
         display: inline-block;
         width: 100%
     }
-
+    
     .autocomplete-items {
         position: absolute;
         border: 1px solid #d4d4d4;
         border-bottom: none;
         border-top: none;
-        z-index: 1200;
+        z-index: 99;
         /*position the autocomplete items to be the same width as the container:*/
         top: 100%;
         left: 0;
