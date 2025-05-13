@@ -331,6 +331,7 @@
 
     <!-- END PAGE VENDOR JS-->
     <!-- BEGIN CHAMELEON  JS-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
     <script src="theme-assets/js/core/app-lite.js" type="text/javascript"></script>
     <!-- END CHAMELEON  JS-->

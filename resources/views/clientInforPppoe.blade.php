@@ -621,7 +621,8 @@
                                                 </div>
                                             </div>
                                             <div class="container my-2">
-                                                <table class="table">
+                                                <h4 class="text-center"><u>Edit "{{ucwords(strtolower($clients_data[0]->client_name))}}" Data</u></h4>
+                                                <table class="table table-bordered mb-0">
                                                     <tr>
                                                         <td>
                                                             <div class="row">

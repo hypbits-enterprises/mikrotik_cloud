@@ -281,7 +281,8 @@
                     "search": "<strong>Search:</strong>", // Custom label for the search box
                     "lengthMenu": "Show _MENU_ entries per page"
                 },
-                "pageLength" : 50
+                "pageLength" : 50,
+                "order": [[1, "desc"]]
             });
 
             $('#searchkey').on('keyup', function() {
