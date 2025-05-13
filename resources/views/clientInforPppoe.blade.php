@@ -16,9 +16,11 @@
 
     {{-- CSS COMPONENT --}}
     <x-css></x-css>
-
     
     <style>
+        .hide{
+          display: none;
+        }
         .showBlock{
           display: block;
         }
@@ -42,7 +44,7 @@
         border: 1px solid #d4d4d4;
         border-bottom: none;
         border-top: none;
-        z-index: 99;
+        z-index: 1200;
         /*position the autocomplete items to be the same width as the container:*/
         top: 100%;
         left: 0;
@@ -227,366 +229,535 @@
                                                 </div>
                                                 <div class="col-md-3 border-left border-secondary">
                                                     <button id="prompt_delete" class="btn btn-secondary float-right btn-sm {{$clients_data[0]->validated == 0 ? "d-none" : ""}} {{$readonly}}"><i class="fas fa-trash"></i> Delete</button>
-                                                    <div class="container d-none" id="prompt_del_window">
-                                                        <p class="text-primary" ><strong>Are you sure you want to permanently delete this client?</strong></p>
-                                                        <div class="row">
-                                                            <div class="col-md-6">
-                                                                <a href="/delete_user/{{$clients_data[0]->client_id}}" class="btn btn-danger btn-sm {{$readonly}}" >Yes</a>
+                                                </div>
+                                            </div>
+                                            <div class="container">
+                                                {{-- DELETE THE CLIENT --}}
+                                                <div class="modal fade text-left hide" id="delete_client_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
+                                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-danger white">
+                                                            <h4 class="modal-title white" id="myModalLabel11">Confirm Delete Of {{ucwords(strtolower($clients_data[0]->client_name))}}.</h4>
+                                                            <input type="hidden" id="delete_columns_ids">
+                                                            <button id="hide_delete_column" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">×</span>
+                                                            </button>
                                                             </div>
-                                                            <div class="col-md-6">
-                                                                <p class="btn btn-secondary btn-sm " id="delet_user_no">No</p>
+                                                            <div class="modal-body">
+                                                                <div class="container">
+                                                                    <p class="text-dark"><b>Are you sure you want to delete "{{ucwords(strtolower($clients_data[0]->client_name))}}"?</b></p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <div class="row w-100">
+                                                                    <div class="col-md-6">
+                                                                        <button type="button" id="close_this_window_delete" class="btn grey btn-secondary btn-sm w-100" data-dismiss="modal">Close</button>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <a href="/delete_user/{{$clients_data[0]->client_id}}" class="btn btn-danger btn-sm w-100 "><i class="ft-trash"></i> Delete</a>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {{-- UPDATE CLIENT PHONE NUMBER --}}
+                                                <div class="modal fade text-left hide" id="update_phone_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
+                                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-info white">
+                                                            <h4 class="modal-title white" id="myModalLabel11">Update "{{ucwords(strtolower($clients_data[0]->client_name))}}" Phone Number.</h4>
+                                                            <input type="hidden" id="delete_columns_ids">
+                                                            <button id="close_update_phone_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">×</span>
+                                                            </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="container">
+                                                                    <form action="/change_client_phone" method="post" class="form-control-group">
+                                                                        @csrf
+                                                                        <h6 class="text-center" >Change Phone Number</h6>
+                                                                        <input type="hidden" name="clients_id"
+                                                                            value="{{ $clients_data[0]->client_id }}">
+                                                                        <label for="client_new_phone" class="form-control-label" id="">New Phone Number</label>
+                                                                        <input type="number" required name="client_new_phone" id="client_new_phone" class="form-control" value="{{ $clients_data[0]->clients_contacts }}" placeholder="New Phone Number">
+                                                                        <div class="row w-100">
+                                                                            <div class="col-md-6">
+                                                                                <button {{$readonly}} type="submit" class="btn btn-info btn-sm w-100 my-1"><i class="fas fa-save"></i> Save</button>
+                                                                            </div>
+                                                                            <div class="col-md-6">
+                                                                                <button class="btn btn-secondary btn-sm w-100 my-1" type="button" id="close_update_phone_2">Cancel</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {{-- UPDATE EXPIRATION DATE --}}
+                                                <div class="modal fade text-left hide" id="update_expiration_date_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
+                                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-info white">
+                                                            <h4 class="modal-title white" id="myModalLabel11">Update "{{ucwords(strtolower($clients_data[0]->client_name))}}" Expiration Date.</h4>
+                                                            <input type="hidden" id="delete_columns_ids">
+                                                            <button id="close_update_expiration_date_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">×</span>
+                                                            </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="container">
+                                                                    <form action="/changeExpDate" method="post" class="form-control-group">
+                                                                        @csrf
+                                                                        <h6 class="text-center" >Change Expiration Date</h6>
+                                                                        <input type="hidden" name="clients_id"
+                                                                            value="{{ $clients_data[0]->client_id }}">
+                    
+                                                                        <label for="expiration_date_edits" class="form-control-label" id="">New Expiration Date</label>
+                                                                        <input type="date" value="<?=date("Y-m-d", strtotime($clients_data[0]->next_expiration_date))?>" required name="expiration_date_edits" id="expiration_date_edits" class="form-control" placeholder="New Expiration Date">
+                    
+                                                                        <label for="expiration_time_edits" class="form-control-label" id="">New Expiration Time</label>
+                                                                        <input type="time" value="<?=date("H:i", strtotime($clients_data[0]->next_expiration_date))?>" required name="expiration_time_edits" id="expiration_time_edits" class="form-control" placeholder="New Expiration Time">
+                    
+                                                                        <div class="row w-100">
+                                                                            <div class="col-md-6">
+                                                                                <button type="submit" class="btn btn-info btn-sm w-100 my-1" {{$readonly}}><i class="fas fa-save"></i> Save</button>
+                                                                            </div>
+                                                                            <div class="col-md-6">
+                                                                                <button class="btn btn-secondary btn-sm w-100 my-1" type="button" id="close_update_expiration_date_modal_2">Cancel</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {{-- UPDATE MONTHLY PAYMENT --}}
+                                                <div class="modal fade text-left hide" id="update_monthly_payment" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
+                                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-info white">
+                                                            <h4 class="modal-title white" id="myModalLabel11">Update "{{ucwords(strtolower($clients_data[0]->client_name))}}" Monthly Payment.</h4>
+                                                            <input type="hidden" id="delete_columns_ids">
+                                                            <button id="close_update_monthly_payment_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">×</span>
+                                                            </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="container">
+                                                                    <form action="/change_client_monthly_payment" method="post" class="form-control-group">
+                                                                        @csrf
+                                                                        <h6 class="text-center" >Change Monthly Payment</h6>
+                                                                        <input type="hidden" name="clients_id"
+                                                                            value="{{ $clients_data[0]->client_id }}">
+                                                                        <label for="client_monthly_payment" class="form-control-label" id="">New Monthly Payment</label>
+                                                                        <input type="number" required name="client_monthly_payment" id="client_monthly_payment" class="form-control" value="{{ $clients_data[0]->monthly_payment }}" placeholder="New Phone Number">
+                                                                        <div class="row w-100">
+                                                                            <div class="col-md-6">
+                                                                                <button {{$readonly}} type="submit" class="btn btn-info my-1 btn-sm w-100"><i class="fas fa-save"></i> Save</button>
+                                                                            </div>
+                                                                            <div class="col-md-6">
+                                                                                <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_update_monthly_payment_2">Cancel</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {{-- UPDATE MONTHLY MINIMUM PAYMENT --}}
+                                                <div class="modal fade text-left hide" id="update_monthly_min_pay_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
+                                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-info white">
+                                                            <h4 class="modal-title white" id="myModalLabel11">Update "{{ucwords(strtolower($clients_data[0]->client_name))}}" Monthly Minimum Payment.</h4>
+                                                            <input type="hidden" id="delete_columns_ids">
+                                                            <button id="close_update_monthly_min_pay_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">×</span>
+                                                            </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="container">
+                                                                    <form method="POST" action="{{route("client.update.minimum_payment.static")}}" class="form-control-group border border-primary rounded p-1">
+                                                                        @csrf
+                                                                        <h6 class="text-center">Change Minimum Payment</h6>
+                                                                        <input type="hidden" value="{{$clients_data[0]->client_id}}" name="client_id">
+                                                                        <label for="change_minimum_payment" class="form-control-label">Change Minimum Payment</label>
+                                                                        <select name="change_minimum_payment" id="change_minimum_payment" class="form-control" required>
+                                                                            <option hidden value="">Select Payment Option</option>
+                                                                            <option {{$clients_data[0]->min_amount == "10" ? "selected" : ""}} value="10">10%</option>
+                                                                            <option {{$clients_data[0]->min_amount == "15" ? "selected" : ""}} value="15">15%</option>
+                                                                            <option {{$clients_data[0]->min_amount == "25" ? "selected" : ""}} value="25">25% (¼ Payment)</option>
+                                                                            <option {{$clients_data[0]->min_amount == "50" ? "selected" : ""}} value="50">50% (½ Payment)</option>
+                                                                            <option {{$clients_data[0]->min_amount == "75" ? "selected" : ""}} value="75">75% (¾ Payment)</option>
+                                                                            <option {{$clients_data[0]->min_amount == "80" ? "selected" : ""}} value="80">80%</option>
+                                                                            <option {{$clients_data[0]->min_amount == "90" ? "selected" : ""}} value="90">90%</option>
+                                                                            <option {{$clients_data[0]->min_amount == "100" ? "selected" : ""}} value="100">Full Payment</option>
+                                                                        </select>
+                                                                        <div class="row w-100">
+                                                                            <div class="col-md-6">
+                                                                                <button type="submit" class="btn btn-info btn-sm mt-1 w-100">Save</button>
+                                                                            </div>
+                                                                            <div class="col-md-6">
+                                                                                <button class="btn btn-secondary btn-sm mt-1 w-100" type="button" id="close_update_monthly_min_pay_modal_2">Close</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {{-- UPDATE WALLET AMOUNT --}}
+                                                <div class="modal fade text-left hide" id="update_wallet_amount_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
+                                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-info white">
+                                                            <h4 class="modal-title white" id="myModalLabel11">Update "{{ucwords(strtolower($clients_data[0]->client_name))}}" wallet amount.</h4>
+                                                            <input type="hidden" id="delete_columns_ids">
+                                                            <button id="close_update_wallet_amount_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">×</span>
+                                                            </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="container">
+                                                                    <form action="/changeWallet" method="post" class="form-control-group">
+                                                                        @csrf
+                                                                        <h6 class="text-center" >Change wallet balance</h6>
+                                                                        <input type="hidden" name="clients_id"
+                                                                            value="{{ $clients_data[0]->client_id }}">
+                                                                        <label for="wallet_amounts" class="form-control-label" id="">New Wallet Amount</label>
+                                                                        <input type="number" required name="wallet_amounts" id="wallet_amounts" class="form-control" value="{{$clients_data[0]->wallet_amount}}" placeholder="New wallet amounts">
+                                                                        <div class="row w-100">
+                                                                            <div class="col-md-6">
+                                                                                <button type="submit" class="btn btn-info my-1 btn-sm w-100"><i class="fas fa-save"></i> Save</button>
+                                                                            </div>
+                                                                            <div class="col-md-6">
+                                                                                <button class="btn btn-secondary btn-sm my-1 w-100" type="button" id="close_update_wallet_amount_modal_2">Cancel</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {{-- EDIT FREEZE --}}
+                                                <div class="modal fade text-left hide" id="update_freeze_status_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
+                                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-info white">
+                                                            <h4 class="modal-title white" id="myModalLabel11">Update "{{ucwords(strtolower($clients_data[0]->client_name))}}" Freeze status.</h4>
+                                                            <input type="hidden" id="delete_columns_ids">
+                                                            <button id="close_update_freeze_status_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">×</span>
+                                                            </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="container">
+                                                                    <form action="/set_freeze" method="post" class="form-control-group border border-primary rounded p-1">
+                                                                        @csrf
+                                                                        <h6 class="text-center" >Freeze Until</h6>
+                                                                        @if ($clients_data[0]->client_freeze_status == "1" || date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)))
+                                                                            <a href="/Client/deactivate_freeze/{{$clients_data[0]->client_id}}" class="btn btn-secondary btn-sm">Deactivate Freeze</a>
+                                                                            <hr>
+                                                                        @else
+                                                                            {{-- <a href="/Client/activate_freeze/{{$clients_data[0]->client_id}}" class="btn btn-danger">Activate</a> 
+                                                                            <hr>--}}
+                                                                        @endif
+                                                                        <br>
+                                                                        <div class="container">
+                                                                            <label for="freeze_date">Freeze Date</label>
+                                                                            <select name="freeze_date" required id="freeze_date" class="form-control">
+                                                                                <option value="" hidden>Select Option</option>
+                                                                                <option value="set_freeze">Set Freezing Date</option>
+                                                                                <option selected value="freeze_now">Freeze Now</option>
+                                                                            </select>
+                                                                        </div>
+                                                                        <div class="container d-none" id="setFreezeDate">
+                                                                            <label for="freezing_date">Select Freeze Date</label>
+                                                                            <input required type="date" name="freezing_date" id="freezing_date" value="{{date("Y-m-d",strtotime("1 day"))}}" min="{{date("Y-m-d")}}" class="form-control">
+                                                                        </div>
+                                                                        <div class="container">
+                                                                            <label for="freeze_type">Freeze Type</label>
+                                                                            <select name="freeze_type" required id="freeze_type" class="form-control">
+                                                                                <option value="" hidden>Select Option</option>
+                                                                                <option selected value="definate">Definate Freezing</option>
+                                                                                <option value="Indefinite">In-definate Freezing</option>
+                                                                            </select>
+                                                                        </div>
+                                                                        <div class="container" id="freeze_window">
+                                                                            <input type="hidden" name="clients_id"
+                                                                                value="{{ $clients_data[0]->client_id }}">
+                                                                            <input type="hidden" name="indefinate_freezing" value="00000000000000">
+                                                                            <label for="freez_dates_edit" class="form-control-label" id="">Freeze until</label>
+                                                                            <input type="date" required name="freez_dates_edit" id="freez_dates_edit" class="form-control" min="<?php echo date("Y-m-d",strtotime("1 day"));?>" value='{{date("Y-m-d",strtotime("1 day"))}}' placeholder="New Expiration Date">
+                                                                        </div>
+                                                                        <div class="row">
+                                                                            <div class="col-md-6">
+                                                                                <button type="submit" class="btn btn-info my-1 btn-sm w-100"><i class="fas fa-save"></i> Save</button>
+                                                                            </div>
+                                                                            <div class="col-md-6">
+                                                                                <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_update_freeze_status_modal_2">Cancel</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {{-- UPDATE REFEREE --}}
+                                                <div class="modal fade text-left hide" id="update_refferee_by_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
+                                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-info white">
+                                                            <h4 class="modal-title white" id="myModalLabel11">Set "{{ucwords(strtolower($clients_data[0]->client_name))}}" Refferee.</h4>
+                                                            <input type="hidden" id="delete_columns_ids">
+                                                            <button id="close_update_refferee_by_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">×</span>
+                                                            </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="container">
+                                                                    <div class="form-control-group">
+                                                                        <p><b>What you need to know:</b></p>
+                                                                        <p>- Start by searching the refferer<br>
+                                                                            - If the refferer is valid set the refferers cut<br>
+                                                                            - Then save. <br>
+                                                                            - If there was a refferer before it will replace their details with the new refferer
+                                                                        </p>
+                                                                        <label for="wallet_amounts" class="form-control-label" id="">Search Refferer
+                                                                            <span class="invisible" id="search_referer_loader"><i class="fas ft-rotate-cw fa-spin"></i></span></label>
+                                                                        <div class="row">
+                                                                            <div class="col-md-9">
+                                                                                <div class="autocomplete">
+                                                                                    <input type="text" required name="search_refferer_keyword" id="search_refferer_keyword" class="form-control" placeholder="Type keyword: name, acc no, phone number">
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="col-md-3">
+                                                                                <button class="btn btn-infor" id="find_user_refferal" type="button"><i class="fas fa-search"></i></button>
+                                                                            </div>
+                                                                        </div>
+                                                                        <p id="refferer_data" class="d-none"></p>
+                                                                        <span id="show_data_inside"></span>
+                                                                        <hr class="border border-primary">
+                                                                        <div class="container my-2">
+                                                                            <h6 class="text-center"><u>Refferer Details</u></h6>
+                                                                        </div>
+                                                                        <form action="/set_refferal" method="post">
+                                                                            @csrf
+                                                                            <div class="row my-2">
+                                                                                <input type="hidden" name="clients_id"
+                                                                            value="{{ $clients_data[0]->client_id }}">
+                                                                                <input type="hidden" name="refferal_account_no" id="refferer_acc_no2">
+                                                                                <div class="col-md-6">
+                                                                                    <p><b>Refferer Fullname</b></p>
+                                                                                </div>
+                                                                                <div class="col-md-6">
+                                                                                    <p class="user_data" id="refferer_name">{{$reffer_details[0] ?? 'Unknown'}}</p>
+                                                                                </div>
+                                                                                <div class="col-md-6">
+                                                                                    <p><b>Refferer Acc No</b></p>
+                                                                                </div>
+                                                                                <div class="col-md-6">
+                                                                                    <p class="user_data" id="refferer_acc_no">{{$reffer_details[1] ?? 'Unknown'}}</p>
+                                                                                </div>
+                                                                                <div class="col-md-6">
+                                                                                    <p><b>Refferer wallet</b></p>
+                                                                                </div>
+                                                                                <div class="col-md-6">
+                                                                                    <p class="user_data" id="reffer_wallet">{{$reffer_details[2] ?? 'Unknown'}}</p>
+                                                                                </div>
+                                                                                <div class="col-md-6">
+                                                                                    <p><b>Refferer Location</b></p>
+                                                                                </div>
+                                                                                <div class="col-md-6">
+                                                                                    <p class="user_data" id="refferer_location">{{$reffer_details[3] ?? 'Unknown'}}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="">
+                                                                                <label for="refferer_amount" class="form-control-label">Refferer Cut</label>
+                                                                                <input type="number" class="form-control" name="refferer_amount" id="refferer_amount" placeholder="Refferers Cut - how much is he given" required>
+                                                                            </div>
+                                                                            <div class="row">
+                                                                                <div class="col-md-6">
+                                                                                    <button disabled type="submit" class="btn btn-info my-1 btn-sm w-100" id="save_data_inside"><i class="fas fa-save"></i> Set</button>
+                                                                                </div>
+                                                                                <div class="col-md-6">
+                                                                                    <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_update_refferee_by_modal_2">Cancel</button>
+                                                                                </div>
+                                                                            </div>
+                                                                        </form>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="row">
-                                                <div class="col-md-6 card shadow-lg border-right border-infor">
-                                                    {{-- client active status --}}
-                                                    @if ($clients_data[0]->validated == "1")
-                                                        @if ($clients_data[0]->client_status == 1)
-                                                            <div class="row my-1 border-bottom border-light p-1">
-                                                                <div class="col-sm-6"><strong>User status:</strong></div>
-                                                                <div class="col-sm-6"><a
-                                                                        href="/deactivate/{{ $clients_data[0]->client_id }}"
-                                                                        class="btn btn-sm btn-danger {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}} my-1">De-Activate</a><p class="text-success d-none"><b>Activated</b></p></div>
+                                            <div class="container my-2">
+                                                <table class="table">
+                                                    <tr>
+                                                        <td>
+                                                            <div class="row">
+                                                                <div class="col-sm-6"><strong>Account Number:</strong></div>
+                                                                <div class="col-sm-6">{{ $clients_data[0]->client_account }}</div>
                                                             </div>
-                                                        @else
-                                                            <div class="row my-1 border-bottom border-light">
-                                                                <div class="col-sm-6"><strong>User status:</strong></div>
-                                                                    <div class="col-sm-6"><a
-                                                                            href="/activate/{{ $clients_data[0]->client_id }}"
-                                                                            class="btn btn-sm btn-success {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}} my-1">Activate</a><p class="text-danger d-none"><b>De-activated</b></p>
+                                                        </td>
+                                                        <td>
+                                                            {{-- client payment automatiom --}}
+                                                            @if ($clients_data[0]->validated == "1")
+                                                                @if ($clients_data[0]->payments_status == 1)
+                                                                    <div class="row">
+                                                                        <div class="col-sm-6"><strong>Automate Transaction:</strong><div class='badge badge-success'>Activated</div>
+                                                                        </div>
+                                                                        <div class="col-sm-6"><a
+                                                                                href="/deactivatePayment/{{ $clients_data[0]->client_id }}"
+                                                                                class="btn btn-sm btn-danger {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}}">De-Activate</a><p class="text-success d-none"><b>Activated</b></p></div>
                                                                     </div>
-                                                            </div>
-                                                        @endif
-                                                    @else
-                                                        <div class="row my-1 border-bottom border-light p-1">
-                                                            <div class="col-sm-6"><strong>User status:</strong></div>
-                                                            <div class="col-sm-6">
-                                                                <p>User is not validated yet!</p>
-                                                            </div>
-                                                        </div>
-                                                    @endif
-        
-                                                    {{-- client payment automatiom --}}
-                                                    @if ($clients_data[0]->validated == "1")
-                                                        @if ($clients_data[0]->payments_status == 1)
-                                                            <div class="row my-1 border-bottom border-light py-1">
-                                                                <div class="col-sm-6"><strong>Automate Transaction:</strong>
-                                                                </div>
-                                                                <div class="col-sm-6"><a
-                                                                        href="/deactivatePayment/{{ $clients_data[0]->client_id }}"
-                                                                        class="btn btn-sm btn-danger {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}}">De-Activate</a><p class="text-success d-none"><b>Activated</b></p></div>
-                                                            </div>
-                                                        @else
-                                                            <div class="row my-1 border-bottom border-light py-1">
-                                                                <div class="col-sm-6"><strong>Automate Transaction:</strong>
-                                                                </div>
-                                                                <div class="col-sm-6"><a
-                                                                        href="/activatePayment/{{ $clients_data[0]->client_id }}"
-                                                                        class="btn btn-sm btn-success {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}}">Activate</a><p class="text-danger d-none"><b>De-activated</b></p></div>
-                                                            </div>
-                                                        @endif
-                                                    @else
-                                                        <div class="row my-1 border-bottom border-light p-1">
-                                                            <div class="col-sm-6"><strong>Automate Transaction:</strong></div>
-                                                            <div class="col-sm-6">
-                                                                <p>User is not validated yet!</p>
-                                                            </div>
-                                                        </div>
-                                                    @endif
-                                                    <div class="row my-1 border-bottom border-light py-2">
-                                                        <div class="col-sm-6"><strong>Expiration Date:</strong><button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_epiration"><i class="fas fa-pen"></i> Edit</button>
-                                                        </div>
-                                                        <div class="col-sm-6">{{$expire_date ? $expire_date : "Null"}}</div>
-                                                    </div>
-                                                    <div id="change_exp_date_windoe" class="w-100 d-none">
-                                                        <hr class="mt-0">
-                                                        <form action="/changeExpDate" method="post" class="form-control-group">
-                                                            @csrf
-                                                            <h6 class="text-center" >Change Expiration Date</h6>
-                                                            <input type="hidden" name="clients_id"
-                                                                value="{{ $clients_data[0]->client_id }}">
-        
-                                                            <label for="expiration_date_edits" class="form-control-label" id="">New Expiration Date</label>
-                                                            <input type="date" value="<?=date("Y-m-d", strtotime($clients_data[0]->next_expiration_date))?>" required name="expiration_date_edits" id="expiration_date_edits" class="form-control" placeholder="New Expiration Date">
-        
-                                                            <label for="expiration_time_edits" class="form-control-label" id="">New Expiration Time</label>
-                                                            <input type="time" value="<?=date("H:i", strtotime($clients_data[0]->next_expiration_date))?>" required name="expiration_time_edits" id="expiration_time_edits" class="form-control" placeholder="New Expiration Time">
-        
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <button type="submit" class="btn btn-primary my-1" {{$readonly}}><i class="fas fa-save"></i> Save</button>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <button class="btn btn-secondary my-1" type="button" id="cancel_exp_update">Cancel</button>
-                                                                </div>
-                                                            </div>
-                                                        </form>
-                                                        <hr>
-                                                    </div>
-                                                    <div class="row my-1 border-bottom border-light py-1">
-                                                        <div class="col-sm-6"><strong>Monthly Payment:</strong><button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_monthly_payments"><i class="fas fa-pen"></i> Edit</button></div>
-                                                        <div class="col-sm-6">Kes {{ number_format($clients_data[0]->monthly_payment) }}
-                                                        </div>
-                                                    </div>
-        
-                                                    <div class="w-100 d-none" id="monthly_payment_window">
-                                                        <hr class="mt-0">
-                                                        <form action="/change_client_monthly_payment" method="post" class="form-control-group">
-                                                            @csrf
-                                                            <h6 class="text-center" >Change Monthly Payment</h6>
-                                                            <input type="hidden" name="clients_id"
-                                                                value="{{ $clients_data[0]->client_id }}">
-                                                            <label for="client_monthly_payment" class="form-control-label" id="">New Monthly Payment</label>
-                                                            <input type="number" required name="client_monthly_payment" id="client_monthly_payment" class="form-control" value="{{ $clients_data[0]->monthly_payment }}" placeholder="New Phone Number">
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <button {{$readonly}} type="submit" class="btn btn-primary my-1"><i class="fas fa-save"></i> Save</button>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <button class="btn btn-secondary my-1" type="button" id="cancel_monthly_updates">Cancel</button>
-                                                                </div>
-                                                            </div>
-                                                        </form>
-                                                        <hr>
-                                                    </div>
-                                                    <div class="row my-1 border-bottom border-light">
-                                                        <div class="col-sm-7"><strong class="text-secondary">Freeze Client:</strong> <span class="badge {{$clients_data[0]->client_freeze_status == "1" || date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "badge-success" : "badge-danger";}}">{{$clients_data[0]->client_freeze_status == "1" || date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "Active" : "In-Active";}}</span> <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} id="edit_freeze_client"><i class="fas fa-pen"></i> Edit</button></div>
-                                                        <div class="col-sm-5">
-                                                            <p>{{date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "Client will be frozen on : ".date("D dS M Y",strtotime($clients_data[0]->freeze_date))." until " : "Frozen Until:"}} {{isset($freeze_date) && strlen($freeze_date) > 0 ? $freeze_date : "Not Set"}}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div id="change_freeze_date_window" class="w-100 d-none">
-                                                        <hr class="mt-0">
-                                                        <form action="/set_freeze" method="post" class="form-control-group border border-primary rounded p-1">
-                                                            @csrf
-                                                            <h6 class="text-center" >Freeze Until</h6>
-                                                            @if ($clients_data[0]->client_freeze_status == "1" || date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)))
-                                                                <a href="/Client/deactivate_freeze/{{$clients_data[0]->client_id}}" class="btn btn-secondary">Deactivate Freeze</a>
-                                                                <hr>
+                                                                @else
+                                                                    <div class="row">
+                                                                        <div class="col-sm-6"><strong>Automate Transaction:</strong><div class='badge badge-danger'>De-activated</div>
+                                                                        </div>
+                                                                        <div class="col-sm-6"><a
+                                                                                href="/activatePayment/{{ $clients_data[0]->client_id }}"
+                                                                                class="btn btn-sm btn-success {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}}">Activate</a><p class="text-danger d-none"><b>De-activated</b></p></div>
+                                                                    </div>
+                                                                @endif
                                                             @else
-                                                                {{-- <a href="/Client/activate_freeze/{{$clients_data[0]->client_id}}" class="btn btn-danger">Activate</a> 
-                                                                <hr>--}}
-                                                            @endif
-                                                            <br>
-                                                            <div class="container">
-                                                                <label for="freeze_date">Freeze Date</label>
-                                                                <select name="freeze_date" required id="freeze_date" class="form-control">
-                                                                    <option value="" hidden>Select Option</option>
-                                                                    <option value="set_freeze">Set Freezing Date</option>
-                                                                    <option selected value="freeze_now">Freeze Now</option>
-                                                                </select>
-                                                            </div>
-                                                            <div class="container d-none" id="setFreezeDate">
-                                                                <label for="freezing_date">Select Freeze Date</label>
-                                                                <input required type="date" name="freezing_date" id="freezing_date" value="{{date("Y-m-d",strtotime("1 day"))}}" min="{{date("Y-m-d")}}" class="form-control">
-                                                            </div>
-                                                            <div class="container">
-                                                                <label for="freeze_type">Freeze Type</label>
-                                                                <select name="freeze_type" required id="freeze_type" class="form-control">
-                                                                    <option value="" hidden>Select Option</option>
-                                                                    <option selected value="definate">Definate Freezing</option>
-                                                                    <option value="Indefinite">In-definate Freezing</option>
-                                                                </select>
-                                                            </div>
-                                                            <div class="container" id="freeze_window">
-                                                                <input type="hidden" name="clients_id"
-                                                                    value="{{ $clients_data[0]->client_id }}">
-                                                                <input type="hidden" name="indefinate_freezing" value="00000000000000">
-                                                                <label for="freez_dates_edit" class="form-control-label" id="">Freeze until</label>
-                                                                <input type="date" required name="freez_dates_edit" id="freez_dates_edit" class="form-control" min="<?php echo date("Y-m-d",strtotime("1 day"));?>" value='{{date("Y-m-d",strtotime("1 day"))}}' placeholder="New Expiration Date">
-                                                            </div>
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <button type="submit" class="btn btn-primary my-1"><i class="fas fa-save"></i> Save</button>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <button class="btn btn-secondary my-1" type="button" id="cancel_freeze_dates">Cancel</button>
-                                                                </div>
-                                                            </div>
-                                                        </form>
-                                                        <hr>
-                                                    </div>
-                                                    <div class="row my-1 border-bottom border-light py-2">
-                                                        <div class="col-sm-7"><strong class="text-secondary">Minimum Payment:</strong> <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} id="edit_minimum_amount"><i class="fas fa-pen"></i> Edit</button></div>
-                                                        <div class="col-sm-5">
-                                                            {{$clients_data[0]->min_amount != 100 ? "Kes ".number_format(($clients_data[0]->min_amount / 100) * $clients_data[0]->monthly_payment)." (".$clients_data[0]->min_amount."%) of Kes ".number_format($clients_data[0]->monthly_payment) : "Full Payment (Kes ".number_format($clients_data[0]->monthly_payment).")"}}
-                                                        </div>
-                                                    </div>
-                                                    <form method="POST" action="{{route("client.update.minimum_payment.static")}}" id="hide_min_pay_window" class="form-control-group border border-primary rounded p-1 d-none">
-                                                        @csrf
-                                                        <h6 class="text-center">Change Minimum Payment</h6>
-                                                        <input type="hidden" value="{{$clients_data[0]->client_id}}" name="client_id">
-                                                        <label for="change_minimum_payment" class="form-control-label">Change Minimum Payment</label>
-                                                        <select name="change_minimum_payment" id="change_minimum_payment" class="form-control" required>
-                                                            <option hidden value="">Select Payment Option</option>
-                                                            <option {{$clients_data[0]->min_amount == "10" ? "selected" : ""}} value="10">10%</option>
-                                                            <option {{$clients_data[0]->min_amount == "15" ? "selected" : ""}} value="15">15%</option>
-                                                            <option {{$clients_data[0]->min_amount == "25" ? "selected" : ""}} value="25">25% (¼ Payment)</option>
-                                                            <option {{$clients_data[0]->min_amount == "50" ? "selected" : ""}} value="50">50% (½ Payment)</option>
-                                                            <option {{$clients_data[0]->min_amount == "75" ? "selected" : ""}} value="75">75% (¾ Payment)</option>
-                                                            <option {{$clients_data[0]->min_amount == "80" ? "selected" : ""}} value="80">80%</option>
-                                                            <option {{$clients_data[0]->min_amount == "90" ? "selected" : ""}} value="90">90%</option>
-                                                            <option {{$clients_data[0]->min_amount == "100" ? "selected" : ""}} value="100">Full Payment</option>
-                                                        </select>
-                                                        <button type="submit" class="btn btn-primary btn-sm mt-1 w-100">Save</button>
-                                                    </form>
-                                                </div>
-                                                <div class="col-md-6 card shadow-lg">
-                                                    <div class="row my-1 border-bottom border-light py-1">
-                                                        <div class="col-sm-6"><strong>Registration Date:</strong></div>
-                                                        <div class="col-sm-6">{{ $registration_date }}
-                                                        </div>
-                                                    </div>
-                                                    <div class="row my-1 border-bottom border-light py-1">
-                                                        <div class="col-sm-6"><strong>Wallet Amount:</strong><button {{$readonly}} class="btn btn-infor btn-sm mx-1 text-xxs text-secondary {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" style="width: fit-content;" id="edit_wallet"><i class="fas fa-pen"></i> Edit</button></div>
-                                                        <div class="col-sm-6">Kes {{ $clients_data[0]->wallet_amount }}
-                                                        </div>
-                                                    </div>
-                                                    <div id="change_wallet_window" class="w-100 d-none">
-                                                        <hr class="mt-0">
-                                                        <form action="/changeWallet" method="post" class="form-control-group">
-                                                            @csrf
-                                                            <h6 class="text-center" >Change wallet balance</h6>
-                                                            <input type="hidden" name="clients_id"
-                                                                value="{{ $clients_data[0]->client_id }}">
-                                                            <label for="wallet_amounts" class="form-control-label" id="">New Wallet Amount</label>
-                                                            <input type="number" required name="wallet_amounts" id="wallet_amounts" class="form-control" placeholder="New wallet amounts">
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <button type="submit" class="btn btn-primary my-1"><i class="fas fa-save"></i> Save</button>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <button class="btn btn-secondary btn-sm my-1" type="button" id="cancel_wallet_updates">Cancel</button>
-                                                                </div>
-                                                            </div>
-                                                        </form>
-                                                        <hr>
-                                                    </div>
-                                                    <div class="row my-1 border-bottom border-light py-1">
-                                                        <div class="col-sm-6"><strong>Phone Number:</strong><button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_phone_number"><i class="fas fa-pen"></i> Edit</button></div>
-                                                        <div class="col-sm-6">{{ $clients_data[0]->clients_contacts }}
-                                                        </div>
-                                                    </div>
-        
-                                                    <div class="w-100 d-none" id="phone_number_window">
-                                                        <hr class="mt-0">
-                                                        <form action="/change_client_phone" method="post" class="form-control-group">
-                                                            @csrf
-                                                            <h6 class="text-center" >Change Phone Number</h6>
-                                                            <input type="hidden" name="clients_id"
-                                                                value="{{ $clients_data[0]->client_id }}">
-                                                            <label for="client_new_phone" class="form-control-label" id="">New Phone Number</label>
-                                                            <input type="number" required name="client_new_phone" id="client_new_phone" class="form-control" value="{{ $clients_data[0]->clients_contacts }}" placeholder="New Phone Number">
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <button {{$readonly}} type="submit" class="btn btn-primary my-1"><i class="fas fa-save"></i> Save</button>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <button class="btn btn-secondary my-1" type="button" id="cancel_phone_updates">Cancel</button>
-                                                                </div>
-                                                            </div>
-                                                        </form>
-                                                        <hr>
-                                                    </div>
-                                                    <div class="row my-1 border-bottom border-light py-1">
-                                                        <div class="col-sm-6"><strong>Account Number:</strong></div>
-                                                        <div class="col-sm-6">{{ $clients_data[0]->client_account }}
-                                                        </div>
-                                                    </div>
-                                                    <div class="row my-1 border-bottom border-light py-1">
-                                                        <div class="col-sm-6"><strong>Location:</strong></div>
-                                                        <div class="col-sm-6">
-                                                            @php
-                                                                echo $clients_data[0]->location_coordinates ? "<a class='text-danger' href = 'https://www.google.com/maps/place/".$clients_data[0]->location_coordinates."' target = '_blank'><u>Locate Client</u> </a>" :"No Co-ordinates provided for the client!" ;
-                                                            @endphp
-                                                        </div>
-                                                    </div>
-                                                    <div class="row my-1 border-bottom border-light py-1">
-                                                        <div class="col-sm-6"><strong>Reffered By:<button {{$readonly}} class="btn btn-infor btn-sm mx-1 text-xxs text-secondary {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" id="edit_refferal"><i class="fas fa-pen"></i> Edit</button></strong></div>
-                                                        <div class="col-sm-6">
-                                                            <p>{{$client_refferal ?? 'Refferal Not set'}} </p>
-                                                        </div>
-                                                    </div>
-                                                    <div id="set_refferal_window" class="d-none w-100 border border-primary shadow p-2 ">
-                                                        <h6 class="text-center" >Set refferal</h6>
-                                                        <div class="form-control-group">
-                                                            <p><b>What you need to know:</b></p>
-                                                            <p>- Start by searching the refferer<br>
-                                                                - If the refferer is valid set the refferers cut<br>
-                                                                - Then save. <br>
-                                                                - If there was a refferer before it will replace their details with the new refferer
-                                                            </p>
-                                                            <label for="wallet_amounts" class="form-control-label" id="">Search Refferer
-                                                                <span class="invisible" id="search_referer_loader"><i class="fas ft-rotate-cw fa-spin"></i></span></label>
-                                                            <div class="row">
-                                                                <div class="col-md-9">
-                                                                    <div class="autocomplete">
-                                                                        <input type="text" required name="search_refferer_keyword" id="search_refferer_keyword" class="form-control" placeholder="Type keyword: name, acc no, phone number">
-                                                                    </div>
-                                                                </div>
-                                                                <div class="col-md-3">
-                                                                    <button class="btn btn-infor" id="find_user_refferal" type="button"><i class="fas fa-search"></i></button>
-                                                                </div>
-                                                            </div>
-                                                            <p id="refferer_data" class="d-none"></p>
-                                                            <span id="show_data_inside"></span>
-                                                            <hr class="border border-primary">
-                                                            <div class="container my-2">
-                                                                <h6 class="text-center"><u>Refferer Details</u></h6>
-                                                            </div>
-                                                            <form action="/set_refferal" method="post">
-                                                                @csrf
-                                                                <div class="row my-2">
-                                                                    <input type="hidden" name="clients_id"
-                                                                value="{{ $clients_data[0]->client_id }}">
-                                                                    <input type="hidden" name="refferal_account_no" id="refferer_acc_no2">
-                                                                    <div class="col-md-6">
-                                                                        <p><b>Refferer Fullname</b></p>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <p class="user_data" id="refferer_name">{{$reffer_details[0] ?? 'Unknown'}}</p>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <p><b>Refferer Acc No</b></p>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <p class="user_data" id="refferer_acc_no">{{$reffer_details[1] ?? 'Unknown'}}</p>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <p><b>Refferer wallet</b></p>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <p class="user_data" id="reffer_wallet">{{$reffer_details[2] ?? 'Unknown'}}</p>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <p><b>Refferer Location</b></p>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <p class="user_data" id="refferer_location">{{$reffer_details[3] ?? 'Unknown'}}</p>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="">
-                                                                    <label for="refferer_amount" class="form-control-label">Refferer Cut</label>
-                                                                    <input type="number" class="form-control" name="refferer_amount" id="refferer_amount" placeholder="Refferers Cut - how much is he given" required>
-                                                                </div>
                                                                 <div class="row">
-                                                                    <div class="col-md-6">
-                                                                        <button disabled type="submit" class="btn btn-primary my-1" id="save_data_inside"><i class="fas fa-save"></i> Set</button>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <button class="btn btn-secondary my-1" type="button" id="cancel_refferer_updates">Cancel</button>
+                                                                    <div class="col-sm-6"><strong>Automate Transaction:{!!$clients_data[0]->payments_status == "1" ? "<div class='badge badge-success'>Activated</div>" : "<div class='badge badge-danger'>De-activated</div>"!!}</strong></div>
+                                                                    <div class="col-sm-6">
+                                                                        <p>User is not validated yet!</p>
                                                                     </div>
                                                                 </div>
-                                                            </form>
-                                                        </div>
-                                                        <hr>
-                                                    </div>
-                                                </div>
+                                                            @endif
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="row">
+                                                                <div class="col-sm-6"><strong>Phone Number:</strong> <br>{{ $clients_data[0]->clients_contacts }}</div>
+                                                                <div class="col-sm-6"><button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_phone_number"><i class="fas fa-pen"></i> Edit</button></div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="row">
+                                                                <div class="col-sm-7"><strong>Monthly Payment:</strong> <br>Kes {{ number_format($clients_data[0]->monthly_payment) }}</div>
+                                                                <div class="col-sm-5"><button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_monthly_payments"><i class="fas fa-pen"></i> Edit</button></div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            @if ($clients_data[0]->validated == "1")
+                                                                @if ($clients_data[0]->client_status == 1)
+                                                                    <div class="row">
+                                                                        <div class="col-sm-6"><strong>User status: <div class='badge badge-success'>Activated</div></strong></div>
+                                                                        <div class="col-sm-6"><a
+                                                                                href="/deactivate/{{ $clients_data[0]->client_id }}"
+                                                                                class="btn btn-sm btn-danger {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}}">De-Activate</a><p class="text-success d-none"><b>Activated</b></p></div>
+                                                                    </div>
+                                                                @else
+                                                                    <div class="row">
+                                                                        <div class="col-sm-6"><strong>User status: <div class='badge badge-danger'>De-activated</div></strong></div>
+                                                                        <div class="col-sm-6"><a
+                                                                                href="/activate/{{ $clients_data[0]->client_id }}"
+                                                                                class="btn btn-sm btn-success {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}}">Activate</a><p class="text-danger d-none"><b>De-activated</b></p>
+                                                                        </div>
+                                                                    </div>
+                                                                @endif
+                                                            @else
+                                                                <div class="row">
+                                                                    <div class="col-sm-6"><strong>User status: {!!$clients_data[0]->client_status == "1" ? "<div class='badge badge-success'>Activated</div>" : "<div class='badge badge-danger'>De-activated</div>"!!}</strong></div>
+                                                                    <div class="col-sm-6">
+                                                                        <p>User is not validated yet!</p>
+                                                                    </div>
+                                                                </div>
+                                                            @endif
+                                                        </td>
+                                                        <td>
+                                                            <div class="row">
+                                                                <div class="col-sm-7"><strong class="text-secondary">Minimum Payment:</strong> <br>{{$clients_data[0]->min_amount != 100 ? "Kes ".number_format(($clients_data[0]->min_amount / 100) * $clients_data[0]->monthly_payment)." (".$clients_data[0]->min_amount."%) of Kes ".number_format($clients_data[0]->monthly_payment) : "Full Payment (Kes ".number_format($clients_data[0]->monthly_payment).")"}}</div>
+                                                                <div class="col-sm-5">
+                                                                     <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} id="edit_minimum_amount"><i class="fas fa-pen"></i> Edit</button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="row">
+                                                                <div class="col-sm-6"><strong>Registration Date:</strong></div>
+                                                                <div class="col-sm-6">{{ $registration_date }}</div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="row">
+                                                                <div class="col-sm-7"><strong>Wallet Amount:</strong> <br>Kes {{ $clients_data[0]->wallet_amount }}</div>
+                                                                <div class="col-sm-5"><button {{$readonly}} class="btn btn-infor btn-sm mx-1 text-xxs text-secondary {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" style="width: fit-content;" id="edit_wallet"><i class="fas fa-pen"></i> Edit</button></div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="row">
+                                                                <div class="col-sm-6"><strong>Expiration Date:</strong> <br>{{$expire_date ? $expire_date : "Null"}}</div>
+                                                                <div class="col-sm-6"> <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_expiration_date"><i class="fas fa-pen"></i> Edit</button></div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="row">
+                                                                <div class="col-sm-7"><strong class="text-secondary">Freeze Client:</strong> <span class="badge {{$clients_data[0]->client_freeze_status == "1" || date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "badge-success" : "badge-danger";}}">{{$clients_data[0]->client_freeze_status == "1" || date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "Active" : "In-Active";}}</span> <br><p>{{date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "Client will be frozen on : ".date("D dS M Y",strtotime($clients_data[0]->freeze_date))." until " : "Frozen Until:"}} {{isset($freeze_date) && strlen($freeze_date) > 0 ? $freeze_date : "Not Set"}}</p></div>
+                                                                <div class="col-sm-5"><button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} id="edit_freeze_client"><i class="fas fa-pen"></i> Edit</button></div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="row">
+                                                                <div class="col-sm-6"><strong>Location:</strong></div>
+                                                                <div class="col-sm-6">
+                                                                    @php
+                                                                        echo $clients_data[0]->location_coordinates ? "<a class='text-danger' href = 'https://www.google.com/maps/place/".$clients_data[0]->location_coordinates."' target = '_blank'><u>Locate Client</u> </a>" :"No Co-ordinates provided for the client!" ;
+                                                                    @endphp
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="row">
+                                                                <div class="col-sm-7"><strong>Reffered By:</strong> <br><p>{{$client_refferal ?? 'Refferal Not set'}} </p></div>
+                                                                <div class="col-sm-5"><button {{$readonly}} class="btn btn-infor btn-sm mx-1 text-xxs text-secondary {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" id="edit_refferal"><i class="fas fa-pen"></i> Edit</button></div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
                                             </div>
-                                            <hr>
                                             <p><strong>Note: </strong><br> - Some fields can`t be left blank the default
                                                 configuration is surounded with the {curly braces} you may select that if you
                                                 dont want to change anything</small><br>
@@ -1179,9 +1350,9 @@
                         break;
                     }
                     /*check if the item starts with the same letters as the text field value:*/
-                    if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase() ||
-                        arr2[i].substr(0, val.length).toUpperCase() == val.toUpperCase() ||
-                        arr3[i].substr(0, val.length).toUpperCase() == val.toUpperCase()
+                    if (arr[i].toUpperCase().includes(val.toUpperCase()) ||
+                        arr2[i].toUpperCase().includes(val.toUpperCase()) ||
+                        arr3[i].toUpperCase().includes(val.toUpperCase())
                     ) {
                         /*create a DIV element for each matching element:*/
                         b = document.createElement("DIV");

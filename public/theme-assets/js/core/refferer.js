@@ -64,9 +64,9 @@ function getUser() {
 }
 
 cObj("find_user_refferal").addEventListener("click",getUser);
-cObj("edit_refferal").onclick = function () {
-    cObj("set_refferal_window").classList.remove("d-none");
-}
-cObj("cancel_refferer_updates").onclick = function () {
-    cObj("set_refferal_window").classList.add("d-none");
-}
+// cObj("edit_refferal").onclick = function () {
+//     cObj("set_refferal_window").classList.remove("d-none");
+// }
+// cObj("cancel_refferer_updates").onclick = function () {
+//     cObj("set_refferal_window").classList.add("d-none");
+// }

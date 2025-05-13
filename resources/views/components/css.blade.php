@@ -7,8 +7,10 @@
     <link rel="stylesheet" type="text/css" href="/theme-assets/css/vendors.css">
     <link rel="stylesheet" type="text/css" href="/theme-assets/css/vendors.min.css">
     <link rel="stylesheet" type="text/css" href="/theme-assets/css/bootstrap-extended.css">
+    <link rel="stylesheet" type="text/css" href="/theme-assets/css/bootstrap.css">
     <link rel="stylesheet" type="text/css" href="/theme-assets/css/components-lite.css">
     <link rel="stylesheet" type="text/css" href="/theme-assets/vendors/css/charts/chartist.css">
+    <link rel="stylesheet" type="text/css" href="/theme-assets/css/pages/error.css">
     <!-- END VENDOR CSS-->
     
     <!-- BEGIN CHAMELEON  CSS-->

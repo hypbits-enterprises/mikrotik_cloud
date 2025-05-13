@@ -113,7 +113,7 @@
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" id="close_this_window_delete" class="btn grey btn-secondary" data-dismiss="modal">Close</button>
-                                                    <a href="/SharedTables/Delete/{{$table_id}}/Name/{{$table_name}}" class="btn btn-primary my-1 "><i class="ft-trash"></i> Delete</a>
+                                                    <a href="/SharedTables/Delete/{{$table_id}}/Name/{{$table_name}}" class="btn btn-outline-danger my-1 "><i class="ft-trash"></i> Delete</a>
                                                 </div>
                                             </div>
 										</div>

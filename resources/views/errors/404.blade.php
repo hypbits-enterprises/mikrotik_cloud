@@ -62,8 +62,8 @@
                     <div class="col-12 d-flex align-items-center justify-content-center">
                         <div class="col-lg-4 col-md-6 col-10 p-0">
                             <div class="card-header bg-transparent border-0">
-                                <h2 class="error-code text-center mb-2 white">500</h2>
-                                <h3 class="text-center white">Ooops! It`s us, not you!.</h3>
+                                <h2 class="error-code text-center mb-2 white">404</h2>
+                                <h3 class="text-center white">Ooops! Link is missing you.</h3>
                             </div>
                             <div class="card-content">
                                 <div class="row py-2 text-center">

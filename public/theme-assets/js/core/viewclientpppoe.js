@@ -176,32 +176,126 @@ cObj("tolastNav").onclick = function() {
 function getRouterInterfaces() {
     sendDataGet("GET","/routerProfile/"+this.value+"",cObj("interface_holder"),cObj("interface_load"));
 }
-cObj("edit_epiration").onclick = function () {
-    cObj("change_exp_date_windoe").classList.toggle("d-none");
-}
-cObj("cancel_exp_update").onclick = function () {
-    cObj("change_exp_date_windoe").classList.add("d-none");
+
+    
+function showModal(modal_id) {
+    cObj(modal_id).classList.remove("hide");
+    cObj(modal_id).classList.add("show");
+    cObj(modal_id).classList.add("showBlock");
 }
 
+function hideModal(modal_id) {
+    cObj(modal_id).classList.add("hide");
+    cObj(modal_id).classList.remove("show");
+    cObj(modal_id).classList.remove("showBlock");
+}
+
+/**DELETE USER MODAL */
 cObj("prompt_delete").onclick = function () {
-    cObj("prompt_del_window").classList.toggle("d-none");
-}
-cObj("delet_user_no").onclick = function () {
-    cObj("prompt_del_window").classList.add("d-none");
+    showModal("delete_client_modal");
 }
 
-cObj("edit_freeze_client").onclick = function () {
-    cObj("change_freeze_date_window").classList.toggle("d-none");
+cObj("close_this_window_delete").onclick = function () {
+    hideModal("delete_client_modal");
 }
-cObj("cancel_freeze_dates").onclick = function () {
-    cObj("change_freeze_date_window").classList.add("d-none");
+
+cObj("hide_delete_column").onclick = function () {
+    hideModal("delete_client_modal");
 }
+
+/** UPDATE USER PHONENUMBER */
+cObj("edit_phone_number").onclick = function () {
+    showModal("update_phone_modal");
+}
+
+cObj("close_update_phone_2").onclick = function () {
+    hideModal("update_phone_modal");
+}
+
+cObj("close_update_phone_1").onclick = function () {
+    hideModal("update_phone_modal");
+}
+
+/** UPDATE USER EXPIRATION DATE  */
+cObj("edit_expiration_date").onclick = function () {
+    showModal("update_expiration_date_modal");
+}
+
+cObj("close_update_expiration_date_modal_2").onclick = function () {
+    hideModal("update_expiration_date_modal");
+}
+
+cObj("close_update_expiration_date_modal_1").onclick = function () {
+    hideModal("update_expiration_date_modal");
+}
+
+/** UPDATE MONTHLY PAYMENT  */
+cObj("edit_monthly_payments").onclick = function () {
+    showModal("update_monthly_payment");
+}
+
+cObj("close_update_monthly_payment_1").onclick = function () {
+    hideModal("update_monthly_payment");
+}
+
+cObj("close_update_monthly_payment_2").onclick = function () {
+    hideModal("update_monthly_payment");
+}
+
+/** UPDATE MONTHLY MINIMUM PAYMENT  */ 
+cObj("edit_minimum_amount").onclick = function () {
+    showModal("update_monthly_min_pay_modal");
+}
+
+cObj("close_update_monthly_min_pay_modal_2").onclick = function () {
+    hideModal("update_monthly_min_pay_modal");
+}
+
+cObj("close_update_monthly_min_pay_modal_1").onclick = function () {
+    hideModal("update_monthly_min_pay_modal");
+}
+
+/** UPDATE WALLET AMOUNT  */ 
 cObj("edit_wallet").onclick = function () {
-    cObj("change_wallet_window").classList.toggle("d-none");
+    showModal("update_wallet_amount_modal");
 }
-cObj("cancel_wallet_updates").onclick = function () {
-    cObj("change_wallet_window").classList.add("d-none");
+
+cObj("close_update_wallet_amount_modal_2").onclick = function () {
+    hideModal("update_wallet_amount_modal");
 }
+
+cObj("close_update_wallet_amount_modal_1").onclick = function () {
+    hideModal("update_wallet_amount_modal");
+}
+
+/** UPDATE FREEZE STATUS  */ 
+cObj("edit_freeze_client").onclick = function () {
+    showModal("update_freeze_status_modal");
+}
+
+cObj("close_update_freeze_status_modal_1").onclick = function () {
+    hideModal("update_freeze_status_modal");
+}
+
+cObj("close_update_freeze_status_modal_2").onclick = function () {
+    hideModal("update_freeze_status_modal");
+}
+
+
+/** UPDATE REFEEREE  */ 
+cObj("edit_refferal").onclick = function () {
+    showModal("update_refferee_by_modal");
+}
+
+cObj("close_update_refferee_by_modal_1").onclick = function () {
+    hideModal("update_refferee_by_modal");
+}
+
+cObj("close_update_refferee_by_modal_2").onclick = function () {
+    hideModal("update_refferee_by_modal");
+}
+
+
 var notseen = 1;
 cObj("display_secret").onclick = function () {
     var pass = cObj("secret_holder").innerText;
@@ -222,22 +316,4 @@ cObj("freeze_date").onchange = function () {
     }else{
         cObj("setFreezeDate").classList.add("d-none");
     }
-}
-
-cObj("edit_minimum_amount").onclick = function () {
-    cObj("hide_min_pay_window").classList.toggle("d-none");
-}
-cObj("edit_phone_number").onclick = function (params) {
-    cObj("phone_number_window").classList.toggle("d-none");
-}
-cObj("cancel_phone_updates").onclick = function () {
-    cObj("phone_number_window").classList.add("d-none");
-}
-
-cObj("edit_monthly_payments").onclick = function () {
-    cObj("monthly_payment_window").classList.toggle("d-none");
-}
-
-cObj("cancel_monthly_updates").onclick = function () {
-    cObj("monthly_payment_window").classList.add("d-none");
 }
