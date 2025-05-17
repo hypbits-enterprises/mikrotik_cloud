@@ -80,6 +80,7 @@ Route::post("/Client-Reports/Save-Report", [Clients::class, "saveReports"])->nam
 Route::post("/Client-Reports/Update-Report", [Clients::class, "updateReports"])->name("updateReports");
 Route::post("/Client-Reports/Change-Status", [Clients::class, "changeReportStatus"])->name("changeReportStatus");
 Route::get("/Client-Reports/Delete-Report/{report_id}", [Clients::class, "deleteReport"])->name("deleteReport")->middleware("validated");
+Route::post("/update_client_comment", [Clients::class, "update_client_comment"])->name("update_client_comment");
 // get the router interface
 Route::get("/router/{routerid}", [Clients::class, "getRouterInterfaces"])->middleware("validated");
 // get the router profile

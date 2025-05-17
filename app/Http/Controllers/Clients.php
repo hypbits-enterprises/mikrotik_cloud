@@ -5721,4 +5721,18 @@ class Clients extends Controller
         }
         return redirect("/Client-Reports");
     }
+
+    function update_client_comment(Request $request){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        $clients_id = $request->input("clients_id");
+        $comments = $request->input("comments");
+
+        // update the comment
+        $update = DB::connection("mysql2")->update("UPDATE client_tables SET comment = ? WHERE client_id = ?", [$comments, $clients_id]);
+        session()->flash("success", "Comment has been updated successfully!");
+        return redirect(url()->previous());
+    }
 }

@@ -619,6 +619,42 @@
                                                         </div>
                                                     </div>
                                                 </div>
+
+                                                {{-- UPDATE COMMENT --}}
+                                                <div class="modal fade text-left hide" id="update_comments_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
+                                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-info white">
+                                                            <h4 class="modal-title white" id="myModalLabel11">Update "{{ucwords(strtolower($clients_data[0]->client_name))}}" Comment.</h4>
+                                                            <input type="hidden" id="delete_columns_ids">
+                                                            <button id="close_update_comments_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                <span aria-hidden="true">×</span>
+                                                            </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="container">
+                                                                    <form action="/update_client_comment" method="post" class="form-control-group">
+                                                                        @csrf
+                                                                        <h6 class="text-center">Update Comment</h6>
+                                                                        <input type="hidden" name="clients_id" value="{{ $clients_data[0]->client_id }}">
+                                                                        <label for="comments" class="form-control-label" id="">Update Comment</label>
+                                                                        <textarea name="comments" id="comments" cols="30" rows="3" class="form-control" placeholder="Comment here">{{ $clients_data[0]->comment}}</textarea>
+                                                                        <div class="row w-100">
+                                                                            <div class="col-md-6">
+                                                                                <button {{$readonly}} type="submit" class="btn btn-info my-1 btn-sm w-100"><i class="fas fa-save"></i> Save</button>
+                                                                            </div>
+                                                                            <div class="col-md-6">
+                                                                                <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_update_comments_modal_2">Cancel</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="container my-2">
                                                 <h4 class="text-center"><u>Edit "{{ucwords(strtolower($clients_data[0]->client_name))}}" Data</u></h4>
@@ -757,6 +793,18 @@
                                                             </div>
                                                         </td>
                                                     </tr>
+                                                    <tr>
+                                                        <td colspan="2">
+                                                            <div class="row">
+                                                                <div class="col-md-10">
+                                                                    <strong>Comment:</strong> <br><p>{{isset($clients_data[0]->comment) ? ucwords(strtolower($clients_data[0]->comment)) : "No comments set!"}} </p>
+                                                                </div>
+                                                                <div class="col-md-2">
+                                                                    <button {{$readonly}} class="btn btn-infor btn-sm mx-1 text-xxs text-secondary {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" id="edit_comments"><i class="fas fa-pen"></i> Edit</button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
                                                 </table>
                                             </div>
                                             <p><strong>Note: </strong><br> - Some fields can`t be left blank the default
@@ -885,14 +933,6 @@
                                                         <p class="text-secondary" id="interface_holder">The router secret profiles
                                                             will appear here If the router is selected.If this message is still
                                                             present a router is not selected.</p>
-                                                    </div>
-                                                </div>
-                                                <div class="row my-1">
-                                                    <div class="col-md-12">
-                                                        <label for="client_address"
-                                                            class="form-control-label">Comments:</label>
-                                                        <textarea name="comments" id="comments" cols="30" rows="3" class="form-control"
-                                                            placeholder="Comment here"></textarea>
                                                     </div>
                                                 </div>
                                                 <div class="row my-1 d-none">

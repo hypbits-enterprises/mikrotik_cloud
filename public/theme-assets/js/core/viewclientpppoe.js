@@ -41,7 +41,7 @@ window.onload = function () {
     cObj("addresses").innerText = "********";
     cObj("secret_holder").innerText = clients_data[0]['client_secret_password'];
     cObj("client_secret_password").value = clients_data[0]['client_secret_password'];
-    cObj("comments").value = clients_data[0]['comment'];
+    // cObj("comments").value = clients_data[0]['comment'];
     var router_names = clients_data[0]['router_name'];
     cObj("router_profiles").innerText = clients_data[0]['client_profile'] ? clients_data[0]['client_profile'] : "null";
     cObj("client_username").value = clients_data[0]['client_username'];
@@ -293,6 +293,19 @@ cObj("close_update_refferee_by_modal_1").onclick = function () {
 
 cObj("close_update_refferee_by_modal_2").onclick = function () {
     hideModal("update_refferee_by_modal");
+}
+
+/** UPDATE CLIENT COMMENT */
+cObj("edit_comments").onclick = function () {
+    showModal("update_comments_modal");
+}
+
+cObj("close_update_comments_modal_1").onclick = function () {
+    hideModal("update_comments_modal");
+}
+
+cObj("close_update_comments_modal_2").onclick = function () {
+    hideModal("update_comments_modal");
 }
 
 
