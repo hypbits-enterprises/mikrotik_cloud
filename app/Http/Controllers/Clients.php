@@ -81,7 +81,7 @@ class Clients extends Controller
         $change_db = new login();
         $change_db->change_db();
 
-        $client_data = DB::connection("mysql2")->select("SELECT client_tables.*, 
+        $client_data = DB::connection("mysql2")->select("SELECT client_tables.client_id,client_tables.validated,client_tables.client_name,client_tables.client_network,client_tables.client_status,client_tables.clients_contacts,client_tables.client_address,client_tables.monthly_payment,client_tables.next_expiration_date,client_tables.payments_status,client_tables.router_name,client_tables.wallet_amount,client_tables.client_account,client_tables.reffered_by,client_tables.comment,client_tables.location_coordinates,client_tables.assignment,client_tables.client_default_gw,
         (SELECT report_title FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'latest_issue', 
         (SELECT report_description FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'report_description',
         (SELECT problem FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'problem', 
@@ -97,6 +97,7 @@ class Clients extends Controller
         (SELECT `admin_attender` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'admin_attender'
          FROM `client_tables`
          WHERE `deleted` = '0' ORDER BY `client_id` DESC;");
+        //  return $client_data;
          
         // router data
         $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
@@ -3084,183 +3085,101 @@ class Clients extends Controller
             // here we get the router data
             // check if the client is static or pppoe
             $assignment = $clients_data[0]->assignment;
-            if ($assignment == "static") {
-                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
-                // get the clients expiration date
-                $expire = $clients_data[0]->next_expiration_date;
-                $registration = $clients_data[0]->clients_reg_date;
-                $freeze_date = strlen($clients_data[0]->client_freeze_untill) > 0 ? (($clients_data[0]->client_freeze_untill *= 1) == 0 ? "Indefinite Date" : $clients_data[0]->client_freeze_untill) : "";
-                // return the client data and the router data
-                $date_data = $expire;
-                $year = substr($date_data, 0, 4);
-                $month = substr($date_data, 4, 2);
-                $day = substr($date_data, 6, 2);
-                $hour = substr($date_data, 8, 2);
-                $minute = substr($date_data, 10, 2);
-                $second = substr($date_data, 12, 2);
-                $d = mktime($hour, $minute, $second, $month, $day, $year);
-                $expire_date = date("D dS M-Y", $d) . " at " . date("h:i:sa", $d);
+            $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
+            // get the clients expiration date
+            $expire = $clients_data[0]->next_expiration_date;
+            $registration = $clients_data[0]->clients_reg_date;
+            $freeze_date = strlen($clients_data[0]->client_freeze_untill) > 0 ? (($clients_data[0]->client_freeze_untill *= 1) == 0 ? "Indefinite Date" : $clients_data[0]->client_freeze_untill) : "";
+            // return the client data and the router data
+            $date_data = $expire;
+            $year = substr($date_data, 0, 4);
+            $month = substr($date_data, 4, 2);
+            $day = substr($date_data, 6, 2);
+            $hour = substr($date_data, 8, 2);
+            $minute = substr($date_data, 10, 2);
+            $second = substr($date_data, 12, 2);
+            $d = mktime($hour, $minute, $second, $month, $day, $year);
+            $expire_date = date("D dS M-Y", $d) . " at " . date("h:i:sa", $d);
 
 
-                $date_data = $registration;
-                $year = substr($date_data, 0, 4);
-                $month = substr($date_data, 4, 2);
-                $day = substr($date_data, 6, 2);
-                $hour = substr($date_data, 8, 2);
-                $minute = substr($date_data, 10, 2);
-                $second = substr($date_data, 12, 2);
-                $d = mktime($hour, $minute, $second, $month, $day, $year);
-                $reg_date = date("D dS M-Y", $d) . " at " . date("h:i:sa", $d);
+            $date_data = $registration;
+            $year = substr($date_data, 0, 4);
+            $month = substr($date_data, 4, 2);
+            $day = substr($date_data, 6, 2);
+            $hour = substr($date_data, 8, 2);
+            $minute = substr($date_data, 10, 2);
+            $second = substr($date_data, 12, 2);
+            $d = mktime($hour, $minute, $second, $month, $day, $year);
+            $reg_date = date("D dS M-Y", $d) . " at " . date("h:i:sa", $d);
 
-                if ($freeze_date != "Indefinite Date") {
-                    if (strlen($freeze_date) > 0) {
-                        $freeze_date = date("D dS M Y", strtotime($freeze_date));
+            if ($freeze_date != "Indefinite Date") {
+                if (strlen($freeze_date) > 0) {
+                    $freeze_date = date("D dS M Y", strtotime($freeze_date));
+                }
+            }
+
+            // get the client name, phone number, account number
+            $clients_infor = DB::connection("mysql2")->select("SELECT client_id, client_name, clients_contacts, client_account FROM `client_tables` WHERE `deleted` = '0'");
+            $clients_name = [];
+            $clients_phone = [];
+            $clients_acc_no = [];
+            for ($index = 0; $index < count($clients_infor); $index++) {
+                if ($clientid != $clients_infor[$index]->client_id) {
+                    array_push($clients_name, $clients_infor[$index]->client_name);
+                    array_push($clients_phone, $clients_infor[$index]->clients_contacts);
+                    array_push($clients_acc_no, $clients_infor[$index]->client_account);
+                }
+            }
+
+            // get refferal
+            $clients_data[0]->reffered_by = str_replace("'", "\"", $clients_data[0]->reffered_by);
+            $client_data = strlen($clients_data[0]->reffered_by) > 0 ? json_decode($clients_data[0]->reffered_by) : json_decode("{}");
+            $client_refferal = "No refferee";
+            $reffer_details = [];
+            $payment_histoty = [];
+            if (isset($client_data->client_acc)) {
+                $month_pay = $client_data->monthly_payment;
+                $client_name = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_account` = '" . $client_data->client_acc . "' AND `deleted` = '0'");
+                if (count($client_name) > 0) {
+                    $client_refferal = ucwords(strtolower($client_name[0]->client_name . " @ Kes " . number_format($month_pay)));
+                    $reffer_details = [$client_name[0]->client_name, $client_name[0]->client_account, $client_name[0]->wallet_amount, $client_name[0]->client_address];
+                    $pay = $client_data->payment_history;
+                    // return $pay;
+                    for ($i = 0; $i < count($pay); $i++) {
+                        $payments = [$pay[$i]->amount, date("D dS M Y @ H:i:s A", strtotime($pay[$i]->date))];
+                        array_push($payment_histoty, $payments);
                     }
                 }
-                // get the client name, phone number, account number
-                $clients_infor = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0'");
-                $clients_name = [];
-                $clients_phone = [];
-                $clients_acc_no = [];
-                for ($index = 0; $index < count($clients_infor); $index++) {
-                    if ($clientid != $clients_infor[$index]->client_id) {
-                        array_push($clients_name, $clients_infor[$index]->client_name);
-                        array_push($clients_phone, $clients_infor[$index]->clients_contacts);
-                        array_push($clients_acc_no, $clients_infor[$index]->client_account);
-                    }
-                }
-                // get refferal
-                $clients_data[0]->reffered_by = str_replace("'", "\"", $clients_data[0]->reffered_by);
-                $client_data = strlen($clients_data[0]->reffered_by) > 0 ? json_decode($clients_data[0]->reffered_by) : json_decode("{}");
-                $client_refferal = "No refferee";
-                $reffer_details = [];
-                $payment_histoty = [];
-                if (isset($client_data->client_acc)) {
-                    $month_pay = $client_data->monthly_payment;
-                    $client_name = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_account` = '" . $client_data->client_acc . "' AND `deleted` = '0'");
-                    if (count($client_name) > 0) {
-                        $client_refferal = ucwords(strtolower($client_name[0]->client_name . " @ Kes " . number_format($month_pay)));
-                        $reffer_details = [$client_name[0]->client_name, $client_name[0]->client_account, $client_name[0]->wallet_amount, $client_name[0]->client_address];
-                        $pay = $client_data->payment_history;
-                        // return $pay;
-                        for ($i = 0; $i < count($pay); $i++) {
-                            $payments = [$pay[$i]->amount, date("D dS M Y @ H:i:s A", strtotime($pay[$i]->date))];
-                            array_push($payment_histoty, $payments);
+            }
+
+            // client account use it to get the clients that are reffered by him
+            $client_reffer = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0'");
+            // return $client_reffer;
+            $refferer_acc = $clients_data[0]->client_account;
+            $reffered_list = [];
+            for ($count = 0; $count < count($client_reffer); $count++) {
+                if (isset($client_reffer[$count]->reffered_by)) {
+                    if ($client_reffer[$count]->reffered_by != null && trim($client_reffer[$count]->reffered_by) != "") {
+                        $string = $client_reffer[$count]->reffered_by;
+                        if (substr($string, 0, 1) == "\"") {
+                            $string = substr(trim($string), 1, strlen(trim($string)) - 2);
                         }
-                    }
-                }
-                // client account use it to get the clients that are reffered by him
-                $client_reffer = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0'");
-                // return $client_reffer;
-                $refferer_acc = $clients_data[0]->client_account;
-                $reffered_list = [];
-                for ($count = 0; $count < count($client_reffer); $count++) {
-                    if (isset($client_reffer[$count]->reffered_by)) {
-                        if ($client_reffer[$count]->reffered_by != null && trim($client_reffer[$count]->reffered_by) != "") {
-                            $string = $client_reffer[$count]->reffered_by;
-                            if (substr($string, 0, 1) == "\"") {
-                                $string = substr(trim($string), 1, strlen(trim($string)) - 2);
-                            }
-                            $string = str_replace("\\", "", $string);
-                            $string = str_replace("'", "\"", $string);
-                            $reffer_infor = json_decode($string);
+                        $string = str_replace("\\", "", $string);
+                        $string = str_replace("'", "\"", $string);
+                        $reffer_infor = json_decode($string);
+                        // return $reffer_infor;
+                        if ($reffer_infor->client_acc == $refferer_acc) {
+                            $reffer_infor->reffered = $client_reffer[$count];
+                            array_push($reffered_list, $reffer_infor);
                             // return $reffer_infor;
-                            if ($reffer_infor->client_acc == $refferer_acc) {
-                                $reffer_infor->reffered = $client_reffer[$count];
-                                array_push($reffered_list, $reffer_infor);
-                                // return $reffer_infor;
-                            }
                         }
                     }
                 }
+            }
+
+            if ($assignment == "static") {
                 return view("clientInfor", ["pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
             } elseif ($assignment == "pppoe") {
-                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted` = '0'");
-                // get the clients expiration date
-                $expire = $clients_data[0]->next_expiration_date;
-                $registration = $clients_data[0]->clients_reg_date;
-                $freeze_date = strlen($clients_data[0]->client_freeze_untill) > 0 ? (($clients_data[0]->client_freeze_untill *= 1) == 0 ? "Indefinite Date" : $clients_data[0]->client_freeze_untill) : "";
-                // return the client data and the router data
-                $date_data = $expire;
-                $year = substr($date_data, 0, 4);
-                $month = substr($date_data, 4, 2);
-                $day = substr($date_data, 6, 2);
-                $hour = substr($date_data, 8, 2);
-                $minute = substr($date_data, 10, 2);
-                $second = substr($date_data, 12, 2);
-                $d = mktime($hour, $minute, $second, $month, $day, $year);
-                $expire_date = date("D dS M-Y", $d) . " at " . date("h:i:sa", $d);
-
-
-                $date_data = $registration;
-                $year = substr($date_data, 0, 4);
-                $month = substr($date_data, 4, 2);
-                $day = substr($date_data, 6, 2);
-                $hour = substr($date_data, 8, 2);
-                $minute = substr($date_data, 10, 2);
-                $second = substr($date_data, 12, 2);
-                $d = mktime($hour, $minute, $second, $month, $day, $year);
-                $reg_date = date("D dS M-Y", $d) . " at " . date("h:i:sa", $d);
-
-                if ($freeze_date != "Indefinite Date") {
-                    if (strlen($freeze_date) > 0) {
-                        $freeze_date = date("D dS M Y", strtotime($freeze_date));
-                    }
-                }
-                // get the client name, phone number, account number
-                $clients_infor = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0'");
-                $clients_name = [];
-                $clients_phone = [];
-                $clients_acc_no = [];
-                for ($index = 0; $index < count($clients_infor); $index++) {
-                    if ($clientid != $clients_infor[$index]->client_id) {
-                        array_push($clients_name, $clients_infor[$index]->client_name);
-                        array_push($clients_phone, $clients_infor[$index]->clients_contacts);
-                        array_push($clients_acc_no, $clients_infor[$index]->client_account);
-                    }
-                }
-                // get refferal
-                $client_data = strlen($clients_data[0]->reffered_by) > 0 ? json_decode($clients_data[0]->reffered_by) : json_decode("{}");
-                $client_refferal = "No refferee";
-                $reffer_details = [];
-                $payment_histoty = [];
-                if (isset($client_data->client_acc)) {
-                    $month_pay = $client_data->monthly_payment;
-                    $client_name = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_account` = '" . $client_data->client_acc . "'");
-                    if (count($client_name) > 0) {
-                        $client_refferal = ucwords(strtolower($client_name[0]->client_name . " @ Kes " . number_format($month_pay)));
-                        $reffer_details = [$client_name[0]->client_name, $client_name[0]->client_account, $client_name[0]->wallet_amount, $client_name[0]->client_address];
-                        $pay = $client_data->payment_history;
-                        // return $pay;
-                        for ($i = 0; $i < count($pay); $i++) {
-                            $payments = [$pay[$i]->amount, date("D dS M Y @ H:i:s A", strtotime($pay[$i]->date))];
-                            array_push($payment_histoty, $payments);
-                        }
-                    }
-                }
-                // client account use it to get the clients that are reffered by him
-                $client_reffer = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0'");
-                // return $client_reffer;
-                $refferer_acc = $clients_data[0]->client_account;
-                $reffered_list = [];
-                for ($count = 0; $count < count($client_reffer); $count++) {
-                    if (isset($client_reffer[$count]->reffered_by)) {
-                        if ($client_reffer[$count]->reffered_by != null) {
-                            $string = $client_reffer[$count]->reffered_by;
-                            if (substr($string, 0, 1) == "\"") {
-                                $string = substr(trim($string), 1, strlen(trim($string)) - 2);
-                            }
-                            $string = str_replace("\\", "", $string);
-                            $string = str_replace("'", "\"", $string);
-                            $reffer_infor = json_decode($string);
-                            if ($reffer_infor->client_acc == $refferer_acc) {
-                                $reffer_infor->reffered = $client_reffer[$count];
-                                array_push($reffered_list, $reffer_infor);
-                                // return $reffer_infor;
-                            }
-                        }
-                    }
-                }
                 return view("clientInforPppoe", ["pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
             } else {
                 session()->flash("error_clients", "Invalid Assignment!!");
@@ -4070,8 +3989,6 @@ class Clients extends Controller
                 $unit1 = $req->input('unit1');
                 $unit2 = $req->input('unit2');
                 $router_name = $req->input('router_name');
-                $comments = $req->input('comments');
-                $client_username = $req->input('client_username');
                 $client_password = $req->input('client_password');
                 $interface_name = $req->input('interface_name');
                 $clients_id = $req->input('clients_id');
@@ -4307,7 +4224,6 @@ class Clients extends Controller
                             'monthly_payment' => $client_monthly_pay,
                             'router_name' => $router_name,
                             'client_interface' => $interface_name,
-                            'comment' => $req->input('comments'),
                             'clients_contacts' => $client_phone,
                             'client_username' => $req->input('client_username'),
                             'client_password' => $client_password,
@@ -4441,7 +4357,6 @@ class Clients extends Controller
                 $client_secret_password = $req->input("client_secret_password");
                 $router_name = $req->input("router_name");
                 $pppoe_profile = $req->input("pppoe_profile");
-                $comments = $req->input("comments");
                 $client_username = $req->input("client_username");
                 $client_password = $req->input("client_password");
                 // check if the secret and the username is present in the router
@@ -4576,7 +4491,6 @@ class Clients extends Controller
                                 'monthly_payment' => $client_monthly_pay,
                                 'router_name' => $router_name,
                                 'client_profile' => $pppoe_profile,
-                                'comment' => $req->input('comments'),
                                 'clients_contacts' => $client_phone,
                                 'client_username' => $req->input('client_username'),
                                 'client_password' => $client_password,
