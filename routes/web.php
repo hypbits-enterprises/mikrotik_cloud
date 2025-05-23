@@ -164,6 +164,7 @@ Route::get("/Assign/Transaction/{trans_id}/Client/{client_id}", [Transaction::cl
 Route::get("/confirmTransfer/{user_id}/{transaction_id}", [Transaction::class, "confirmTransfer"])->middleware("validated");
 Route::post("/Transact", [Transaction::class, "mpesaTransactions"]);
 Route::post("/Validate", [Transaction::class, "verify_client_transaction"]);
+Route::get("/Print-Reciept/{receipt_id}", [Transaction::class, "print_receipt"])->name("print_receipt");
 
 // Router section
 // Route::get("/Router/View/{routerid}",[Router::class,"getRouterInfor"]);

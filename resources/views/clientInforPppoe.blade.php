@@ -1416,7 +1416,7 @@
                                                                 <td>{{$date_selected}}</td>
                                                                 <td>
                                                                     <button {{$readonly_finance}} data-toggle="tooltip" title="View Invoice" class="btn btn-sm btn-primary view_invoice" id="view_invoice_{{$invoice->invoice_id}}"><i class="ft-eye"></i></button>
-                                                                    <a data-toggle="tooltip" title="Print Invoice" target="_blank" href="/Invoice/Print/{{$invoice->invoice_id}}" class="btn btn-sm btn-info {{$readonly_finance}}"><i class="ft-printer"></i></a>
+                                                                    <a data-toggle="tooltip" title="Print Invoice" target="_blank" href="/Invoice/Print/{{$invoice->invoice_id}}" class="btn btn-sm btn-info"><i class="ft-printer"></i></a>
                                                                     <button {{$readonly_finance}} data-toggle="tooltip" title="Delete Invoice" class="btn btn-sm btn-danger delete_invoice" id="delete_invoice_{{$invoice->invoice_id}}"><i class="ft-trash"></i></button>
                                                                     <button {{$readonly_finance}} data-toggle="tooltip" title="Send Invoice" class="btn btn-sm btn-success send_invoice" id="send_invoice_{{$invoice->invoice_id}}"><i class="ft-mail"></i></button>
                                                                 </td>

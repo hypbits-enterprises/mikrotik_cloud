@@ -64,6 +64,13 @@ class Clients extends Controller
             'generated_by' => $user_id
         ], 'invoice_id');
 
+        $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE client_id = ?",[$client_id]);
+        $client_name = count($client_data) > 0 ? ucwords(strtolower($client_data[0]->client_name)) : "NULL";
+        $client_account = count($client_data) > 0 ? ucwords(strtolower($client_data[0]->client_account)) : "NULL";
+        // log message
+        $txt = ":New Invoice generated for (" . $client_name . " - ".$client_account.") with invoice number $invoice_number!";
+        $this->log($txt);
+
         session()->flash("success", "Invoice created successfully!");
         return redirect(url()->previous());
     }
@@ -77,6 +84,10 @@ class Clients extends Controller
         if(count($invoice)){
             DB::connection("mysql2")->delete("DELETE FROM invoices WHERE invoice_number = ? ", [$invoice_id]);
             session()->flash("success", "The invoice has been deleted successfully!");
+
+            // log message
+            $txt = ":Invoice with invoice number $invoice_id has been deleted successfully!";
+            $this->log($txt);
             return redirect(url()->previous());
         }else{
             session()->flash("success", "The invoice is already deleted!");
@@ -196,6 +207,9 @@ class Clients extends Controller
                             $sms_table->save();
                             // save the clients data one by one
                         }
+                        // log message
+                        $txt = ":Invoice link sent successfully to (" . ucwords(strtolower($client_data[0]->client_name)) . " - ".$client_data[0]->client_account.") with invoice number $send_invoice_id!";
+                        $this->log($txt);
                         session()->flash("success","Message has been successfully sent to the client!");
                         return redirect(url()->previous());
                         // return array("success" => false, "message" => $convert_message);
@@ -369,7 +383,7 @@ class Clients extends Controller
         // change db
         $change_db = new login();
         $change_db->change_db();
-        
+
         // get the invoice information
         $invoice = DB::connection("mysql2")->select("SELECT * FROM `invoices` WHERE invoice_number = ?", [$request->input("edit_invoice_id")]);
         if (count($invoice) > 0) {
@@ -397,6 +411,10 @@ class Clients extends Controller
                 $invoice_deadline,
                 $edit_invoice_id
             ]);
+
+            // log message
+            $txt = ":Invoice with invoice number $edit_invoice_id has been updated successfully!";
+            $this->log($txt);
             session()->flash("success", "Invoice updated successfully!");
         }else{
             session()->flash("error", "Invalid invoice!");

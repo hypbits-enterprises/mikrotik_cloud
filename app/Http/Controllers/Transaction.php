@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Classes\reports\PDF;
+use App\Classes\reports\RECEIPT;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\sms_table;
@@ -13,6 +14,117 @@ use mysqli;
 date_default_timezone_set('Africa/Nairobi');
 class Transaction extends Controller
 {
+    // print receipt
+    function print_receipt($receipt_id){
+        $transaction = DB::connection("mysql2")->select("SELECT * FROM transaction_tables WHERE transaction_id = ?", [$receipt_id]);
+        if (count($transaction) > 0) {
+            $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE client_account = ?",[$transaction[0]->transaction_account]);
+            if (count($client_data) > 0) {
+                $this->create_document($transaction[0], session("organization"), $client_data[0]);
+            }else{
+                return array("success" => false, "message" => "Invalid User!");
+            }
+        }else{
+            return array("success" => false, "message" => "Invalid transaction!");
+        }
+    }
+
+    function create_document($payment_data, $organization_data, $client_data){
+        $pdf = new RECEIPT("P","mm","A4");
+        $pdf->AddFont('century_gothic', '', 'century_gothic.php');
+        $pdf->AddFont('century_gothic', 'B', 'century_gothic_bold.php');
+        $pdf->AddFont('century_gothic', 'I', 'Century Gothic Italic.php');
+        $pdf->AddFont('century_gothic', 'BI', 'Century Gothic Bold Italic.php');
+        $pdf->setCompayLogo($organization_data->organization_logo);
+        $pdf->set_company_name(strtoupper($organization_data->organization_name));
+        $pdf->set_company_contact($organization_data->organization_main_contact);
+        $pdf->set_company_email($organization_data->organization_email);
+        $pdf->set_company_address($organization_data->organization_address);
+        $pdf->set_document_title($organization_data->organization_name);
+        $pdf->SetTextColor(25, 25, 25);
+        
+        $pdf->set_client_data($client_data);
+        $pdf->set_payment_data($payment_data);
+        $pdf->AddPage();
+        $pdf->Cell(20,5,"Qty",0,0,"L");
+        $pdf->Cell(140,5,"Description Of Service",0,0,"L");
+        $pdf->Cell(30,5,"Total",0,1,"L");
+        $total = 0;
+
+        // FIRST ROW
+        $pdf->Cell(20,8,"1",1,0,"L");
+        $pdf->Cell(140,8,"Upload/Download Speed of ".$client_data->max_upload_download." " ,1,0,"L");
+        $pdf->Cell(30,8, "Kes ".number_format($payment_data->transacion_amount),1,1,"L");
+        $total+= $payment_data->transacion_amount;
+
+        // THIRD ROW
+        $pdf->Cell(20,8,"",0,0,"L");
+        $pdf->Cell(75,8,"",0,0,"L");
+        $pdf->Cell(65,8,"Discount",0,0,"R");
+        $pdf->Cell(30,8, "Kes ".number_format(0,2) ,1,1,"L");
+
+
+        // THIRD ROW
+        $pdf->Cell(20,8,"",0,0,"L");
+        $pdf->Cell(75,8,"",0,0,"L");
+        $pdf->Cell(65,8,"Total",0,0,"R");
+        $pdf->Cell(30,8, "Kes ".number_format($total,2) ,1,1,"L");
+        $pdf->Ln(10);
+        if(isset($organization_data->payment_description)){
+            $pdf->SetFont('century_gothic', 'B', 9);
+            $pdf->Cell(200,5,"Payment Details",0,1,"L");
+            $pdf->SetFont('century_gothic', '', 9);
+            $pdf->Cell(200,8,"- ".$this->message_content_2($organization_data->payment_description,[$client_data],$total),0,0,"L");
+        }
+        $pdf->Output();
+    }
+
+    function message_content_2($data, $client_data, $trans_amount, $links = null, $freeze_days = null, $freeze_date = null, $future_freeze_date = null)
+    {
+        $exp_date = $client_data[0]->next_expiration_date;
+        $reg_date = $client_data[0]->clients_reg_date;
+        $monthly_payment = $client_data[0]->monthly_payment;
+        $full_name = $client_data[0]->client_name;
+        $f_name = ucfirst(strtolower((explode(" ", $full_name)[0])));
+        $address = $client_data[0]->client_address;
+        $internet_speeds = $client_data[0]->max_upload_download;
+        $contacts = $client_data[0]->clients_contacts;
+        $account_no = $client_data[0]->client_account;
+        $wallet = $client_data[0]->wallet_amount;
+        $username = $client_data[0]->client_username;
+        $password = $client_data[0]->client_password;
+        $trans_amount = isset($trans_amount) ? number_format($trans_amount) : "Null";
+
+        // edited
+        $today = date("dS-M-Y");
+        $now = date("H:i:s");
+        $time = $exp_date;
+        $exp_date = date("dS-M-Y", strtotime($exp_date));
+        $exp_time = date("H:i:s", strtotime($time));
+        $reg_date = date("dS-M-Y", strtotime($reg_date));
+        $data = str_replace("[client_name]", ucwords(strtolower($full_name)), $data);
+        $data = str_replace("[client_f_name]", ucwords(strtolower($f_name)), $data);
+        $data = str_replace("[client_addr]", $address, $data);
+        $data = str_replace("[exp_date]", $exp_date . " at " . $exp_time, $data);
+        $data = str_replace("[reg_date]", $reg_date, $data);
+        $data = str_replace("[int_speeds]", $internet_speeds, $data);
+        $data = str_replace("[monthly_fees]", "Ksh " . $monthly_payment, $data);
+        $data = str_replace("[client_phone]", $contacts, $data);
+        $data = str_replace("[acc_no]", $account_no, $data);
+        $data = str_replace("[client_wallet]", "Ksh " . $wallet, $data);
+        $data = str_replace("[username]", $username, $data);
+        $data = str_replace("[password]", $password, $data);
+        $data = str_replace("[trans_amnt]", "Ksh " . $trans_amount, $data);
+        $data = str_replace("[today]", $today, $data);
+        $data = str_replace("[now]", $now, $data);
+        $data = str_replace("[inv_link]", $links, $data);
+        $data = str_replace("[days_frozen]", $freeze_days . " Day(s)", $data);
+        $data = str_replace("[frozen_date]", date("D dS M Y", strtotime($future_freeze_date)), $data);
+        $data = str_replace("[unfreeze_date]", ($freeze_date == "Indefinite" ? "Indefinite Date" : date("dS M Y \a\\t h:iA", strtotime($freeze_date))), $data);
+        return $data;
+    }
+
+    // generate receipt
     // get user data
     function getClientName($client_account){
         // change db
