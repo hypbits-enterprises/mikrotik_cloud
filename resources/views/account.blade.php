@@ -352,6 +352,12 @@
                                 <input name="sms_short_code" type="text" class="form-control" id="sms_short_code" value="{{$organization->sms_shortcode ?$organization->sms_shortcode:""}}" placeholder="(leave blank if not present)" >
                               </div>
                             </div>
+                            <div class="row mb-3">
+                              <label for="sms_short_code" class="col-md-4 col-lg-3 col-form-label">PAYMENT DESCRIPTION FOR RECEIPT/INVOICE</label>
+                              <div class="col-md-8 col-lg-9">
+                                <textarea name="payment_description" id="payment_description" cols="30" rows="10" class="form-control" placeholder="e.g : Pay using Paybill 202020 Account number 1000.">{{$organization->payment_description ?$organization->payment_description:""}}</textarea>
+                              </div>
+                            </div>
                             <div class="text-center">
                               <button type="submit" {{$readonly}} class="btn btn-primary">Save Changes</button>
                             </div>

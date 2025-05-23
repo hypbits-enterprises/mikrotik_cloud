@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Classes\reports;
 
 require('fpdf.php');
@@ -6,7 +7,7 @@ require('fpdf.php');
 session_start();
 date_default_timezone_set('Africa/Nairobi');
 
-class PDF extends FPDF
+class INVOICE extends FPDF
 {
     protected $B = 0;
     public $company_logo = "/logo2.jpeg";
@@ -14,7 +15,22 @@ class PDF extends FPDF
     public $company_contact = "0720268519 / 0717748569";
     public $company_document_title = "Hypbits Enterprises";
     public $website_name = "billing.hypbits.com";
+    public $company_email = "mail@hypbits.com";
+    public $company_address = "Mombasa Kenya";
     protected $company_header_position = 200;
+    protected $client_data = null;
+    protected $invoice_data = null;
+
+
+    // SET CLIENT DATA
+    function set_client_data($client_data){
+        $this->client_data = $client_data;
+    }
+
+    // SET INVOICE DATA
+    function set_invoice_data($invoice_data){
+        $this->invoice_data = $invoice_data;
+    }
 
     // set company_logo
     function setCompayLogo($logo)
@@ -33,7 +49,7 @@ class PDF extends FPDF
         $this->company_name = $sch_name;
     }
     // set school_box_code
-    function set_school_contact($sch_contacts)
+    function set_company_contact($sch_contacts)
     {
         $this->company_contact = $sch_contacts;
     }
@@ -41,6 +57,14 @@ class PDF extends FPDF
     function set_document_title($title)
     {
         $this->company_document_title = $title;
+    }
+
+    function set_company_address($physical_address){
+        $this->company_address = $physical_address;
+    }
+
+    function set_company_email($email){
+        $this->company_email = $email;
     }
     // Load data
     function LoadData($file)
@@ -57,28 +81,45 @@ class PDF extends FPDF
     function Header()
     {
         // Logo
-        $this->Image($this->company_logo, 3, 3, 20);
+        $this->Image($this->company_logo, 15, 15, 30);
+        // SET XY
+        $this->SetMargins(15,15,15);
+        $this->SetXY(15, 50);
         // Arial  15
-        $this->SetFont('Arial', 'B', 15);
-        // Title
-        $this->Cell($this->company_header_position, 5, strtoupper($this->company_name), 0, 0, 'C');
-        $this->Ln();
-        $this->SetFont('Arial', '', 8);
-        $this->Cell($this->company_header_position, 5, "Contact Us: " . $this->company_contact, 0, 0, 'C');
-        $this->SetFont('Arial', 'BU', 8);
-        $this->Ln();
-        $this->Cell($this->company_header_position, 5,
-        /** "Report Title: " . **/
-        $this->company_document_title . "", 0, 0, 'C');
+        $this->SetFont('century_gothic', 'B', 10);
+        // Company Title
+        $this->Cell($this->company_header_position, 5, strtoupper($this->company_name), 0, 1, 'L');
+        $this->SetFont('century_gothic', '', 9);
+        $this->Cell($this->company_header_position, 5, "Phone: " . $this->company_contact, 0, 1, 'L');
+        $this->Cell($this->company_header_position, 5, "Email: " . $this->company_email, 0, 1, 'L');
+        $this->Cell($this->company_header_position, 5, "Address: " . $this->company_address, 0, 1, 'L');
+        
+        // Client Details
+        $this->SetFont('century_gothic', '', 30);
+        $this->SetXY(100, 20);
+        $this->Cell(100,5,"INVOICE",0,1,"R");
+        $this->SetXY(100, 50);
+        $this->SetFont('century_gothic', '', 9);
+        $this->Cell(100,5,"Date Issued : ". ($this->invoice_data->date_generated ? date("dS M Y",strtotime($this->invoice_data->date_generated)) : date("dS M Y")),0,1,"R");
+        $this->SetX(100);
+        $this->Cell(100,5,"Invoice # : ". ($this->invoice_data->invoice_number ? $this->invoice_data->invoice_number : NULL),0,1,"R");
+        if ($this->invoice_data->invoice_deadline != $this->invoice_data->date_generated) {
+            $this->SetX(100);
+            $this->Cell(100,5,"Invoice Deadline : ". ($this->invoice_data->invoice_deadline ? date("dS M Y", strtotime($this->invoice_data->invoice_deadline)) : NULL),0,1,"R");   
+        }
+        $this->SetXY(100,80);
+        $this->Cell(25,5,"To:",0,0,"R");
+        $this->SetFont('century_gothic', 'B', 9);
+        $this->Cell(75,5,ucwords(strtolower($this->client_data->client_name ?? "Client Name")),0,1,"R");
+        $this->SetFont('century_gothic', '', 9);
+        $this->SetX(100);
+        $this->Cell(100,5,ucwords(strtolower($this->client_data->client_address ?? "Client Address")),0,1,"R");
+        $this->SetX(100);
+        $this->Cell(100,5,ucwords(strtolower($this->client_data->clients_contacts ?? "Client Phone")),0,1,"R");
+
         $this->SetTitle($this->company_document_title);
         $this->SetFont('', '');
         $this->SetAuthor(session('Usernames'));
-        // Line break
-        if ($this->company_header_position == 200) {
-            // potrait
-            $this->Ln(10);
-            $this->Cell(190, 0, "", 1);
-        }
         $this->Ln(10);
     }
 
@@ -88,12 +129,12 @@ class PDF extends FPDF
         // Position at 1.5 cm from bottom
         $this->SetY(-15);
         // Arial italic 8
-        $this->SetFont('Arial', 'I', 8);
+        $this->SetFont('century_gothic', 'I', 8);
         // Page number
         $this->Cell(0, 5, 'Page ' . $this->PageNo() . '', 0, 0, 'C');
         $this->Ln();
-        $this->SetFont('Arial', 'I', 8);
-        $this->Cell($this->company_header_position, 7, "This is a computer generated document. If found please return to " . ucwords(strtolower(trim($this->company_name))) . " or contact " . $this->company_contact . "",0,0,'C');
+        $this->SetFont('century_gothic', 'I', 8);
+        $this->Cell(180, 7, "This is a computer generated document. If found please return to " . ucwords(strtolower(trim($this->company_name))) . " or contact " . $this->company_contact . "",0,0,'C');
     }
 
     function setHeaderPos($pos)
@@ -363,7 +404,6 @@ class PDF extends FPDF
     }
 }
 
-
 function receiptNo($no){
     if (strlen($no) < 3) {
         if(strlen($no) == 2){
@@ -374,3 +414,4 @@ function receiptNo($no){
     }
     return $no;
 }
+?>

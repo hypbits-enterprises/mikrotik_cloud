@@ -35,6 +35,7 @@ class VerifyCsrfToken extends Middleware
         "/get_internet_access",
         '/get_supply_method',
         'wireless_settings',
-        '/Client-due-demographics'
+        '/Client-due-demographics',
+        '/New-Invoice'
     ];
 }

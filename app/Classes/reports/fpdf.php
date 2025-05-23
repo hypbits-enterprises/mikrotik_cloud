@@ -9,6 +9,8 @@
 
 namespace App\Classes\reports;
 
+use Exception;
+
 define('FPDF_VERSION','1.84');
 date_default_timezone_set('Africa/Nairobi');
 

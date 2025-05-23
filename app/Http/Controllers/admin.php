@@ -481,7 +481,8 @@ class admin extends Controller
             "organization_address" => $req->input("organization_address"),
             "organization_main_contact" => $req->input("organization_main_contact"),
             "organization_email" => $req->input("organization_email"),
-            "BusinessShortCode" => $req->input("BusinessShortCode")
+            "BusinessShortCode" => $req->input("BusinessShortCode"),
+            "payment_description" => $req->input("payment_description")
         ]);
 
         // insert or update the API SENDER

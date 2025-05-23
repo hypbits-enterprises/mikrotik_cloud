@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Classes\reports\FPDF;
+use App\Classes\reports\INVOICE;
 use App\Classes\reports\PDF;
 use App\Classes\routeros_api;
+use Illuminate\Support\Facades\Config;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +16,7 @@ use App\Models\client_table;
 use App\Models\sms_table;
 use DateInterval;
 use DateTime;
+use Exception;
 use Illuminate\Routing\Route;
 use mysqli;
 
@@ -27,6 +30,399 @@ class Clients extends Controller
             (is_object(json_decode($string)) ||
                 is_array(json_decode($string))))) ? true : false;
     }
+
+    function new_invoice(Request $request){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // return $request;
+        $invoice_number = $request->input("invoice_number");
+        $amount_to_pay = $request->input("amount_to_pay");
+        $period_duration = $request->input("period_duration");
+        $period_unit = $request->input("period_unit");
+        $payment_from_date = $request->input("payment_from_date");
+        $payment_from_time = $request->input("payment_from_time");
+        $invoice_deadline = $request->input("invoice_deadline");
+        $vat_included = $request->input("vat_included");
+        $client_id = $request->input("client_id");
+        $user_id = session()->has("Userid") ? session("Userid") : null;
+        $today = date("YmdHis");
+        $first_date = date("Ymd", strtotime($payment_from_date)).date("His",strtotime($payment_from_time));
+        $last_date = $this->addDate($first_date, $period_duration." ".$period_unit);
+        $invoice_deadline = $this->addDate($today, $invoice_deadline." Days");
+        $invoice_for = json_encode([$first_date, $last_date]);
+
+        $invoice_id = DB::connection("mysql2")->table('invoices')->insertGetId([
+            'date_generated' => $today,
+            'client_id' => $client_id,
+            'invoice_for' => $invoice_for,
+            'VAT_type' => $vat_included,
+            'invoice_number' => $invoice_number,
+            'amount_to_pay' => $amount_to_pay,
+            'invoice_deadline' => $invoice_deadline,
+            'generated_by' => $user_id
+        ], 'invoice_id');
+
+        session()->flash("success", "Invoice created successfully!");
+        return redirect(url()->previous());
+    }
+
+    function delete_invoice($invoice_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        $invoice = DB::connection("mysql2")->select("SELECT * FROM invoices WHERE invoice_number = ?", [$invoice_id]);
+        if(count($invoice)){
+            DB::connection("mysql2")->delete("DELETE FROM invoices WHERE invoice_number = ? ", [$invoice_id]);
+            session()->flash("success", "The invoice has been deleted successfully!");
+            return redirect(url()->previous());
+        }else{
+            session()->flash("success", "The invoice is already deleted!");
+            return redirect(url()->previous());
+        }
+    }
+
+    function send_invoice(Request $request){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // return $request;
+        $send_invoice_id = $request->input("send_invoice_id");
+        $invoice_message = $request->input("invoice_message");
+        $sms_type = 2;
+
+        // get the invoice data
+        $invoice = DB::connection("mysql2")->select("SELECT * FROM invoices WHERE invoice_number = ?", [$send_invoice_id]);
+        if(count($invoice) > 0){
+            $client_data = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE client_id = ?",[$invoice[0]->client_id]);
+            if (count($client_data) > 0) {
+                $link = $this->create_link($invoice[0]);
+                $convert_message = $this->message_content_2($invoice_message, $client_data,0,$link);
+
+                if (isset($client_data[0]->clients_contacts)) {
+                    if (session("organization")->send_sms == 1) {
+                        // GET THE SMS API LINK
+                        $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+                        $sms_sender = count($select) > 0 ? $select[0]->value : "";
+                        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
+                        $sms_api_key = $sms_keys[0]->value;
+                        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
+                        $sms_partner_id = $sms_keys[0]->value;
+                        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
+                        $sms_shortcode = $sms_keys[0]->value;
+
+                        $message_status = 0;
+                        // if send sms is 1 we send  the sms
+                        $partnerID = $sms_partner_id;
+                        $apikey = $sms_api_key;
+                        $shortcode = $sms_shortcode;
+                        
+                        $mobile = $client_data[0]->clients_contacts; // Bulk messages can be comma separated
+                        $message = $convert_message;
+
+                        if($sms_sender == "celcom"){
+                            $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
+                            $ch = \curl_init();
+                            \curl_setopt($ch, CURLOPT_URL, $finalURL);
+                            \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                            \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                            $response = \curl_exec($ch);
+                            \curl_close($ch);
+                            $res = json_decode($response);
+                            // return $res;
+                            $values = $res->responses[0];
+                            // return $values;
+                            foreach ($values as  $key => $value) {
+                                // echo $key;
+                                if ($key == "response-code") {
+                                    if ($value == "200") {
+                                        // if its 200 the message is sent delete the
+                                        $message_status = 1;
+                                    }
+                                }
+                            }
+                        }elseif ($sms_sender == "afrokatt") {
+                            $client_phone = explode(",",$mobile);
+                            foreach ($client_phone as $key => $phone) {
+                                $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$phone."&from=".$shortcode."&sms=".urlencode($message)."&unicode=1";
+                                $ch = \curl_init();
+                                \curl_setopt($ch, CURLOPT_URL, $finalURL);
+                                \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                                \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                                $response = \curl_exec($ch);
+                                \curl_close($ch);
+                                $res = json_decode($response);
+                                $values = $res->code;
+                                if (isset($res->code)) {
+                                    if($res->code == "200"){
+                                        $message_status = 1;
+                                    }
+                                }
+                            }
+                        }
+                        // check if the phone numbers are connected as an array
+                        $client_phone = explode(",",$mobile);
+                        if (count($client_phone) > 1) {
+                            for ($i=0; $i < count($client_phone); $i++) { 
+                                // get the user id of the number from the database
+                                $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `clients_contacts` = '$client_phone[$i]'");
+                                $client_id = (count($user_data) > 0) ? $user_data[0]->client_id : 0;
+                                // if the message status is one the message is already sent to the user
+                                $sms_table = new sms_table();
+                                $sms_table->sms_content = $message;
+                                $sms_table->date_sent = date("YmdHis");
+                                $sms_table->recipient_phone = $client_phone[$i];
+                                $sms_table->sms_status = $message_status;
+                                $sms_table->account_id = $client_id;
+                                $sms_table->sms_type = $sms_type;
+                                $sms_table->save();
+                                // save the clients data one by one
+                            }
+                        }else {
+                            // get the user id of the number from the database
+                            $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `clients_contacts` = '$mobile'");
+                            $client_id = (count($user_data) > 0) ? $user_data[0]->client_id : 0;
+                            // if the message status is one the message is already sent to the user
+                            $sms_table = new sms_table();
+                            $sms_table->sms_content = $message;
+                            $sms_table->date_sent = date("YmdHis");
+                            $sms_table->recipient_phone = $mobile;
+                            $sms_table->sms_status = $message_status;
+                            $sms_table->account_id = $client_id;
+                            $sms_table->sms_type = $sms_type;
+                            $sms_table->save();
+                            // save the clients data one by one
+                        }
+                        session()->flash("success","Message has been successfully sent to the client!");
+                        return redirect(url()->previous());
+                        // return array("success" => false, "message" => $convert_message);
+                    }else{
+                        session()->flash("error","You are not allowed to send SMS!");
+                        return redirect(url()->previous());
+                    }
+                }else{
+                        session()->flash("error","Your client has no phone number!");
+                        return redirect(url()->previous());
+                    }
+            }else{
+                session()->flash("error","Invalid subscriber!");
+                return redirect(url()->previous());
+            }
+        }else{
+            session()->flash("error","Invalid invoice number!");
+            return redirect(url()->previous());
+        }
+    }
+
+    function create_link($invoice_data){
+        $organization_id = $this->convert_code(session("organization")->organization_id);
+        $invoice_id = $this->convert_code($invoice_data->invoice_id);
+        $link = "http://192.168.86.16:8000/I/".$organization_id."/".$invoice_id;
+        return $link;
+    }
+
+    function convert_code($number){
+        $long = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+        $code = "";
+        $array_number = str_split($number."");
+        for ($i=0; $i < count($array_number); $i++) { 
+            $code .= $long[$array_number[$i]*1];
+        }
+        return $code;
+    }
+
+    function revert_code($number){
+        $long = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+        $revert_code = "";
+        $array_number = str_split($number."");
+        for ($i=0; $i < count($array_number); $i++) { 
+            for ($in=0; $in < count($long); $in++) { 
+                if ($long[$in] == $array_number[$i]) {
+                    $revert_code .= $in."";
+                }
+            }
+        }
+        return $revert_code*1;
+    }
+
+    function print_invoice($invoice_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        $invoice_data = DB::connection("mysql2")->select("SELECT * FROM `invoices` WHERE `invoice_id` = ?",[$invoice_id]);
+        if (count($invoice_data) > 0) {
+            // return session("organization_logo");
+            $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = ?",[$invoice_data[0]->client_id]);
+            $client_data = count($client_data) == 0 ? null : $client_data[0];
+            return $this->create_document($invoice_data[0], session("organization"), $client_data);
+        }else{
+            return redirect("/Dashboard");
+        }
+    }
+
+    function print_invoice_external($organization_id, $invoice_id){
+        $organization_id = $this->revert_code($organization_id);
+        $invoice_id = $this->revert_code($invoice_id);
+        $check_organization = DB::select("SELECT * FROM organizations WHERE organization_id = ?", [$organization_id]);
+        if(count($check_organization) > 0){
+            $this->change_db($check_organization[0]->organization_database);
+            $invoice_data = DB::connection("mysql2")->select("SELECT * FROM `invoices` WHERE `invoice_id` = ?",[$invoice_id]);
+            if (count($invoice_data) > 0) {
+                // return session("organization_logo");
+                $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = ?",[$invoice_data[0]->client_id]);
+                $client_data = count($client_data) == 0 ? null : $client_data[0];
+                return $this->create_document($invoice_data[0], $check_organization[0], $client_data);
+            }else{
+                return array("success" => false, "message" => "An error occured!");
+            }
+        }else{
+            return array("success" => false, "message" => "An error occured!");
+        }
+    }
+
+    function change_db($database_name = null){
+        if (!session("database_name") && $database_name == null) {
+            return redirect("/");
+        }
+        
+        // set the session of the database name
+        Config::set('database.connections.mysql2.database', ($database_name == null ? session("database_name") : $database_name));
+    }
+
+    function create_document($invoice_data, $organization_data, $client_data){
+        $pdf = new INVOICE("P","mm","A4");
+        $pdf->AddFont('century_gothic', '', 'century_gothic.php');
+        $pdf->AddFont('century_gothic', 'B', 'century_gothic_bold.php');
+        $pdf->AddFont('century_gothic', 'I', 'Century Gothic Italic.php');
+        $pdf->AddFont('century_gothic', 'BI', 'Century Gothic Bold Italic.php');
+        $pdf->setCompayLogo($organization_data->organization_logo);
+        $pdf->set_company_name(strtoupper($organization_data->organization_name));
+        $pdf->set_company_contact($organization_data->organization_main_contact);
+        $pdf->set_company_email($organization_data->organization_email);
+        $pdf->set_company_address($organization_data->organization_address);
+        $pdf->set_document_title($organization_data->organization_name);
+        $pdf->SetTextColor(25, 25, 25);
+        
+        $pdf->set_client_data($client_data);
+        $pdf->set_invoice_data($invoice_data);
+        $pdf->AddPage();
+        $pdf->Cell(20,5,"Qty",0,0,"L");
+        $pdf->Cell(75,5,"Description Of Service",0,0,"L");
+        $pdf->Cell(65,5,"Payment Period",0,0,"L");
+        $pdf->Cell(30,5,"Total",0,1,"L");
+        $total = 0;
+
+        if ($invoice_data->VAT_type == "include_vat" || $invoice_data->VAT_type == "exclude_vat") {
+            // FIRST ROW
+            $pdf->Cell(20,8,"1",1,0,"L");
+            $pdf->Cell(75,8,"Upload/Download Speed of ".$client_data->max_upload_download." " ,1,0,"L");
+            $payment_period = $this->isJson($invoice_data->invoice_for) ? json_decode($invoice_data->invoice_for) : null;
+            $payment_period = $payment_period ? date("dS-M-Y" ,strtotime($payment_period[0]))." - ".date("dS-M-Y" ,strtotime($payment_period[1])) : "No Period";
+            $pdf->Cell(65,8,$payment_period,1,0,"L");
+            $pdf->Cell(30,8, $invoice_data->VAT_type == "include_vat" ? "Kes ".number_format($invoice_data->amount_to_pay - ($invoice_data->amount_to_pay * 0.16),2) : "Kes ".number_format($invoice_data->amount_to_pay, 2),1,1,"L");
+            $total+= $invoice_data->VAT_type == "include_vat" ? round($invoice_data->amount_to_pay - ($invoice_data->amount_to_pay * 0.16)) : $invoice_data->amount_to_pay;
+
+
+            // SECOND ROW
+            $pdf->Cell(20,8,"",0,0,"L");
+            $pdf->Cell(75,8,"",0,0,"L");
+            $pdf->Cell(65,8,"16% VAT",0,0,"R");
+            $pdf->Cell(30,8, "Kes ".number_format($invoice_data->amount_to_pay * 0.16 , 2) ,1,1,"L");
+            $total += round($invoice_data->amount_to_pay * 0.16);
+        }else{
+            // FIRST ROW
+            $pdf->Cell(20,8,"1",1,0,"L");
+            $pdf->Cell(75,8,"Upload/Download Speed of ".$client_data->max_upload_download." " ,1,0,"L");
+            $payment_period = $this->isJson($invoice_data->invoice_for) ? json_decode($invoice_data->invoice_for) : null;
+            $payment_period = $payment_period ? date("dS-M-Y" ,strtotime($payment_period[0]))." - ".date("dS-M-Y" ,strtotime($payment_period[1])) : "No Period";
+            $pdf->Cell(65,8,$payment_period,1,0,"L");
+            $pdf->Cell(30,8, "Kes ".number_format($invoice_data->amount_to_pay, 2),1,1,"L");
+            $total+= $invoice_data->VAT_type == "include_vat" ? round($invoice_data->amount_to_pay - ($invoice_data->amount_to_pay * 0.16)) : $invoice_data->amount_to_pay;
+        }
+        // THIRD ROW
+        $pdf->Cell(20,8,"",0,0,"L");
+        $pdf->Cell(75,8,"",0,0,"L");
+        $pdf->Cell(65,8,"Discount",0,0,"R");
+        $pdf->Cell(30,8, "Kes ".number_format(0,2) ,1,1,"L");
+
+
+        // THIRD ROW
+        $pdf->Cell(20,8,"",0,0,"L");
+        $pdf->Cell(75,8,"",0,0,"L");
+        $pdf->Cell(65,8,"Total",0,0,"R");
+        $pdf->Cell(30,8, "Kes ".number_format($total,2) ,1,1,"L");
+        $pdf->Ln(10);
+        if(isset($organization_data->payment_description)){
+            $pdf->SetFont('century_gothic', 'B', 9);
+            $pdf->Cell(200,5,"Payment Details",0,1,"L");
+            $pdf->SetFont('century_gothic', '', 9);
+            $pdf->Cell(200,8,"- ".$this->message_content_2($organization_data->payment_description,[$client_data],$total),0,0,"L");
+        }
+        $pdf->Output();
+    }
+
+    function update_invoice(Request $request){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+        
+        // get the invoice information
+        $invoice = DB::connection("mysql2")->select("SELECT * FROM `invoices` WHERE invoice_number = ?", [$request->input("edit_invoice_id")]);
+        if (count($invoice) > 0) {
+            $client_id = $request->input("client_id");
+            $edit_invoice_id = $request->input("edit_invoice_id");
+            $edit_amount_to_pay = $request->input("edit_amount_to_pay");
+            $edit_period_duration = $request->input("edit_period_duration");
+            $edit_period_unit = $request->input("edit_period_unit");
+            $edit_payment_from_date = $request->input("edit_payment_from_date");
+            $edit_payment_from_time = $request->input("edit_payment_from_time");
+            $edit_invoice_deadline = $request->input("edit_invoice_deadline");
+            $edit_vat_included = $request->input("edit_vat_included");
+            $first_date = date("Ymd", strtotime($edit_payment_from_date)).date("His",strtotime($edit_payment_from_time));
+            $last_date = $this->addDate($first_date, $edit_period_duration." ".$edit_period_unit);
+            $invoice_deadline = $this->addDate($invoice[0]->date_generated, $edit_invoice_deadline." Days");
+            $invoice_for = json_encode([$first_date, $last_date]);
+            // return $first_date . "{}" .$invoice_deadline."{}".$edit_invoice_deadline;
+    
+            // update the invoice
+            $update = DB::connection("mysql2")->update("UPDATE invoices SET client_id = ?, invoice_for = ?, VAT_type = ?, amount_to_pay = ?, invoice_deadline = ? WHERE invoice_number = ?",[
+                $client_id,
+                $invoice_for,
+                $edit_vat_included,
+                $edit_amount_to_pay,
+                $invoice_deadline,
+                $edit_invoice_id
+            ]);
+            session()->flash("success", "Invoice updated successfully!");
+        }else{
+            session()->flash("error", "Invalid invoice!");
+        }
+        return redirect(url()->previous());
+    }
+    
+    function addDate($date, $interval) {
+        // Convert string date to DateTime object
+        try {
+            $dateObj = new DateTime($date);
+        } catch (Exception $e) {
+            return false; // Invalid date
+        }
+    
+        // Modify date using the interval
+        try {
+            $dateObj->modify($interval);
+        } catch (Exception $e) {
+            return false; // Invalid interval
+        }
+    
+        // Return full datetime format: YmdHis
+        return $dateObj->format('YmdHis');
+    }
+    
 
     function newStaticClient(){
         // change db
@@ -128,6 +524,10 @@ class Clients extends Controller
     }
 
     function validate_user(Request $request){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
         $client_ids = $request->input("client_ids");
         $expiry_date = $request->input("expiry_date");
         $expiry_time = $request->input("expiry_time");
@@ -3177,10 +3577,15 @@ class Clients extends Controller
                 }
             }
 
+            $code = $this->generate_new_invoice_code();
+
+            // get the invoices for that particular client
+            $invoices = DB::connection("mysql2")->select("SELECT * FROM invoices WHERE client_id = ? ORDER BY invoice_number DESC", [$clientid]);
+
             if ($assignment == "static") {
-                return view("clientInfor", ["pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
+                return view("clientInfor", ["invoices" => $invoices, "invoice_id" => $code ,"pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
             } elseif ($assignment == "pppoe") {
-                return view("clientInforPppoe", ["pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
+                return view("clientInforPppoe", ["invoices" => $invoices, "invoice_id" => $code ,"pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
             } else {
                 session()->flash("error_clients", "Invalid Assignment!!");
                 return redirect("/Clients");
@@ -5334,6 +5739,51 @@ class Clients extends Controller
         session()->flash("success", "Syncing done successfully!");
         return redirect("/Transactions");
     }
+
+    function message_content_2($data, $client_data, $trans_amount, $links = null, $freeze_days = null, $freeze_date = null, $future_freeze_date = null)
+    {
+        $exp_date = $client_data[0]->next_expiration_date;
+        $reg_date = $client_data[0]->clients_reg_date;
+        $monthly_payment = $client_data[0]->monthly_payment;
+        $full_name = $client_data[0]->client_name;
+        $f_name = ucfirst(strtolower((explode(" ", $full_name)[0])));
+        $address = $client_data[0]->client_address;
+        $internet_speeds = $client_data[0]->max_upload_download;
+        $contacts = $client_data[0]->clients_contacts;
+        $account_no = $client_data[0]->client_account;
+        $wallet = $client_data[0]->wallet_amount;
+        $username = $client_data[0]->client_username;
+        $password = $client_data[0]->client_password;
+        $trans_amount = isset($trans_amount) ? number_format($trans_amount) : "Null";
+
+        // edited
+        $today = date("dS-M-Y");
+        $now = date("H:i:s");
+        $time = $exp_date;
+        $exp_date = date("dS-M-Y", strtotime($exp_date));
+        $exp_time = date("H:i:s", strtotime($time));
+        $reg_date = date("dS-M-Y", strtotime($reg_date));
+        $data = str_replace("[client_name]", ucwords(strtolower($full_name)), $data);
+        $data = str_replace("[client_f_name]", ucwords(strtolower($f_name)), $data);
+        $data = str_replace("[client_addr]", $address, $data);
+        $data = str_replace("[exp_date]", $exp_date . " at " . $exp_time, $data);
+        $data = str_replace("[reg_date]", $reg_date, $data);
+        $data = str_replace("[int_speeds]", $internet_speeds, $data);
+        $data = str_replace("[monthly_fees]", "Ksh " . $monthly_payment, $data);
+        $data = str_replace("[client_phone]", $contacts, $data);
+        $data = str_replace("[acc_no]", $account_no, $data);
+        $data = str_replace("[client_wallet]", "Ksh " . $wallet, $data);
+        $data = str_replace("[username]", $username, $data);
+        $data = str_replace("[password]", $password, $data);
+        $data = str_replace("[trans_amnt]", "Ksh " . $trans_amount, $data);
+        $data = str_replace("[today]", $today, $data);
+        $data = str_replace("[now]", $now, $data);
+        $data = str_replace("[inv_link]", $links, $data);
+        $data = str_replace("[days_frozen]", $freeze_days . " Day(s)", $data);
+        $data = str_replace("[frozen_date]", date("D dS M Y", strtotime($future_freeze_date)), $data);
+        $data = str_replace("[unfreeze_date]", ($freeze_date == "Indefinite" ? "Indefinite Date" : date("dS M Y \a\\t h:iA", strtotime($freeze_date))), $data);
+        return $data;
+    }
     function message_content($data, $user_id, $trans_amount, $freeze_days = null, $freeze_date = null, $future_freeze_date = null)
     {
         $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$user_id' AND `deleted` = '0'");
@@ -5418,6 +5868,21 @@ class Clients extends Controller
             $new_code = $prefix.$series;
         }else{
             $new_code = $this->year_code_generator(date("Y")).$this->ticket_code_generator(date("m"),"month").$this->ticket_code_generator(date("d"),"day")."001";
+        }
+        return $new_code ? $new_code : "001";
+    }
+
+    function generate_new_invoice_code(){
+        $date_today = date("Ymd");
+        $last_code_today = DB::connection("mysql2")->select("SELECT * FROM invoices WHERE date_generated LIKE '$date_today%' ORDER BY date_generated DESC LIMIT 1;");
+        $new_code = null;
+        if (count($last_code_today) > 0) {
+            $prefix = substr($last_code_today[0]->invoice_number, 0,7);
+            $series = (substr($last_code_today[0]->invoice_number, 7) * 1) + 1;
+            $series = strlen($series) == 1 ? "00".$series : (strlen($series) == 2 ? "0".$series : $series);
+            $new_code = $prefix.$series;
+        }else{
+            $new_code = "INV-".$this->year_code_generator(date("Y")).$this->ticket_code_generator(date("m"),"month").$this->ticket_code_generator(date("d"),"day")."001";
         }
         return $new_code ? $new_code : "001";
     }

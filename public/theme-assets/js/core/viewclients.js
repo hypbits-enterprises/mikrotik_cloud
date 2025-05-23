@@ -24,6 +24,17 @@ function stopInterval(id) {
 function cObj(id) {
     return document.getElementById(id);
 }
+function hasJsonStructure(str) {
+    if (typeof str !== 'string') return false;
+    try {
+        const result = JSON.parse(str);
+        const type = Object.prototype.toString.call(result);
+        return type === '[object Object]'
+            || type === '[object Array]';
+    } catch (err) {
+        return false;
+    }
+}
 
 var rowsColStudents = [];
 var rowsNCols_original = [];
@@ -110,6 +121,105 @@ window.onload = function () {
     rowsColStudents = refferal_payment;
     // console.log(refferal_payment);
     cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+
+
+    // 
+    var view_invoice = document.getElementsByClassName("view_invoice");
+    for (let index = 0; index < view_invoice.length; index++) {
+        const element = view_invoice[index];
+        element.addEventListener("click", function () {
+            cObj("errors").innerHTML = "";
+            // fill the modal with data
+            var view_invoice = cObj("invoice_data_holder_"+this.id.substr(13)).value;
+            if (hasJsonStructure(view_invoice)) {
+                showModal("view_client_invoice");
+                var invoice_data = JSON.parse(view_invoice);
+                cObj("edit_invoice_id").value = invoice_data.invoice_number;
+                cObj("edit_amount_to_pay").value = invoice_data.amount_to_pay;
+                cObj("edit_invoice_deadline").value = invoice_data.deadline_duration;
+                cObj("edit_period_duration").value = invoice_data.invoice_for_duration.split(" ")[0];
+                var children = cObj("edit_period_unit").children;
+                console.log(invoice_data.invoice_for_duration.split(" ")[1]);
+                for (let index = 0; index < children.length; index++) {
+                    const elem = children[index];
+                    elem.selected = elem.value == invoice_data.invoice_for_duration.split(" ")[1];
+                }
+
+                cObj("edit_payment_from_date").value = invoice_data.payment_from_date;
+                cObj("edit_payment_from_time").value = invoice_data.payment_from_time;
+                var children2 = cObj("edit_vat_included").children;
+                for (let index = 0; index < children2.length; index++) {
+                    const elem = children2[index];
+                    elem.selected = elem.value == invoice_data.VAT_type;
+                }
+            }else{
+                cObj("errors").innerHTML = "<p class='text-danger'>An error occured!</p>";
+            }
+        });
+    }
+
+    cObj("close_view_client_invoice_1").onclick = function () {
+        hideModal("view_client_invoice");
+    }
+    cObj("close_view_client_invoice_2").onclick = function () {
+        hideModal("view_client_invoice");
+    }
+
+    // send invoice
+    var send_invoice = document.getElementsByClassName("send_invoice");
+    for (let index = 0; index < send_invoice.length; index++) {
+        const element = send_invoice[index];
+        element.addEventListener("click", function () {
+            cObj("errors").innerHTML = "";
+            cObj("invoice_number_holder").innerText = "NULL";
+            // fill the modal with data
+            var view_invoice = cObj("invoice_data_holder_"+this.id.substr(13)).value;
+            if (hasJsonStructure(view_invoice)) {
+                showModal("send_client_invoice");
+                var invoice_data = JSON.parse(view_invoice);
+                cObj("invoice_number_holder").innerText = invoice_data.invoice_number;
+                cObj("send_invoice_id").value = invoice_data.invoice_number;
+            }else{
+                cObj("errors").innerHTML = "<p class='text-danger'>An error occured!</p>";
+            }
+        });
+    }
+
+    cObj("close_send_client_invoice_1").onclick = function () {
+        hideModal("send_client_invoice");
+    }
+
+    cObj("close_send_client_invoice_2").onclick = function () {
+        hideModal("send_client_invoice");
+    }
+
+    var delete_invoice = document.getElementsByClassName("delete_invoice");
+    for (let index = 0; index < delete_invoice.length; index++) {
+        const element = delete_invoice[index];
+        element.addEventListener("click", function () {
+            cObj("errors").innerHTML = "";
+            cObj("delete_client_invoice_btn").href = "#";
+            cObj("delete_invoice_notice").innerHTML = "";
+            // fill the modal with data
+            var view_invoice = cObj("invoice_data_holder_"+this.id.substr(15)).value;
+            if (hasJsonStructure(view_invoice)) {
+                showModal("delete_client_invoice");
+                var invoice_data = JSON.parse(view_invoice);
+                cObj("delete_client_invoice_btn").href = "/Delete-Invoice/"+invoice_data.invoice_number;
+                cObj("delete_invoice_notice").innerHTML = "Are you sure you want to delete this invoice with number "+invoice_data.invoice_number;
+            }else{
+                cObj("errors").innerHTML = "<p class='text-danger'>An error occured!</p>";
+            }
+        });
+    }
+
+    cObj("close_delete_client_invoice_1").onclick = function () {
+        hideModal("delete_client_invoice");
+    }
+
+    cObj("close_delete_client_invoice_2").onclick = function () {
+        hideModal("delete_client_invoice");
+    }
 }
 
 function displayRecord(start, finish, arrays) {
@@ -405,4 +515,72 @@ cObj("close_update_comments_modal_1").onclick = function () {
 
 cObj("close_update_comments_modal_2").onclick = function () {
     hideModal("update_comments_modal");
+}
+
+// MODAL FOR A NEW INVOICE
+cObj("new_invoice").onclick = function() {
+    showModal("generate_client_invoice");
+}
+cObj("close_generate_client_invoice_1").onclick = function() {
+    hideModal("generate_client_invoice");
+}
+cObj("close_generate_client_invoice_2").onclick = function() {
+    hideModal("generate_client_invoice");
+}
+
+function checkBlank(object_id) {
+    if (cObj(object_id).value.trim().length > 0) {
+        cObj(object_id).classList.add("border");
+        cObj(object_id).classList.add("border-secondary");
+        cObj(object_id).classList.add("border-danger");
+        return 0;
+    }else{
+        cObj(object_id).classList.remove("border");
+        cObj(object_id).classList.remove("border-danger");
+        cObj(object_id).classList.add("border-secondary");
+        return 1;
+    }
+}
+
+// cObj("generate_invoice").onclick = function () {
+//     var err = checkBlank("invoice_id");
+//     err += checkBlank("amount_to_pay");
+//     err += checkBlank("period_duration");
+//     err += checkBlank("period_unit");
+//     err += checkBlank("payment_from_date");
+//     err += checkBlank("payment_from_time");
+//     err += checkBlank("invoice_deadline");
+//     err += checkBlank("vat_included");
+    
+//     if (err == 0) {
+//         cObj("reponse_holder_invoices").innerHTML = "";
+//         var datapass = "invoice_number="+cObj("invoice_id").value+"&amount_to_pay="+cObj("amount_to_pay").value+"&period_duration="+cObj("period_duration").value+"&period_unit="+cObj("period_unit").value+"&payment_from_date="+cObj("payment_from_date").value;
+//         datapass+="&payment_from_time="+cObj("payment_from_time").value+"&invoice_deadline="+cObj("invoice_deadline").value+"&vat_included="+cObj("vat_included").value+"&client_id="+cObj("client_id_invoice").value;
+//         sendDataPost1("POST", "/New-Invoice", datapass, cObj("reponse_holder_invoices"), cObj("invoice_loader"));
+//     }else{
+//         cObj("reponse_holder_invoices").innerHTML = "<p class='text-danger'>Please fill all fields covered with a red border!</p>";
+//     }
+// }
+
+// Send date with post request
+function sendDataPost1(method, file, datapassing, object1, object2) {
+    //make the loading window show
+    object2.classList.remove("invisible");
+    let xml = new XMLHttpRequest();
+    xml.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            object1.innerHTML = this.responseText;
+            object2.classList.add("invisible");
+        } else if (this.status == 500) {
+            object2.classList.add("invisible");
+            object1.innerHTML = "<p class='red_notice'>Cannot establish connection to server.<br>Try reloading your page</p>";
+        } else if (this.status == 204) {
+            object2.classList.add("invisible");
+            object1.innerHTML = "<p class='red_notice'>Password updated successfully!</p>";
+        }
+        // console.log(this.status);
+    };
+    xml.open(method, "" + file, true);
+    xml.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xml.send(datapassing);
 }

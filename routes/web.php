@@ -81,6 +81,14 @@ Route::post("/Client-Reports/Update-Report", [Clients::class, "updateReports"])-
 Route::post("/Client-Reports/Change-Status", [Clients::class, "changeReportStatus"])->name("changeReportStatus");
 Route::get("/Client-Reports/Delete-Report/{report_id}", [Clients::class, "deleteReport"])->name("deleteReport")->middleware("validated");
 Route::post("/update_client_comment", [Clients::class, "update_client_comment"])->name("update_client_comment");
+
+// NEW INVOICES
+Route::get("/I/{organization_id}/{invoice_id}", [Clients::class,"print_invoice_external"])->name("print_invoice_external");
+Route::post("/New-Invoice", [Clients::class, "new_invoice"])->name("new_invoice");
+Route::post("/Send-Invoice", [Clients::class, "send_invoice"])->name("send_invoice");
+Route::get("/Delete-Invoice/{invoice_id}", [Clients::class, "delete_invoice"])->name("delete_invoice");
+Route::get("/Invoice/Print/{invoice_id}", [Clients::class, "print_invoice"])->name("print_invoice");
+Route::post("/Update-Invoice", [Clients::class, "update_invoice"])->name("update_invoice");
 // get the router interface
 Route::get("/router/{routerid}", [Clients::class, "getRouterInterfaces"])->middleware("validated");
 // get the router profile
