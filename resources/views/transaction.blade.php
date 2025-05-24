@@ -93,8 +93,10 @@
                                         @if ($transaction_data[0]->transaction_status == 1)
                                             <div class="row my-1">
                                                 <div class="col-sm-6"><strong>Transaction status:</strong></div>
-                                                <div class="col-sm-6"><a href="#" {{$readonly}}
-                                                        class="btn btn-sm btn-success">Assigned</a></div>
+                                                <div class="col-sm-6">
+                                                    <a href="#" {{$readonly}} class="btn btn-sm btn-success">Assigned</a>
+                                                    <a class='btn btn-sm btn-info ml-1' target='_blank' href='/Print-Reciept/{{$transaction_data[0]->transaction_id}}'><i class='ft-printer'></i> Print</a>
+                                                </div>
                                             </div>
                                         @else
                                             <div class="row my-1">

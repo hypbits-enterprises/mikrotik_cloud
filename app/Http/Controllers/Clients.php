@@ -234,7 +234,7 @@ class Clients extends Controller
     function create_link($invoice_data){
         $organization_id = $this->convert_code(session("organization")->organization_id);
         $invoice_id = $this->convert_code($invoice_data->invoice_id);
-        $link = "http://192.168.86.16:8000/I/".$organization_id."/".$invoice_id;
+        $link = "https://billing.hypbits.com/I/".$organization_id."/".$invoice_id;
         return $link;
     }
 
@@ -333,7 +333,7 @@ class Clients extends Controller
         if ($invoice_data->VAT_type == "include_vat" || $invoice_data->VAT_type == "exclude_vat") {
             // FIRST ROW
             $pdf->Cell(20,8,"1",1,0,"L");
-            $pdf->Cell(75,8,"Upload/Download Speed of ".$client_data->max_upload_download." " ,1,0,"L");
+            $pdf->Cell(75,8, $client_data->assignment == "pppoe" ? "Internet Subscription" : "Upload/Download Speed of ".$client_data->max_upload_download ,1,0,"L");
             $payment_period = $this->isJson($invoice_data->invoice_for) ? json_decode($invoice_data->invoice_for) : null;
             $payment_period = $payment_period ? date("dS-M-Y" ,strtotime($payment_period[0]))." - ".date("dS-M-Y" ,strtotime($payment_period[1])) : "No Period";
             $pdf->Cell(65,8,$payment_period,1,0,"L");
@@ -350,7 +350,7 @@ class Clients extends Controller
         }else{
             // FIRST ROW
             $pdf->Cell(20,8,"1",1,0,"L");
-            $pdf->Cell(75,8,"Upload/Download Speed of ".$client_data->max_upload_download." " ,1,0,"L");
+            $pdf->Cell(75,8,$client_data->assignment == "pppoe" ? "Internet Subscription" : "Upload/Download Speed of ".$client_data->max_upload_download." " ,1,0,"L");
             $payment_period = $this->isJson($invoice_data->invoice_for) ? json_decode($invoice_data->invoice_for) : null;
             $payment_period = $payment_period ? date("dS-M-Y" ,strtotime($payment_period[0]))." - ".date("dS-M-Y" ,strtotime($payment_period[1])) : "No Period";
             $pdf->Cell(65,8,$payment_period,1,0,"L");
@@ -4412,7 +4412,6 @@ class Clients extends Controller
                 $unit1 = $req->input('unit1');
                 $unit2 = $req->input('unit2');
                 $router_name = $req->input('router_name');
-                $client_password = $req->input('client_password');
                 $interface_name = $req->input('interface_name');
                 $clients_id = $req->input('clients_id');
                 $location_coordinates = $req->input('location_coordinates');
@@ -4648,8 +4647,6 @@ class Clients extends Controller
                             'router_name' => $router_name,
                             'client_interface' => $interface_name,
                             'clients_contacts' => $client_phone,
-                            'client_username' => $req->input('client_username'),
-                            'client_password' => $client_password,
                             'location_coordinates' => $location_coordinates,
                             'client_address' => $req->input('client_address'),
                             'date_changed' => date("YmdHis")
@@ -4780,8 +4777,6 @@ class Clients extends Controller
                 $client_secret_password = $req->input("client_secret_password");
                 $router_name = $req->input("router_name");
                 $pppoe_profile = $req->input("pppoe_profile");
-                $client_username = $req->input("client_username");
-                $client_password = $req->input("client_password");
                 // check if the secret and the username is present in the router
 
                 // if the secret is present in the router overwrite it
@@ -4893,8 +4888,6 @@ class Clients extends Controller
                                 'client_profile' => $pppoe_profile,
                                 'comment' => $req->input('comments'),
                                 'clients_contacts' => $client_phone,
-                                'client_username' => $req->input('client_username'),
-                                'client_password' => $client_password,
                                 'location_coordinates' => $location_coordinates,
                                 'client_address' => $client_address,
                                 'date_changed' => date("YmdHis")
@@ -4915,8 +4908,6 @@ class Clients extends Controller
                                 'router_name' => $router_name,
                                 'client_profile' => $pppoe_profile,
                                 'clients_contacts' => $client_phone,
-                                'client_username' => $req->input('client_username'),
-                                'client_password' => $client_password,
                                 'location_coordinates' => $location_coordinates,
                                 'client_address' => $client_address,
                                 'date_changed' => date("YmdHis")

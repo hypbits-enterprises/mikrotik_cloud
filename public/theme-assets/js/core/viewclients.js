@@ -53,8 +53,8 @@ window.onload = function () {
     cObj("client_gw").value = clients_data[0]['client_default_gw'];
     var router_names = clients_data[0]['router_name'];
     cObj("router_interfaced").innerText = clients_data[0]['client_interface'] ? clients_data[0]['client_interface'] : "null";
-    cObj("client_username").value = clients_data[0]['client_username'];
-    cObj("client_password").value = clients_data[0]['client_password'];
+    // cObj("client_username").value = clients_data[0]['client_username'];
+    // cObj("client_password").value = clients_data[0]['client_password'];
 
     // edit upload and download of the user
     var upload_download = clients_data[0]['max_upload_download'];
@@ -71,7 +71,7 @@ window.onload = function () {
     var down_unit = down.substr((down.length-1),(down.length));
     // assigne the different speeds to the correct input box
     cObj("upload_speed").value = up_speed;
-    cObj("download_speed").value = down_speed;
+    cObj("download_speeds").value = down_speed;
 
     // assigne the selected unit
     // start with upload

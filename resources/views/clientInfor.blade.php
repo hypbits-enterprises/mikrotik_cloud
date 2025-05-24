@@ -934,11 +934,9 @@
                                                             </select>
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <label for="download_speed" class="form-control-label">Download
+                                                            <label for="download_speeds" class="form-control-label">Download
                                                             </label>
-                                                            <input class="form-control" type="number" name="download_speed"
-                                                                id="download_speed" placeholder="128" required
-                                                                value="{{ old('download_speed') }}">
+                                                            <input class="form-control" type="number" name="download_speed" id="download_speeds" placeholder="128" required>
                                                             <select class="form-control" name="unit2" id="unit2" required
                                                                 value="{{ old('unit2') }}">
                                                                 <option class="downinit" value="" hidden>Select unit
@@ -966,21 +964,6 @@
                                                         <p class="text-secondary" id="interface_holder">The router interfaces
                                                             will appear here If the router is selected.If this message is still
                                                             present the router is not selected.</p>
-                                                    </div>
-                                                </div>
-                                                <div class="row my-1 d-none">
-                                                    <div class="col-md-6">
-                                                        <label for="client_username" class="form-control-label">Client
-                                                            Username</label>
-                                                        <input type="text" name="client_username" id="client_username"
-                                                            class="form-control" required placeholder="Client`s Username"
-                                                            readonly>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label for="client_password" class="form-control-label">Client`s
-                                                            Password</label>
-                                                        <input type="password" name="client_password" id="client_password"
-                                                            class="form-control" required placeholder="Client`s Password">
                                                     </div>
                                                 </div>
                                                 <hr>

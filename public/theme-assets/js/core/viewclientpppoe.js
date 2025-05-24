@@ -56,8 +56,8 @@ window.onload = function () {
     // cObj("comments").value = clients_data[0]['comment'];
     var router_names = clients_data[0]['router_name'];
     cObj("router_profiles").innerText = clients_data[0]['client_profile'] ? clients_data[0]['client_profile'] : "null";
-    cObj("client_username").value = clients_data[0]['client_username'];
-    cObj("client_password").value = clients_data[0]['client_password'];
+    // cObj("client_username").value = clients_data[0]['client_username'];
+    // cObj("client_password").value = clients_data[0]['client_password'];
 
     // assigne the selected unit
     // start with upload

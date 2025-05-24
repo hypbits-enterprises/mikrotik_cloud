@@ -46,27 +46,30 @@ class Transaction extends Controller
         $pdf->set_client_data($client_data);
         $pdf->set_payment_data($payment_data);
         $pdf->AddPage();
+        $pdf->Image( public_path("theme-assets/images/paid_stamp.png"), 80, 120, 60);
         $pdf->Cell(20,5,"Qty",0,0,"L");
-        $pdf->Cell(140,5,"Description Of Service",0,0,"L");
+        $pdf->Cell(100,5,"Description Of Service",0,0,"L");
+        $pdf->Cell(35,5,"Transaction Code",0,0,"L");
         $pdf->Cell(30,5,"Total",0,1,"L");
         $total = 0;
 
         // FIRST ROW
         $pdf->Cell(20,8,"1",1,0,"L");
-        $pdf->Cell(140,8,"Upload/Download Speed of ".$client_data->max_upload_download." " ,1,0,"L");
+        $pdf->Cell(100,8,"Upload/Download Speed of ".$client_data->max_upload_download." " ,1,0,"L");
+        $pdf->Cell(35,8,$payment_data->transaction_mpesa_id." " ,1,0,"L");
         $pdf->Cell(30,8, "Kes ".number_format($payment_data->transacion_amount),1,1,"L");
         $total+= $payment_data->transacion_amount;
 
         // THIRD ROW
         $pdf->Cell(20,8,"",0,0,"L");
-        $pdf->Cell(75,8,"",0,0,"L");
+        $pdf->Cell(70,8,"",0,0,"L");
         $pdf->Cell(65,8,"Discount",0,0,"R");
         $pdf->Cell(30,8, "Kes ".number_format(0,2) ,1,1,"L");
 
 
         // THIRD ROW
         $pdf->Cell(20,8,"",0,0,"L");
-        $pdf->Cell(75,8,"",0,0,"L");
+        $pdf->Cell(70,8,"",0,0,"L");
         $pdf->Cell(65,8,"Total",0,0,"R");
         $pdf->Cell(30,8, "Kes ".number_format($total,2) ,1,1,"L");
         $pdf->Ln(10);

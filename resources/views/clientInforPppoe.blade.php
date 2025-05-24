@@ -939,21 +939,6 @@
                                                             present a router is not selected.</p>
                                                     </div>
                                                 </div>
-                                                <div class="row my-1 d-none">
-                                                    <div class="col-md-6">
-                                                        <label for="client_username" class="form-control-label">Client
-                                                            Username</label>
-                                                        <input type="text" name="client_username" id="client_username"
-                                                            class="form-control" required placeholder="Client`s Username"
-                                                            readonly>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <label for="client_password" class="form-control-label">Client`s
-                                                            Password</label>
-                                                        <input type="password" name="client_password" id="client_password"
-                                                            class="form-control" required placeholder="Client`s Password">
-                                                    </div>
-                                                </div>
                                                 <hr>
                                                 <div class="row">
                                                     <div class="col-md-6">

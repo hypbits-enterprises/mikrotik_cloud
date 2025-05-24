@@ -81,10 +81,10 @@ class RECEIPT extends FPDF
     function Header()
     {
         // Logo
-        $this->Image($this->company_logo, 15, 15, 30);
+        $this->Image($this->company_logo, 15, 40, 30);
         // SET XY
         $this->SetMargins(15,15,15);
-        $this->SetXY(15, 50);
+        $this->SetXY(15, 75);
         // Arial  15
         $this->SetFont('century_gothic', 'B', 10);
         // Company Title
@@ -96,13 +96,13 @@ class RECEIPT extends FPDF
         
         // Client Details
         $this->SetFont('century_gothic', '', 30);
-        $this->SetXY(100, 20);
-        $this->Cell(100,5,"RECEIPT",0,1,"R");
         $this->SetXY(100, 50);
+        $this->Cell(100,5,"RECEIPT",0,1,"R");
+        $this->SetXY(100, 75);
         $this->SetFont('century_gothic', '', 9);
         $this->Cell(100,5,"Date of Payment : ". ($this->payment_data->transaction_date ? date("dS M Y",strtotime($this->payment_data->transaction_date)) : date("dS M Y")),0,1,"R");
-        $this->SetXY(100,60);
-        $this->Cell(25,5,"To:",0,0,"R");
+        $this->SetXY(100,85);
+        $this->Cell(25,5,"By:",0,0,"R");
         $this->SetFont('century_gothic', 'B', 9);
         $this->Cell(75,5,ucwords(strtolower($this->client_data->client_name ?? "Client Name")),0,1,"R");
         $this->SetFont('century_gothic', '', 9);
