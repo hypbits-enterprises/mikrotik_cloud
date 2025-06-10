@@ -1662,16 +1662,16 @@ class Clients extends Controller
                     $send_sms = 0;
                 }
 
+                // get message
                 $message_contents = $this->get_sms();
                 $message = $message_contents[3]->messages[0]->message;
                 $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC LIMIT 1;");
-                if ($user_data && $req->input('send_sms') == "on" && $organization_dets[0]->send_sms == 0) {
+                if ($user_data && $req->input('send_sms') == "on" && $organization_dets[0]->send_sms == 1) {
                     $client_id = $user_data[0]->client_id;
                     $mobile = $user_data[0]->clients_contacts;
                     $sms_type = 2;
                     if ($message) {
                         $trans_amount = 0;
-                        $message_status = 0;
                         $message = $this->message_content($message, $client_id, $trans_amount);
                         if ($sms_sender == "celcom") {
                             $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
@@ -1710,7 +1710,6 @@ class Clients extends Controller
                                 }
                             }
                         }
-
                         // if the message status is one the message is already sent to the user
                         $sms_table = new sms_table();
                         $sms_table->sms_content = $message;
@@ -1947,16 +1946,17 @@ class Clients extends Controller
                     $send_sms = 0;
                 }
 
+
+                // get message
                 $message_contents = $this->get_sms();
                 $message = $message_contents[3]->messages[0]->message;
                 $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' ORDER BY `client_id` DESC LIMIT 1;");
-                if ($user_data && $req->input('send_sms') == "on" && $organization_dets[0]->send_sms == 0) {
+                if ($user_data && $req->input('send_sms') == "on" && $organization_dets[0]->send_sms == 1) {
                     $client_id = $user_data[0]->client_id;
                     $mobile = $user_data[0]->clients_contacts;
                     $sms_type = 2;
                     if ($message) {
                         $trans_amount = 0;
-                        $message_status = 0;
                         $message = $this->message_content($message, $client_id, $trans_amount);
                         if ($sms_sender == "celcom") {
                             $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
@@ -1995,7 +1995,6 @@ class Clients extends Controller
                                 }
                             }
                         }
-
                         // if the message status is one the message is already sent to the user
                         $sms_table = new sms_table();
                         $sms_table->sms_content = $message;
@@ -2007,6 +2006,7 @@ class Clients extends Controller
                         $sms_table->save();
                     }
                 }
+                
                 return redirect("/Quick-Register");
             } else {
                 $error = "New client is not added, check if the Hypbits credentials are still present and not altered!";
