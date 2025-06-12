@@ -3354,7 +3354,9 @@ class Clients extends Controller
         if (count($interfaces) > 0) {
             $data_to_display = "<select name='interface_name' class='form-control' id='interface_name' required ><option value='' hidden>Select an Interface</option>";
             for ($index = 0; $index < count($interfaces); $index++) {
-                $data_to_display .= "<option value='" . $interfaces[$index]['name'] . "'>" . $interfaces[$index]['name'] . "</option>";
+                if($interfaces[$index]['type'] == "ether" || $interfaces[$index]['type'] == "bridge"){
+                    $data_to_display .= "<option value='" . $interfaces[$index]['name'] . "'>" . $interfaces[$index]['name'] . "</option>";
+                }
             }
             $data_to_display .= "</select>";
             echo $data_to_display;
@@ -3377,63 +3379,23 @@ class Clients extends Controller
             return "";
         }
 
-        // get the sstp credentails they are also the api usernames
-        $sstp_username = $router_data[0]->sstp_username;
-        $sstp_password = $router_data[0]->sstp_password;
-        $api_port = $router_data[0]->api_port;
+        // get the IP ADDRES
+        $curl_handle = curl_init();
+        $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $routerid . "&r_ppoe_profiles=true";
+        curl_setopt($curl_handle, CURLOPT_URL, $url);
+        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
+        $curl_data = curl_exec($curl_handle);
+        curl_close($curl_handle);
+        $pppoe_profiles = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+        // return $pppoe_profiles;
 
-
-
-        // connect to the router and set the sstp client
-        $sstp_value = $this->getSSTPAddress();
-        if ($sstp_value == null) {
-            $error = "The SSTP server is not set, Contact your administrator!";
-            session()->flash("network_presence", $error);
-            return redirect(url()->previous());
+        // create the select selector
+        $data_to_display = "<select name='pppoe_profile' class='form-control' id='pppoe_profile' required ><option value='' hidden>Select a Profile</option>";
+        for ($index = 0; $index < count($pppoe_profiles); $index++) {
+            $data_to_display .= "<option value='" . $pppoe_profiles[$index]['name'] . "'>" . $pppoe_profiles[$index]['name'] . "</option>";
         }
-
-        // connect to the router and set the sstp client
-        $ip_address = $sstp_value->ip_address;
-        $user = $sstp_value->username;
-        $pass = $sstp_value->password;
-        $port = $sstp_value->port;
-
-        // check if the router is actively connected
-        $client_router_ip = $this->checkActive($ip_address, $user, $pass, $port, $sstp_username);
-
-        if ($client_router_ip == false) {
-            echo "Your router is currently in-active, kindly ensure its online then proceed to request for the PPPOE Profiles!";
-            return "";
-        }
-
-        // proceed to connect and get the routers interfaces using the ip address youve gotten
-        $API = new routeros_api();
-        $API->debug = false;
-
-        // connect to the router
-        if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
-            // get the router profiles
-            $pppoe_profiles = $API->comm("/ppp/profile/print");
-            // return $interfaces;
-            if (isset($interfaces['!trap'])) {
-                $API->disconnect();
-                echo "An error occured! Kindly contact your administrator!";
-                return 0;
-            }
-
-            // create the select selector
-            $data_to_display = "<select name='pppoe_profile' class='form-control' id='pppoe_profile' required ><option value='' hidden>Select a Profile</option>";
-            for ($index = 0; $index < count($pppoe_profiles); $index++) {
-                $data_to_display .= "<option value='" . $pppoe_profiles[$index]['name'] . "'>" . $pppoe_profiles[$index]['name'] . "</option>";
-            }
-            $data_to_display .= "</select>";
-
-            echo $data_to_display;
-            $API->disconnect();
-            return "";
-        }
-
-        echo "No data to display : \"An error occured!\"";
+        $data_to_display .= "</select>";
+        echo $data_to_display;
         return "";
     }
 
