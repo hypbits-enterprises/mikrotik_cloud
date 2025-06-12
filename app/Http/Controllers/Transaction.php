@@ -784,13 +784,16 @@ class Transaction extends Controller
 
     // this function is used to validate the clients mpesa transactions
     function verify_client_transaction(Request $request){
+        // accept all transactions
+        return $response = ['ResultCode' => '0', 'ResultDesc' => 'Accepted'];
         // get the database for the business shortcode
 		$mpesaResponse = $request;
         $BusinessShortCode = $request['BusinessShortCode'];
         
         $organization = DB::select("SELECT * FROM `organizations` WHERE `BusinessShortCode` = ?",[$BusinessShortCode]);
         if (count($organization) == 0) {
-            return ['response' => "Invalid organization business shortcode."];
+            $response = ['ResultCode' => 'C2B00011', 'ResultDesc' => 'Rejected'];
+            return $response;
         }
 
         // change db

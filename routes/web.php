@@ -11,6 +11,7 @@ use App\Http\Controllers\Clients_data;
 use App\Http\Controllers\export_client;
 use App\Http\Controllers\billsms_manager;
 use App\Http\Controllers\Expenses;
+use App\Http\Controllers\mpesa_api;
 use App\Http\Controllers\Router_Cloud;
 use App\Http\Controllers\SharedTables;
 use Symfony\Component\Mime\Crypto\SMime;
@@ -340,3 +341,7 @@ Route::get("/SharedTables/Edit/{table_id}/Name/{table_name}/Record/{record_no}",
 Route::post("/SharedTables/UpdateRecords", [SharedTables::class, "UpdateRecords"]);
 Route::get("/SharedTables/Delete/{table_id}/Name/{table_name}", [SharedTables::class, "deleteTable"])->middleware("validated");
 Route::get("/SharedTables/Delete/{table_id}/Name/{link_table_name}/Record/{rows_id}", [SharedTables::class, "deleteRecord"])->middleware("validated");
+
+
+// MPESA URL REGISTRATION
+Route::post("/register_mpesa_url", [mpesa_api::class, "register_url"])->name("register_url");
