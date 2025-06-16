@@ -4971,6 +4971,22 @@ class Clients extends Controller
                 $router_id = $client_data[0]->router_name;
                 // connect to the router and deactivate the client address
                 $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
+                if (count($router_data) == 0) {
+                    if (session('Usernames')) {
+                        $error = "Router that the client is connected to is not present!";
+                        session()->flash("network_presence", $error);
+                        return redirect(url()->previous());
+                    } else {
+                        // update the user data to de-activated
+                        DB::connection("mysql2")->table('client_tables')
+                            ->where('client_id', $userid)
+                            ->update([
+                                'client_status' => "0",
+                                'date_changed' => date("YmdHis")
+                            ]);
+                        return ["success" => false, "message" => "Router that the client is connected to is not present!"];
+                    }
+                }
 
                 // get the sstp credentails they are also the api usernames
                 $sstp_username = $router_data[0]->sstp_username;
@@ -4986,6 +5002,13 @@ class Clients extends Controller
                         session()->flash("network_presence", $error);
                         return redirect(url()->previous());
                     } else {
+                        // update the user data to de-activated
+                        DB::connection("mysql2")->table('client_tables')
+                            ->where('client_id', $userid)
+                            ->update([
+                                'client_status' => "0",
+                                'date_changed' => date("YmdHis")
+                            ]);
                         return ["success" => false, "message" => "The SSTP server is not set, Contact your administrator!"];
                     }
                 }
@@ -5136,6 +5159,13 @@ class Clients extends Controller
                         session()->flash("network_presence", $error);
                         return redirect(url()->previous());
                     } else {
+                        // update the user data to de-activated
+                        DB::connection("mysql2")->table('client_tables')
+                            ->where('client_id', $userid)
+                            ->update([
+                                'client_status' => "0",
+                                'date_changed' => date("YmdHis")
+                            ]);
                         return ["success" => false, "message" => "The SSTP server is not set, Contact your administrator!"];
                     }
                 }
@@ -5155,6 +5185,13 @@ class Clients extends Controller
                         session()->flash("network_presence", $error);
                         return redirect(url()->previous());
                     } else {
+                        // update the user data to de-activated
+                        DB::connection("mysql2")->table('client_tables')
+                            ->where('client_id', $userid)
+                            ->update([
+                                'client_status' => "0",
+                                'date_changed' => date("YmdHis")
+                            ]);
                         return ["success" => false, "message" => "Router not active!"];
                     }
                 }

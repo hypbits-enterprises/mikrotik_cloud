@@ -13,7 +13,7 @@ class mpesa_api extends Controller
         $consumerSecret = $request->input("consumerSecret");
         $access_token = $this->access_token($consumerKey, $consumerSecret);
         if ($access_token) {
-            $registerurl = 'https://sandbox.safaricom.co.ke/mpesa/c2b/v1/registerurl';
+            $registerurl = 'https://sandbox.safaricom.co.ke/mpesa/c2b/v2/registerurl';
             $BusinessShortCode = $request->input("BusinessShortCode");
             $confirmationUrl = 'https://192.168.86.16:8000/Transact';
             $validationUrl = "https://192.168.86.16:8000/Validate";
@@ -41,7 +41,7 @@ class mpesa_api extends Controller
 
     function access_token($consumerKey, $consumerSecret){
         //ACCESS TOKEN URL
-        $access_token_url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
+        $access_token_url = 'https://sandbox.safaricom.co.ke/oauth/v2/generate?grant_type=client_credentials';
         $headers = ['Content-Type:application/json; charset=utf8'];
         $curl = curl_init($access_token_url);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
