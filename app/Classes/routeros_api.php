@@ -267,19 +267,15 @@ class routeros_api
      * @param boolean     $parse      Parse the data? default: true
      *
      * @return array                  Array with parsed or unparsed data
-     */ function read($parse = true)
+     */ 
+    function read($parse = true)
     {
         $RESPONSE = array();
         while (true) {
-            // Read the first byte of input which gives us some or all of the length
-            // of the remaining reply.
-            $BYTE   = ord(fread($this->socket, 1));
+            // Read the first byte to determine message length
+            $BYTE = ord(fread($this->socket, 1));
             $LENGTH = 0;
-            // If the first bit is set then we need to remove the first four bits, shift left 8
-            // and then read another byte in.
-            // We repeat this for the second and third bits.
-            // If the fourth bit is set, we need to remove anything left in the first byte
-            // and then read in yet another byte.
+
             if ($BYTE & 128) {
                 if (($BYTE & 192) == 128) {
                     $LENGTH = (($BYTE & 63) << 8) + ord(fread($this->socket, 1));
@@ -303,31 +299,55 @@ class routeros_api
             } else {
                 $LENGTH = $BYTE;
             }
-            // If we have got more characters to read, read them in. 
-            $_ = "";
+
+            // Read the response based on calculated LENGTH
             if ($LENGTH > 0) {
-                $_      = "";
+                $_ = '';
                 $retlen = 0;
+
+                // Set timeout for safe socket reading
+                stream_set_timeout($this->socket, 5);
                 while ($retlen < $LENGTH) {
                     $toread = $LENGTH - $retlen;
-                    $_ .= fread($this->socket, $toread);
+                    $chunk = fread($this->socket, $toread);
+
+                    if ($chunk === false || $chunk === '') {
+                        $info = stream_get_meta_data($this->socket);
+                        $this->debug(">>> fread() failed or returned empty. Stream info: " . json_encode($info));
+                        break;
+                    }
+
+                    $_ .= $chunk;
                     $retlen = strlen($_);
                 }
+
                 $RESPONSE[] = $_;
                 $this->debug('>>> [' . $retlen . '/' . $LENGTH . '] bytes read.');
             }
-            // If we get a !done, make a note of it.
-            // $receiveddone = false;
-            if ($_ == "!done")
+
+            // Check if reply was !done
+            $receiveddone = false;
+            if ($_ == "!done") {
                 $receiveddone = true;
+            }
+
+            // Get socket status
             $STATUS = socket_get_status($this->socket);
-            if ($LENGTH > 0)
-                $this->debug('>>> [' . $LENGTH . ', ' . $STATUS['unread_bytes'] . ']' . $_);
-            if ((!$this->connected && !$STATUS['unread_bytes']) || ($this->connected && !$STATUS['unread_bytes']))
+
+            if ($LENGTH > 0) {
+                $this->debug('>>> [' . $LENGTH . ', ' . $STATUS['unread_bytes'] . '] ' . $_);
+            }
+
+            // Decide when to break the read loop
+            if ((!$this->connected && !$STATUS['unread_bytes']) || ($this->connected && !$STATUS['unread_bytes'] && $receiveddone)) {
                 break;
+            }
         }
-        if ($parse)
+
+        if ($parse) {
             $RESPONSE = $this->parse_response($RESPONSE);
+        }
+
         return $RESPONSE;
     }
 

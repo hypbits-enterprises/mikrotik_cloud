@@ -612,7 +612,7 @@ class Transaction extends Controller
                             }
                         }
                         // get the user id of the number from the database
-                        $user_data = DB::connection("mysql2")->select("SELECT * FROM `sms_clients` WHERE `deleted`= '0' AND `account_number` = '".trim($jsonMpesaResponse['BillRefNumber'])."'");
+                        $user_data = [];
                         $client_id = (count($user_data) > 0) ? $user_data[0]->client_id : 0;
                         // if the message status is one the message is already sent to the user
                         $sms_table = new sms_table();
@@ -1122,7 +1122,7 @@ class Transaction extends Controller
                 return $data;
             }
         }elseif ($user_type == "sms_client") {
-            $client_data = DB::connection("mysql2")->select("SELECT * FROM `sms_clients` WHERE `deleted`= '0' AND `client_id` = '$user_id'");
+            $client_data = [];
             if (count($client_data) > 0) {
                 $full_name = ucwords(strtolower($client_data[0]->client_name));
                 $f_name = ucfirst(strtolower((explode(" ",$full_name)[0])));
