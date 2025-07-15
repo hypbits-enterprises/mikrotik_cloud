@@ -12,11 +12,12 @@ class mpesa_api extends Controller
         $consumerKey = $request->input("consumerKey");
         $consumerSecret = $request->input("consumerSecret");
         $access_token = $this->access_token($consumerKey, $consumerSecret);
+        // return $access_token;
         if ($access_token) {
-            $registerurl = 'https://sandbox.safaricom.co.ke/mpesa/c2b/v2/registerurl';
+            $registerurl = 'https://api.safaricom.co.ke/mpesa/c2b/v2/registerurl';
             $BusinessShortCode = $request->input("BusinessShortCode");
-            $confirmationUrl = 'https://192.168.86.16:8000/Transact';
-            $validationUrl = "https://192.168.86.16:8000/Validate";
+            $confirmationUrl = 'https://billing.hypbits.com/Transact';
+            $validationUrl = "https://billing.hypbits.com/Validate";
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_URL, $registerurl);
             curl_setopt($curl, CURLOPT_HTTPHEADER, array(
@@ -41,7 +42,7 @@ class mpesa_api extends Controller
 
     function access_token($consumerKey, $consumerSecret){
         //ACCESS TOKEN URL
-        $access_token_url = 'https://sandbox.safaricom.co.ke/oauth/v2/generate?grant_type=client_credentials';
+        $access_token_url = 'https://api.safaricom.co.ke/oauth/v2/generate?grant_type=client_credentials';
         $headers = ['Content-Type:application/json; charset=utf8'];
         $curl = curl_init($access_token_url);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
