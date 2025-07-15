@@ -327,7 +327,7 @@ class routeros_api
 
             // Check if reply was !done
             $receiveddone = false;
-            if ($_ == "!done") {
+            if ($_ == "!done" || $_ == "!trap" || $_ == "!fatal" || $_ = ' ') {
                 $receiveddone = true;
             }
 
