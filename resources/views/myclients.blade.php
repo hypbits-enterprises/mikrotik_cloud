@@ -25,6 +25,48 @@
         .tooltip-inner {
             text-align: left !important;
         }
+        .showBlock{
+        display: block;
+        overflow-y: scroll;
+        }
+        /*the container must be positioned relative:*/
+        .autocomplete {
+            position: relative;
+            display: inline-block;
+            width: 100%
+        }
+        
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #d4d4d4;
+            border-bottom: none;
+            border-top: none;
+            z-index: 99;
+            /*position the autocomplete items to be the same width as the container:*/
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 250; /* Set the maximum height */
+            overflow-y: auto; /* Enable vertical scrolling */
+        }
+
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #fff;
+            border-bottom: 1px solid #d4d4d4;
+        }
+
+        /*when hovering an item:*/
+        .autocomplete-items div:hover {
+            background-color: #e9e9e9;
+        }
+
+        /*when navigating through the items using the arrow keys:*/
+        .autocomplete-active {
+            background-color: DodgerBlue !important;
+            color: #ffffff;
+        }
     </style>
     <!-- END Custom CSS-->
 </head>
@@ -122,10 +164,63 @@
                                 <a href="/ClientSync" class="btn btn-primary disabled d-none"><i class="ft-refresh-ccw"></i> Sync Clients</a>
                                 <a href="/Client-Statistics" data-toggle="tooltip" title="Client`s Statistics" class="btn btn-secondary"><i class="ft-bar-chart-2"></i> Client`s Statistics</a>
                                 <span data-toggle="tooltip" title="Client`s Reports" class="btn btn-info" id="client_reports_btn"><i class="ft-file-text"></i> Client`s Reports</span>
-                                {{-- <a href="/Client-Reports" data-toggle="tooltip" title="Report client issues" class="btn btn-purple"><i class="ft-flag"></i> Report Issue</a> --}}
+                                <button class="btn btn-info" id="export_client_data_btn"><i class="fa fa-file-export"></i> Export Client Data</button>
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
+                                    <div class="container">
+                                        {{-- UPDATE EXPIRATION DATE --}}
+                                        <div class="modal fade text-left hide" id="export_client_data" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4" style="padding-right: 17px;" aria-modal="true">
+                                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-info white">
+                                                    <h4 class="modal-title white" id="myModalLabel4"><i class="fa fa-file-export"></i> Export Client data</h4>
+                                                    <input type="hidden" id="delete_columns_ids">
+                                                    <button id="close_export_client_data_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">×</span>
+                                                    </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="container">
+                                                            <form action="/export_client_data" target="_blank" method="post" class="form-control-group">
+                                                                @csrf
+                                                                <h6 class="text-center" >Export Client`s data</h6>
+                                                                
+                                                                <label for="router_selected" class="form-control-label" id=""><b>Select Router</b></label>
+                                                                <select required name="router_selected" id="router_selected" class="form-control">
+                                                                    <option value="" hidden>Select a router</option>
+                                                                    @php
+                                                                        for ($index=0; $index < count($router_infor); $index++) { 
+                                                                            echo "<option value=".$router_infor[$index]->router_id.">".$router_infor[$index]->router_name."</option>";
+                                                                        }
+                                                                    @endphp
+                                                                    <option value="all">All routers</option>
+                                                                </select>
+
+                                                                <label for="download_as" class="form-control-label"><b>Download Export File As</b></label>
+                                                                <select required name="download_as" id="download_as" class="form-control">
+                                                                    <option value="" hidden>Select Option</option>
+                                                                    <option value="rsc">An RSC File</option>
+                                                                    <option selected value="txt">A Text File</option>
+                                                                </select>
+                                                                
+                                                                <div class="row w-100">
+                                                                    <div class="col-md-6">
+                                                                        <button type="submit" class="btn btn-info btn-sm w-100 my-1" {{$readonly}}><i class="fas fa-download"></i> Download</button>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <button class="btn btn-secondary btn-sm w-100 my-1" type="button" id="close_export_client_data_2">Cancel</button>
+                                                                    </div>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="row">
                                         <div class="col-md-12 border border-primary rounded p-1 hide" id="show_generate_reports_window">
                                             <h6 class="text-center">Generate Reports</h6>

@@ -18,6 +18,7 @@ use DateInterval;
 use DateTime;
 use Exception;
 use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Storage;
 use mysqli;
 
 date_default_timezone_set('Africa/Nairobi');
@@ -29,6 +30,92 @@ class Clients extends Controller
         return ((is_string($string) &&
             (is_object(json_decode($string)) ||
                 is_array(json_decode($string))))) ? true : false;
+    }
+
+    function export_client_data(Request $request){
+        $export_data = [];
+        if ($request->input("router_selected") == "all") {
+            $export_data = DB::connection("mysql2")->select("SELECT * FROM remote_routers");
+            
+            // client data
+            for ($index=0; $index < count($export_data); $index++) { 
+                $client_data = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE router_name = ?", [$export_data[$index]->router_id]);
+                $export_data[$index]->clients = $client_data;
+            }
+        }else{
+            $export_data = DB::connection("mysql2")->select("SELECT * FROM remote_routers WHERE router_id = ? ", [$request->input("router_selected")]);
+            
+            // client data
+            for ($index=0; $index < count($export_data); $index++) { 
+                $client_data = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE router_name = ?", [$export_data[$index]->router_id]);
+                $export_data[$index]->clients = $client_data;
+            }
+        }
+        // return $export_data;
+
+        // CREATE THE EXPORT FILE.
+
+        $file_paths = [];
+
+        for ($index=0; $index < count($export_data); $index++) {
+            $export_text = "# Exported on: ".date("D dS M Y h:i:s A")."\n";
+            $export_text .= "# THIS EXPORT ONLY CONTAINS THE CLIENT`S DATA\n";
+            $export_text .= "# NO OTHER CONFIGURATION INCLUDED.\n";
+            $export_text .= "# Router name : '".$export_data[$index]->router_name."'.\n";
+            $queues = "#SIMPLE QUEUES\n/queue simple \n ";
+            $profiles = "#PPPOE\n/ppp secret \n";
+            $export_text .= "\n\n#IP ADDRESSES\n/ip address \n ";
+            $ppp_profiles = [];
+            for ($ind=0; $ind < count($export_data[$index]->clients); $ind++) { 
+                $client_data = $export_data[$index]->clients[$ind];
+
+                // pppoe_secret
+                if ($client_data->assignment == "pppoe") {
+                    if (!in_array($client_data->client_profile, $ppp_profiles)) {
+                        array_push($ppp_profiles, $client_data->client_profile);
+                    }
+                    $profiles .= "add name=\"".$client_data->client_username."\" service=\"pppoe\" password=\"".$client_data->client_password."\" profile=\"".$client_data->client_profile."\"  comment=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\"\n";
+                }else{
+                    $export_text .= "add address=\"".$client_data->client_default_gw."\" interface=".$client_data->client_interface." network=".$client_data->client_network." comment=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\"\n";
+                    $queues .= "add name=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" target=\"".$client_data->client_network."/".explode("/", $client_data->client_default_gw)[1]."\" max-limit=\"".$client_data->max_upload_download."\"\n";
+                }
+            }
+
+            $ppp_profile = "#ADD PPPOE PROFILES (MODIFY THESE PROFILES TO YOUR PREFERENCE AFTER THEY HAVE BEEN ADDED)\n/ppp profile\n";
+            foreach ($ppp_profiles as $key => $profile) {
+                $ppp_profile .= "add name=\"".$profile."\" comment=\"OPEN TO MODIFICATION\"\n";
+            }
+            $export_text .= "\n".$queues."\n".$ppp_profile."\n".$profiles;
+            $filename = $export_data[$index]->router_name.'.'.$request->input("download_as");
+
+            $filePath = public_path('mukirito-export-data');
+            if (!file_exists($filePath)) {
+                mkdir($filePath, 0777, true); // Create folder if it doesn't exist
+            }
+
+            file_put_contents($filePath ."/". $filename, $export_text);
+            array_push($file_paths, $filePath ."/". $filename);
+        }
+
+        // zip the files
+        $zipPath = public_path('zipped_exports/'.session("database_name"));
+        if (!file_exists($zipPath)) {
+            mkdir($zipPath, 0777, true); // Create folder if it doesn't exist
+        }
+
+        $zipPath.= "/Export-data-".date("YmdHis").".zip";
+        $zip = new \ZipArchive;
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === TRUE) {
+            foreach ($file_paths as $file) {
+                if (file_exists($file)) {
+                    $zip->addFile($file, basename($file));
+                }
+            }
+            $zip->close();
+            return response()->download($zipPath);
+        } else {
+            return ["success" => false, "message" => "An error has occured, try again later!"];
+        }
     }
 
     function new_invoice(Request $request){

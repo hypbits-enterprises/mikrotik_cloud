@@ -1215,3 +1215,21 @@ cObj("client_registration_date_option").onchange = function () {
         cObj("select_to_date_win").classList.add("hide");
     }
 }
+
+cObj("export_client_data_btn").onclick = function () {
+    cObj("export_client_data").classList.remove("hide");
+    cObj("export_client_data").classList.add("show");
+    cObj("export_client_data").classList.add("showBlock");
+}
+
+cObj("close_export_client_data_1").onclick = function () {
+    cObj("export_client_data").classList.add("hide");
+    cObj("export_client_data").classList.remove("show");
+    cObj("export_client_data").classList.remove("showBlock");
+}
+
+cObj("close_export_client_data_2").onclick = function () {
+    cObj("export_client_data").classList.add("hide");
+    cObj("export_client_data").classList.remove("show");
+    cObj("export_client_data").classList.remove("showBlock");
+}

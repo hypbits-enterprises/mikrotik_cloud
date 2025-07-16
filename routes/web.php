@@ -345,3 +345,6 @@ Route::get("/SharedTables/Delete/{table_id}/Name/{link_table_name}/Record/{rows_
 
 // MPESA URL REGISTRATION
 Route::post("/register_mpesa_url", [mpesa_api::class, "register_url"])->name("register_url");
+
+// EXPORT CLIENT DATA
+Route::post("/export_client_data", [Clients::class, "export_client_data"])->name("export_client_data");
