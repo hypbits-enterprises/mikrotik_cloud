@@ -1,17 +1,3 @@
-# Exported on: Wed 16th Jul 2025 08:38:20 PM
-# THIS EXPORT ONLY CONTAINS THE CLIENT`S DATA
-# NO OTHER CONFIGURATION INCLUDED.
-# Router name : 'Router Name'.
-
-
-#IP ADDRESSES
-/ip address 
- 
-#SIMPLE QUEUES
-/queue simple 
- 
-#ADD PPPOE PROFILES (MODIFY THIS BEFORE AFTER THEY HAVE BEEN ADDED TO YOUR PREFERENCE)
+/ip address /queue simple 
 /ppp profile
-
-#PPPOE
-/ppp secret 
+/ppp secret 

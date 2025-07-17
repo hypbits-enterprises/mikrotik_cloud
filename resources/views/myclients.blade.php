@@ -164,7 +164,7 @@
                                 <a href="/ClientSync" class="btn btn-primary disabled d-none"><i class="ft-refresh-ccw"></i> Sync Clients</a>
                                 <a href="/Client-Statistics" data-toggle="tooltip" title="Client`s Statistics" class="btn btn-secondary"><i class="ft-bar-chart-2"></i> Client`s Statistics</a>
                                 <span data-toggle="tooltip" title="Client`s Reports" class="btn btn-info" id="client_reports_btn"><i class="ft-file-text"></i> Client`s Reports</span>
-                                <button class="btn btn-info" id="export_client_data_btn"><i class="fa fa-file-export"></i> Export Client Data</button>
+                                <button class="btn btn-info" id="export_client_data_btn"><i class="fa fa-file-export"></i> Export Client Data <span class="badge bg-success fa-beat-fade {{date("Ymd") > "20250719" ? "d-none" : ""}}">new</span></button>
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
@@ -182,6 +182,21 @@
                                                     </div>
                                                     <div class="modal-body">
                                                         <div class="container">
+                                                            <div class="container border border-primary rounded p-1 mb-2">
+                                                                <b>Note:</b><br>
+                                                                <ul>
+                                                                    <li>Use <code>.rsc</code> type since it checks if the client config exists.</li>
+                                                                    <li>To import using <code>.rsc</code>:</li>
+                                                                    <ul>
+                                                                        <li>Open Winbox and connect to your MikroTik router.</li>
+                                                                        <li>Go to Files.</li>
+                                                                        <li>Drag and drop your .rsc file into the Files window.</li>
+                                                                        <li>then run this command <code>/import file-name="file-name.rsc"</code></li>
+                                                                    </ul>
+                                                                    <li>If you plan to use the <code>.txt</code> type</li>
+                                                                    <li>Copy and paste the command on your terminal</li>
+                                                                </ul>
+                                                            </div>
                                                             <form action="/export_client_data" target="_blank" method="post" class="form-control-group">
                                                                 @csrf
                                                                 <h6 class="text-center" >Export Client`s data</h6>
@@ -200,8 +215,8 @@
                                                                 <label for="download_as" class="form-control-label"><b>Download Export File As</b></label>
                                                                 <select required name="download_as" id="download_as" class="form-control">
                                                                     <option value="" hidden>Select Option</option>
-                                                                    <option value="rsc">An RSC File</option>
-                                                                    <option selected value="txt">A Text File</option>
+                                                                    <option selected value="rsc">An RSC File</option>
+                                                                    <option value="txt">A Text File</option>
                                                                 </select>
                                                                 
                                                                 <div class="row w-100">
