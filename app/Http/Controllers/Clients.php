@@ -33,6 +33,11 @@ class Clients extends Controller
     }
 
     function export_client_data(Request $request){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // export data
         $export_data = [];
         if ($request->input("router_selected") == "all") {
             $export_data = DB::connection("mysql2")->select("SELECT * FROM remote_routers");
@@ -55,83 +60,89 @@ class Clients extends Controller
 
         // CREATE THE EXPORT FILE.
 
-        $file_paths = [];
+        if (count($export_data) > 0) {
+            $file_paths = [];
 
-        for ($index=0; $index < count($export_data); $index++) {
-            $text_file = "";
-            $export_text = "# Exported on: ".date("D dS M Y h:i:s A")."\n";
-            $export_text .= "# THIS EXPORT ONLY CONTAINS THE CLIENT`S DATA\n";
-            $export_text .= "# NO OTHER CONFIGURATION INCLUDED.\n";
-            $export_text .= "# Router name : '".$export_data[$index]->router_name."'.\n";
-            $queues = "#SIMPLE QUEUES\n/queue simple \n";
-            $queue_text = "/queue simple \r";
-            $profiles = "#PPPOE\n/ppp secret \n";
-            $profiles_text = "/ppp secret \r";
-            $export_text .= "\n\n#IP ADDRESSES\n/ip address \n";
-            $text_file .= "/ip address \r";
-            $ppp_profiles = [];
-            for ($ind=0; $ind < count($export_data[$index]->clients); $ind++) { 
-                $client_data = $export_data[$index]->clients[$ind];
-                $disabled = $client_data->client_status == 0 ? "yes" : "no";
+            for ($index=0; $index < count($export_data); $index++) {
+                $text_file = "";
+                $export_text = "# Exported on: ".date("D dS M Y h:i:s A")."\n";
+                $export_text .= "# THIS EXPORT ONLY CONTAINS THE CLIENT`S DATA\n";
+                $export_text .= "# NO OTHER CONFIGURATION INCLUDED.\n";
+                $export_text .= "# Router name : '".$export_data[$index]->router_name."'.\n";
+                $queues = "#SIMPLE QUEUES\n/queue simple \n";
+                $queue_text = "/queue simple \r";
+                $profiles = "#PPPOE\n/ppp secret \n";
+                $profiles_text = "/ppp secret \r";
+                $export_text .= "\n\n#IP ADDRESSES\n/ip address \n";
+                $text_file .= "/ip address \r";
+                $ppp_profiles = [];
+                for ($ind=0; $ind < count($export_data[$index]->clients); $ind++) { 
+                    $client_data = $export_data[$index]->clients[$ind];
+                    $disabled = $client_data->client_status == 0 ? "yes" : "no";
 
-                // pppoe_secret
-                if ($client_data->assignment == "pppoe") {
-                    if (!in_array($client_data->client_profile, $ppp_profiles)) {
-                        array_push($ppp_profiles, $client_data->client_profile);
+                    // pppoe_secret
+                    if ($client_data->assignment == "pppoe") {
+                        if (!in_array($client_data->client_profile, $ppp_profiles)) {
+                            array_push($ppp_profiles, $client_data->client_profile);
+                        }
+                        $profiles .= ":if ([/ppp secret find name=\"".$client_data->client_username."\"] = \"\") do={\n  add name=\"".$client_data->client_username."\" service=\"pppoe\" password=\"".$client_data->client_password."\" profile=\"".$client_data->client_profile."\"  comment=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" disabled=\"".$disabled."\"\n}\n";
+                        $profiles_text .= "add name=\"".$client_data->client_username."\" service=\"pppoe\" password=\"".$client_data->client_password."\" profile=\"".$client_data->client_profile."\"  comment=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" disabled=\"".$disabled."\"\r";
+                    }else{
+                        $export_text .= ":if ([/ip address find address=\"".$client_data->client_default_gw."\"] = \"\") do={\n  add address=\"".$client_data->client_default_gw."\" interface=".$client_data->client_interface." network=".$client_data->client_network." comment=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" disabled=\"".$disabled."\"\n}\n";
+                        $queues .= ":if ([/queue simple find name=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\"] = \"\") do={\n  add name=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" target=\"".$client_data->client_network."/".explode("/", $client_data->client_default_gw)[1]."\" max-limit=\"".$client_data->max_upload_download."\"\n}\n";
+
+                        $text_file .= "add address=\"".$client_data->client_default_gw."\" interface=".$client_data->client_interface." network=".$client_data->client_network." comment=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" disabled=\"".$disabled."\"\r";
+                        $queue_text .= "add name=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" target=\"".$client_data->client_network."/".explode("/", $client_data->client_default_gw)[1]."\" max-limit=\"".$client_data->max_upload_download."\"\r";
                     }
-                    $profiles .= ":if ([/ppp secret find name=\"".$client_data->client_username."\"] = \"\") do={\n  add name=\"".$client_data->client_username."\" service=\"pppoe\" password=\"".$client_data->client_password."\" profile=\"".$client_data->client_profile."\"  comment=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" disabled=\"".$disabled."\"\n}\n";
-                    $profiles_text .= "add name=\"".$client_data->client_username."\" service=\"pppoe\" password=\"".$client_data->client_password."\" profile=\"".$client_data->client_profile."\"  comment=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" disabled=\"".$disabled."\"\r";
-                }else{
-                    $export_text .= ":if ([/ip address find address=\"".$client_data->client_default_gw."\"] = \"\") do={\n  add address=\"".$client_data->client_default_gw."\" interface=".$client_data->client_interface." network=".$client_data->client_network." comment=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" disabled=\"".$disabled."\"\n}\n";
-                    $queues .= ":if ([/queue simple find name=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\"] = \"\") do={\n  add name=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" target=\"".$client_data->client_network."/".explode("/", $client_data->client_default_gw)[1]."\" max-limit=\"".$client_data->max_upload_download."\"\n}\n";
-
-                    $text_file .= "add address=\"".$client_data->client_default_gw."\" interface=".$client_data->client_interface." network=".$client_data->client_network." comment=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" disabled=\"".$disabled."\"\r";
-                    $queue_text .= "add name=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" target=\"".$client_data->client_network."/".explode("/", $client_data->client_default_gw)[1]."\" max-limit=\"".$client_data->max_upload_download."\"\r";
                 }
-            }
 
-            $ppp_profile = "#ADD PPPOE PROFILES (MODIFY THESE PROFILES TO YOUR PREFERENCE AFTER THEY HAVE BEEN ADDED)\n/ppp profile\n";
-            $ppp_profile_text = "/ppp profile\r";
-            foreach ($ppp_profiles as $key => $profile) {
-                $ppp_profile .= ":if ([/ppp profile find name=\"$profile\"] = \"\") do={\n  add name=\"$profile\" comment=\"OPEN TO MODIFICATION\"\n}\n";
-                $ppp_profile_text .= "add name=\"$profile\" comment=\"OPEN TO MODIFICATION\"\r";
-            }
-            $export_text .= "\n".$queues."\n".$ppp_profile."\n".$profiles;
-            $text_file .= "\r".$queue_text."\n".$ppp_profile_text."\n".$profiles_text;
-            $filename = $export_data[$index]->router_name.'.'.$request->input("download_as");
-
-            $filePath = public_path('mukirito-export-data');
-            if (!file_exists($filePath)) {
-                mkdir($filePath, 0777, true); // Create folder if it doesn't exist
-            }
-
-            file_put_contents($filePath ."/". $filename, $request->input("download_as") == "txt" ? $text_file : $export_text);
-            array_push($file_paths, $filePath ."/". $filename);
-        }
-
-        // download the file if the file path is only one
-        if (count($file_paths) == 1) {
-            return response()->download($file_paths[0]);
-        }
-
-        // zip the files
-        $zipPath = public_path('zipped_exports/'.session("database_name"));
-        if (!file_exists($zipPath)) {
-            mkdir($zipPath, 0777, true); // Create folder if it doesn't exist
-        }
-
-        $zipPath.= "/Export-data-".date("YmdHis").".zip";
-        $zip = new \ZipArchive;
-        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === TRUE) {
-            foreach ($file_paths as $file) {
-                if (file_exists($file)) {
-                    $zip->addFile($file, basename($file));
+                $ppp_profile = "#ADD PPPOE PROFILES (MODIFY THESE PROFILES TO YOUR PREFERENCE AFTER THEY HAVE BEEN ADDED)\n/ppp profile\n";
+                $ppp_profile_text = "/ppp profile\r";
+                foreach ($ppp_profiles as $key => $profile) {
+                    $ppp_profile .= ":if ([/ppp profile find name=\"$profile\"] = \"\") do={\n  add name=\"$profile\" comment=\"OPEN TO MODIFICATION\"\n}\n";
+                    $ppp_profile_text .= "add name=\"$profile\" comment=\"OPEN TO MODIFICATION\"\r";
                 }
+                $export_text .= "\n".$queues."\n".$ppp_profile."\n".$profiles;
+                $text_file .= "\r".$queue_text."\n".$ppp_profile_text."\n".$profiles_text;
+                $filename = $export_data[$index]->router_name.'.'.$request->input("download_as");
+
+                $filePath = public_path('mukirito-export-data');
+                if (!file_exists($filePath)) {
+                    mkdir($filePath, 0777, true); // Create folder if it doesn't exist
+                }
+
+                file_put_contents($filePath ."/". $filename, $request->input("download_as") == "txt" ? $text_file : $export_text);
+                array_push($file_paths, $filePath ."/". $filename);
             }
-            $zip->close();
-            return response()->download($zipPath);
-        } else {
-            return ["success" => false, "message" => "An error has occured, try again later!"];
+
+            // download the file if the file path is only one
+            if (count($file_paths) == 1) {
+                return response()->download($file_paths[0]);
+            }
+
+            // zip the files
+            $zipPath = public_path('zipped_exports/'.session("database_name"));
+            if (!file_exists($zipPath)) {
+                mkdir($zipPath, 0777, true); // Create folder if it doesn't exist
+            }
+
+            $zipPath.= "/Export-data-".date("YmdHis").".zip";
+            $zip = new \ZipArchive;
+            if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === TRUE) {
+                foreach ($file_paths as $file) {
+                    if (file_exists($file)) {
+                        $zip->addFile($file, basename($file));
+                    }
+                }
+                $zip->close();
+                return response()->download($zipPath);
+            } else {
+                session()->flash("error", "An error has occured, try again later!");
+                return redirect(url()->previous());
+            }
+        }else{
+            session()->flash("error", "No clients present at the moment!");
+            return redirect(url()->previous());
         }
     }
 
