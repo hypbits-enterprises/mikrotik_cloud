@@ -186,7 +186,7 @@
                                             <br>
                                             
                                             {{-- <span class="text-success">## version 7.11.2</span><br> --}}
-                                            /user group add name="SYSTEM_FULL" policy="local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,rest-api" comment="Do not delete: SYSTEM user group"<br>
+                                            /user group add name="SYSTEM_FULL" policy="local,telnet,ssh,ftp,reboot,read,write,test,winbox,read,sensitive,api" comment="Do not delete: SYSTEM user group"<br>
                                             
                                             /user add name="{{$router_data[0]->sstp_username}}" password="{{$router_data[0]->sstp_password}}" group="SYSTEM_FULL" comment="Do not delete: SYSTEM API User" <br>
                                             

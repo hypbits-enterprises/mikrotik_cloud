@@ -76,7 +76,7 @@ class Clients extends Controller
                 $export_text .= "\n\n#IP ADDRESSES\n/ip address \n";
                 $text_file .= "/ip address \r";
                 $ppp_profiles = [];
-                for ($ind=0; $ind < count($export_data[$index]->clients); $ind++) { 
+                for ($ind=0; $ind < count($export_data[$index]->clients); $ind++) {
                     $client_data = $export_data[$index]->clients[$ind];
                     $disabled = $client_data->client_status == 0 ? "yes" : "no";
 
@@ -111,6 +111,85 @@ class Clients extends Controller
                     mkdir($filePath, 0777, true); // Create folder if it doesn't exist
                 }
 
+                // INCLUDE THE ROUTER CONFIGURATION
+$text_file .="\r
+/ppp profile add name=\"SYSTEM_SSTP\" comment=\"Do not delete: Default SYSTEM VPN profile\"\r
+/interface sstp-client add name=\"SYSTEM_SSTP_TWO\" connect-to=3.14.249.167 user=".$export_data[$index]->sstp_username." password=".$export_data[$index]->sstp_password." profile=\"SYSTEM_SSTP\" authentication=pap,chap,mschap1,mschap2 disabled=no comment=\"Do not delete: SYSTEM connection to ".$export_data[$index]->router_name."\"\r
+
+/ip route add dst-address=192.168.254.0/24 gateway=192.168.254.1 comment=\"Do not delete: SYSTEM VPN SERVER NETWORK1\"\r
+/ip route add dst-address=192.168.253.0/24 gateway=192.168.254.1 comment=\"Do not delete: SYSTEM VPN SERVER NETWORK2\"\r
+/ip route add dst-address=192.168.252.0/24 gateway=192.168.254.1 comment=\"Do not delete: SYSTEM VPN SERVER NETWORK3\"\r
+
+/ip firewall filter add chain=input action=accept in-interface=SYSTEM_SSTP_TWO log=no log-prefix=\"\" comment=\"Do not delete: Allow SYSTEM remote access\" disabled=no\r
+/ip firewall filter move [find where in-interface=SYSTEM_SSTP_TWO] destination=0\r
+
+/ip service set api disabled=no port=1982\r
+/ip service set winbox disabled=no port=8291\r
+/ip service set api-ssl disabled=yes\r
+/ip service set ftp disabled=yes\r
+/ip service set ssl disabled=yes\r
+/ip service set ftp disabled=yes\r
+/ip service set www disabled=yes\r
+/ip service set www-ssl disabled=yes\r
+
+/user group add name=\"SYSTEM_FULL\" policy=local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,tikapp,!dude comment=\"Do not delete: SYSTEM user group\"\r
+
+/user add name=\"".$export_data[$index]->sstp_username."\" password=\"".$export_data[$index]->sstp_password."\" group=\"SYSTEM_FULL\" comment=\"Do not delete: SYSTEM API User\"\r
+/beep\r";
+
+$export_text .= "
+# === Add PPP Profile if not exists === 
+:if ([/ppp profile find name=\"SYSTEM_SSTP\"] = \"\") do={
+  /ppp profile add name=\"SYSTEM_SSTP\" comment=\"Do not delete: Default SYSTEM VPN profile\"
+}
+# === Add SSTP Client if not exists === 
+:if ([/interface sstp-client find name=\"SYSTEM_SSTP_TWO\"] = \"\") do={    
+  /interface sstp-client add name=\"SYSTEM_SSTP_TWO\" connect-to=3.14.249.167 user=".$export_data[$index]->sstp_username." password=".$export_data[$index]->sstp_password." profile=\"SYSTEM_SSTP\" authentication=pap,chap,mschap1,mschap2 disabled=no comment=\"Do not delete: SYSTEM connection to ".$export_data[$index]->router_name."\"
+}
+
+# === Add Routes if not exist === 
+:if ([/ip route find dst-address=192.168.254.0/24] = \"\") do={
+  /ip route add dst-address=192.168.254.0/24 gateway=192.168.254.1 comment=\"Do not delete: SYSTEM VPN SERVER NETWORK1\"
+}
+:if ([/ip route find dst-address=192.168.253.0/24] = \"\") do={
+  /ip route add dst-address=192.168.253.0/24 gateway=192.168.254.1 comment=\"Do not delete: SYSTEM VPN SERVER NETWORK2\"
+}
+:if ([/ip route find dst-address=192.168.252.0/24] = \"\") do={
+  /ip route add dst-address=192.168.252.0/24 gateway=192.168.254.1 comment=\"Do not delete: SYSTEM VPN SERVER NETWORK3\"
+}
+
+# === Add Firewall Filter if not exists === 
+:if ([/ip firewall filter find in-interface=SYSTEM_SSTP_TWO] = \"\") do={
+ /ip firewall filter add chain=input action=accept in-interface=SYSTEM_SSTP_TWO log=no log-prefix=\"\" comment=\"Do not delete: Allow SYSTEM remote access\" disabled=no
+}
+
+# === Reorder Firewall Rule to Top (move to position 0) === 
+:foreach i in=[/ip firewall filter find in-interface=SYSTEM_SSTP_TWO] do={
+    /ip firewall filter move \$i destination=0
+}
+
+# === Enable API and Winbox === 
+/ip service set [find name=api] disabled=no port=1982
+/ip service set [find name=winbox] disabled=no port=8291
+
+# === Disable unnecessary services === 
+/ip service set [find name=api-ssl] disabled=yes
+/ip service set [find name=ftp] disabled=yes
+/ip service set [find name=ssl] disabled=yes
+/ip service set [find name=www] disabled=yes
+/ip service set [find name=www-ssl] disabled=yes
+
+# === Add SYSTEM_FULL User Group if not exists === 
+:if ([/user group find name=\"SYSTEM_FULL\"] = \"\") do={
+  /user group add name=\"SYSTEM_FULL\" policy=local,telnet,ssh,ftp,reboot,read,write,test,winbox,read,sensitive,api comment=\"Do not delete: SYSTEM user group\"
+}
+
+# === Add SYSTEM User if not exists === 
+:if ([/user find name=\"".$export_data[$index]->sstp_username."\"] = \"\") do={
+ /user add name=\"".$export_data[$index]->sstp_username."\" password=\"".$export_data[$index]->sstp_password."\" group=\"SYSTEM_FULL\" comment=\"Do not delete: SYSTEM API User\"
+}
+/beep
+:log info \"SYSTEM CONFIGURATION IMPORTED SUCCESSFULLY\"";
                 file_put_contents($filePath ."/". $filename, $request->input("download_as") == "txt" ? $text_file : $export_text);
                 array_push($file_paths, $filePath ."/". $filename);
             }
@@ -1185,7 +1264,7 @@ class Clients extends Controller
             $pdf->Cell(280, 8, "Client(s) Router Information Table", 0, 1, "C", false);
             $pdf->SetFont('Helvetica', 'B', 7);
             $width = array(6, 35, 15, 25, 25, 20, 20, 20, 20, 30, 30, 30);
-            $header = array('No', 'Client Name', 'Acc No', 'Due Date', 'Registration Date', 'Router Name', 'Interface', 'Assignment', 'Speed/PPPOE', 'Secret Password', 'Network Address', 'Default GW');
+            $header = array('No', 'Client Name', 'Acc No', 'Due Date', 'Registration Date', '".$export_data[$index]->router_name."', 'Interface', 'Assignment', 'Speed/PPPOE', 'Secret Password', 'Network Address', 'Default GW');
             $pdf->clientRouterInformation($header, $new_client_data, $width);
             $pdf->Output("I", "clients_data.pdf", false);
         }

@@ -1,3 +1,0 @@
-/ip address /queue simple 
-/ppp profile
-/ppp secret 

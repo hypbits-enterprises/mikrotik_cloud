@@ -1,2 +1,4 @@
 public/logs/*
+public/mukirito-export-data/*
+public/mikrotik_cloud/*
 .env
