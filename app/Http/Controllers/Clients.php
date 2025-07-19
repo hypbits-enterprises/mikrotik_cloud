@@ -65,10 +65,13 @@ class Clients extends Controller
 
             for ($index=0; $index < count($export_data); $index++) {
                 $text_file = "";
-                $export_text = "# Exported on: ".date("D dS M Y h:i:s A")."\n";
-                $export_text .= "# THIS EXPORT ONLY CONTAINS THE CLIENT`S DATA\n";
-                $export_text .= "# NO OTHER CONFIGURATION INCLUDED.\n";
-                $export_text .= "# Router name : '".$export_data[$index]->router_name."'.\n";
+                $export_text = "";
+                
+                $disclaimer = "# Exported on: ".date("D dS M Y h:i:s A")."\n";
+                $disclaimer .= "# THIS EXPORT ONLY CONTAINS THE CLIENT`S DATA\n";
+                $disclaimer .= "# NO OTHER CONFIGURATION INCLUDED.\n";
+                $disclaimer .= "# Router name : '".$export_data[$index]->router_name."'.\n";
+                
                 $queues = "#SIMPLE QUEUES\n/queue simple \n";
                 $queue_text = "/queue simple \r";
                 $profiles = "#PPPOE\n/ppp secret \n";
@@ -76,6 +79,7 @@ class Clients extends Controller
                 $export_text .= "\n\n#IP ADDRESSES\n/ip address \n";
                 $text_file .= "/ip address \r";
                 $ppp_profiles = [];
+                $interfaces = [];
                 for ($ind=0; $ind < count($export_data[$index]->clients); $ind++) {
                     $client_data = $export_data[$index]->clients[$ind];
                     $disabled = $client_data->client_status == 0 ? "yes" : "no";
@@ -88,6 +92,9 @@ class Clients extends Controller
                         $profiles .= ":if ([/ppp secret find name=\"".$client_data->client_username."\"] = \"\") do={\n  add name=\"".$client_data->client_username."\" service=\"pppoe\" password=\"".$client_data->client_password."\" profile=\"".$client_data->client_profile."\"  comment=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" disabled=\"".$disabled."\"\n}\n";
                         $profiles_text .= "add name=\"".$client_data->client_username."\" service=\"pppoe\" password=\"".$client_data->client_password."\" profile=\"".$client_data->client_profile."\"  comment=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" disabled=\"".$disabled."\"\r";
                     }else{
+                        if(!in_array($client_data->client_interface, $interfaces)){
+                            array_push($interfaces, $client_data->client_interface);
+                        }
                         $export_text .= ":if ([/ip address find address=\"".$client_data->client_default_gw."\"] = \"\") do={\n  add address=\"".$client_data->client_default_gw."\" interface=".$client_data->client_interface." network=".$client_data->client_network." comment=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" disabled=\"".$disabled."\"\n}\n";
                         $queues .= ":if ([/queue simple find name=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\"] = \"\") do={\n  add name=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" target=\"".$client_data->client_network."/".explode("/", $client_data->client_default_gw)[1]."\" max-limit=\"".$client_data->max_upload_download."\"\n}\n";
 
@@ -95,6 +102,21 @@ class Clients extends Controller
                         $queue_text .= "add name=\"".$client_data->client_name." (".$client_data->client_address." - ".$client_data->location_coordinates.") - ".$client_data->client_account."\" target=\"".$client_data->client_network."/".explode("/", $client_data->client_default_gw)[1]."\" max-limit=\"".$client_data->max_upload_download."\"\r";
                     }
                 }
+
+                // add bridge
+                $bridge_text = "";
+                $bridge_rsc = "";
+                foreach ($interfaces as $bridge) {
+$bridge_rsc .= "# === Add bridge if not exists ===
+:if ([/interface bridge find name=\"".$bridge."\"] = \"\") do={
+  /interface bridge add name=\"".$bridge."\" comment=\"Ready to configure\"
+}\n";
+$bridge_text .= "/interface bridge add name=\"".$bridge."\" comment=\"Ready to configure\"\r";
+                }
+
+                // export text
+                $export_text = $disclaimer."\n".$bridge_rsc.$export_text;
+                $text_file = $bridge_text.$text_file;
 
                 $ppp_profile = "#ADD PPPOE PROFILES (MODIFY THESE PROFILES TO YOUR PREFERENCE AFTER THEY HAVE BEEN ADDED)\n/ppp profile\n";
                 $ppp_profile_text = "/ppp profile\r";
