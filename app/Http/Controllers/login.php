@@ -38,6 +38,13 @@ class login extends Controller
                     return redirect("/Login");
                 }
 
+                // check the organization details
+                $organization_details = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[$result[0]->organization_id]);
+                if ($organization_details[0]->organization_status == "0") {
+                    session()->flash('error',"Your cannot access your account at this time, contact us now!");
+                    return redirect("/Login");
+                }
+
                 // store the database name in the session so that its connected to when needed
                 session()->put("database_name",$organization_details[0]->organization_database);
                 session()->put("organization_id",$organization_details[0]->organization_id);
