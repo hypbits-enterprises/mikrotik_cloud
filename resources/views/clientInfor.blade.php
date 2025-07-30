@@ -152,12 +152,13 @@
                                                             <form action="{{route("validate_user")}}" method="post">
                                                                 @csrf
                                                                 <div class="form-group">
-                                                                    <button type="button" id="delete_user_from_the_system" class="btn btn-sm btn-outline-danger"><i class="ft-trash"></i></button>
-                                                                    <div class="container my-1 border border-dark rounded p-1 d-none" id="delete_the_user">
-                                                                        <h4 class="text-center">Delete User!</h4>
-                                                                        <p><b>Delete this user from the system?</b></p>
-                                                                        <a href="/delete_user/{{$clients_data[0]->client_id}}" class="btn btn-sm btn-outline-danger btn-block"><i class="ft-trash"></i> Delete User</a>
-                                                                    </div>
+                                                                    @php
+                                                                        $btnText = "<i class=\"ft-trash\"></i>";
+                                                                        $otherClasses = "text-dark";
+                                                                        $btn_id = "delete_user_from_the_system";
+                                                                    @endphp
+                                                                    <x-button :btnText="$btnText" btnType="danger" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                    {{-- <button type="button" id="delete_user_from_the_system" class="btn btn-sm btn-outline-danger"><i class="ft-trash"></i></button> --}}
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label for="expiry_date" class="form-control-label"><b>Expiry Date</b></label>
@@ -179,13 +180,25 @@
                                                                     </div>
                                                                 </div>
                                                                 <div class="container">
-                                                                    <button class="btn btn-success btn-sm {{$readonly}}" type="submit"><i class="ft-save"></i> Save</button>
+                                                                    @php
+                                                                        $btnText = "<i class=\"ft-save\"></i> Save";
+                                                                        $otherClasses = "";
+                                                                        $btn_id = "delete_user_from_the_system";
+                                                                    @endphp
+                                                                    <x-button :btnText="$btnText" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                    {{-- <button class="btn btn-success btn-sm {{$readonly}}" type="submit"><i class="ft-save"></i> Save</button> --}}
                                                                 </div>
                                                             </form>
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" id="close_update_status_window" class="btn btn-sm btn-secondary" data-dismiss="modal">Close</button>
+                                                        @php
+                                                            $btnText = "<i class=\"ft-save\"></i> Save";
+                                                            $otherClasses = "";
+                                                            $btn_id = "close_update_status_window";
+                                                        @endphp
+                                                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                        {{-- <button type="button" id="close_update_status_window" class="btn btn-sm btn-secondary" data-dismiss="modal">Close</button> --}}
                                                     </div>
                                                 </div>
                                             </div>
@@ -216,7 +229,13 @@
                                     </div>
                                     <div class="mx-auto my-2 {{$clients_data[0]->validated == 1 ? "d-none" : ""}}">
                                         <div class="d-flex justify-content-center">
-                                            <button class="btn btn-sm btn-block btn-success" {{$readonly}} id="change_status" type="button"><i class="ft-refresh"></i> Validate User</button>
+                                            @php
+                                                $btnText = "<i class=\"ft-save\"></i> Save";
+                                                $otherClasses = "";
+                                                $btn_id = "change_status";
+                                            @endphp
+                                            <x-button :btnText="$btnText" btnType="success" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            {{-- <button class="btn btn-sm btn-block btn-success" {{$readonly}} id="change_status" type="button"><i class="ft-refresh"></i> Validate User</button> --}}
                                         </div>
                                     </div>
                                     <div class="tab-content" id="myTabsContent">
@@ -230,13 +249,96 @@
                                                         - When a user is frozen don`t activate any option either the <b>Automate Transaction</b> or the <b>User Status</b>
                                                     </p>
                                                 </div>
-                                                <div class="col-md-3 border-left border-secondary">
-                                                    <button id="prompt_delete" class="btn btn-secondary float-right btn-sm {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}}><i class="fas fa-trash"></i> Delete</button>
+                                                <div class="col-md-3 border-left border-secondary my-1">
+                                                    <h6 class="text-center"><b><u>Quick Actions</u></b></h6>
+                                                    @php
+                                                        $btnText = "<i class=\"fas fa-trash\"></i> Delete";
+                                                        $validated = $clients_data[0]->validated == 0 ? "float-right d-none" : "float-right";
+                                                    @endphp
+                                                    <x-button :btnText="$btnText" btnType="danger" btnSize="sm" :otherClasses="$validated" btnId="prompt_delete" :readOnly="$readonly" />
+                                                    @php
+                                                        $btnText = '<i class="fas fa-refresh"></i> Convert Client';
+                                                        $validated = $clients_data[0]->validated == 0 ? "d-none" : "";
+                                                    @endphp
+                                                    <x-button :btnText="$btnText" btnType="info" btnSize="sm" :otherClasses="$validated" btnId="convert_client" :readOnly="$readonly" />
                                                 </div>
                                             </div>
                                             <div class="container">
+                                                {{-- CONVERT CLIENT TO PPPOE --}}
+                                                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="convert_client_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel3" style="padding-right: 17px;" aria-modal="true">
+                                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-info white">
+                                                                <h5 class="modal-title white" id="myModalLabel3">Convert {{ucwords(strtolower($clients_data[0]->client_name))}} to PPPOE.</h5>
+                                                                <input type="hidden" id="convert_client_id">
+                                                                <button id="hide_convert_client" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                    <span aria-hidden="true">×</span>
+                                                                </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <form class="container" method="POST" action="/Client/Convert">
+                                                                    @csrf;
+                                                                    <div class="form-group">
+                                                                        @if (session('network_error'))
+                                                                            <p class="danger">{{ session('network_error') }}</p>
+                                                                        @endif
+                                                                        <input type="hidden" name="change_to" value="topppoe">
+                                                                        <input type="hidden" name="client_id" value="{{$clients_data[0]->client_id}}">
+                                                                        <label  id="errorMsg" for="client_secret_username" class="form-control-label">Clients Username</label>
+                                                                        <input type="text" name="client_secret_username" id="client_secret_username"
+                                                                            class="form-control rounded-lg p-1" placeholder="Client Username"
+                                                                            required value="{{ $clients_data[0]->client_account }}">
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        @php
+                                                                            $password = rand(100000,999999);
+                                                                        @endphp
+                                                                        <span class="d-none" id="secret_holder"></span>
+                                                                        <label  id="errorMsg1" for="client_secret_password" class="form-control-label">Clients Secret Password <span class=""><span class="badge bg-info">suggested</span> ({{$password}})</span></label>
+                                                                        <input type="password" name="client_secret_password" id="client_secret_password"
+                                                                            class="form-control rounded-lg p-1" placeholder="Client Password"
+                                                                            required value="{{$password}}">
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label for="router_list" class="form-control-label">Router Name: <span class="invisible" id="secrets_load"><i class="fas ft-rotate-cw fa-spin"></i></span></label>
+                                                                        <select name="router_list" id="router_list" class="form-control" onchange="getRouterProfiles()" required>
+                                                                            <option hidden value="">Select an option</option>
+                                                                            @foreach ($router_data as $router)
+                                                                                <option value="{{$router->router_id}}">{{$router->router_name}}</option>
+                                                                            @endforeach
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label for="pppoe_profile" class="form-control-label">Router Profile:</label>
+                                                                        <p class="text-secondary" id="router_profile_holder">The router secret profiles
+                                                                            will appear here If the router is selected.If this message is still
+                                                                            present a router is not selected.</p>
+                                                                    </div>
+                                                                    <input type="submit" class="d-none" id="submit_convert">
+                                                                </form>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <div class="row w-100">
+                                                                    <div class="col-md-6">
+                                                                        @php
+                                                                            $btnText = "<i class=\"fas fa-refresh\"></i> Convert";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="info" btnSize="sm" otherClasses="w-100 my-1" btnId="confirm_client_convert" />
+                                                                        
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        @php
+                                                                            $btnText = "<i class=\"ft-x\"></i> Close";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="secondary" btnSize="sm" otherClasses="w-100 my-1" btnId="close_convert_client" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                                 {{-- DELETE THE CLIENT --}}
-                                                <div class="modal fade text-left hide" id="delete_client_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2" style="padding-right: 17px;" aria-modal="true">
+                                                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="delete_client_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2" style="padding-right: 17px;" aria-modal="true">
                                                     <div class="modal-dialog modal-dialog-centered" role="document">
                                                         <div class="modal-content">
                                                             <div class="modal-header bg-danger white">
@@ -254,10 +356,19 @@
                                                             <div class="modal-footer">
                                                                 <div class="row w-100">
                                                                     <div class="col-md-6">
-                                                                        <button type="button" id="close_this_window_delete" class="btn grey btn-secondary btn-sm w-100" data-dismiss="modal">Close</button>
+                                                                        @php
+                                                                            $btnText = "<i class=\"ft-trash\"></i> Delete";
+                                                                            $validated = $clients_data[0]->validated == 0 ? "w-100 d-none" : "w-100";
+                                                                            $btnLink = "/delete_user/".$clients_data[0]->client_id;
+                                                                        @endphp
+                                                                        <x-button-link :btnText="$btnText" :btnLink="$btnLink" btnType="danger" btnSize="sm" :otherClasses="$validated" :readOnly="$readonly" />
                                                                     </div>
                                                                     <div class="col-md-6">
-                                                                        <a href="/delete_user/{{$clients_data[0]->client_id}}" class="btn btn-danger btn-sm w-100 "><i class="ft-trash"></i> Delete</a>
+                                                                        @php
+                                                                            $btnText = "<i class=\"fas fa-x\"></i> Close";
+                                                                            $validated = $clients_data[0]->validated == 0 ? "w-100 grey d-none" : "w-100 grey";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="secondary" btnSize="sm" :otherClasses="$validated" btnId="close_this_window_delete" :readOnly="$readonly" />
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -266,7 +377,7 @@
                                                 </div>
 
                                                 {{-- UPDATE CLIENT PHONE NUMBER --}}
-                                                <div class="modal fade text-left hide" id="update_phone_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel3" style="padding-right: 17px;" aria-modal="true">
+                                                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="update_phone_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel3" style="padding-right: 17px;" aria-modal="true">
                                                     <div class="modal-dialog modal-dialog-centered" role="document">
                                                         <div class="modal-content">
                                                             <div class="modal-header bg-info white">
@@ -287,10 +398,18 @@
                                                                         <input type="number" required name="client_new_phone" id="client_new_phone" class="form-control" value="{{ $clients_data[0]->clients_contacts }}" placeholder="New Phone Number">
                                                                         <div class="row w-100">
                                                                             <div class="col-md-6">
-                                                                                <button {{$readonly}} type="submit" class="btn btn-info btn-sm w-100 my-1"><i class="fas fa-save"></i> Save</button>
+                                                                                @php
+                                                                                    $btnText = "<i class=\"fas fa-save\"></i> Save";
+                                                                                    $otherClasses = "w-100 my-1";
+                                                                                @endphp
+                                                                                <x-button :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="" :readOnly="$readonly" />
                                                                             </div>
                                                                             <div class="col-md-6">
-                                                                                <button class="btn btn-secondary btn-sm w-100 my-1" type="button" id="close_update_phone_2">Cancel</button>
+                                                                                @php
+                                                                                    $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                                                    $otherClasses = "w-100 my-1";
+                                                                                @endphp
+                                                                                <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_update_phone_2" :readOnly="$readonly" />
                                                                             </div>
                                                                         </div>
                                                                     </form>
@@ -303,7 +422,7 @@
                                                 </div>
 
                                                 {{-- UPDATE EXPIRATION DATE --}}
-                                                <div class="modal fade text-left hide" id="update_expiration_date_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4" style="padding-right: 17px;" aria-modal="true">
+                                                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="update_expiration_date_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4" style="padding-right: 17px;" aria-modal="true">
                                                     <div class="modal-dialog modal-dialog-centered" role="document">
                                                         <div class="modal-content">
                                                             <div class="modal-header bg-info white">
@@ -329,10 +448,19 @@
                     
                                                                         <div class="row w-100">
                                                                             <div class="col-md-6">
-                                                                                <button type="submit" class="btn btn-info btn-sm w-100 my-1" {{$readonly}}><i class="fas fa-save"></i> Save</button>
+                                                                                @php
+                                                                                    $btnText = "<i class=\"fas fa-save\"></i> Save";
+                                                                                    $otherClasses = "w-100 my-1";
+                                                                                @endphp
+                                                                                <x-button :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="close_update_phone_2" :readOnly="$readonly" />
                                                                             </div>
                                                                             <div class="col-md-6">
-                                                                                <button class="btn btn-secondary btn-sm w-100 my-1" type="button" id="close_update_expiration_date_modal_2">Cancel</button>
+                                                                                @php
+                                                                                    $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                                                    $otherClasses = "w-100 my-1";
+                                                                                @endphp
+                                                                                <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_update_expiration_date_modal_2" :readOnly="$readonly" />
+                                                                                {{-- <button class="btn btn-secondary btn-sm w-100 my-1" type="button" id="close_update_expiration_date_modal_2">Cancel</button> --}}
                                                                             </div>
                                                                         </div>
                                                                     </form>
@@ -345,7 +473,7 @@
                                                 </div>
 
                                                 {{-- UPDATE MONTHLY PAYMENT --}}
-                                                <div class="modal fade text-left hide" id="update_monthly_payment" tabindex="-1" role="dialog" aria-labelledby="myModalLabel5" style="padding-right: 17px;" aria-modal="true">
+                                                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="update_monthly_payment" tabindex="-1" role="dialog" aria-labelledby="myModalLabel5" style="padding-right: 17px;" aria-modal="true">
                                                     <div class="modal-dialog modal-dialog-centered" role="document">
                                                         <div class="modal-content">
                                                             <div class="modal-header bg-info white">
@@ -366,10 +494,18 @@
                                                                         <input type="number" required name="client_monthly_payment" id="client_monthly_payment" class="form-control" value="{{ $clients_data[0]->monthly_payment }}" placeholder="New Phone Number">
                                                                         <div class="row w-100">
                                                                             <div class="col-md-6">
-                                                                                <button {{$readonly}} type="submit" class="btn btn-info my-1 btn-sm w-100"><i class="fas fa-save"></i> Save</button>
+                                                                                @php
+                                                                                    $btnText = "<i class=\"fas fa-save\"></i> Save";
+                                                                                    $otherClasses = "w-100 my-1";
+                                                                                @endphp
+                                                                                <x-button :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="" :readOnly="$readonly" />
                                                                             </div>
                                                                             <div class="col-md-6">
-                                                                                <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_update_monthly_payment_2">Cancel</button>
+                                                                                @php
+                                                                                    $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                                                    $otherClasses = "w-100 my-1";
+                                                                                @endphp
+                                                                                <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_update_monthly_payment_2" :readOnly="$readonly" />
                                                                             </div>
                                                                         </div>
                                                                     </form>
@@ -382,7 +518,7 @@
                                                 </div>
 
                                                 {{-- UPDATE MONTHLY MINIMUM PAYMENT --}}
-                                                <div class="modal fade text-left hide" id="update_monthly_min_pay_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel6" style="padding-right: 17px;" aria-modal="true">
+                                                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="update_monthly_min_pay_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel6" style="padding-right: 17px;" aria-modal="true">
                                                     <div class="modal-dialog modal-dialog-centered" role="document">
                                                         <div class="modal-content">
                                                             <div class="modal-header bg-info white">
@@ -412,10 +548,18 @@
                                                                         </select>
                                                                         <div class="row w-100">
                                                                             <div class="col-md-6">
-                                                                                <button type="submit" class="btn btn-info btn-sm mt-1 w-100">Save</button>
+                                                                                @php
+                                                                                    $btnText = "<i class=\"fas fa-save\"></i> Save";
+                                                                                    $otherClasses = "w-100 my-1";
+                                                                                @endphp
+                                                                                <x-button :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="" :readOnly="$readonly" />
                                                                             </div>
                                                                             <div class="col-md-6">
-                                                                                <button class="btn btn-secondary btn-sm mt-1 w-100" type="button" id="close_update_monthly_min_pay_modal_2">Close</button>
+                                                                                @php
+                                                                                    $btnText = "<i class=\"fas fa-x\"></i> Close";
+                                                                                    $otherClasses = "w-100 my-1";
+                                                                                @endphp
+                                                                                <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_update_monthly_min_pay_modal_2" :readOnly="$readonly" />
                                                                             </div>
                                                                         </div>
                                                                     </form>
@@ -428,7 +572,7 @@
                                                 </div>
 
                                                 {{-- UPDATE WALLET AMOUNT --}}
-                                                <div class="modal fade text-left hide" id="update_wallet_amount_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel7" style="padding-right: 17px;" aria-modal="true">
+                                                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="update_wallet_amount_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel7" style="padding-right: 17px;" aria-modal="true">
                                                     <div class="modal-dialog modal-dialog-centered" role="document">
                                                         <div class="modal-content">
                                                             <div class="modal-header bg-info white">
@@ -449,10 +593,18 @@
                                                                         <input type="number" required name="wallet_amounts" id="wallet_amounts" class="form-control" value="{{$clients_data[0]->wallet_amount}}" placeholder="New wallet amounts">
                                                                         <div class="row w-100">
                                                                             <div class="col-md-6">
-                                                                                <button type="submit" class="btn btn-info my-1 btn-sm w-100"><i class="fas fa-save"></i> Save</button>
+                                                                                @php
+                                                                                    $btnText = "<i class=\"fas fa-save\"></i> Save";
+                                                                                    $otherClasses = "w-100 my-1";
+                                                                                @endphp
+                                                                                <x-button :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="" :readOnly="$readonly" />
                                                                             </div>
                                                                             <div class="col-md-6">
-                                                                                <button class="btn btn-secondary btn-sm my-1 w-100" type="button" id="close_update_wallet_amount_modal_2">Cancel</button>
+                                                                                @php
+                                                                                    $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                                                    $otherClasses = "w-100 my-1";
+                                                                                @endphp
+                                                                                <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_update_wallet_amount_modal_2" :readOnly="$readonly" />
                                                                             </div>
                                                                         </div>
                                                                     </form>
@@ -465,7 +617,7 @@
                                                 </div>
 
                                                 {{-- EDIT FREEZE --}}
-                                                <div class="modal fade text-left hide" id="update_freeze_status_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel8" style="padding-right: 17px;" aria-modal="true">
+                                                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" style="background-color: rgba(0, 0, 0, 0.5);" id="update_freeze_status_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel8" style="padding-right: 17px;" aria-modal="true">
                                                     <div class="modal-dialog modal-dialog-centered" role="document">
                                                         <div class="modal-content">
                                                             <div class="modal-header bg-info white">
@@ -481,7 +633,13 @@
                                                                         @csrf
                                                                         <h6 class="text-center" >Freeze Until</h6>
                                                                         @if ($clients_data[0]->client_freeze_status == "1" || date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)))
-                                                                            <a href="/Client/deactivate_freeze/{{$clients_data[0]->client_id}}" class="btn btn-secondary btn-sm">Deactivate Freeze</a>
+                                                                            @php
+                                                                                $btnText = "Deactivate Freeze";
+                                                                                $otherClasses = "".$readonly;
+                                                                                $btnLink = "/Client/deactivate_freeze/".$clients_data[0]->client_id;
+                                                                            @endphp
+                                                                            <x-button-link :btnLink="$btnLink" :btnText="$btnText" toolTip="Print Invoice" btnType="info" btnSize="sm" :otherClasses="$otherClasses"/>
+                                                                            {{-- <a href="/Client/deactivate_freeze/{{$clients_data[0]->client_id}}" class="btn btn-secondary btn-sm">Deactivate Freeze</a> --}}
                                                                             <hr>
                                                                         @else
                                                                             {{-- <a href="/Client/activate_freeze/{{$clients_data[0]->client_id}}" class="btn btn-danger">Activate</a> 
@@ -517,10 +675,18 @@
                                                                         </div>
                                                                         <div class="row">
                                                                             <div class="col-md-6">
-                                                                                <button type="submit" class="btn btn-info my-1 btn-sm w-100"><i class="fas fa-save"></i> Save</button>
+                                                                                @php
+                                                                                    $btnText = "<i class=\"fas fa-save\"></i> Save";
+                                                                                    $otherClasses = "w-100 my-1";
+                                                                                @endphp
+                                                                                <x-button :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="" :readOnly="$readonly" />
                                                                             </div>
                                                                             <div class="col-md-6">
-                                                                                <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_update_freeze_status_modal_2">Cancel</button>
+                                                                                @php
+                                                                                    $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                                                    $otherClasses = "w-100 my-1";
+                                                                                @endphp
+                                                                                <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_update_freeze_status_modal_2" :readOnly="$readonly" />
                                                                             </div>
                                                                         </div>
                                                                     </form>
@@ -533,7 +699,7 @@
                                                 </div>
 
                                                 {{-- UPDATE REFEREE --}}
-                                                <div class="modal fade text-left hide" id="update_refferee_by_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel9" style="padding-right: 17px;" aria-modal="true">
+                                                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="update_refferee_by_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel9" style="padding-right: 17px;" aria-modal="true">
                                                     <div class="modal-dialog modal-dialog-centered" role="document">
                                                         <div class="modal-content">
                                                             <div class="modal-header bg-info white">
@@ -561,7 +727,13 @@
                                                                                 </div>
                                                                             </div>
                                                                             <div class="col-md-3">
-                                                                                <button class="btn btn-infor" id="find_user_refferal" type="button"><i class="fas fa-search"></i></button>
+                                                                                {{-- <button class="btn btn-infor" id="find_user_refferal" type="button"><i class="fas fa-search"></i></button> --}}
+                                                                                @php
+                                                                                    $btnText = "<i class=\"ft-search\"></i> Search";
+                                                                                    $otherClasses = "";
+                                                                                    $btn_id = "find_user_refferal";
+                                                                                @endphp
+                                                                                <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                                                                             </div>
                                                                         </div>
                                                                         <p id="refferer_data" class="d-none"></p>
@@ -607,10 +779,20 @@
                                                                             </div>
                                                                             <div class="row">
                                                                                 <div class="col-md-6">
-                                                                                    <button disabled type="submit" class="btn btn-info my-1 btn-sm w-100" id="save_data_inside"><i class="fas fa-save"></i> Set</button>
+                                                                                    @php
+                                                                                        $btnText = "<i class=\"fas fa-save\"></i> Set";
+                                                                                        $otherClasses = "w-100 my-1";
+                                                                                    @endphp
+                                                                                    <x-button disabled="disabled" :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="save_data_inside" :readOnly="$readonly" />
+                                                                                    {{-- <button disabled type="submit" class="btn btn-info my-1 btn-sm w-100" id="save_data_inside"><i class="fas fa-save"></i> Set</button> --}}
                                                                                 </div>
                                                                                 <div class="col-md-6">
-                                                                                    <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_update_refferee_by_modal_2">Cancel</button>
+                                                                                    @php
+                                                                                        $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                                                        $otherClasses = "w-100 my-1";
+                                                                                    @endphp
+                                                                                    <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_update_refferee_by_modal_2" :readOnly="$readonly" />
+                                                                                    {{-- <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_update_refferee_by_modal_2">Cancel</button> --}}
                                                                                 </div>
                                                                             </div>
                                                                         </form>
@@ -624,7 +806,7 @@
                                                 </div>
 
                                                 {{-- UPDATE COMMENT --}}
-                                                <div class="modal fade text-left hide" id="update_comments_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel110" style="padding-right: 17px;" aria-modal="true">
+                                                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="update_comments_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel110" style="padding-right: 17px;" aria-modal="true">
                                                     <div class="modal-dialog modal-dialog-centered" role="document">
                                                         <div class="modal-content">
                                                             <div class="modal-header bg-info white">
@@ -644,10 +826,20 @@
                                                                         <textarea name="comments" id="comments" cols="30" rows="3" class="form-control" placeholder="Comment here">{{ $clients_data[0]->comment}}</textarea>
                                                                         <div class="row w-100">
                                                                             <div class="col-md-6">
-                                                                                <button {{$readonly}} type="submit" class="btn btn-info my-1 btn-sm w-100"><i class="fas fa-save"></i> Save</button>
+                                                                                @php
+                                                                                    $btnText = "<i class=\"fas fa-save\"></i> Save";
+                                                                                    $otherClasses = "w-100 my-1";
+                                                                                @endphp
+                                                                                <x-button :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="" :readOnly="$readonly" />
+                                                                                {{-- <button {{$readonly}} type="submit" class="btn btn-info my-1 btn-sm w-100"><i class="fas fa-save"></i> Save</button> --}}
                                                                             </div>
                                                                             <div class="col-md-6">
-                                                                                <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_update_comments_modal_2">Cancel</button>
+                                                                                @php
+                                                                                    $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                                                    $otherClasses = "w-100 my-1";
+                                                                                @endphp
+                                                                                <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_update_comments_modal_2" :readOnly="$readonly" />
+                                                                                {{-- <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_update_comments_modal_2">Cancel</button> --}}
                                                                             </div>
                                                                         </div>
                                                                     </form>
@@ -674,19 +866,29 @@
                                                             @if ($clients_data[0]->validated == "1")
                                                                 @if ($clients_data[0]->payments_status == 1)
                                                                     <div class="row">
-                                                                        <div class="col-sm-6"><strong>Automate Transaction:</strong><div class='badge badge-success'>Activated</div>
+                                                                        <div class="col-sm-7"><strong>Automate Transaction:</strong><div class='badge badge-success'>Activated</div>
                                                                         </div>
-                                                                        <div class="col-sm-6"><a
-                                                                                href="/deactivatePayment/{{ $clients_data[0]->client_id }}"
-                                                                                class="btn btn-sm btn-danger {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}}">De-Activate</a><p class="text-success d-none"><b>Activated</b></p></div>
+                                                                        <div class="col-sm-5">
+                                                                        @php
+                                                                            $btnText = "De-Activate";
+                                                                            $otherClasses = ($clients_data[0]->client_freeze_status == "1" ? "disabled":"")." w-100 my-1";
+                                                                            $btnLink = "/deactivatePayment/".$clients_data[0]->client_id;
+                                                                        @endphp
+                                                                        <x-button-link :btnText="$btnText" :btnLink="$btnLink" btnType="danger" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                                        <p class="text-success d-none"><b>Activated</b></p></div>
                                                                     </div>
                                                                 @else
                                                                     <div class="row">
-                                                                        <div class="col-sm-6"><strong>Automate Transaction:</strong><div class='badge badge-danger'>De-activated</div>
+                                                                        <div class="col-sm-7"><strong>Automate Transaction:</strong><div class='badge badge-danger'>De-activated</div>
                                                                         </div>
-                                                                        <div class="col-sm-6"><a
-                                                                                href="/activatePayment/{{ $clients_data[0]->client_id }}"
-                                                                                class="btn btn-sm btn-success {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}}">Activate</a><p class="text-danger d-none"><b>De-activated</b></p></div>
+                                                                        <div class="col-sm-5">
+                                                                        @php
+                                                                            $btnText = "Activate";
+                                                                            $otherClasses = ($clients_data[0]->client_freeze_status == "1" ? "disabled":"")." w-100 my-1";
+                                                                            $btnLink = "/activatePayment/".$clients_data[0]->client_id;
+                                                                        @endphp
+                                                                        <x-button-link :btnText="$btnText" :btnLink="$btnLink" btnType="success" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                                        <p class="text-danger d-none"><b>De-activated</b></p></div>
                                                                     </div>
                                                                 @endif
                                                             @else
@@ -703,13 +905,29 @@
                                                         <td>
                                                             <div class="row">
                                                                 <div class="col-sm-6"><strong>Phone Number:</strong> <br>{{ $clients_data[0]->clients_contacts }}</div>
-                                                                <div class="col-sm-6"><button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_phone_number"><i class="fas fa-pen"></i> Edit</button></div>
+                                                                <div class="col-sm-6">
+                                                                    @php
+                                                                        $btnText = "<i class=\"fas fa-pen\"></i> Edit";
+                                                                        $otherClasses = "text-secondary w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                                                                        $btn_id = "edit_phone_number";
+                                                                    @endphp
+                                                                    <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                    {{-- <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_phone_number"><i class="fas fa-pen"></i> Edit</button> --}}
+                                                                </div>
                                                             </div>
                                                         </td>
                                                         <td>
                                                             <div class="row">
                                                                 <div class="col-sm-7"><strong>Monthly Payment:</strong> <br>Kes {{ number_format($clients_data[0]->monthly_payment) }}</div>
-                                                                <div class="col-sm-5"><button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_monthly_payments"><i class="fas fa-pen"></i> Edit</button></div>
+                                                                <div class="col-sm-5">
+                                                                    @php
+                                                                        $btnText = "<i class=\"fas fa-pen\"></i> Edit";
+                                                                        $otherClasses = "text-secondary w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                                                                        $btn_id = "edit_monthly_payments";
+                                                                    @endphp
+                                                                    <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                    {{-- <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_monthly_payments"><i class="fas fa-pen"></i> Edit</button> --}}
+                                                                </div>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -719,16 +937,26 @@
                                                                 @if ($clients_data[0]->client_status == 1)
                                                                     <div class="row">
                                                                         <div class="col-sm-6"><strong>User status: <div class='badge badge-success'>Activated</div></strong></div>
-                                                                        <div class="col-sm-6"><a
-                                                                                href="/deactivate/{{ $clients_data[0]->client_id }}"
-                                                                                class="btn btn-sm btn-danger {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}}">De-Activate</a><p class="text-success d-none"><b>Activated</b></p></div>
+                                                                        <div class="col-sm-6">
+                                                                        @php
+                                                                            $btnText = "De-Activate";
+                                                                            $otherClasses = ($clients_data[0]->client_freeze_status == "1" ? "disabled":"")." w-100 my-1";
+                                                                            $btnLink = "/deactivate/".$clients_data[0]->client_id;
+                                                                        @endphp
+                                                                        <x-button-link :btnText="$btnText" :btnLink="$btnLink" btnType="danger" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                                        <p class="text-success d-none"><b>Activated</b></p></div>
                                                                     </div>
                                                                 @else
                                                                     <div class="row">
                                                                         <div class="col-sm-6"><strong>User status: <div class='badge badge-danger'>De-activated</div></strong></div>
-                                                                        <div class="col-sm-6"><a
-                                                                                href="/activate/{{ $clients_data[0]->client_id }}"
-                                                                                class="btn btn-sm btn-success {{$clients_data[0]->client_freeze_status == "1" ? "disabled":""}} {{$readonly}}">Activate</a><p class="text-danger d-none"><b>De-activated</b></p>
+                                                                        <div class="col-sm-6">
+                                                                            @php
+                                                                                $btnText = "Activate";
+                                                                                $otherClasses = ($clients_data[0]->client_freeze_status == "1" ? "disabled $readonly":"$readonly")." w-100 my-1";
+                                                                                $btnLink = "/deactivate/".$clients_data[0]->client_id;
+                                                                            @endphp
+                                                                            <x-button-link :btnText="$btnText" :btnLink="$btnLink" btnType="success" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                                            <p class="text-danger d-none"><b>De-activated</b></p>
                                                                         </div>
                                                                     </div>
                                                                 @endif
@@ -745,7 +973,12 @@
                                                             <div class="row">
                                                                 <div class="col-sm-7"><strong class="text-secondary">Minimum Payment:</strong> <br>{{$clients_data[0]->min_amount != 100 ? "Kes ".number_format(($clients_data[0]->min_amount / 100) * $clients_data[0]->monthly_payment)." (".$clients_data[0]->min_amount."%) of Kes ".number_format($clients_data[0]->monthly_payment) : "Full Payment (Kes ".number_format($clients_data[0]->monthly_payment).")"}}</div>
                                                                 <div class="col-sm-5">
-                                                                     <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} id="edit_minimum_amount"><i class="fas fa-pen"></i> Edit</button>
+                                                                    @php
+                                                                        $btnText = "<i class=\"fas fa-pen\"></i> Edit";
+                                                                        $otherClasses = "w-100 my-1 text-secondary ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                                                                    @endphp
+                                                                    <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="edit_minimum_amount" :readOnly="$readonly" />
+                                                                     {{-- <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} id="edit_minimum_amount"><i class="fas fa-pen"></i> Edit</button> --}}
                                                                 </div>
                                                             </div>
                                                         </td>
@@ -760,7 +993,15 @@
                                                         <td>
                                                             <div class="row">
                                                                 <div class="col-sm-7"><strong>Wallet Amount:</strong> <br>Kes {{ $clients_data[0]->wallet_amount }}</div>
-                                                                <div class="col-sm-5"><button {{$readonly}} class="btn btn-infor btn-sm mx-1 text-xxs text-secondary {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" style="width: fit-content;" id="edit_wallet"><i class="fas fa-pen"></i> Edit</button></div>
+                                                                <div class="col-sm-5">
+                                                                    @php
+                                                                        $btnText = "<i class=\"fas fa-pen\"></i> Edit";
+                                                                        $otherClasses = "text-secondary w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                                                                        $btn_id = "edit_wallet";
+                                                                    @endphp
+                                                                    <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                    {{-- <button {{$readonly}} class="btn btn-infor btn-sm mx-1 text-xxs text-secondary {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" style="width: fit-content;" id="edit_wallet"><i class="fas fa-pen"></i> Edit</button> --}}
+                                                                </div>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -768,13 +1009,29 @@
                                                         <td>
                                                             <div class="row">
                                                                 <div class="col-sm-6"><strong>Expiration Date:</strong> <br>{{$expire_date ? $expire_date : "Null"}}</div>
-                                                                <div class="col-sm-6"> <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_expiration_date"><i class="fas fa-pen"></i> Edit</button></div>
+                                                                <div class="col-sm-6"> 
+                                                                    @php
+                                                                        $btnText = "<i class=\"fas fa-pen\"></i> Edit";
+                                                                        $otherClasses = "text-secondary w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                                                                        $btn_id = "edit_expiration_date";
+                                                                    @endphp
+                                                                    <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                    {{-- <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_expiration_date"><i class="fas fa-pen"></i> Edit</button> --}}
+                                                                </div>
                                                             </div>
                                                         </td>
                                                         <td>
                                                             <div class="row">
                                                                 <div class="col-sm-7"><strong class="text-secondary">Freeze Client:</strong> <span class="badge {{$clients_data[0]->client_freeze_status == "1" || date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "badge-success" : "badge-danger";}}">{{$clients_data[0]->client_freeze_status == "1" || date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "Active" : "In-Active";}}</span> <br><p>{{date("YmdHis") < date("YmdHis",strtotime($clients_data[0]->freeze_date)) ? "Client will be frozen on : ".date("D dS M Y",strtotime($clients_data[0]->freeze_date))." until " : "Frozen Until:"}} {{isset($freeze_date) && strlen($freeze_date) > 0 ? $freeze_date : "Not Set"}}</p></div>
-                                                                <div class="col-sm-5"><button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} id="edit_freeze_client"><i class="fas fa-pen"></i> Edit</button></div>
+                                                                <div class="col-sm-5">
+                                                                    @php
+                                                                        $btnText = "<i class=\"fas fa-pen\"></i> Edit";
+                                                                        $otherClasses = "text-secondary w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                                                                        $btn_id = "edit_freeze_client";
+                                                                    @endphp
+                                                                    <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                    {{-- <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} id="edit_freeze_client"><i class="fas fa-pen"></i> Edit</button> --}}
+                                                                </div>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -792,18 +1049,32 @@
                                                         <td>
                                                             <div class="row">
                                                                 <div class="col-sm-7"><strong>Reffered By:</strong> <br><p>{{$client_refferal ?? 'Refferal Not set'}} </p></div>
-                                                                <div class="col-sm-5"><button {{$readonly}} class="btn btn-infor btn-sm mx-1 text-xxs text-secondary {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" id="edit_refferal"><i class="fas fa-pen"></i> Edit</button></div>
+                                                                <div class="col-sm-5">
+                                                                    @php
+                                                                        $btnText = "<i class=\"fas fa-pen\"></i> Edit";
+                                                                        $otherClasses = "text-secondary w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                                                                        $btn_id = "edit_refferal";
+                                                                    @endphp
+                                                                    <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                    {{-- <button {{$readonly}} class="btn btn-infor btn-sm mx-1 text-xxs text-secondary {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" id="edit_refferal"><i class="fas fa-pen"></i> Edit</button> --}}
+                                                                </div>
                                                             </div>
                                                         </td>
                                                     </tr>
                                                     <tr>
                                                         <td colspan="2">
                                                             <div class="row">
-                                                                <div class="col-md-10">
+                                                                <div class="col-md-9">
                                                                     <strong>Comment:</strong> <br><p>{{isset($clients_data[0]->comment) ? ucwords(strtolower($clients_data[0]->comment)) : "No comments set!"}} </p>
                                                                 </div>
-                                                                <div class="col-md-2">
-                                                                    <button {{$readonly}} class="btn btn-infor btn-sm mx-1 text-xxs text-secondary {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" id="edit_comments"><i class="fas fa-pen"></i> Edit</button>
+                                                                <div class="col-md-3">
+                                                                    @php
+                                                                        $btnText = "<i class=\"fas fa-pen\"></i> Edit";
+                                                                        $otherClasses = "text-secondary w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                                                                        $btn_id = "edit_comments";
+                                                                    @endphp
+                                                                    <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                    {{-- <button {{$readonly}} class="btn btn-infor btn-sm mx-1 text-xxs text-secondary {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" id="edit_comments"><i class="fas fa-pen"></i> Edit</button> --}}
                                                                 </div>
                                                             </div>
                                                         </td>
@@ -970,15 +1241,24 @@
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         @if ($clients_data[0]->validated == 1)
-                                                            <button {{$readonly}} class="btn btn-success text-dark" type="submit"><i
-                                                                    class="ft-upload"></i> Update User</button>
+                                                            @php
+                                                                $btnText = "<i class=\"ft-upload\"></i> Update User";
+                                                                $otherClasses = "text-dark";
+                                                                $btn_id = "";
+                                                            @endphp
+                                                            <x-button :btnText="$btnText" toolTip="Send Invoice" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                            {{-- <button {{$readonly}} class="btn btn-success text-dark" type="submit"><i class="ft-upload"></i> Update User</button> --}}
                                                         @else
                                                             <p>Update button appears here but user is not validated yet!</p>
                                                         @endif
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <a class="btn btn-secondary btn-outline" href="/Clients"><i
-                                                                class="ft-x"></i> Cancel</a>
+                                                        @php
+                                                            $btnText = "<i class=\"ft-x\"></i> Cancel";
+                                                            $otherClasses = $clients_data[0]->client_freeze_status == "1" ? "disabled $readonly":"$readonly";
+                                                            $btnLink = "/Clients";
+                                                        @endphp
+                                                        <x-button-link :btnText="$btnText" :btnLink="$btnLink" btnType="secondary" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
                                                     </div>
                                                 </div>
                                             </form>
@@ -1033,9 +1313,13 @@
                                                                 <td data-toggle="tooltip" title="" data-original-title="{{$report->report_description}}">{{strlen($report->report_description) > 100 ? substr($report->report_description, 0, 100)."...." : $report->report_description}}</td>
                                                                 <td>{{ucwords(strtolower($report->admin_reporter_fullname))}}</td>
                                                                 <td>{{date("D dS M Y H:i:sA", strtotime($report->report_date))}}</td>
-                                                                <td><a href="/Client-Reports/View/{{$report->report_id}}" class="btn btn-sm btn-purple text-bolder"
-                                                                        data-toggle="tooltip" title="View this issue."><i
-                                                                            class="ft-eye"></i></a>
+                                                                <td>
+                                                                    @php
+                                                                        $btnText = "<i class=\"ft-eye\"></i>";
+                                                                        $otherClasses = "text-bolder";
+                                                                        $btnLink = "/Client-Reports/View/".$report->report_id;
+                                                                    @endphp
+                                                                    <x-button-link :btnText="$btnText" :btnLink="$btnLink" btnType="purple" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" toolTip="View this issue."/>
                                                                 </td>
                                                             </tr>
                                                         @endforeach
@@ -1047,7 +1331,7 @@
                                             <p class="card-text">In this table below you will see previously generated invoices for <b>{{ ucwords(strtolower($clients_data[0]->client_name)) }}</b>.</p>
                                             
                                             {{-- GENERATE INVOICE --}}
-                                            <div class="modal fade text-left hide" id="generate_client_invoice" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
+                                            <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="generate_client_invoice" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
                                                 <div class="modal-dialog modal-dialog-centered" role="document">
                                                     <div class="modal-content">
                                                         <div class="modal-header bg-info white">
@@ -1115,10 +1399,20 @@
                                                                 <div class="container" id="reponse_holder_invoices"></div>
                                                                 <div class="row w-100">
                                                                     <div class="col-md-6">
-                                                                        <button {{$readonly_finance}} type="submit" id="generate_invoice" class="btn btn-info my-1 btn-sm w-100"><i class="fas fa-save"></i> Generate Invoice <span class="invisible" id="invoice_loader"><i class="fas ft-rotate-cw fa-spin"></i></span></button>
+                                                                        @php
+                                                                            $btnText = "<i class=\"fas fa-save\"></i> Generate Invoice <span class=\"invisible\" id=\"invoice_loader\"><i class=\"fas ft-rotate-cw fa-spin\"></i></span>";
+                                                                            $otherClasses = "w-100 my-1";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="generate_invoice" :readOnly="$readonly_finance" />
+                                                                        {{-- <button {{$readonly_finance}} type="submit" id="generate_invoice" class="btn btn-info my-1 btn-sm w-100"><i class="fas fa-save"></i> Generate Invoice <span class="invisible" id="invoice_loader"><i class="fas ft-rotate-cw fa-spin"></i></span></button> --}}
                                                                     </div>
                                                                     <div class="col-md-6">
-                                                                        <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_generate_client_invoice_2">Cancel</button>
+                                                                        @php
+                                                                            $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                                            $otherClasses = "w-100 my-1".($clients_data[0]->validated == 0 ? "d-none" : "");
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_generate_client_invoice_2" :readOnly="$readonly_finance" />
+                                                                        {{-- <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_generate_client_invoice_2">Cancel</button> --}}
                                                                     </div>
                                                                 </div>
                                                             </form>
@@ -1130,7 +1424,7 @@
                                             </div>
 
                                             {{-- UPDATE INVOICE --}}
-                                            <div class="modal fade text-left hide" id="view_client_invoice" tabindex="-1" role="dialog" aria-labelledby="myModalLabel12" style="padding-right: 17px;" aria-modal="true">
+                                            <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="view_client_invoice" tabindex="-1" role="dialog" aria-labelledby="myModalLabel12" style="padding-right: 17px;" aria-modal="true">
                                                 <div class="modal-dialog modal-dialog-centered" role="document">
                                                     <div class="modal-content">
                                                         <div class="modal-header bg-primary white">
@@ -1198,10 +1492,20 @@
                                                                 </div>
                                                                 <div class="row w-100">
                                                                     <div class="col-md-6">
-                                                                        <button {{$readonly_finance}} type="submit" id="edit_generate_invoice" class="btn btn-primary my-1 btn-sm w-100"><i class="fas fa-save"></i> Update Invoice <span class="invisible" id="edit_invoice_loader"><i class="fas ft-rotate-cw fa-spin"></i></span></button>
+                                                                        @php
+                                                                            $btnText = "<i class=\"fas fa-save\"></i> Update Invoice <span class=\"invisible\" id=\"edit_invoice_loader\"><i class=\"fas ft-rotate-cw fa-spin\"></i>";
+                                                                            $otherClasses = "w-100 my-1";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="primary" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="edit_generate_invoice" :readOnly="$readonly_finance" />
+                                                                        {{-- <button {{$readonly_finance}} type="submit" id="edit_generate_invoice" class="btn btn-primary my-1 btn-sm w-100"><i class="fas fa-save"></i> Update Invoice <span class="invisible" id="edit_invoice_loader"><i class="fas ft-rotate-cw fa-spin"></i></span></button> --}}
                                                                     </div>
                                                                     <div class="col-md-6">
-                                                                        <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_view_client_invoice_2">Cancel</button>
+                                                                        @php
+                                                                            $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                                            $otherClasses = "w-100 my-1".($clients_data[0]->validated == 0 ? "d-none" : "");
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_view_client_invoice_2" :readOnly="$readonly_finance" />
+                                                                        {{-- <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_view_client_invoice_2">Cancel</button> --}}
                                                                     </div>
                                                                 </div>
                                                             </form>
@@ -1213,7 +1517,7 @@
                                             </div>
 
                                             {{-- SEND INVOICE --}}
-                                            <div class="modal fade text-left hide" id="send_client_invoice" tabindex="-1" role="dialog" aria-labelledby="myModalLabel13" style="padding-right: 17px;" aria-modal="true">
+                                            <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="send_client_invoice" tabindex="-1" role="dialog" aria-labelledby="myModalLabel13" style="padding-right: 17px;" aria-modal="true">
                                                 <div class="modal-dialog modal-lg modal-dialog-centered"  role="document">
                                                     <div class="modal-content">
                                                         <div class="modal-header bg-success white">
@@ -1303,10 +1607,20 @@
                                                                 </div>
                                                                 <div class="row w-100">
                                                                     <div class="col-md-6">
-                                                                        <button {{$readonly}} type="submit" {{$readonly_finance}} id="send_client_invoice" class="btn btn-success my-1 btn-sm w-100"><i class="ft-mail"></i> Send Invoice Link <span class="invisible" id="edit_invoice_loader"><i class="fas ft-rotate-cw fa-spin"></i></span></button>
+                                                                        @php
+                                                                            $btnText = "<i class=\"ft-mail\"></i> Send Invoice Link <span class=\"invisible\" id=\"edit_invoice_loader\"><i class=\"fas ft-rotate-cw fa-spin\"></i>";
+                                                                            $otherClasses = "w-100 my-1";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="send_client_invoice" :readOnly="$readonly" />
+                                                                        {{-- <button {{$readonly}} type="submit" {{$readonly_finance}} id="send_client_invoice" class="btn btn-success my-1 btn-sm w-100"><i class="ft-mail"></i> Send Invoice Link <span class="invisible" id="edit_invoice_loader"><i class="fas ft-rotate-cw fa-spin"></i></span></button> --}}
                                                                     </div>
                                                                     <div class="col-md-6">
-                                                                        <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_send_client_invoice_2">Cancel</button>
+                                                                        @php
+                                                                            $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                                            $otherClasses = "w-100 my-1 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_send_client_invoice_2" :readOnly="$readonly" />
+                                                                        {{-- <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_send_client_invoice_2">Cancel</button> --}}
                                                                     </div>
                                                                 </div>
                                                             </form>
@@ -1318,7 +1632,7 @@
                                             </div>
 
                                             {{-- SEND INVOICE --}}
-                                            <div class="modal fade text-left hide" id="delete_client_invoice" tabindex="-1" role="dialog" aria-labelledby="myModalLabel13" style="padding-right: 17px;" aria-modal="true">
+                                            <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="delete_client_invoice" tabindex="-1" role="dialog" aria-labelledby="myModalLabel13" style="padding-right: 17px;" aria-modal="true">
                                                 <div class="modal-dialog modal-dialog-centered"  role="document">
                                                     <div class="modal-content">
                                                         <div class="modal-header bg-danger white">
@@ -1331,10 +1645,19 @@
                                                         <div class="container" id="delete_invoice_notice"></div>
                                                             <div class="row w-100">
                                                                 <div class="col-md-6">
-                                                                    <a type="submit" id="delete_client_invoice_btn" href="/Delete-Invoice/" class="btn btn-danger {{$readonly_finance}} my-1 btn-sm w-100"><i class="ft-trash"></i> Delete</a>
+                                                                    @php
+                                                                        $btnText = "<i class=\"ft-trash\"></i> Delete";
+                                                                        $otherClasses = "text-bolder my-1 w-100 ".$readonly_finance;
+                                                                        $btnLink = "/Delete-Invoice";
+                                                                    @endphp
+                                                                    <x-button-link :btnText="$btnText" btnId="delete_client_invoice_btn" :btnLink="$btnLink" btnType="danger" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly_finance" />
                                                                 </div>
                                                                 <div class="col-md-6">
-                                                                    <button class="btn btn-secondary my-1 btn-sm w-100" type="button" id="close_delete_client_invoice_2">Cancel</button>
+                                                                    @php
+                                                                        $btnText = "<i class=\"ft-x\"></i> Cancel";
+                                                                        $otherClasses = "w-100 my-1 float-right";
+                                                                    @endphp
+                                                                    <x-button :btnText="$btnText" btnId="close_delete_client_invoice_2" btnType="secondary" btnSize="sm" :otherClasses="$otherClasses"/>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1354,8 +1677,12 @@
                                                     <p id="errors"></p>
                                                 </div>
                                                 <div class="col-md-3">
-                                                    <button class="btn btn-info btn-sm" id="new_invoice" {{$readonly_finance}}><i class="ft-file-plus"></i> Generate Invoice</button>
-                                                    {{-- <a href="/Client-Reports/New" class="btn btn-purple btn-sm {{$readonly}}"><i class="ft-plus"></i> New Issue</a> --}}
+                                                    {{-- <button class="btn btn-info btn-sm" id="new_invoice" {{$readonly_finance}}><i class="ft-file-plus"></i> Generate Invoice</button> --}}
+                                                    @php
+                                                        $btnText = "<i class=\"ft-file-plus\"></i> Generate Invoice";
+                                                        $otherClasses = "w-100 my-1 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                                                    @endphp
+                                                    <x-button :btnText="$btnText" btnType="info" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="new_invoice" :readOnly="$readonly_finance" />
                                                 </div>
                                             </div>
                                             <div class="table-responsive" id="invoice_table_holder">
@@ -1427,10 +1754,33 @@
                                                                 <td>{{$invoice->date_generated_1}}</td>
                                                                 <td>{{$date_selected}}</td>
                                                                 <td>
-                                                                    <button {{$readonly_finance}} data-toggle="tooltip" title="View Invoice" class="btn btn-sm btn-primary view_invoice" id="view_invoice_{{$invoice->invoice_id}}"><i class="ft-eye"></i></button>
-                                                                    <a data-toggle="tooltip" title="Print Invoice" target="_blank" href="/Invoice/Print/{{$invoice->invoice_id}}" class="btn btn-sm btn-info"><i class="ft-printer"></i></a>
-                                                                    <button {{$readonly_finance}} data-toggle="tooltip" title="Delete Invoice" class="btn btn-sm btn-danger delete_invoice" id="delete_invoice_{{$invoice->invoice_id}}"><i class="ft-trash"></i></button>
-                                                                    <button {{$readonly_finance}} data-toggle="tooltip" title="Send Invoice" class="btn btn-sm btn-success send_invoice" id="send_invoice_{{$invoice->invoice_id}}"><i class="ft-mail"></i></button>
+                                                                    @php
+                                                                        $btnText = "<i class=\"ft-eye\"></i>";
+                                                                        $otherClasses = "view_invoice";
+                                                                        $btn_id = "view_invoice_".$invoice->invoice_id;
+                                                                    @endphp
+                                                                    <x-button :btnText="$btnText" toolTip="View Invoice" btnType="primary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly_finance" />
+                                                                    {{-- <button {{$readonly_finance}} data-toggle="tooltip" title="View Invoice" class="btn btn-sm btn-primary view_invoice" id="view_invoice_{{$invoice->invoice_id}}"><i class="ft-eye"></i></button> --}}
+                                                                    @php
+                                                                        $btnText = "<i class=\"ft-printer\"></i>";
+                                                                        $otherClasses = "".$readonly_finance;
+                                                                        $btnLink = "/Invoice/Print/".$invoice->invoice_id;
+                                                                    @endphp
+                                                                    <x-button-link :btnLink="$btnLink" :btnText="$btnText" target="_blank" toolTip="Print Invoice" btnType="info" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly_finance" />
+                                                                    @php
+                                                                        $btnText = "<i class=\"ft-trash\"></i>";
+                                                                        $otherClasses = "delete_invoice";
+                                                                        $btn_id = "delete_invoice_".$invoice->invoice_id;
+                                                                    @endphp
+                                                                    <x-button :btnText="$btnText" toolTip="Delete Invoice" btnType="danger" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly_finance" />
+                                                                    {{-- <button {{$readonly_finance}} data-toggle="tooltip" title="Delete Invoice" class="btn btn-sm btn-danger delete_invoice" id="delete_invoice_{{$invoice->invoice_id}}"><i class="ft-trash"></i></button> --}}
+                                                                    @php
+                                                                        $btnText = "<i class=\"ft-mail\"></i>";
+                                                                        $otherClasses = "send_invoice";
+                                                                        $btn_id = "send_invoice_".$invoice->invoice_id;
+                                                                    @endphp
+                                                                    <x-button :btnText="$btnText" toolTip="Send Invoice" btnType="success" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly_finance" />
+                                                                    {{-- <button {{$readonly_finance}} data-toggle="tooltip" title="Send Invoice" class="btn btn-sm btn-success send_invoice" id="send_invoice_{{$invoice->invoice_id}}"><i class="ft-mail"></i></button> --}}
                                                                 </td>
                                                             </tr>
                                                         @endforeach

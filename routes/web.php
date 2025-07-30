@@ -100,6 +100,7 @@ Route::get("/Clients/View/{clientid}", [Clients::class, "getClientInformation"])
 Route::get('/Clients/View', function () {
     return redirect('Clients');
 })->middleware("validated");
+Route::post("/Client/Convert", [Clients::class, "convertClient"])->name("convertClient");
 // get the refferer details
 Route::get("/get_refferal/{client_account}", [Clients::class, "getRefferal"])->middleware("validated");
 // save the refferer data

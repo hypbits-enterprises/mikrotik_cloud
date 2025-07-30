@@ -298,8 +298,16 @@ cObj("tolastNav").onclick = function() {
     }
 }
 
+cObj("confirm_client_convert").onclick = function () {
+    cObj("submit_convert").click();
+}
+
 function getRouterInterfaces() {
     sendDataGet("GET","/router/"+this.value+"",cObj("interface_holder"),cObj("interface_load"));
+}
+
+function getRouterProfiles() {
+    sendDataGet("GET","/routerProfile/"+cObj("router_list").value+"",cObj("router_profile_holder"),cObj("secrets_load"));
 }
 
 cObj("client_network").onkeyup = function (event) {
@@ -397,6 +405,19 @@ function hideModal(modal_id) {
     cObj(modal_id).classList.add("hide");
     cObj(modal_id).classList.remove("show");
     cObj(modal_id).classList.remove("showBlock");
+}
+
+/**DELETE USER MODAL */
+cObj("convert_client").onclick = function () {
+    showModal("convert_client_modal");
+}
+
+cObj("close_convert_client").onclick = function () {
+    hideModal("convert_client_modal");
+}
+
+cObj("hide_convert_client").onclick = function () {
+    hideModal("convert_client_modal");
 }
 
 /**DELETE USER MODAL */

@@ -1761,14 +1761,7 @@ $export_text .= "
             $API->debug = false;
             if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
                 if ($allow_router_changes == "on") {
-                    // get the IP ADDRES
-                    $curl_handle = curl_init();
-                    $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_name . "&r_ppoe_secrets=true";
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                    $curl_data = curl_exec($curl_handle);
-                    curl_close($curl_handle);
-                    $ppp_secrets = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+                    $ppp_secrets = $this->getPPPSecrets($router_name);
 
                     // loop through the secrets to see if its present
                     $present_ppp_profile = 0;
@@ -3378,10 +3371,12 @@ $export_text .= "
                         }
 
                         // loopt through the simple queues and get the queue to remove
+                        $simple_queues = count($simple_queues) > 0 ? $simple_queues[0] : [];
+                        $target_key = array_key_exists('address', $simple_queues) ? 'address' : 'target';
                         $queue_ip = $client_network . "/" . $subnet[1];
                         $queue_id = false;
                         foreach ($simple_queues as $key => $queue) {
-                            if ($queue['target'] == $queue_ip) {
+                            if ($queue[$target_key] == $queue_ip) {
                                 $queue_id = $queue['.id'];
                                 break;
                             }
@@ -3606,7 +3601,7 @@ $export_text .= "
         // return $pppoe_profiles;
 
         // create the select selector
-        $data_to_display = "<select name='pppoe_profile' class='form-control' id='pppoe_profile' required ><option value='' hidden>Select a Profile</option>";
+        $data_to_display = "<select name='pppoe_profile' class='form-control' id='pppoe_profile'  ><option value='' hidden>Select a Profile</option>";
         for ($index = 0; $index < count($pppoe_profiles); $index++) {
             $data_to_display .= "<option value='" . $pppoe_profiles[$index]['name'] . "'>" . $pppoe_profiles[$index]['name'] . "</option>";
         }
@@ -3774,14 +3769,15 @@ $export_text .= "
             }
 
             $code = $this->generate_new_invoice_code();
+            $last_client_details = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = 'static' ORDER BY `client_id` DESC LIMIT 1;");
 
             // get the invoices for that particular client
             $invoices = DB::connection("mysql2")->select("SELECT * FROM invoices WHERE client_id = ? ORDER BY invoice_number DESC", [$clientid]);
 
             if ($assignment == "static") {
-                return view("clientInfor", ["invoices" => $invoices, "invoice_id" => $code ,"pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
+                return view("clientInfor", ["last_client_details" => $last_client_details, "invoices" => $invoices, "invoice_id" => $code ,"pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
             } elseif ($assignment == "pppoe") {
-                return view("clientInforPppoe", ["invoices" => $invoices, "invoice_id" => $code ,"pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
+                return view("clientInforPppoe", ["last_client_details" => $last_client_details, "invoices" => $invoices, "invoice_id" => $code ,"pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
             } else {
                 session()->flash("error_clients", "Invalid Assignment!!");
                 return redirect("/Clients");
@@ -3805,6 +3801,175 @@ $export_text .= "
             return "Invalid User!";
         }
     }
+
+    // convert client
+    function convertClient(Request $request){
+        $client_id = $request->input("client_id");
+        // select the client details
+        $client_data = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE client_id = ?",[$client_id]);
+        if (count($client_data) > 0) {
+            if ($client_data[0]->assignment == "static"){
+                $client_secret_username = $request->input("client_secret_username");
+                $client_secret_password = $request->input("client_secret_password");
+                $router_list = $request->input("router_list");
+                $pppoe_profile = $request->input("pppoe_profile");
+                // delete the user ip address
+
+                // check if the routers are the same
+                // if not proceed and disable the router profile
+                // get the router data
+                $router_id =  $router_list;
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'", [$router_id]);
+                if (count($router_data) > 0) {
+                    // disable the interface in that router
+
+                    // get the sstp credentails they are also the api usernames
+                    $sstp_username = $router_data[0]->sstp_username;
+                    $sstp_password = $router_data[0]->sstp_password;
+                    $api_port = $router_data[0]->api_port;
+
+
+                    // connect to the router and set the sstp client
+                    $sstp_value = $this->getSSTPAddress();
+                    if ($sstp_value == null) {
+                        $error = "The SSTP server is not set, Contact your administrator!";
+                        session()->flash("network_presence", $error);
+                        return redirect(url()->previous());
+                    }
+
+                    // connect to the router and set the sstp client
+                    $server_ip_address = $sstp_value->ip_address;
+                    $user = $sstp_value->username;
+                    $pass = $sstp_value->password;
+                    $port = $sstp_value->port;
+
+                    // check if the router is actively connected
+                    $client_router_ip = $this->checkActive($server_ip_address, $user, $pass, $port, $sstp_username);
+                    $API = new routeros_api();
+                    $API->debug = false;
+                    if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
+                        // GET IP ADDRESS
+                        $ip_addresses = $this->getIpaddress($router_id);
+                        // GET QUEUES
+                        $simple_queues = $this->getQueues($router_id);
+                        $subnet = explode("/", $client_data[0]->client_default_gw);
+
+                        // DELETE IP ADDRESS
+                        $client_network = $client_data[0]->client_network;
+                        foreach ($ip_addresses as $key => $ip_address) {
+                            if ($client_network == $ip_address['network']) {
+                                $API->comm("/ip/address/remove", array(
+                                    ".id" => $ip_address['.id']
+                                ));
+                                break;
+                            }
+                        }
+
+                        // DELETE THE QUEUES
+                        $simple_queues = count($simple_queues) > 0 ? $simple_queues[0] : [];
+                        $target_key = array_key_exists('address', $simple_queues) ? 'address' : 'target';
+                        $queue_ip = $client_network . "/" . $subnet[1];
+                        foreach ($simple_queues as $key => $queue) {
+                            if ($queue[$target_key] == $queue_ip) {
+                                $API->comm("/queue/simple/remove", array(
+                                    ".id" => $queue['.id']
+                                ));
+                                break;
+                            }
+                        }
+
+                        // ADD THE SECRET TO THE ROUTER
+                        $ppp_secrets = $this->getPPPSecrets($router_id);
+
+                        // FIND THE SECRET
+                        $present_ppp_profile = 0;
+                        $secret_id = 0;
+                        for ($index = 0; $index < count($ppp_secrets); $index++) {
+                            if ($ppp_secrets[$index]['name'] == $client_secret_username) {
+                                $present_ppp_profile = 1;
+                                $secret_id = $ppp_secrets[$index]['.id'];
+                                break;
+                            }
+                        }
+                        
+                        if ($present_ppp_profile == 1) {
+                            // update the password and the service
+                            $API->comm(
+                                "/ppp/secret/set",
+                                array(
+                                    "name"     => $client_secret_username,
+                                    "service" => "pppoe",
+                                    "password" => $client_secret_password,
+                                    "profile"  => $pppoe_profile,
+                                    "comment"  => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account,
+                                    "disabled" => "false",
+                                    ".id" => $secret_id
+                                )
+                            );
+                            // log message
+                            $txt = ":New Client (" . $client_data[0]->client_name . ") converted from static assignment to pppoe by  " . session('Usernames') . "!";
+                            $this->log($txt);
+                        } else {
+                            $API->comm(
+                                "/ppp/secret/add",
+                                array(
+                                    "name"     => $client_secret_username,
+                                    "service" => "pppoe",
+                                    "password" => $client_secret_password,
+                                    "profile"  => $pppoe_profile,
+                                    "comment"  => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account,
+                                    "disabled" => "false"
+                                )
+                            );
+
+                            // log message
+                            $txt = ":New Client (" . $client_name . ") successfully converted from static assignment to pppoe by  " . session('Usernames') . "!";
+                            $this->log($txt);
+                        }
+
+                        // update the client details
+                        DB::connection("mysql2")->table('client_tables')
+                        ->where('client_id', $client_data[0]->client_id)
+                        ->update([
+                            'client_network' => "",
+                            'client_default_gw' => "",
+                            'max_upload_download' => "",
+                            'router_name' => $router_list,
+                            'assignment' => "pppoe",
+                            'client_secret' => $client_secret_username,
+                            'client_secret_password' => $client_secret_password,
+                            'client_profile' => $pppoe_profile,
+                            'date_changed' => date("YmdHis")
+                        ]);
+
+                        session()->flash("success", "Conversion has been done successfully!");
+                        return redirect(url()->previous());
+                    }else {
+                        session()->flash("error", "Can`t connect to router please try again later!");
+                        return redirect(url()->previous());
+                    }
+                }else {
+                    session()->flash("error", "Can`t connect to router please try again later!");
+                    return redirect(url()->previous());
+                }
+            }elseif ($client_data[0]->assignment == "pppoe") {
+                return "STATIC";
+                // CONVERT FROM PPPOE TO STATIC
+                
+                // DELETE SECRET
+                // REMOVE ACTIVE CONNECTION
+                // ADD IP ADDRESS
+                // ADD QUEUES
+                // UPDATE THE DATABASE
+            }
+            session()->flash("error", "Invalid Conversion try again!");
+            return redirect(url()->previous());
+        }else{
+            session()->flash("error", "Invalid user!");
+            return redirect(url()->previous());
+        }
+    }
+
     // set refferal information
     function setRefferal(Request $req)
     {

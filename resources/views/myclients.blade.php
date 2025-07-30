@@ -162,10 +162,9 @@
                             <div class="card-header">
                                 <p>- Manage Clients Further!</p>
                                 {{-- <span class='badge badge-warning text-dark'>Reffered</span> --}}
-                                <a href="/ClientSync" class="btn btn-outline-primary disabled d-none mt-1"><i class="ft-refresh-ccw"></i> Sync Clients</a>
-                                <a href="/Client-Statistics" data-toggle="tooltip" title="Client`s Statistics" class="btn btn-outline-secondary mt-1"><i class="ft-bar-chart-2"></i> Client`s Statistics</a>
-                                <span data-toggle="tooltip" title="Client`s Reports" class="btn btn-outline-info mt-1" id="client_reports_btn"><i class="ft-file-text"></i> Client`s Reports</span>
-                                <button class="btn btn-outline-info mt-1 {{$export_data == "disabled" ? "d-none" : ""}}" {{$export_data}} data-toggle="tooltip" title="Export Client Data" id="export_client_data_btn"><i class="fa fa-file-export"></i> Export Client Data <span class="badge bg-success fa-beat-fade {{date("Ymd") > "20250719" ? "d-none" : ""}}">new</span></button>
+                                <a href="/Client-Statistics" class="btn btn-secondary mt-1" style="padding: 3px;" data-toggle="tooltip" title="Client`s Statistics"><span class="d-inline-block border border-white" style="border-radius: 2px; padding: 10px;"><i class="ft-bar-chart-2"></i> Client`s Statistics</span></a>
+                                <button class="btn btn-info mt-1" style="padding: 3px;" data-toggle="tooltip" title="Client`s Reports" id="client_reports_btn"><span class="d-inline-block border border-white" style="border-radius: 2px; padding: 10px;"><i class="ft-file-text"></i> Client`s Reports</span></button>
+                                <button class="btn btn-info mt-1 {{$export_data == "disabled" ? "d-none" : ""}}" style="padding: 3px;" {{$export_data}} data-toggle="tooltip" title="Export Client Data" id="export_client_data_btn"><span class="d-inline-block border border-white" style="border-radius: 2px; padding: 10px;"><i class="fa fa-file-export"></i> Export Client Data</span></button>
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">

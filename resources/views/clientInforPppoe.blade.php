@@ -236,6 +236,90 @@
                                                 </div>
                                             </div>
                                             <div class="container">
+                                                {{-- CONVERT CLIENT TO PPPOE --}}
+                                                <div class="modal fade text-left hide" id="convert_client_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel3" style="padding-right: 17px;" aria-modal="true">
+                                                    <div class="modal-dialog modal-dialog-centered" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-info white">
+                                                                <h5 class="modal-title white" id="myModalLabel3">Convert {{ucwords(strtolower($clients_data[0]->client_name))}} to PPPOE.</h5>
+                                                                <input type="hidden" id="convert_client_id">
+                                                                <button id="hide_convert_client" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                    <span aria-hidden="true">×</span>
+                                                                </button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="container">
+                                                                    <div class="form-group">
+                                                                        <label for="edit_client_network" class="form-control-label">Client`s Network {<span class="primary">{{ count($last_client_details) > 0 ? ucwords(strtolower($last_client_details[0]->client_network)) : "" }}</span>}</label>
+                                                                        <input type="text" name="edit_client_network" id="edit_client_network" class="form-control rounded-lg p-1" placeholder="ex 10.10.30.0" required value="">
+                                                                    </div>
+                                                                    <div class="form-group">
+                                                                        <label for="edit_client_gw"  id="errorMsg1" class="form-control-label">Client`s Gateway {<span class="primary">{{ count($last_client_details) > 0 ? ucwords(strtolower($last_client_details[0]->client_default_gw)) : "" }}</span>}</label>
+                                                                        <input type="text" name="edit_client_gw" id="edit_client_gw" class="form-control rounded-lg p-1" placeholder="ex 10.10.30.1/24" required value="">
+                                                                    </div>
+                                                                    <div class="form-group row">
+                                                                        <div class="col-md-6">
+                                                                            <label for="edit_upload_speed" class="form-control-label">Upload Speed</label>
+                                                                            <input class="form-control" type="number" name="edit_upload_speed" id="edit_upload_speed" placeholder="128" required value="">
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <label for="edit_upload_unit" class="form-control-label">Upload Unit</label>
+                                                                            <select class="form-control" name="edit_upload_unit" id="edit_upload_unit" required value="">
+                                                                                <option value="" hidden>Select unit</option>
+                                                                                <option value="K">Kbps</option>
+                                                                                <option value="M">Mbps</option>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="form-group row">
+                                                                        <div class="col-md-6">
+                                                                            <label for="edit_download_speed"
+                                                                                class="form-control-label">Download Speed</label>
+                                                                            <input class="form-control" type="number" name="edit_download_speed" id="edit_download_speed" placeholder="128" required value="">
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <label for="edit_download_unit" class="form-control-label">Download Unit</label>
+                                                                            <select class="form-control" name="edit_download_unit" id="edit_download_unit" required
+                                                                                value="">
+                                                                                <option value="" hidden>Select unit</option>
+                                                                                <option value="K">Kbps</option>
+                                                                                <option value="M">Mbps</option>
+                                                                            </select>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="row my-1">
+                                                                        <div class="col-md-6 form-group">
+                                                                            <label for="convert_routers" class="form-control-label">Router Name: {
+                                                                                <span class="primary bolder" id="convert_router_holder">Hilary Dev</span> }
+                                                                                <span class="invisible" id="router_name_loader"><i class="fas ft-rotate-cw fa-spin"></i></span></label>
+                                                                                <p id="router_data">
+                                                                                    <span class="secondary">The router list will
+                                                                                    appear here.. If this message is still present you have no
+                                                                                    routers present in your database.</span></p>
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <label for="client_router_interface" class="form-control-label">Router Interface: { <span class="primary bolder" id="router_interfaced"></span> } </label>
+                                                                            <p class="text-secondary" id="router_interface_holder">The router interfaces
+                                                                                will appear here If the router is selected.If this message is still
+                                                                                present the router is not selected.</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <div class="row w-100">
+                                                                    <div class="col-md-6">
+                                                                        <button type="button" id="close_convert_client" class="btn grey btn-secondary btn-sm w-100" data-dismiss="modal">Close</button>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <button type="button" id="confirm_client_convert" class="btn grey btn-infor btn-sm w-100" data-dismiss="modal"><i class="fas fa-refresh"></i> Convert</button>
+                                                                        {{-- <a href="/delete_user/{{$clients_data[0]->client_id}}" class="btn btn-danger btn-sm w-100 "><i class="ft-trash"></i> Delete</a> --}}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                                 {{-- DELETE THE CLIENT --}}
                                                 <div class="modal fade text-left hide" id="delete_client_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
                                                     <div class="modal-dialog modal-dialog-centered" role="document">
