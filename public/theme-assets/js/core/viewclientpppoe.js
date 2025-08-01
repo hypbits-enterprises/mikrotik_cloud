@@ -56,28 +56,6 @@ window.onload = function () {
     // cObj("comments").value = clients_data[0]['comment'];
     var router_names = clients_data[0]['router_name'];
     cObj("router_profiles").innerText = clients_data[0]['client_profile'] ? clients_data[0]['client_profile'] : "null";
-    // cObj("client_username").value = clients_data[0]['client_username'];
-    // cObj("client_password").value = clients_data[0]['client_password'];
-
-    // assigne the selected unit
-    // start with upload
-    var innit = document.getElementsByClassName("innit");
-    for (let index = 0; index < innit.length; index++) {
-        const element = innit[index];
-        // if the value of the element is equal to the value assigned to the user select it
-        if (element.value == up_unit) {
-            element.selected = true;
-        }
-    }
-    // download speed
-    var downinit = document.getElementsByClassName("downinit");
-    for (let index = 0; index < downinit.length; index++) {
-        const element = downinit[index];
-        // if the value of the element is equal to the value assigned to the user select it
-        if (element.value == down_unit) {
-            element.selected = true;
-        }
-    }
 
     // add an event listener to the router name list to change
     var router_name = document.getElementById("router_name");
@@ -92,7 +70,7 @@ window.onload = function () {
             }
         }
         // set the event listener
-        router_name.addEventListener("change", getRouterInterfaces);
+        router_name.addEventListener("change", getRouterProfiles);
     }else{
         // console.log("Is null");
     }
@@ -274,10 +252,14 @@ cObj("tolastNav").onclick = function() {
     }
 }
 
-function getRouterInterfaces() {
-    sendDataGet("GET","/routerProfile/"+this.value+"",cObj("interface_holder"),cObj("interface_load"));
+function getRouterProfiles() {
+    sendDataGet("GET","/routerProfile/"+this.value+"",cObj("profile_holder"),cObj("interface_load"));
 }
 
+
+function getRouterInterfaces() {
+    sendDataGet("GET","/router/"+cObj("router_list").value+"",cObj("interface_holder"),cObj("interface_loader"));
+}
     
 function showModal(modal_id) {
     cObj(modal_id).classList.remove("hide");
@@ -441,4 +423,20 @@ cObj("close_generate_client_invoice_1").onclick = function() {
 }
 cObj("close_generate_client_invoice_2").onclick = function() {
     hideModal("generate_client_invoice");
+}
+
+/**CONVERT USER MODAL */
+cObj("convert_client").onclick = function () {
+    showModal("convert_client_modal");
+}
+
+cObj("close_convert_client").onclick = function () {
+    hideModal("convert_client_modal");
+}
+
+cObj("hide_convert_client").onclick = function () {
+    hideModal("convert_client_modal");
+}
+cObj("confirm_client_convert").onclick = function () {
+    cObj("submit_convert").click();
 }

@@ -24,6 +24,7 @@ use mysqli;
 date_default_timezone_set('Africa/Nairobi');
 class Clients extends Controller
 {
+    
     // check json structure
     function isJson_report($string)
     {
@@ -1529,7 +1530,7 @@ $export_text .= "
             $hold_user_id_data = json_decode($hold_user_id_data);
             for ($inde = 0; $inde < count($hold_user_id_data); $inde++) {
                 // return $hold_user_id_data[$inde];
-                $data = $this->delete_user_use_acc($hold_user_id_data[$inde], $delete_from_router);
+                $data = $this->delete_user($hold_user_id_data[$inde]);
                 // return $data;
             }
             session()->flash("success_reg", "Clients deleted successfully!");
@@ -2038,14 +2039,8 @@ $export_text .= "
             $API->debug = false;
             if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
                 if ($allow_router_changes == "on") {
-                    // get the IP ADDRES
-                    $curl_handle = curl_init();
-                    $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_name . "&r_ppoe_secrets=true";
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                    $curl_data = curl_exec($curl_handle);
-                    curl_close($curl_handle);
-                    $ppp_secrets = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+                    // GET ROUTER SECRETS
+                    $ppp_secrets = $this->getRouterSecrets($router_name);
 
                     // loop through the secrets to see if its present
                     $present_ppp_profile = 0;
@@ -2359,36 +2354,15 @@ $export_text .= "
                 $router_simple_queues = [];
                 if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
                     // get the IP ADDRES
-                    $curl_handle = curl_init();
-                    $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_name . "&r_ip=true";
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                    $curl_data = curl_exec($curl_handle);
-                    curl_close($curl_handle);
-                    $router_ip_addresses = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
-                    // save the router ip address
-                    $ip_addr = $router_ip_addresses;
+                    $router_ip_addresses = $this->getRouterIPAddress($router_name);
 
                     // get the SIMPLE QUEUES
-                    $curl_handle = curl_init();
-                    $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_name . "&r_queues=true";
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                    $curl_data = curl_exec($curl_handle);
-                    curl_close($curl_handle);
-                    $router_simple_queues = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
-                    $simple_queues = $router_simple_queues;
+                    $simple_queues = $this->getRouterQueues($router_name);
 
                     // set the target key for simple queues because this changes in different routers.
                     $target_key = 'target';
                     $first_simple_queues = count($simple_queues) > 0 ? $simple_queues[0] : null;
-                    if ($first_simple_queues != null) {
-                        foreach ($first_simple_queues as $key => $simple_queue) {
-                            if ($key == 'address') {
-                                $target_key = $key;
-                            }
-                        }
-                    }
+                    $target_key = array_key_exists('address', $first_simple_queues) ? 'address' : 'target';
 
                     // proceed and add the client to the router
                     if ($req->input('allow_router_changes') == "on") {
@@ -2741,36 +2715,14 @@ $export_text .= "
                 $router_simple_queues = [];
                 if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
                     // get the IP ADDRES
-                    $curl_handle = curl_init();
-                    $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_name . "&r_ip=true";
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                    $curl_data = curl_exec($curl_handle);
-                    curl_close($curl_handle);
-                    $router_ip_addresses = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
-                    // save the router ip address
-                    $ip_addr = $router_ip_addresses;
+                    $router_ip_addresses = $this->getRouterIPAddress($router_name);
 
                     // get the SIMPLE QUEUES
-                    $curl_handle = curl_init();
-                    $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_name . "&r_queues=true";
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                    $curl_data = curl_exec($curl_handle);
-                    curl_close($curl_handle);
-                    $router_simple_queues = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
-                    $simple_queues = $router_simple_queues;
+                    $simple_queues = $this->getRouterQueues($router_name);
 
                     // set the target key for simple queues because this changes in different routers.
-                    $target_key = 'target';
                     $first_simple_queues = count($simple_queues) > 0 ? $simple_queues[0] : null;
-                    if ($first_simple_queues != null) {
-                        foreach ($first_simple_queues as $key => $simple_queue) {
-                            if ($key == 'address') {
-                                $target_key = $key;
-                            }
-                        }
-                    }
+                    $target_key = array_key_exists('address', $first_simple_queues) ? 'address' : 'target';
 
                     // proceed and add the client to the router
                     if ($req->input('allow_router_changes') == "on") {
@@ -2996,242 +2948,6 @@ $export_text .= "
         return redirect(url()->previous());
     }
 
-    function delete_user_use_acc($user_acc, $affect_router)
-    {
-        // change db
-        $change_db = new login();
-        $change_db->change_db();
-
-        // get the user information
-        $affect_router = $affect_router == "on" ? true : false;
-        // return $user_acc;
-        $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_account` = '$user_acc'");
-        if (count($user_data) > 0) {
-            if ($user_data[0]->assignment == "static") {
-                $router_id =  $user_data[0]->router_name;
-                $client_name = $user_data[0]->client_name;
-                $user_id = $user_data[0]->client_id;
-
-                // only if allowed to change the router
-                if ($affect_router) {
-                    // return $user_id;
-                    $curl_handle = curl_init();
-                    // get router data
-                    $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '$router_id' LIMIT 1");
-                    $ip_address = $router_data[0]->router_ipaddr;
-                    $router_api_username = $router_data[0]->router_api_username;
-                    $router_api_password = $router_data[0]->router_api_password;
-                    $router_api_port = $router_data[0]->router_api_port;
-
-                    // get queues and ip addresses
-                    $baseUrl = explode(":", url('/'));
-                    $local_url = $baseUrl[0] . ":" . $baseUrl[1];
-                    $url = "$local_url:81/crontab/getIpaddress.php?r_queues=true&r_id=" . $router_id;
-
-                    // Set the curl URL option
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-
-                    // This option will return data as a string instead of direct output
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-
-                    // Execute curl & store data in a variable
-                    $curl_data = curl_exec($curl_handle);
-
-                    curl_close($curl_handle);
-
-                    // Decode JSON into PHP array
-                    $router_simple_queues = json_decode($curl_data);
-
-                    // route ip addresses
-                    $curl_handle = curl_init();
-
-                    $baseUrl = explode(":", url('/'));
-                    $local_url = $baseUrl[0] . ":" . $baseUrl[1];
-                    $url = "$local_url:81/crontab/getIpaddress.php?r_ip=true&r_id=" . $router_id;
-
-                    // Set the curl URL option
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-
-                    // This option will return data as a string instead of direct output
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-
-                    // Execute curl & store data in a variable
-                    $curl_data = curl_exec($curl_handle);
-
-                    curl_close($curl_handle);
-
-                    // Decode JSON into PHP array
-                    $router_ip_addresses = json_decode($curl_data);
-
-                    // loop through the ip addresses and delete the one with the clients details
-                    $clients_network = $user_data[0]->client_network;
-                    $client_subnet = explode("/", $user_data[0]->client_default_gw)[1];
-                    $client_default_gw = explode("/", $user_data[0]->client_default_gw)[1];
-                    // ip address to delete
-                    $id = "";
-                    foreach ($router_ip_addresses as $key => $value) {
-                        if ($value->address == $user_data[0]->client_default_gw && $value->network == $clients_network) {
-                            foreach ($value as $key2 => $value2) {
-                                if ($key2 == ".id") {
-                                    $id = $value2;
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                    }
-                    // return $id;
-                    // delete that id
-
-                    // end of delete ip address
-                    // loop through the simple queues and delete the user queue
-                    $id2 = "";
-                    foreach ($router_simple_queues as $key => $value) {
-                        if ($value->target == $clients_network . "/" . $client_subnet) {
-                            foreach ($value as $key2 => $value2) {
-                                if ($key2 == ".id") {
-                                    $id2 = $value2;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    // return $id2;
-
-                    // connect to the router and add the ip address and queues to the interface
-                    $API = new routeros_api();
-                    $API->debug = false;
-                    // check if the connection is valid
-                    if ($API->connect($ip_address, $router_api_username, $router_api_password, $router_api_port)) {
-                        $API->comm(
-                            "/ip/address/remove",
-                            array(
-                                ".id" => $id
-                            )
-                        );
-                        $API->comm(
-                            "/queue/simple/remove",
-                            array(
-                                ".id" => $id2
-                            )
-                        );
-                    }
-                }
-                // DB::connection("mysql2")->delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
-                $update = DB::connection("mysql2")->update("UPDATE `client_tables` SET `date_changed` = ?, `deleted` = '1' WHERE `client_id` = ?", [date("YmdHis"), $user_id]);
-
-                // log message
-                $txt = ":Client (" . $client_name . ") has been deleted by " . session('Usernames') . "!";
-                $this->log($txt);
-                // end of log file
-            } elseif ($user_data[0]->assignment == "pppoe") {
-                // remove the client secret and all active connections associated to it
-                // get secrets
-                // Initiate curl session in a variable (resource)
-                $curl_handle = curl_init();
-                $router_id = $user_data[0]->router_name;
-                $client_name = $user_data[0]->client_name;
-                $user_id = $user_data[0]->client_id;
-
-
-                // allow changes to the router when needed
-                if ($affect_router) {
-                    $baseUrl = explode(":", url('/'));
-                    $local_url = $baseUrl[0] . ":" . $baseUrl[1];
-                    $url = "$local_url:81/crontab/getIpaddress.php?r_ppoe_secrets=true&r_id=" . $router_id;
-
-                    // Set the curl URL option
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-
-                    // This option will return data as a string instead of direct output
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-
-                    // Execute curl & store data in a variable
-                    $curl_data = curl_exec($curl_handle);
-
-                    curl_close($curl_handle);
-
-                    // Decode JSON into PHP array
-                    $router_secrets = json_decode($curl_data);
-                    // return $router_secrets;
-
-                    // get the active connection
-                    // Initiate curl session in a variable (resource)
-                    $curl_handle = curl_init();
-
-                    $baseUrl = explode(":", url('/'));
-                    $local_url = $baseUrl[0] . ":" . $baseUrl[1];
-                    $url = "$local_url:81/crontab/getIpaddress.php?r_active_secrets=true&r_id=" . $router_id;
-
-                    // Set the curl URL option
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-
-                    // This option will return data as a string instead of direct output
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-
-                    // Execute curl & store data in a variable
-                    $curl_data = curl_exec($curl_handle);
-
-                    curl_close($curl_handle);
-
-                    // Decode JSON into PHP array
-                    $active_connections = json_decode($curl_data);
-                    // return $active_connections;
-                    // get router data
-                    $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = '$router_id' LIMIT 1");
-                    $ip_address = $router_data[0]->router_ipaddr;
-                    $router_api_username = $router_data[0]->router_api_username;
-                    $router_api_password = $router_data[0]->router_api_password;
-                    $router_api_port = $router_data[0]->router_api_port;
-                    // connect to the router and add the ip address and queues to the interface
-                    $API = new routeros_api();
-                    $API->debug = false;
-
-                    $secret_name = $user_data[0]->client_secret;
-                    // go through secrets and delete the username thats active
-                    if ($API->connect($ip_address, $router_api_username, $router_api_password, $router_api_port)) {
-                        for ($index1 = 0; $index1 < count($router_secrets); $index1++) {
-                            $secret = $router_secrets[$index1];
-                            if ($secret->name == $secret_name) {
-                                foreach ($secret as $key => $value) {
-                                    if ($key == ".id") {
-                                        $API->comm("/ppp/secret/remove", array(
-                                            ".id" => $value
-                                        ));
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        for ($index2 = 0; $index2 < count($active_connections); $index2++) {
-                            $active = $active_connections[$index2];
-                            if ($active->name == $secret_name) {
-                                foreach ($active as $key => $value) {
-                                    if ($key == ".id") {
-                                        $API->comm("/ppp/active/remove", array(
-                                            ".id" => $value
-                                        ));
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                // DB::connection("mysql2")->delete("DELETE FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ".$user_id."");
-                DB::connection("mysql2")->update("UPDATE `client_tables` SET `date_changed` = ? , `deleted` = '1' WHERE `client_id` = ?", [date("YmdHis"), $user_id]);
-
-                // log message
-                $txt = ":Client (" . $client_name . ") has been deleted by " . session('Usernames') . "!";
-                $this->log($txt);
-                // end of log file
-            }
-        } else {
-            // session()->flash("error_clients","User not found!");
-            // return redirect("/Clients");
-        }
-    }
-
     function sendSmsClients(Request $req)
     {
         // change db
@@ -3328,28 +3044,12 @@ $export_text .= "
 
                     $router_secrets = [];
                     if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
-                        // get the IP ADDRES
-                        $curl_handle = curl_init();
-                        $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_id . "&r_ip=true";
-                        curl_setopt($curl_handle, CURLOPT_URL, $url);
-                        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                        $curl_data = curl_exec($curl_handle);
-                        curl_close($curl_handle);
-                        $router_ip_addresses = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
-                        // save the router ip address
-                        $ip_addresses = $router_ip_addresses;
+                        // get the IP ADDRESS
+                        $ip_addresses = $this->getRouterIPAddress($router_id);
 
 
                         // get the SIMPLE QUEUES
-                        $curl_handle = curl_init();
-                        $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_id . "&r_queues=true";
-                        curl_setopt($curl_handle, CURLOPT_URL, $url);
-                        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                        $curl_data = curl_exec($curl_handle);
-                        curl_close($curl_handle);
-                        $router_simple_queues = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
-
-                        $simple_queues = $router_simple_queues;
+                        $simple_queues = $this->getRouterQueues($router_id);
                         $subnet = explode("/", $user_data[0]->client_default_gw);
 
                         // loop through the ip addresses and get the clents ip address id
@@ -3371,8 +3071,7 @@ $export_text .= "
                         }
 
                         // loopt through the simple queues and get the queue to remove
-                        $simple_queues = count($simple_queues) > 0 ? $simple_queues[0] : [];
-                        $target_key = array_key_exists('address', $simple_queues) ? 'address' : 'target';
+                        $target_key = array_key_exists('address', $simple_queues[0]) ? 'address' : 'target';
                         $queue_ip = $client_network . "/" . $subnet[1];
                         $queue_id = false;
                         foreach ($simple_queues as $key => $queue) {
@@ -3435,23 +3134,11 @@ $export_text .= "
                     if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
                         // get the secret details
                         $secret_name = $user_data[0]->client_secret;
-                        // get the IP ADDRES
-                        $curl_handle = curl_init();
-                        $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $user_data[0]->router_name . "&r_active_secrets=true";
-                        curl_setopt($curl_handle, CURLOPT_URL, $url);
-                        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                        $curl_data = curl_exec($curl_handle);
-                        curl_close($curl_handle);
-                        $active_connections = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+                        // get the IP ADDRESS
+                        $active_connections = $this->getRouterActiveSecrets($router_id);
 
                         // get the IP ADDRES
-                        $curl_handle = curl_init();
-                        $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $user_data[0]->router_name . "&r_ppoe_secrets=true";
-                        curl_setopt($curl_handle, CURLOPT_URL, $url);
-                        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                        $curl_data = curl_exec($curl_handle);
-                        curl_close($curl_handle);
-                        $router_secrets = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+                        $router_secrets = $this->getRouterSecrets($user_data[0]->router_name);
 
                         // router secrets
                         $secret_id = false;
@@ -3553,13 +3240,12 @@ $export_text .= "
 
         // get the IP ADDRES
         $curl_handle = curl_init();
-        $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $routerid . "&r_interfaces=true";
+        $url = env('CRONJOB_URL', 'https://crontab.hypbits.com')."/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $routerid . "&r_interfaces=true";
         curl_setopt($curl_handle, CURLOPT_URL, $url);
         curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
         $curl_data = curl_exec($curl_handle);
         curl_close($curl_handle);
         $interfaces = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
-        // return $interfaces;
 
 
         if (count($interfaces) > 0) {
@@ -3592,7 +3278,7 @@ $export_text .= "
 
         // get the IP ADDRES
         $curl_handle = curl_init();
-        $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $routerid . "&r_ppoe_profiles=true";
+        $url = env('CRONJOB_URL', 'https://crontab.hypbits.com')."/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $routerid . "&r_ppoe_profiles=true";
         curl_setopt($curl_handle, CURLOPT_URL, $url);
         curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
         $curl_data = curl_exec($curl_handle);
@@ -3600,13 +3286,17 @@ $export_text .= "
         $pppoe_profiles = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
         // return $pppoe_profiles;
 
-        // create the select selector
-        $data_to_display = "<select name='pppoe_profile' class='form-control' id='pppoe_profile'  ><option value='' hidden>Select a Profile</option>";
-        for ($index = 0; $index < count($pppoe_profiles); $index++) {
-            $data_to_display .= "<option value='" . $pppoe_profiles[$index]['name'] . "'>" . $pppoe_profiles[$index]['name'] . "</option>";
+        if (count($pppoe_profiles) > 0){
+            // create the select selector
+            $data_to_display = "<select name='pppoe_profile' class='form-control' id='pppoe_profile'  ><option value='' hidden>Select a Profile</option>";
+            for ($index = 0; $index < count($pppoe_profiles); $index++) {
+                $data_to_display .= "<option value='" . $pppoe_profiles[$index]['name'] . "'>" . $pppoe_profiles[$index]['name'] . "</option>";
+            }
+            $data_to_display .= "</select>";
+            echo $data_to_display;
+        } else {
+            echo "No data to display : \"Your router might be In-active!\"";
         }
-        $data_to_display .= "</select>";
-        echo $data_to_display;
         return "";
     }
 
@@ -3769,10 +3459,11 @@ $export_text .= "
             }
 
             $code = $this->generate_new_invoice_code();
-            $last_client_details = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = 'static' ORDER BY `client_id` DESC LIMIT 1;");
+            $last_client_details = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `assignment` = 'static' AND client_id != '$clientid' ORDER BY `client_id` DESC LIMIT 1;");
 
             // get the invoices for that particular client
             $invoices = DB::connection("mysql2")->select("SELECT * FROM invoices WHERE client_id = ? ORDER BY invoice_number DESC", [$clientid]);
+            // return $client_refferal;
 
             if ($assignment == "static") {
                 return view("clientInfor", ["last_client_details" => $last_client_details, "invoices" => $invoices, "invoice_id" => $code ,"pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
@@ -3804,6 +3495,11 @@ $export_text .= "
 
     // convert client
     function convertClient(Request $request){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // client id
         $client_id = $request->input("client_id");
         // select the client details
         $client_data = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE client_id = ?",[$client_id]);
@@ -3833,8 +3529,8 @@ $export_text .= "
                     $sstp_value = $this->getSSTPAddress();
                     if ($sstp_value == null) {
                         $error = "The SSTP server is not set, Contact your administrator!";
-                        session()->flash("network_presence", $error);
-                        return redirect(url()->previous());
+                        session()->flash("error", $error);
+                        return redirect(url()->route("client.viewinformation",$client_id));
                     }
 
                     // connect to the router and set the sstp client
@@ -3845,125 +3541,344 @@ $export_text .= "
 
                     // check if the router is actively connected
                     $client_router_ip = $this->checkActive($server_ip_address, $user, $pass, $port, $sstp_username);
+                    if($client_router_ip != null){
+                        $API = new routeros_api();
+                        $API->debug = false;
+                        if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
+                            // GET IP ADDRESS
+                            $ip_addresses = $this->getRouterIPAddress($router_id);
+                            // GET QUEUES
+                            $simple_queues = $this->getRouterQueues($router_id);
+                            $subnet = explode("/", $client_data[0]->client_default_gw);
+
+                            // DELETE IP ADDRESS
+                            $client_network = $client_data[0]->client_network;
+                            foreach ($ip_addresses as $key => $ip_address) {
+                                if ($client_network == $ip_address['network']) {
+                                    $API->comm("/ip/address/remove", array(
+                                        ".id" => $ip_address['.id']
+                                    ));
+                                    break;
+                                }
+                            }
+
+                            // DELETE THE QUEUES
+                            $target_key = array_key_exists('address', $simple_queues[0]) ? 'address' : 'target';
+                            $queue_ip = $client_network . "/" . $subnet[1];
+                            foreach ($simple_queues as $key => $queue) {
+                                if ($queue[$target_key] == $queue_ip) {
+                                    $API->comm("/queue/simple/remove", array(
+                                        ".id" => $queue['.id']
+                                    ));
+                                    break;
+                                }
+                            }
+
+                            // ADD THE SECRET TO THE ROUTER
+                            $ppp_secrets = $this->getPPPSecrets($router_id);
+
+                            // FIND THE SECRET
+                            $present_ppp_profile = 0;
+                            $secret_id = 0;
+                            for ($index = 0; $index < count($ppp_secrets); $index++) {
+                                if ($ppp_secrets[$index]['name'] == $client_secret_username) {
+                                    $present_ppp_profile = 1;
+                                    $secret_id = $ppp_secrets[$index]['.id'];
+                                    break;
+                                }
+                            }
+                            
+                            if ($present_ppp_profile == 1) {
+                                // update the password and the service
+                                $API->comm(
+                                    "/ppp/secret/set",
+                                    array(
+                                        "name"     => $client_secret_username,
+                                        "service" => "pppoe",
+                                        "password" => $client_secret_password,
+                                        "profile"  => $pppoe_profile,
+                                        "comment"  => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account,
+                                        "disabled" => "false",
+                                        ".id" => $secret_id
+                                    )
+                                );
+                                // log message
+                                $txt = ":Client (" . $client_data[0]->client_name . ") converted from static assignment to pppoe by  " . session('Usernames') . "!";
+                                $this->log($txt);
+                            } else {
+                                $API->comm(
+                                    "/ppp/secret/add",
+                                    array(
+                                        "name"     => $client_secret_username,
+                                        "service" => "pppoe",
+                                        "password" => $client_secret_password,
+                                        "profile"  => $pppoe_profile,
+                                        "comment"  => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account,
+                                        "disabled" => "false"
+                                    )
+                                );
+
+                                // log message
+                                $txt = ":New Client (" . $client_data[0]->client_name . ") successfully converted from static assignment to pppoe by  " . session('Usernames') . "!";
+                                $this->log($txt);
+                            }
+
+                            // update the client details
+                            DB::connection("mysql2")->table('client_tables')
+                            ->where('client_id', $client_data[0]->client_id)
+                            ->update([
+                                'client_network' => "",
+                                'client_default_gw' => "",
+                                'max_upload_download' => "",
+                                'router_name' => $router_list,
+                                'assignment' => "pppoe",
+                                'client_secret' => $client_secret_username,
+                                'client_secret_password' => $client_secret_password,
+                                'client_profile' => $pppoe_profile,
+                                'date_changed' => date("YmdHis")
+                            ]);
+
+                            session()->flash("success", $client_data[0]->client_name." assignment to PPPoE has been successfully done!");
+                            return redirect(url()->route("client.viewinformation",$client_id));
+                        }else {
+                            session()->flash("error", "Can`t connect to router please try again later!");
+                            return redirect(url()->route("client.viewinformation",$client_id));
+                        }
+                    }else {
+                        session()->flash("error", "Can`t connect to router please try again later!");
+                        return redirect(url()->route("client.viewinformation",$client_id));
+                    }
+                }else {
+                    session()->flash("error", "Can`t connect to router please try again later!");
+                    return redirect(url()->route("client.viewinformation",$client_id));
+                }
+            }elseif ($client_data[0]->assignment == "pppoe") {
+                // CONVERT FROM PPPOE TO STATIC
+                
+                // DELETE SECRET AND ACTIVE CONNECTION
+                // get the router data
+                $router_id = $client_data[0]->router_name;
+                $client_name = $client_data[0]->client_name;
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'", [$client_data[0]->router_name]);
+                if (count($router_data) > 0) {
+                    // get the sstp credentails they are also the api usernames
+                    $sstp_username = $router_data[0]->sstp_username;
+                    $sstp_password = $router_data[0]->sstp_password;
+                    $api_port = $router_data[0]->api_port;
+
+                    // connect to the router and set the sstp client
+                    $sstp_value = $this->getSSTPAddress();
+                    if ($sstp_value == null) {
+                        $error = "The SSTP server is not set, Contact your administrator!";
+                        session()->flash("error", $error);
+                        return redirect(url()->route("client.viewinformation",$client_id));
+                    }
+
+                    // connect to the router and set the sstp client
+                    $server_ip_address = $sstp_value->ip_address;
+                    $user = $sstp_value->username;
+                    $pass = $sstp_value->password;
+                    $port = $sstp_value->port;
+
+                    // check if the router is actively connected
+                    $client_router_ip = $this->checkActive($server_ip_address, $user, $pass, $port, $sstp_username);
+                    if($client_router_ip !=null){
+                        $API = new routeros_api();
+                        $API->debug = false;
+
+                        $router_secrets = [];
+                        $active_connections = [];
+                        if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
+                            // get the secret details
+                            $secret_name = $client_data[0]->client_secret;
+                            // ACTIVE SECRET CONNECTIONS
+                            $active_connections = $this->getRouterActiveSecrets($client_data[0]->router_name);
+                            // ROUTER SECRETS
+                            $router_secrets = $this->getRouterSecrets($client_data[0]->router_name);
+
+                            // router secrets
+                            foreach ($router_secrets as $key => $router_secret) {
+                                if ($router_secret['name'] == $secret_name) {
+                                    $API->comm("/ppp/secret/remove", array(
+                                        ".id" => $router_secret['.id']
+                                    ));
+                                    break;
+                                }
+                            }
+                            foreach ($active_connections as $key => $connection) {
+                                if ($connection['name'] == $secret_name) {
+                                    // remove the active connection if there is, it will do nothing if the id is not present
+                                    $API->comm("/ppp/active/remove", array(
+                                        ".id" => $connection['.id']
+                                    ));
+                                }
+                            }
+
+                        }
+                    }
+                }else{
+                    session()->flash("error","An error has occured!");
+                    return redirect(url()->route("client.viewinformation",$client_id));
+                }
+
+                // ROUTER LIST
+                $router_name = $request->input("router_list");
+
+                // check if the selected router is connected
+                // get the router data
+                $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'", [$router_name]);
+                if (count($router_data) == 0) {
+                    $error = "Router selected does not exist!";
+                    session()->flash("error", $error);
+                    return redirect(url()->route("client.viewinformation",$client_id));
+                }
+
+                // get the sstp credentails they are also the api usernames
+                $sstp_username = $router_data[0]->sstp_username;
+                $sstp_password = $router_data[0]->sstp_password;
+                $api_port = $router_data[0]->api_port;
+
+                // connect to the router and set the sstp client
+                $sstp_value = $this->getSSTPAddress();
+                if ($sstp_value == null) {
+                    $error = "The SSTP server is not set, Contact your administrator!";
+                    session()->flash("error", $error);
+                    return redirect(url()->route("client.viewinformation",$client_id));
+                }
+
+                // connect to the router and set the sstp client
+                $server_ip_address = $sstp_value->ip_address;
+                $user = $sstp_value->username;
+                $pass = $sstp_value->password;
+                $port = $sstp_value->port;
+
+                // check if the router is actively connected
+                $client_router_ip = $this->checkActive($server_ip_address, $user, $pass, $port, $sstp_username);
+
+                if($client_router_ip != null){
+                    // get ip address and queues
+                    // start with IP address
+                    // connect to the router and add the ip address and queues to the interface
                     $API = new routeros_api();
                     $API->debug = false;
+
+                    $router_ip_addresses = [];
+                    $router_simple_queues = [];
                     if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
-                        // GET IP ADDRESS
-                        $ip_addresses = $this->getIpaddress($router_id);
-                        // GET QUEUES
-                        $simple_queues = $this->getQueues($router_id);
-                        $subnet = explode("/", $client_data[0]->client_default_gw);
+                        $router_ip_addresses = $this->getRouterIPAddress($router_name);
+                        $simple_queues = $this->getRouterQueues($router_name);
 
-                        // DELETE IP ADDRESS
-                        $client_network = $client_data[0]->client_network;
-                        foreach ($ip_addresses as $key => $ip_address) {
-                            if ($client_network == $ip_address['network']) {
-                                $API->comm("/ip/address/remove", array(
-                                    ".id" => $ip_address['.id']
-                                ));
+                        // proceed and add the client to the router
+                        // check if the ip address is present
+                        $present = false;
+                        foreach ($router_ip_addresses as $key => $value_address) {
+                            if ($value_address['network'] == $request->input('client_network')) {
+                                $present = true;
+                                // update the ip address
+                                $result = $API->comm(
+                                    "/ip/address/set",
+                                    array(
+                                        "address"     => $request->input('client_gw'),
+                                        "interface" => $request->input('interface_name'),
+                                        "comment"  => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account,
+                                        ".id" => $value_address['.id']
+                                    )
+                                );
+                                if (count($result) > 0) {
+                                    // this means there is an error
+                                    $API->comm(
+                                        "/ip/address/set",
+                                        array(
+                                            "interface" => $request->input('interface_name'),
+                                            "comment"  => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account,
+                                            ".id" => $value_address['.id']
+                                        )
+                                    );
+                                }
                                 break;
                             }
                         }
 
-                        // DELETE THE QUEUES
-                        $simple_queues = count($simple_queues) > 0 ? $simple_queues[0] : [];
+                        // return $present_ip;
+                        if (!$present) {
+                            // add the ip address
+                            $result = $API->comm(
+                                "/ip/address/add",
+                                array(
+                                    "address"     => $request->input('client_gw'),
+                                    "interface" => $request->input('interface_name'),
+                                    "network" => $request->input('client_network'),
+                                    "comment"  => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account
+                                )
+                            );
+                        }
+
+                        // proceed and add the queues 
+                        // first check the queues
+                        $upload = $request->input("upload_speed") . $request->input("unit1");
+                        $download = $request->input("download_speed") . $request->input("unit2");
                         $target_key = array_key_exists('address', $simple_queues) ? 'address' : 'target';
-                        $queue_ip = $client_network . "/" . $subnet[1];
-                        foreach ($simple_queues as $key => $queue) {
-                            if ($queue[$target_key] == $queue_ip) {
-                                $API->comm("/queue/simple/remove", array(
-                                    ".id" => $queue['.id']
-                                ));
+                        $queue_present = false;
+                        foreach ($router_simple_queues as $key => $value_simple_queues) {
+                            if ($value_simple_queues[$target_key] == $request->input("client_network") . "/" . explode("/", $request->input("client_gw"))[1]) {
+                                $queue_present = true;
+                                $API->comm(
+                                    "/queue/simple/set",
+                                    array(
+                                        "name" => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account,
+                                        "$target_key" => $request->input("client_network") . "/" . explode("/", $request->input("client_gw"))[1],
+                                        "max-limit" => $upload . "/" . $download,
+                                        ".id" => $value_simple_queues['.id']
+                                    )
+                                );
                                 break;
                             }
                         }
 
-                        // ADD THE SECRET TO THE ROUTER
-                        $ppp_secrets = $this->getPPPSecrets($router_id);
-
-                        // FIND THE SECRET
-                        $present_ppp_profile = 0;
-                        $secret_id = 0;
-                        for ($index = 0; $index < count($ppp_secrets); $index++) {
-                            if ($ppp_secrets[$index]['name'] == $client_secret_username) {
-                                $present_ppp_profile = 1;
-                                $secret_id = $ppp_secrets[$index]['.id'];
-                                break;
-                            }
+                        // queue not present
+                        if (!$queue_present) {
+                            // add the queue to the list
+                            $API->comm(
+                                "/queue/simple/add",
+                                array(
+                                    "name" => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account,
+                                    "$target_key" => $request->input("client_network") . "/" . explode("/", $request->input("client_gw"))[1],
+                                    "max-limit" => $upload . "/" . $download
+                                )
+                            );
                         }
+                        // disconnect the api
+                        $API->disconnect();
                         
-                        if ($present_ppp_profile == 1) {
-                            // update the password and the service
-                            $API->comm(
-                                "/ppp/secret/set",
-                                array(
-                                    "name"     => $client_secret_username,
-                                    "service" => "pppoe",
-                                    "password" => $client_secret_password,
-                                    "profile"  => $pppoe_profile,
-                                    "comment"  => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account,
-                                    "disabled" => "false",
-                                    ".id" => $secret_id
-                                )
-                            );
-                            // log message
-                            $txt = ":New Client (" . $client_data[0]->client_name . ") converted from static assignment to pppoe by  " . session('Usernames') . "!";
-                            $this->log($txt);
-                        } else {
-                            $API->comm(
-                                "/ppp/secret/add",
-                                array(
-                                    "name"     => $client_secret_username,
-                                    "service" => "pppoe",
-                                    "password" => $client_secret_password,
-                                    "profile"  => $pppoe_profile,
-                                    "comment"  => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account,
-                                    "disabled" => "false"
-                                )
-                            );
-
-                            // log message
-                            $txt = ":New Client (" . $client_name . ") successfully converted from static assignment to pppoe by  " . session('Usernames') . "!";
-                            $this->log($txt);
-                        }
+                        // update the client information
+                        // log message
+                        $txt = ":Client (" . $client_name . ") has been successfully converted to Static Assignment by  " . session('Usernames');
+                        $this->log($txt);
+                        // end of log file
 
                         // update the client details
                         DB::connection("mysql2")->table('client_tables')
                         ->where('client_id', $client_data[0]->client_id)
                         ->update([
-                            'client_network' => "",
-                            'client_default_gw' => "",
-                            'max_upload_download' => "",
-                            'router_name' => $router_list,
-                            'assignment' => "pppoe",
-                            'client_secret' => $client_secret_username,
-                            'client_secret_password' => $client_secret_password,
-                            'client_profile' => $pppoe_profile,
+                            'client_network' => $request->input("client_network"),
+                            'client_default_gw' => $request->input('client_gw'),
+                            'max_upload_download' => $upload . "/" . $download,
+                            'router_name' => $router_name,
+                            'assignment' => "static",
+                            'client_secret' => "",
+                            'client_secret_password' => "",
+                            'client_profile' => "",
                             'date_changed' => date("YmdHis")
                         ]);
 
-                        session()->flash("success", "Conversion has been done successfully!");
-                        return redirect(url()->previous());
-                    }else {
-                        session()->flash("error", "Can`t connect to router please try again later!");
-                        return redirect(url()->previous());
+                        // return to the main page
+                        session()->flash("success", $client_data[0]->client_name." assignment to static has been successfully done!");
+                        return redirect(url()->route("client.viewinformation",$client_id));
                     }
-                }else {
-                    session()->flash("error", "Can`t connect to router please try again later!");
-                    return redirect(url()->previous());
                 }
-            }elseif ($client_data[0]->assignment == "pppoe") {
-                return "STATIC";
-                // CONVERT FROM PPPOE TO STATIC
-                
-                // DELETE SECRET
-                // REMOVE ACTIVE CONNECTION
-                // ADD IP ADDRESS
-                // ADD QUEUES
-                // UPDATE THE DATABASE
             }
             session()->flash("error", "Invalid Conversion try again!");
-            return redirect(url()->previous());
+            return redirect(url()->route("client.viewinformation",$client_id));
         }else{
             session()->flash("error", "Invalid user!");
             return redirect(url()->previous());
@@ -4598,68 +4513,6 @@ $export_text .= "
         // end of log file
         session()->flash("success", "Client monthly payment has been successfully changed!");
         return redirect("Clients/View/" . $client_id);
-    }
-
-    function getRouterIPAddress($router_id, $database = null){
-        $database = $database ?? session("database_name");
-        $router_ip_addresses = [];
-        if ($database != null) {
-            $curl_handle = curl_init();
-            $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . $database . "&r_id=" . $router_id . "&r_ip=true";
-            curl_setopt($curl_handle, CURLOPT_URL, $url);
-            curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-            $curl_data = curl_exec($curl_handle);
-            curl_close($curl_handle);
-            $router_ip_addresses = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
-        }
-        return $router_ip_addresses;
-    }
-
-    function getRouterQueues($router_id, $database = null){
-        $database = $database ?? session("database_name");
-        $router_simple_queues = [];
-        if($database != null){
-            $curl_handle = curl_init();
-            $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . $database . "&r_id=" . $router_id . "&r_queues=true";
-            curl_setopt($curl_handle, CURLOPT_URL, $url);
-            curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-            $curl_data = curl_exec($curl_handle);
-            curl_close($curl_handle);
-            $router_simple_queues = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
-        }
-        return $router_simple_queues;
-    }
-
-    function getRouterActiveSecrets($router_id, $database = null){
-        $database = $database ?? session("database_name");
-        $active_connections = [];
-        if ($database != null) {
-            // get the ACTIVE PPPOE CONNECTION
-            $curl_handle = curl_init();
-            $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . $database . "&r_id=" . $router_id . "&r_active_secrets=true";
-            curl_setopt($curl_handle, CURLOPT_URL, $url);
-            curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-            $curl_data = curl_exec($curl_handle);
-            curl_close($curl_handle);
-            $active_connections = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
-        }
-        return $active_connections;
-    }
-
-    function getRouterSecrets($router_id, $database = null){
-        $database = $database ?? session("database_name");
-        $router_secrets = [];
-        if ($database != null){
-            // get the ACTIVE PPPOE CONNECTION
-            $curl_handle = curl_init();
-            $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . $database . "&r_id=" . $router_id . "&r_ppoe_secrets=true";
-            curl_setopt($curl_handle, CURLOPT_URL, $url);
-            curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-            $curl_data = curl_exec($curl_handle);
-            curl_close($curl_handle);
-            $router_secrets = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
-        }
-        return $router_secrets;
     }
 
     // update user
@@ -5417,16 +5270,7 @@ $export_text .= "
 
                 // create connection
                 if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
-                    // get the IP ADDRES
-                    $curl_handle = curl_init();
-                    $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session('database_name') . "&r_id=" . $router_id . "&r_ip=true";
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                    $curl_data = curl_exec($curl_handle);
-                    curl_close($curl_handle);
-                    $router_ip_addresses = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
-                    // save the router ip address
-                    $ip_addresses = $router_ip_addresses;
+                    $ip_addresses = $this->getRouterIPAddress($router_id);
 
                     // loop through the ip addresses and get the clents ip address id
                     $client_network = $client_data[0]->client_network;
@@ -5576,22 +5420,10 @@ $export_text .= "
                 $API->debug = false;
                 if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
                     // get the IP ADDRESS
-                    $curl_handle = curl_init();
-                    $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session('database_name') . "&r_id=" . $router_id . "&r_active_secrets=true";
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                    $curl_data = curl_exec($curl_handle);
-                    curl_close($curl_handle);
-                    $active_connections = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+                    $active_connections = $this->getRouterActiveSecrets($router_id);
 
                     // get the IP ADDRES
-                    $curl_handle = curl_init();
-                    $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session('database_name') . "&r_id=" . $router_id . "&r_ppoe_secrets=true";
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                    $curl_data = curl_exec($curl_handle);
-                    curl_close($curl_handle);
-                    $router_secrets = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+                    $router_secrets = $this->getRouterSecrets($router_id);
 
                     // loop through the secrets get the id and use it to disable the secret
                     $secret_id = "0";
@@ -5748,35 +5580,12 @@ $export_text .= "
                 // create connection
 
                 if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
-                    // get the IP ADDRES
-                    $curl_handle = curl_init();
-                    $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_id . "&r_ip=true";
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                    $curl_data = curl_exec($curl_handle);
-                    curl_close($curl_handle);
-                    $router_ip_addresses = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+                    // get the IP ADDRESS
                     // save the router ip address
-                    $ip_addresses = $router_ip_addresses;
+                    $ip_addresses = $this->getRouterIPAddress($router_id);
 
                     // loop through the ip addresses and get the clents ip address id
                     $client_network = $client_data[0]->client_network;
-                    // $present = 0;
-                    // $ip_id = "";
-                    // foreach ($ip_addresses as $key => $value) {
-                    //     foreach ($value as $key1 => $value1) {
-                    //         if ($key1 == ".id") {
-                    //             $ip_id = $value1;
-                    //         }
-                    //         if ($value1 == $client_network) {
-                    //             $present = 1;
-                    //             break;
-                    //         }
-                    //     }
-                    //     if ($present == 1) {
-                    //         break;
-                    //     }
-                    // }
                     $ip_id = "";
                     $found = false;
                     foreach ($ip_addresses as $key => $value) {
@@ -5889,14 +5698,8 @@ $export_text .= "
                 $API = new routeros_api();
                 $API->debug = false;
                 if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)) {
-                    // get the IP ADDRES
-                    $curl_handle = curl_init();
-                    $url = "https://crontab.hypbits.com/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_id . "&r_ppoe_secrets=true";
-                    curl_setopt($curl_handle, CURLOPT_URL, $url);
-                    curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-                    $curl_data = curl_exec($curl_handle);
-                    curl_close($curl_handle);
-                    $router_secrets = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+                    // get the IP ADDRESS
+                    $router_secrets = $this->getRouterSecrets($router_id);
 
                     // loop through the secrets get the id and use it to disable the secret
                     $secret_id = "0";
@@ -6003,54 +5806,7 @@ $export_text .= "
         session()->flash("success", "User payment automation has been successfully Activated");
         return redirect("/Clients/View/$userid");
     }
-    // get the router ip addresses
-    function getIpaddresses($router_id)
-    {
-        // change db
-        $change_db = new login();
-        $change_db->change_db();
 
-        // get router information
-        $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `router_id` = '$router_id' AND `deleted` = '0'");
-        $router_ipaddr = $router_data[0]->router_ipaddr;
-        $router_password = $router_data[0]->router_api_password;
-        $router_api_port = $router_data[0]->router_api_port;
-        $router_username = $router_data[0]->router_api_username;
-
-        // connect to the router and get the router details
-        $API = new routeros_api();
-        $API->debug = false;
-        if ($API->connect($router_ipaddr, $router_username, $router_password, $router_api_port)) {
-            // $API->write("/ip/address/print");
-            // $data = $API->read(true);
-            // $router_ip = $data;//$API->parse_response($data);
-            // return $router_ip;
-
-            // Initiate curl session in a variable (resource)
-            $curl_handle = curl_init();
-
-            $baseUrl = explode(":", url('/'));
-            $local_url = $baseUrl[0] . ":" . $baseUrl[1];
-            $url = "$local_url:81/crontab/getIpaddress.php?r_ip=true&r_id=" . $router_id;
-
-            // Set the curl URL option
-            curl_setopt($curl_handle, CURLOPT_URL, $url);
-
-            // This option will return data as a string instead of direct output
-            curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
-
-            // Execute curl & store data in a variable
-            $curl_data = curl_exec($curl_handle);
-
-            // Decode JSON into PHP array
-            $response_data = json_decode($curl_data);
-            curl_close($curl_handle);
-            // return $curl_data;
-            return $response_data;
-        } else {
-            return "No data to display!";
-        }
-    }
     function get_sms()
     {
         // change db
