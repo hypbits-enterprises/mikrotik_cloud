@@ -257,12 +257,26 @@
                                         <hr>
                                         <div class="row">
                                             <div class="col-lg-6">
-                                                <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i
-                                                        class="ft-plus"></i> Add User</button>
+                                                {{-- <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i
+                                                        class="ft-plus"></i> Add User</button> --}}
+                                                @php
+                                                    $btnText = "<i class=\"ft-plus\"></i> Add User";
+                                                    $otherClasses = "mt-1 text-dark";
+                                                    $btn_id = "";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" :readOnly="$readonly" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                                             </div>
                                             <div class="col-lg-6">
-                                                <a class="btn btn-secondary btn-outline" href="/Quick-Register"><i
-                                                        class="ft-x"></i> Cancel</a>
+                                                @php
+                                                    $btnText = "<i class=\"ft-x\"></i> Cancel";
+                                                    $otherClasses = "mt-1 ".$readonly;
+                                                    $btnLink = "/Quick-Register";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button-link :otherAttributes="$otherAttributes"  :btnText="$btnText" :btnLink="$btnLink" btnType="secondary" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                {{-- <a class="btn btn-secondary btn-outline" href="/Quick-Register"><i
+                                                        class="ft-x"></i> Cancel</a> --}}
                                             </div>
                                         </div>
                                     </form>

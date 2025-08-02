@@ -87,13 +87,43 @@
                                   @endif
 
                                   <div class="container p-1">
-                                    <a href="/SharedTables" class="btn btn-primary btn-sm"><i class="ft-arrow-left"></i> Back to list</a>
+                                    @php
+                                        $btnText = "<i class=\"ft-arrow-left\"></i> Back to list";
+                                        $otherClasses = "";
+                                        $btnLink = "/SharedTables";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/SharedTables" class="btn btn-primary btn-sm"><i class="ft-arrow-left"></i> Back to list</a> --}}
                                   </div>
                                   <div class="container w-50 p-1 rounded mx-0">
                                     <h6 class="text-left">Table Tools</h6>
-                                    <a href="/SharedTables/Edit/{{$table_id}}/Name/{{$table_name}}" class="btn btn-primary btn-sm my-1 {{$readonly}}"><i class="ft-edit"></i> Edit Table</a>
-                                    <a href="/SharedTables/addRecord/{{$table_id}}/Name/{{$table_name}}" class="btn btn-primary btn-sm my-1 {{$readonly}}"><i class="ft-plus"></i> Add Records</a>
-                                    <button type="button" class="btn btn-danger btn-sm my-1" {{$readonly}} id="DeleteTable"><i class="ft-trash"></i> Delete Table</button>
+                                    @php
+                                        $btnText = "<i class=\"ft-edit\"></i> Edit Table";
+                                        $otherClasses = "";
+                                        $btnLink = "/SharedTables/Edit/".$table_id."/Name/".$table_name;
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/SharedTables/Edit/{{$table_id}}/Name/{{$table_name}}" class="btn btn-primary btn-sm my-1 {{$readonly}}"><i class="ft-edit"></i> Edit Table</a> --}}
+                                    @php
+                                        $btnText = "<i class=\"ft-plus\"></i> Add Records";
+                                        $otherClasses = "";
+                                        $btnLink = "/SharedTables/addRecord/".$table_id."/Name/".$table_name;
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/SharedTables/addRecord/{{$table_id}}/Name/{{$table_name}}" class="btn btn-primary btn-sm my-1 {{$readonly}}"><i class="ft-plus"></i> Add Records</a> --}}
+                                    @php
+                                        $btnText = "<i class=\"ft-trash\"></i> Delete Table";
+                                        $otherClasses = "my-1";
+                                        $btn_id = "DeleteTable";
+                                        $btnSize="sm";
+                                        $type = "button";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button toolTip="" btnType="danger" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                    {{-- <button type="button" class="btn btn-danger btn-sm my-1" {{$readonly}} id="DeleteTable"><i class="ft-trash"></i> Delete Table</button> --}}
                                   </div>
                                   <div class="container">
                                     <div class="modal fade text-left hide" id="delete_column_details" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
@@ -112,8 +142,24 @@
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" id="close_this_window_delete" class="btn grey btn-secondary" data-dismiss="modal">Close</button>
-                                                    <a href="/SharedTables/Delete/{{$table_id}}/Name/{{$table_name}}" class="btn btn-outline-danger my-1 "><i class="ft-trash"></i> Delete</a>
+                                                    @php
+                                                        $btnText = "<i class=\"ft-x\"></i> Close";
+                                                        $otherClasses = "grey";
+                                                        $btn_id = "close_this_window_delete";
+                                                        $btnSize="sm";
+                                                        $type = "button";
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button toolTip="" btnType="secondary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                    {{-- <button type="button" id="close_this_window_delete" class="btn grey btn-secondary" data-dismiss="modal">Close</button> --}}
+                                                    @php
+                                                        $btnText = "<i class=\"ft-trash\"></i> Delete";
+                                                        $otherClasses = "my-1";
+                                                        $btnLink = "/SharedTables/Delete/".$table_id."/Name/".$table_name;
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                    {{-- <a href="/SharedTables/Delete/{{$table_id}}/Name/{{$table_name}}" class="btn btn-outline-danger my-1 "><i class="ft-trash"></i> Delete</a> --}}
                                                 </div>
                                             </div>
 										</div>

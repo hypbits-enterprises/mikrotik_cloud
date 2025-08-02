@@ -83,8 +83,15 @@
                                     @if (session('success'))
                                         <p class="text-success">{{ session('success') }}</p>
                                     @endif
-                                    <a href="/Transactions" class="btn btn-infor"><i class="fas fa-arrow-left"></i>
-                                        Back to list</a>
+                                    @php
+                                        $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                        $otherClasses = "ml-1";
+                                        $btnLink = "/Transactions";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/Transactions" class="btn btn-infor"><i class="fas fa-arrow-left"></i>
+                                        Back to list</a> --}}
                                 </div>
                                 <div class="card-body row">
                                     <input type="hidden" id="transaction_id"
@@ -94,15 +101,37 @@
                                             <div class="row my-1">
                                                 <div class="col-sm-6"><strong>Transaction status:</strong></div>
                                                 <div class="col-sm-6">
-                                                    <a href="#" {{$readonly}} class="btn btn-sm btn-success">Assigned</a>
-                                                    <a class='btn btn-sm btn-info ml-1' target='_blank' href='/Print-Reciept/{{$transaction_data[0]->transaction_id}}'><i class='ft-printer'></i> Print</a>
+                                                    @php
+                                                        $btnText = "Assigned";
+                                                        $otherClasses = "ml-1";
+                                                        $btnLink = "#";
+                                                        $otherAttributes = "target='_blank'";
+                                                    @endphp
+                                                    <x-button-link btnType="success" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                    {{-- <a href="#" {{$readonly}} class="btn btn-sm btn-success">Assigned</a> --}}
+                                                    @php
+                                                        $btnText = "<i class=\"ft-printer\"></i> Print";
+                                                        $otherClasses = "ml-1";
+                                                        $btnLink = "/Print-Reciept/".$transaction_data[0]->transaction_id;
+                                                        $otherAttributes = "target='_blank'";
+                                                    @endphp
+                                                    <x-button-link btnType="info" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                    {{-- <a class='btn btn-sm btn-info ml-1' target='_blank' href='/Print-Reciept/{{$transaction_data[0]->transaction_id}}'><i class='ft-printer'></i> Print</a> --}}
                                                 </div>
                                             </div>
                                         @else
                                             <div class="row my-1">
                                                 <div class="col-sm-6"><strong>Transaction status:</strong></div>
-                                                <div class="col-sm-6"><a href="#assign_transaction"
-                                                        class="btn btn-sm btn-danger {{$readonly}}">Assign?</a></div>
+                                                <div class="col-sm-6">
+                                                    @php
+                                                        $btnText = "Assign?";
+                                                        $otherClasses = "";
+                                                        $btnLink = "#assign_transaction";
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                    {{-- <a href="#assign_transaction" class="btn btn-sm btn-danger {{$readonly}}">Assign?</a> --}}
+                                                </div>
                                             </div>
                                         @endif
                                     </div>

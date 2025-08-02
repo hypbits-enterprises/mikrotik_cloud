@@ -88,14 +88,28 @@
                                   @endif
 
                                   <div class="container p-1">
-                                    <a href="/SharedTables/View/{{$table_id}}/Name/{{$link_table_name}}" class="btn btn-primary btn-sm"><i class="ft-arrow-left"></i> Back to list</a>
+                                    @php
+                                        $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                        $otherClasses = "";
+                                        $btnLink = "/SharedTables/View/".$table_id."/Name/".$link_table_name;
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/SharedTables/View/{{$table_id}}/Name/{{$link_table_name}}" class="btn btn-primary btn-sm"><i class="ft-arrow-left"></i> Back to list</a> --}}
                                   </div>
                                   <div class="container p-1 rounded mx-0">
                                     <p><b>Note:</b> - Fill all fields as neccesary! <br>
                                         - The field below will appear as you defined them while creating the table. <br>
                                         - You can edit the table details so that you can change the field type for easy data capturing.
                                     </p>
-                                    <button type="button" {{$readonly}} class="btn btn-danger btn-sm my-1" id="DeleteTable"><i class="ft-trash"></i> Delete Record</button>
+                                    @php
+                                        $btnText = "<i class=\"ft-trash\"></i> Delete Record";
+                                        $otherClasses = "my-1";
+                                        $btn_id = "DeleteTable";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="danger" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                    {{-- <button type="button" {{$readonly}} class="btn btn-danger btn-sm my-1" id="DeleteTable"><i class="ft-trash"></i> Delete Record</button> --}}
                                   </div>
                                   <div class="container">
                                     <div class="modal fade text-left hide" id="delete_column_details" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
@@ -114,8 +128,22 @@
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" id="close_this_window_delete" class="btn grey btn-secondary" data-dismiss="modal">Close</button>
-                                                    <a href="/SharedTables/Delete/{{$table_id}}/Name/{{$link_table_name}}/Record/{{$rows_id}}" class="btn btn-primary my-1 {{$readonly}}"><i class="ft-trash"></i> Delete</a>
+                                                    @php
+                                                        $btnText = "<i class=\"ft-x\"></i> Close";
+                                                        $otherClasses = "grey";
+                                                        $btn_id = "close_this_window_delete";
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                    {{-- <button type="button" id="close_this_window_delete" class="btn grey btn-secondary" data-dismiss="modal">Close</button> --}}
+                                                    @php
+                                                        $btnText = "<i class=\"ft-trash\"></i> Delete";
+                                                        $otherClasses = "my-1";
+                                                        $btnLink = "/SharedTables/Delete/".$table_id."/Name/".$link_table_name."/Record/".$rows_id;
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                    {{-- <a href="/SharedTables/Delete/{{$table_id}}/Name/{{$link_table_name}}/Record/{{$rows_id}}" class="btn btn-primary my-1 {{$readonly}}"><i class="ft-trash"></i> Delete</a> --}}
                                                 </div>
                                             </div>
 										</div>
@@ -168,7 +196,14 @@
                                             </div>
                                         @endfor
                                         <div class="col-md-12">
-                                            <button class="btn btn-primary w-100"  {{$readonly}}><i class="ft-save"></i> Update Record!</button>
+                                            @php
+                                                $btnText = "<i class=\"ft-save\"></i> Update Record!";
+                                                $otherClasses = "w-100";
+                                                $btn_id = "close_this_window_delete";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            {{-- <button class="btn btn-primary w-100"  {{$readonly}}><i class="ft-save"></i> Update Record!</button> --}}
                                         </div>
                                     </form>
                                   </div>

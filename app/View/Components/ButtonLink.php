@@ -21,7 +21,8 @@ class ButtonLink extends Component
     public $btnLink;
     public $toolTip;
     public $target;
-    public function __construct($btnText="", $btnType='primary', $btnSize="md", $otherClasses="", $btnId="", $readOnly = "", $btnLink = "#", $toolTip = null, $target = null)
+    public $otherAttributes;
+    public function __construct($otherAttributes = "", $btnText="", $btnType='primary', $btnSize="md", $otherClasses="", $btnId="", $readOnly = "", $btnLink = "#", $toolTip = null, $target = null)
     {
         $this->btnText = $btnText;
         $this->btnType = $btnType;
@@ -33,6 +34,7 @@ class ButtonLink extends Component
         $this->toolTip = $toolTip;
         $this->btnLink = $btnLink;
         $this->target = $target;
+        $this->otherAttributes = $otherAttributes;
     }
 
     /**

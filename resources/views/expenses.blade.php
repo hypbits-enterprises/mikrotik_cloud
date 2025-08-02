@@ -117,16 +117,59 @@
                             </div>
                             <div class="card-header">
                                 <p>- Expense Tools!</p>
-                                <a href="/Expense/Statistics" data-toggle="tooltip" title="Expense Statistics"
-                                    class="btn btn-secondary"><i class="ft-bar-chart-2"></i></a>
-                                <button data-toggle="tooltip" title="Expense Reports" class="btn btn-info"
-                                    id="expense_report_btn"><i class="ft-file-text"></i></button>
-                                <button data-toggle="tooltip" title="Add Expenses Category" class="btn btn-info" {{$readonly}}
-                                    id="add_expense_category_btn"><i class="ft-plus"></i></button>
-                                <button data-toggle="tooltip" title="View Expenses Category" class="btn btn-info"
-                                    id="view_expense_category_btn"><i class="ft-eye"></i></button>
-                                <button data-toggle="tooltip" title="Generate Income Statements" class="btn btn-info"
-                                    id="view_income_statements"><i class="ft-book"></i></button>
+                                @php
+                                    $btnText = "<i class=\"ft-bar-chart-2\"></i>";
+                                    $otherClasses = "my-1";
+                                    $btnLink = "/Expense/Statistics";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link btnType="secondary" btnSize="sm" toolTip="Expense Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/Expense/Statistics" data-toggle="tooltip" title="Expense Statistics"
+                                    class="btn btn-secondary"><i class="ft-bar-chart-2"></i></a> --}}
+                                    @php
+                                        $btnText = "<i class=\"ft-file-text\"></i>";
+                                        $otherClasses = "";
+                                        $btn_id = "expense_report_btn";
+                                        $btnSize="sm";
+                                        $type = "button";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button toolTip="Expense Reports" btnType="info" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                    {{-- <button data-toggle="tooltip" title="Expense Reports" class="btn btn-info" --}}
+                                    {{-- id="expense_report_btn"><i class="ft-file-text"></i></button> --}}
+                                    @php
+                                        $btnText = "<i class=\"ft-plus\"></i>";
+                                        $otherClasses = "";
+                                        $btn_id = "add_expense_category_btn";
+                                        $btnSize="sm";
+                                        $type = "button";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button toolTip="Add Expenses Category" btnType="info" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                    {{-- <button data-toggle="tooltip" title="Add Expenses Category" class="btn btn-info" {{$readonly}} --}}
+                                    {{-- id="add_expense_category_btn"><i class="ft-plus"></i></button> --}}
+                                    @php
+                                        $btnText = "<i class=\"ft-eye\"></i>";
+                                        $otherClasses = "";
+                                        $btn_id = "view_expense_category_btn";
+                                        $btnSize="sm";
+                                        $type = "button";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button btnType="info" :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="View Expenses Category" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                    {{-- <button data-toggle="tooltip" title="View Expenses Category" class="btn btn-info" --}}
+                                    {{-- id="view_expense_category_btn"><i class="ft-eye"></i></button> --}}
+                                    @php
+                                        $btnText = "<i class=\"ft-book\"></i>";
+                                        $otherClasses = "";
+                                        $btn_id = "view_income_statements";
+                                        $btnSize="sm";
+                                        $type = "button";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button btnType="info" :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="Generate Income Statements" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                    {{-- <button data-toggle="tooltip" title="Generate Income Statements" class="btn btn-info" --}}
+                                    {{-- id="view_income_statements"><i class="ft-book"></i></button> --}}
                             </div>
                             <div class="card-header border border-primary rounded mx-1 hide"
                                 id="generate_income_statements">
@@ -196,7 +239,16 @@
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <button class="btn btn-primary mt-2" type="submit">Generate Reports</button>
+                                        @php
+                                            $btnText = "<i class=\"ft-cog\"></i> Generate Reports";
+                                            $otherClasses = "mt-2";
+                                            $btn_id = "";
+                                            $btnSize="sm";
+                                            $type = "submit";
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button toolTip="" btnType="primary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                        {{-- <button class="btn btn-primary mt-2" type="submit">Generate Reports</button> --}}
                                     </div>
                                 </form>
                             </div>
@@ -245,7 +297,16 @@
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <button class="btn btn-primary mt-2" type="submit">Generate reports</button>
+                                        @php
+                                            $btnText = "<i class=\"ft-cog\"></i> Generate Reports";
+                                            $otherClasses = "";
+                                            $btn_id = "mt-2";
+                                            $btnSize="sm";
+                                            $type = "submit";
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button toolTip="" btnType="primary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                        {{-- <button class="btn btn-primary mt-2" type="submit">Generate reports</button> --}}
                                     </div>
                                 </form>
                             </div>
@@ -259,8 +320,17 @@
                                             id="expense_category" placeholder="Expense Category">
                                     </div>
                                     <div class="col-md-4">
-                                        <button type="submit" class="btn btn-primary mt-2">Save Expense
-                                            Category</button>
+                                        @php
+                                            $btnText = "<i class=\"ft-save\"></i> Save Expense Category";
+                                            $otherClasses = "mt-2";
+                                            $btn_id = "";
+                                            $btnSize="sm";
+                                            $type = "submit";
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button toolTip="" btnType="primary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                        {{-- <button type="submit" class="btn btn-primary mt-2">Save Expense
+                                            Category</button> --}}
                                     </div>
                                 </form>
                             </div>
@@ -299,8 +369,17 @@
                             <hr class="p-0 m-0">
                             <div class="card-header">
                                 <p>Add an expenses that you incurred in your business!</p>
-                                <button {{$readonly}} class="btn btn-info" data-toggle="tooltip" id="addExpenseBtnWindow"
-                                    title="Add Expense"><i class="ft-plus"></i> Add Expense</button>
+                                @php
+                                    $btnText = "<i class=\"ft-plus\"></i> Add Expense";
+                                    $otherClasses = "";
+                                    $btn_id = "addExpenseBtnWindow";
+                                    $btnSize="sm";
+                                    $type = "button";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button toolTip="Add Expense" btnType="info" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                {{-- <button {{$readonly}} class="btn btn-info" data-toggle="tooltip" id="addExpenseBtnWindow"
+                                    title="Add Expense"><i class="ft-plus"></i> Add Expense</button> --}}
                                 <div class="container border border-secondary rounded p-1 my-1 hide"
                                     id="addExpenseWindow">
                                     <h6 class="text-center"><u>Add Expense</u></h6>
@@ -376,8 +455,17 @@
                                             <textarea name="expense_description" id="expense_description" cols="30" rows="5" class="form-control" placeholder="Describe Expense here.."></textarea>
                                         </div>
                                         <div class="col-md-12 mt-2">
-                                            <button class="btn btn-block btn-primary" {{$readonly}} type="submit">Save
-                                                Expense</button>
+                                            @php
+                                                $btnText = "<i class=\"ft-save\"></i> Save Expense";
+                                                $otherClasses = "";
+                                                $btn_id = "";
+                                                $btnSize="sm";
+                                                $type = "submit";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button toolTip="Add Expense" btnType="primary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            {{-- <button class="btn btn-block btn-primary" {{$readonly}} type="submit">Save
+                                                Expense</button> --}}
                                         </div>
                                     </form>
                                 </div>
@@ -521,9 +609,6 @@
                         </div>
                     </div>
                 </div>
-                <!-- Basic Tables end -->
-
-
             </div>
         </div>
     </div>

@@ -161,8 +161,15 @@ date_default_timezone_set('Africa/Nairobi');
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
-                                    <a href="/Payment" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to
-                                        list</a>
+                                    @php
+                                        $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                        $otherClasses = "";
+                                        $btnLink = "/Payment";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/Payment" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to
+                                        list</a> --}}
                                     <p class="card-text">Below you will be able to view the transaction detail.</p>
 
                                     <div class="row">

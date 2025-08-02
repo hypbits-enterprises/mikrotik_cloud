@@ -219,8 +219,14 @@
                                 </div>
                             </div>
                             <div class="card-header">
-                                <a href="/BillingSms/Manage" class="btn btn-infor"><i class="fas fa-arrow-left"></i>
-                                    Back to Billing SMS Manager</a>
+                                @php
+                                    $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to Billing SMS Manager";
+                                    $otherClasses = "";
+                                    $btnLink = "/BillingSms/Transactions/View/".$transaction_id;
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/BillingSms/Manage" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to Billing SMS Manager</a> --}}
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
@@ -237,7 +243,14 @@
                                         </div>
                                         <div class="col-md-6 row">
                                             <div class="col-md-2">
-                                                <button class="btn btn-sm btn-primary" id="show_totals"><i class="ft-eye"></i> Show Totals</button>
+                                                @php
+                                                    $btnText = "<i class=\"ft-eye\"></i> Show Totals";
+                                                    $otherClasses = "mt-2 ";
+                                                    $btn_id = "show_totals";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button class="btn btn-sm btn-primary" id="show_totals"><i class="ft-eye"></i> Show Totals</button> --}}
                                             </div>
                                             <div class="col-md-10">
                                                 <p class="card-text text-right d-none" id="totals_window">

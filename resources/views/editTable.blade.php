@@ -79,7 +79,14 @@
                           </div>
                           <div class="card-content collapse show">
                               <div class="card-body">
-                                <a href="/SharedTables/View/{{$table_id}}/Name/{{$table_name}}" class="btn btn-sm btn-primary my-1"><i class="ft-arrow-left"></i> Back to List</a>
+                                @php
+                                    $btnText = "<i class=\"ft-arrow-left\"></i> Back to List";
+                                    $otherClasses = "my-1";
+                                    $btnLink = "/SharedTables/View/".$table_id."/Name/".$table_name;
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/SharedTables/View/{{$table_id}}/Name/{{$table_name}}" class="btn btn-sm btn-primary my-1"><i class="ft-arrow-left"></i> Back to List</a> --}}
                                   @if (session('shared_table_error'))
                                       <p class="text-danger">{{ session('shared_table_error') }}</p>
                                   @endif
@@ -103,7 +110,14 @@
                                         <option value="datepicker">Date Picker</option>
                                     </select>
                                     <div class="col-md-6">
-                                        <button type="button" {{$readonly}} class="btn btn-primary btn-sm my-1" id="add_columns_table"><i class="ft-plus"></i> Add Column</button>
+                                        @php
+                                            $btnText = "<i class=\"ft-plus\"></i> Add Column";
+                                            $otherClasses = "my-1";
+                                            $btn_id = "add_columns_table";
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                        {{-- <button type="button" {{$readonly}} class="btn btn-primary btn-sm my-1" id="add_columns_table"><i class="ft-plus"></i> Add Column</button> --}}
                                     </div>
                                     <hr class="my-1">
                                     <form class="row" action="/UpdateTableCreated" method="post">
@@ -119,7 +133,14 @@
                                             {{-- <button type="button" class="btn btn-primary btn-sm my-1" id="add_columns_table"><i class="ft-plus"></i> Add Column</button> --}}
                                         </div>
                                         <div class="col-md-6">
-                                            <button type="submit" {{$readonly}} data-html="true" data-toggle="tooltip" title="Click this button to save the table after defining all the columns you need!" class="btn btn-success text-dark btn-sm my-1"><i class="ft-save"></i> Save Changes</button>
+                                            @php
+                                                $btnText = "<i class=\"ft-save\"></i> Save Changes";
+                                                $otherClasses = "text-dark my-1";
+                                                $btn_id = "";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="Click this button to save the table after defining all the columns you need!" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            {{-- <button type="submit" {{$readonly}} data-html="true" data-toggle="tooltip" title="Click this button to save the table after defining all the columns you need!" class="btn btn-success text-dark btn-sm my-1"><i class="ft-save"></i> Save Changes</button> --}}
                                         </div>
                                     </form>
                                   </div>
@@ -152,8 +173,22 @@
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" id="close_this_window" class="btn grey btn-secondary" data-dismiss="modal">Close</button>
-                                                    <button type="button" {{$readonly}} id="save_column_data" class="btn btn-info">Save</button>
+                                                    @php
+                                                        $btnText = "<i class=\"ft-x\"></i> Close";
+                                                        $otherClasses = "text-dark my-1";
+                                                        $btn_id = "close_this_window";
+                                                        $otherAttributes = "data-dismiss=\"modal\"";
+                                                    @endphp
+                                                    <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="success" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                    {{-- <button type="button" id="close_this_window" class="btn grey btn-secondary" data-dismiss="modal">Close</button> --}}
+                                                    @php
+                                                        $btnText = "<i class=\"ft-save\"></i> Save";
+                                                        $otherClasses = "";
+                                                        $btn_id = "save_column_data";
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="info" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                    {{-- <button type="button" {{$readonly}} id="save_column_data" class="btn btn-info">Save</button> --}}
                                                 </div>
                                             </div>
 										</div>
@@ -178,8 +213,22 @@
                                                     </div>
                                                 </div>
                                                 <div class="modal-footer">
-                                                    <button type="button" id="close_this_window_delete" class="btn grey btn-secondary" data-dismiss="modal">Close</button>
-                                                    <button type="button" {{$readonly}} id="yes_delete_column_data" class="btn btn-danger">Delete</button>
+                                                    @php
+                                                        $btnText = "<i class=\"ft-x\"></i> Close";
+                                                        $otherClasses = "";
+                                                        $btn_id = "close_this_window_delete";
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                    {{-- <button type="button" id="close_this_window_delete" class="btn grey btn-secondary" data-dismiss="modal">Close</button> --}}
+                                                    @php
+                                                        $btnText = "<i class=\"ft-trash\"></i> Delete";
+                                                        $otherClasses = "";
+                                                        $btn_id = "yes_delete_column_data";
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="danger" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                    {{-- <button type="button" {{$readonly}} id="yes_delete_column_data" class="btn btn-danger">Delete</button> --}}
                                                 </div>
                                             </div>
 										</div>

@@ -115,8 +115,15 @@
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                <a href="/Client-Reports" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                    to list</a>
+                                @php
+                                    $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                    $otherClasses = "ml-1";
+                                    $btnLink = "/Client-Reports";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link btnType="infor" btnSize="sm" toolTip="Transaction`s Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/Client-Reports" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
+                                    to list</a> --}}
                                 <div class="card-body">
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
@@ -190,11 +197,27 @@
                                         </div>
                                         <div class="row mt-2">
                                             <div class="col-md-6">
-                                                <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i class="ft-save"></i> Record Report</button>
+                                                @php
+                                                    $btnText = "<i class=\"ft-save\"></i> Record Report";
+                                                    $otherClasses = "text-dark";
+                                                    $btn_id = "";
+                                                    $btnSize="sm";
+                                                    $type = "submit";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button toolTip="" btnType="success" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i class="ft-save"></i> Record Report</button> --}}
                                             </div>
                                             <div class="col-md-6">
-                                                <a class="btn btn-secondary btn-outline" href="/Client-Reports"><i
-                                                        class="ft-x"></i> Cancel</a>
+                                                @php
+                                                    $btnText = "<i class=\"ft-x\"></i> Cancel";
+                                                    $otherClasses = "";
+                                                    $btnLink = "/Client-Reports";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button-link btnType="secondary" btnSize="sm" toolTip="Transaction`s Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                {{-- <a class="btn btn-secondary btn-outline" href="/Client-Reports"><i
+                                                        class="ft-x"></i> Cancel</a> --}}
                                             </div>
                                         </div>
                                     </form>

@@ -5,6 +5,7 @@
 @if ($target != null)
     target="{{$target}}"
 @endif
+{!!$otherAttributes!!}
 >
     <span class="d-inline-block border border-white w-100 text-center" {{$readOnly ?? ""}} style="border-radius: 2px; padding: {{$paddingSize}};">{!!$btnText!!}</span>
 </a>

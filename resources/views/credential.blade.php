@@ -157,7 +157,14 @@ date_default_timezone_set('Africa/Nairobi');
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
-                                    <a href="/ClientDashboard" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+                                    @php
+                                        $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to Dashboard";
+                                        $otherClasses = "my-1";
+                                        $btnLink = "/ClientDashboard";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/ClientDashboard" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to Dashboard</a> --}}
                                     <p class="card-text">- Below you will be able to change your password. <br>
                                     - Enter your old password and your new password to change it.</p>
                                     <div class="row">

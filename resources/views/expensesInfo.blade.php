@@ -118,14 +118,39 @@
                                 <p>- View, update or delete the expense entry!</p>
                                 <div class="row">
                                     <div class="col-md-8">
-                                        <a href="/Expenses" class="btn btn-white text-primary"><i class="fas fa-arrow-left"></i> Back to List</a>
+                                        @php
+                                            $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to List";
+                                            $otherClasses = "text-primary";
+                                            $btnLink = "/Expenses";
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button-link btnType="white" btnSize="sm" toolTip="Expense Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        {{-- <a href="/Expenses" class="btn btn-white text-primary"><i class="fas fa-arrow-left"></i> Back to List</a> --}}
                                     </div>
                                     <div class="col-md-4">
-                                        <button class="btn btn-primary" {{$readonly}} id="delete_expense"><i class="fas-fa-trash"></i> Delete</button>
+                                        @php
+                                            $btnText = "<i class=\"fas-fa-trash\"></i> Delete";
+                                            $otherClasses = "";
+                                            $btn_id = "delete_expense";
+                                            $btnSize="sm";
+                                            $type = "button";
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button toolTip="" btnType="danger" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                        {{-- <button class="btn btn-danger" {{$readonly}} id="delete_expense"><i class="fas-fa-trash"></i> Delete</button> --}}
                                         <div class="container hide border border-primary rounded p-1 my-2" id="delete_expense_window">
-                                            <p><b class="text-primary">Are you sure you want to delete "{{$expense_data->name}}" record permanently!</b></p>
+                                            <p>Are you sure you want to delete <b>"{{$expense_data->name}}"</b> record permanently!</p>
                                             <div class="row">
-                                                <div class="col-md-6"><a href="/Expense/DeleteRecords/{{$expense_data->id}}" class="btn btn-danger">Yes</a></div>
+                                                <div class="col-md-6">
+                                                    @php
+                                                        $btnText = "Yes";
+                                                        $otherClasses = "";
+                                                        $btnLink = "/Expense/DeleteRecords/".$expense_data->id;
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                    {{-- <a href="/Expense/DeleteRecords/{{$expense_data->id}}" class="btn btn-danger">Yes</a> --}}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -186,7 +211,16 @@
                                             <textarea name="expense_description" id="expense_description" cols="30" value="" rows="5" class="form-control" placeholder="Describe Expense here..">{{$expense_data->description}}</textarea>
                                         </div>
                                         <div class="col-md-12 mt-2">
-                                            <button class="btn btn-block btn-primary" {{$readonly}} type="submit">Update Expense</button>
+                                            @php
+                                                $btnText = "Update Expense";
+                                                $otherClasses = "btn-block";
+                                                $btn_id = "";
+                                                $btnSize="sm";
+                                                $type = "submit";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button toolTip="" btnType="primary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            {{-- <button class="btn btn-block btn-primary" {{$readonly}} type="submit">Update Expense</button> --}}
                                         </div>
                                     </form>
                                 </div>

@@ -134,8 +134,14 @@
                                         </ul>
                                     @endif
                                     </ul>
-                                    <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                        to list</a>
+                                    @php
+                                        $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                        $otherClasses = "ml-2";
+                                        $btnLink = "/Clients";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to list</a> --}}
                                     <div class="container">
                                         <div class="modal fade text-left" id="change_issue_status" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" style="padding-right: 17px;" aria-modal="true">
                                             <div class="modal-dialog modal-dialog-centered" role="document">
@@ -193,7 +199,7 @@
                                                     </div>
                                                     <div class="modal-footer">
                                                         @php
-                                                            $btnText = "<i class=\"ft-save\"></i> Save";
+                                                            $btnText = "<i class=\"ft-x\"></i> Close";
                                                             $otherClasses = "";
                                                             $btn_id = "close_update_status_window";
                                                         @endphp
@@ -468,8 +474,15 @@
                                         </ul>
                                     @endif
                                     </ul>
-                                    <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                        to list</a>
+                                    @php
+                                        $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                        $otherClasses = "";
+                                        $btnLink = "/Clients";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
+                                        to list</a> --}}
                                     @if (session('success'))
                                         <p class="success">{{ session('success') }}</p>
                                     @endif

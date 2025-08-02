@@ -88,7 +88,14 @@
                                     @if (session('network_presence'))
                                         <p class="text-danger">{{ session('network_presence') }}</p>
                                     @endif
-                                    <a href="/Accounts" class="btn btn-primary btn-sm"><i class="ft-arrow-left"></i> Back to Accounts</a>
+                                    @php
+                                        $btnText = "<i class=\"ft-arrow-left\"></i> Back to Accounts";
+                                        $otherClasses = "";
+                                        $btnLink = "/Accounts";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/Accounts" class="btn btn-primary btn-sm"><i class="ft-arrow-left"></i> Back to Accounts</a> --}}
                                     <p>- <code class="highlighter-rouge"><b>A Shared table</b></code>- is a table that can be worked on by a team simultaneously without being excempted access, unlike normal files that cannot be access by two individuals at once. This shared tables can be accessed by more than one person. <br>
                                     - Start by creating a tables and giving it a name then define its columns and the column`s default values.<br>
                                     - You will be able to manipulate the data of the table except the records that are being change by someone else.</p>
@@ -124,7 +131,14 @@
 
                                   <div class="container w-50 p-1 rounded mx-0">
                                     <h6 class="text-left">Table Tools</h6>
-                                    <a href="/CreateShareTables" class="btn btn-primary btn-sm {{$readonly}}"><i class="ft-plus"></i> Create Table</a>
+                                    @php
+                                        $btnText = "<i class=\"ft-plus\"></i> Create Table";
+                                        $otherClasses = "";
+                                        $btnLink = "/CreateShareTables";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/CreateShareTables" class="btn btn-primary btn-sm {{$readonly}}"><i class="ft-plus"></i> Create Table</a> --}}
                                   </div>
                                   {{-- display tables here --}}
                                   <div class="row">

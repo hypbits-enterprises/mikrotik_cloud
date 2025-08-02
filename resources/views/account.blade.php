@@ -85,9 +85,22 @@
                                     @if (session('network_presence'))
                                         <p class="text-danger">{{ session('network_presence') }}</p>
                                     @endif
-                                    <a href="/Accounts/add" class="btn btn-primary {{$readonly}} {{$view}}" ><i class="ft-plus"></i> Manage
-                                        Admin</a>
-                                    <a href="/SharedTables" class="btn btn-info {{$readonly}} {{$view}}"><i class="ft-wind"></i> Shared Tables</a>
+                                      @php
+                                          $btnText = "<i class=\"ft-plus\"></i> Manage Admin";
+                                          $otherClasses = $readonly." ".$view;
+                                          $btnLink = "/Accounts/add";
+                                          $otherAttributes = "";
+                                      @endphp
+                                      <x-button-link btnType="primary" btnSize="sm" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/Accounts/add" class="btn btn-primary {{$readonly}} {{$view}}" ><i class="ft-plus"></i> Manage Admin</a> --}}
+                                      @php
+                                          $btnText = "<i class=\"ft-wind\"></i> Shared Tables";
+                                          $otherClasses = $readonly." ".$view;
+                                          $btnLink = "/SharedTables";
+                                          $otherAttributes = "";
+                                      @endphp
+                                      <x-button-link btnType="info" btnSize="sm" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/SharedTables" class="btn btn-info {{$readonly}} {{$view}}"><i class="ft-wind"></i> Shared Tables</a> --}}
                                 </div>
                             </div>
                         </div>
@@ -188,8 +201,22 @@
                               <div class="col-md-8 col-lg-9">
                                 <img style="width: 150px" src="{{session('dp_locale') ? session('dp_locale') :'/theme-assets/images/pngegg.png'}}" alt="Profile">
                                 <div class="pt-2">
-                                  <button type="button" id="update_dp_btn" class="btn btn-primary btn-sm" title="Upload new profile image"><i class="ft-upload"></i></button>
-                                  <a href="/delete_pp/{{$admin_data[0]->admin_id}}" class="btn btn-danger btn-sm" title="Remove my profile image"><i class="ft-trash"></i></a>
+                                  @php
+                                      $btnText = "<i class=\"ft-upload\"></i>";
+                                      $otherClasses = "";
+                                      $btn_id = "update_dp_btn";
+                                      $otherAttributes = "";
+                                  @endphp
+                                  <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="Upload new profile image" btnType="primary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                  {{-- <button type="button" id="update_dp_btn" class="btn btn-primary btn-sm" title="Upload new profile image"><i class="ft-upload"></i></button> --}}
+                                  @php
+                                      $btnText = "<i class=\"ft-trash\"></i>";
+                                      $otherClasses = " ";
+                                      $btnLink = "/delete_pp".$admin_data[0]->admin_id;
+                                      $otherAttributes = "";
+                                  @endphp
+                                  <x-button-link btnType="danger" btnSize="sm" :otherAttributes="$otherAttributes" toolTip="Remove my profile image" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                  {{-- <a href="/delete_pp/{{$admin_data[0]->admin_id}}" class="btn btn-danger btn-sm" title="Remove my profile image"><i class="ft-trash"></i></a> --}}
                                 </div>
                               </div>
                             </div>
@@ -205,10 +232,24 @@
                                     <input type="file" name="mine_dp" id="mine_dp" class="form-control" required>
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <button type="submit" id="upload_image" class="btn btn-primary my-1 text-lg">Save Image</button>
+                                            {{-- <button type="submit" id="upload_image" class="btn btn-primary my-1 text-lg">Save Image</button> --}}
+                                            @php
+                                                $btnText = "Save Image";
+                                                $otherClasses = "my-1 text-lg";
+                                                $btn_id = "";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                                         </div>
                                         <div class="col-md-6">
-                                            <button type="button" id="close_window_btn" class="btn btn-secondary my-1 text-lg">Cancel</button>
+                                            @php
+                                                $btnText = "Cancel";
+                                                $otherClasses = "my-1 text-lg";
+                                                $btn_id = "close_window_btn";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            {{-- <button type="button" id="close_window_btn" class="btn btn-secondary my-1 text-lg">Cancel</button> --}}
                                         </div>
                                     </div>
                                     <hr>
@@ -242,7 +283,14 @@
                             </div>
         
                             <div class="text-center">
-                              <button type="submit" class="btn btn-primary">Save Changes</button>
+                              @php
+                                  $btnText = "Save Changes";
+                                  $otherClasses = "";
+                                  $btn_id = "";
+                                  $otherAttributes = "";
+                              @endphp
+                              <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                              {{-- <button type="submit" class="btn btn-primary">Save Changes</button> --}}
                             </div>
                           </form><!-- End Profile Edit Form -->
         
@@ -255,8 +303,22 @@
                               <div class="col-md-8 col-lg-9">
                                 <img class="border border-success rounded" style="width: 150px" src="{{$organization->organization_logo != null ? $organization->organization_logo :'/theme-assets/images/logo-placeholder-image.png'}}" alt="Profile">
                                 <div class="pt-2">
-                                  <button type="button" id="update_company_profile_btn" {{$readonly}} class="btn btn-primary btn-sm" title="Upload new profile image"><i class="ft-upload"></i></button>
-                                  <a href="/delete_pp_organization" class="btn btn-danger btn-sm {{$readonly}}" title="Remove my profile image"><i class="ft-trash"></i></a>
+                                  @php
+                                      $btnText = "<i class=\"ft-upload\"></i>";
+                                      $otherClasses = "my-1 text-lg";
+                                      $btn_id = "update_company_profile_btn";
+                                      $otherAttributes = "";
+                                  @endphp
+                                  <x-button :otherAttributes="$otherAttributes" toolTip="Upload new profile image" :btnText="$btnText" toolTip="" btnType="primary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                  {{-- <button type="button" id="update_company_profile_btn" {{$readonly}} class="btn btn-primary btn-sm" title="Upload new profile image"><i class="ft-upload"></i></button> --}}
+                                  @php
+                                      $btnText = "<i class=\"ft-trash\"></i>";
+                                      $otherClasses = " ";
+                                      $btnLink = "/delete_pp_organization";
+                                      $otherAttributes = "";
+                                  @endphp
+                                  <x-button-link btnType="danger" btnSize="sm" toolTip="Remove my profile image" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                  {{-- <a href="/delete_pp_organization" class="btn btn-danger btn-sm {{$readonly}}" title="Remove my profile image"><i class="ft-trash"></i></a> --}}
                                 </div>
                               </div>
                             </div>
@@ -272,10 +334,24 @@
                                     <input type="file" name="mine_dp" id="mine_dp" class="form-control" required>
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <button type="submit" id="upload_image" {{$readonly}} class="btn btn-primary my-1 text-lg">Save Image</button>
+                                            @php
+                                                $btnText = "Save Image";
+                                                $otherClasses = "my-1 text-lg";
+                                                $btn_id = "upload_image";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            {{-- <button type="submit" id="upload_image" {{$readonly}} class="btn btn-primary my-1 text-lg">Save Image</button> --}}
                                         </div>
                                         <div class="col-md-6">
-                                            <button type="button" id="close_company_profile_dp_window_btn" class="btn btn-secondary my-1 text-lg">Cancel</button>
+                                            @php
+                                                $btnText = "Cancel";
+                                                $otherClasses = "my-1 text-lg";
+                                                $btn_id = "close_company_profile_dp_window_btn";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            {{-- <button type="button" id="close_company_profile_dp_window_btn" class="btn btn-secondary my-1 text-lg">Cancel</button> --}}
                                         </div>
                                     </div>
                                     <hr>
@@ -359,7 +435,14 @@
                               </div>
                             </div>
                             <div class="text-center">
-                              <button type="submit" {{$readonly}} class="btn btn-primary">Save Changes</button>
+                              @php
+                                  $btnText = "Save Changes";
+                                  $otherClasses = "my-1 text-lg";
+                                  $btn_id = "";
+                                  $otherAttributes = "";
+                              @endphp
+                              <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="secondary" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                              {{-- <button type="submit" {{$readonly}} class="btn btn-primary">Save Changes</button> --}}
                             </div>
                           </form><!-- End Profile Edit Form -->
         
@@ -407,15 +490,36 @@
                               </div>
                             </div>
                             <div class="text-center">
-                              <button type="submit" {{$readonly}} class="btn btn-primary">Save Changes</button>
+                              @php
+                                  $btnText = "Save Changes";
+                                  $otherClasses = "";
+                                  $btn_id = "";
+                                  $otherAttributes = "";
+                              @endphp
+                              <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="secondary" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                              {{-- <button type="submit" {{$readonly}} class="btn btn-primary">Save Changes</button> --}}
                             </div>
                           </form><!-- End settings Form -->
                           <div class="container d-none">
                             <p><strong>Export user data</strong></p>
-                            <a href="/Clients/Export" class="btn btn-secondary text-bolder {{$readonly}} disabled"><i class="ft-command"> </i>Export</a>
+                            @php
+                                $btnText = "<i class=\"ft-command\"></i> Export";
+                                $otherClasses = "text-bolder disabled";
+                                $btnLink = "/Clients/Export";
+                                $otherAttributes = "";
+                            @endphp
+                            <x-button-link btnType="secondary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                            {{-- <a href="/Clients/Export" class="btn btn-secondary text-bolder {{$readonly}} disabled"><i class="ft-command"> </i>Export</a> --}}
                             <hr>
                             <p><strong>Manage Billing SMSes</strong></p>
-                            <a href="/BillingSms/Manage" class="btn btn-secondary text-bolder {{$readonly}} disabled"><i class="ft-settings"> </i>Manage</a>
+                            @php
+                                $btnText = "<i class=\"ft-settings\"> </i> Manage";
+                                $otherClasses = "text-bolder disabled ".$readonly;
+                                $btnLink = "/BillingSms/Manage";
+                                $otherAttributes = "";
+                            @endphp
+                            <x-button-link btnType="secondary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                            {{-- <a href="/BillingSms/Manage" class="btn btn-secondary text-bolder {{$readonly}} disabled"><i class="ft-settings"> </i>Manage</a> --}}
                           </div>
                         </div>
         
@@ -453,7 +557,14 @@
                                 <hr>
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <button class="btn btn-primary" type="submit">Save Changes</button>
+                                        @php
+                                            $btnText = "Save Changes";
+                                            $otherClasses = "";
+                                            $btn_id = "";
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                        {{-- <button class="btn btn-primary" type="submit">Save Changes</button> --}}
                                     </div>
                                 </div>
                             </form>

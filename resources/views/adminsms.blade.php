@@ -4,7 +4,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    {{-- <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> --}}
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
     <meta name="description" content="My ISP is the number one kenyan webserver software that helps you manage and monitor your webserver.">
     <meta name="keywords" content="admin template, Client template, dashboard template, gradient admin template, responsive client template, webapp, eCommerce dashboard, analytic dashboard">
@@ -121,7 +121,14 @@
                                                 <span>Total SMS Sent: <span class="text-primary">{{$total_sms}}</span></span><br>
                                             </div>
                                             <div class="col-md-6">
-                                                <button type="button" id="show_sms_balance_btn" class="btn btn-primary btn-sm">Show Balance</button>
+                                                @php
+                                                    $btnText = "<i class=\"ft-eye\"></i> Show Balance";
+                                                    $otherClasses = "";
+                                                    $btn_id = "show_sms_balance_btn";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button type="button" id="show_sms_balance_btn" class="btn btn-primary btn-sm">Show Balance</button> --}}
                                                 <p>Sms Balance: <span></span>: <span id="show_sms_balance">0 SMS</span><small class="text-primary d-none" id="show_sms_loader"> Loading...</small></p>
                                             </div>
                                         </div>
@@ -136,7 +143,14 @@
                                         <p class="text-danger">{{ session('error') }}</p>
                                     @endif
                                     <div class="w-20">
-                                        <a href="/sms/system_sms" class="btn btn-secondary text-bolder {{$readonly}}">Customize SMS</a>
+                                        @php
+                                            $btnText = "Customize SMS";
+                                            $otherClasses = "text-bolder";
+                                            $btnLink = "/sms/system_sms";
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button-link btnType="secondary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        {{-- <a href="/sms/system_sms" class="btn btn-secondary text-bolder {{$readonly}}">Customize SMS</a> --}}
                                         <span data-toggle="tooltip" title="SMS Reports" class="btn btn-info" id="sms_reports_btn"><i class="ft-file-text"></i> SMS Reports</span>
                                     </div>
                                     <div class="row  my-2">
@@ -202,7 +216,14 @@
                                                         <input type="text" name="text_keyword" id="text_keyword" class="form-control" placeholder="Text containing">
                                                     </div>
                                                     <div class="col-md-3">
-                                                        <button class="btn btn-primary mt-2" type="submit"><i class="ft-settings"></i> Generate Reports</button>
+                                                        @php
+                                                            $btnText = "<i class=\"ft-settings\"></i> Generate Reports";
+                                                            $otherClasses = "mt-2";
+                                                            $btn_id = "";
+                                                            $otherAttributes = "";
+                                                        @endphp
+                                                        <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                        {{-- <button class="btn btn-primary mt-2" type="submit"><i class="ft-settings"></i> Generate Reports</button> --}}
                                                     </div>
                                                 </div>
                                             </form>
@@ -215,7 +236,14 @@
                                             <input type="text" name="search" id="searchkey" class="form-control rounded-lg p-1" placeholder="Search here ..">
                                         </div>
                                         <div class="col-md-6">
-                                            <a href="/sms/compose" class="btn btn-info text-bolder float-right {{$readonly}}"><i class="ft-plus"> Write Message</i></a>
+                                            @php
+                                                $btnText = "<i class=\"ft-plus\"></i> Write Message";
+                                                $otherClasses = "text-bolder float-right";
+                                                $btnLink = "/sms/compose";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button-link btnType="info" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                            {{-- <a href="/sms/compose" class="btn btn-info text-bolder float-right {{$readonly}}"><i class="ft-plus"> Write Message</i></a> --}}
                                         </div>
                                     </div>
                                     <div class="container border border-secondary rounded p-1 hide" id="action_for_selected_window">
@@ -230,17 +258,45 @@
                                             <form action="/Delete_bulk_sms" method="POST" class="col-md-3 border-right border-secondary my-1">
                                                 @csrf
                                                 <input type="hidden" name="hold_user_id_data" id="hold_user_id_data">
-                                                <button class="btn btn-sm btn-danger" {{$readonly}} id="delete_clients_id" type="button"><i class="ft-trash"></i> Delete</button>
+                                                @php
+                                                    $btnText = "<i class=\"ft-trash\"></i> Delete";
+                                                    $otherClasses = "mt-2 ".$readonly;
+                                                    $btn_id = "delete_clients_id";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="danger" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button class="btn btn-sm btn-danger" {{$readonly}} id="delete_clients_id" type="button"><i class="ft-trash"></i> Delete</button> --}}
                                                 <div class="container hide" id="delete_clients_window">
                                                     <p><b>Are you sure you want to delete <span id="delete_number_clients">0</span> SMS(s)</b>?</p>
-                                                    <button class="btn btn-danger" {{$readonly}} type="submit">Yes</button>
-                                                    <button class="btn btn-secondary" id="no_dont_delete_selected" type="button">No</button>
+                                                    @php
+                                                        $btnText = "Yes";
+                                                        $otherClasses = "mt-2 ".$readonly;
+                                                        $btn_id = "";
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="danger" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                    {{-- <button class="btn btn-danger" {{$readonly}} type="submit">Yes</button> --}}
+                                                    @php
+                                                        $btnText = "No";
+                                                        $otherClasses = "mt-2 ".$readonly;
+                                                        $btn_id = "no_dont_delete_selected";
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                    {{-- <button class="btn btn-secondary" id="no_dont_delete_selected" type="button">No</button> --}}
                                                 </div>
                                             </form>
                                             <form class="col-md-3" action="/Resend_bulk_sms" method="POST" class="col-md-3 my-1">
                                                 @csrf
                                                 <input type="hidden" name="hold_user_id_data" id="hold_user_id_data_2">
-                                                <button class="btn btn-sm btn-info" {{$readonly}} type="submit"><i class="fa-solid fa-paper-plane"></i> Re-send SMS</button>
+                                                @php
+                                                    $btnText = "<i class=\"fa-solid fa-paper-plane\"></i> Re-send SMS";
+                                                    $otherClasses = "mt-3 ".$readonly;
+                                                    $btn_id = "";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button class="btn btn-sm btn-info" {{$readonly}} type="submit"><i class="fa-solid fa-paper-plane"></i> Re-send SMS</button> --}}
                                             </form>
                                         </div>
                                     </div>

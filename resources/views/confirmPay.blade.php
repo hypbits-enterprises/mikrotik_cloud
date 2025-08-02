@@ -158,7 +158,14 @@ date_default_timezone_set('Africa/Nairobi');
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
-                                    <a href="/Payment" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to list</a>
+                                    @php
+                                        $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                        $otherClasses = "ml-1";
+                                        $btnLink = "/Payment";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/Payment" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to list</a> --}}
                                     <p class="card-text">Below you will be able to view the transaction detail.</p>
 
                                     <div class="row">
@@ -226,7 +233,14 @@ date_default_timezone_set('Africa/Nairobi');
                                                 <p id="data7">{{"Null"}}</p>
                                             </div>
                                             <div class="col-md-6">
-                                                <a href="#" id="confirm_pay" class="hide btn btn-primary">Confirm Payment</a>
+                                                @php
+                                                    $btnText = "Confirm Payment";
+                                                    $otherClasses = "hide";
+                                                    $btnLink = "#";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button-link btnId="confirm_pay" btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                {{-- <a href="#" id="confirm_pay" class="hide btn btn-primary">Confirm Payment</a> --}}
                                                 <p class="text-danger" id="error_handler"></p>
                                             </div>
                                         </div>

@@ -135,8 +135,15 @@
                                         </ul>
                                     @endif
                                     </ul>
-                                    <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                        to list</a>
+                                    @php
+                                        $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                        $otherClasses = "";
+                                        $btnLink = "/Clients";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
+                                        to list</a> --}}
                                     @if (session('success'))
                                         <p class="success">{{ session('success') }}</p>
                                     @endif
@@ -163,7 +170,14 @@
                                                                     <div class="container my-1 border border-dark rounded p-1 d-none" id="delete_the_user">
                                                                         <h4 class="text-center">Delete User!</h4>
                                                                         <p><b>Delete this user from the system?</b></p>
-                                                                        <a href="/delete_user/{{$clients_data[0]->client_id}}" class="btn btn-sm btn-outline-danger btn-block"><i class="ft-trash"></i> Delete User</a>
+                                                                        @php
+                                                                            $btnText = "<i class=\"ft-trash\"></i> Delete User";
+                                                                            $otherClasses = "btn-block";
+                                                                            $btnLink = "/delete_user/".$clients_data[0]->client_id;
+                                                                            $otherAttributes = "";
+                                                                        @endphp
+                                                                        <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                                        {{-- <a href="/delete_user/{{$clients_data[0]->client_id}}" class="btn btn-sm btn-outline-danger btn-block"><i class="ft-trash"></i> Delete User</a> --}}
                                                                     </div>
                                                                 </div>
                                                                 <div class="form-group">
@@ -362,8 +376,15 @@
                                                         @endif
                                                     </div>
                                                     <div class="col-md-6">
-                                                        <a class="btn btn-secondary btn-outline" href="/Clients"><i
-                                                                class="ft-x"></i> Cancel</a>
+                                                        @php
+                                                            $btnText = "<i class=\"ft-x\"></i> Cancel";
+                                                            $otherClasses = "";
+                                                            $btnLink = "/Clients";
+                                                            $otherAttributes = "";
+                                                        @endphp
+                                                        <x-button-link btnType="secondary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                        {{-- <a class="btn btn-secondary btn-outline" href="/Clients"><i
+                                                                class="ft-x"></i> Cancel</a> --}}
                                                     </div>
                                                 </div>
                                             </form>
@@ -413,8 +434,14 @@
                                         </ul>
                                     @endif
                                     </ul>
-                                    <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                        to list</a>
+                                    @php
+                                        $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                        $otherClasses = "";
+                                        $btnLink = "/Clients";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to list</a> --}}
                                     @if (session('success'))
                                         <p class="success">{{ session('success') }}</p>
                                     @endif

@@ -230,7 +230,14 @@ date_default_timezone_set('Africa/Nairobi');
                                                 <p><strong>Change Password: </strong></p>
                                             </div>
                                             <div class="col-md-6">
-                                                <a href="/Credentials" class="btn btn-primary">Change password</a>
+                                                @php
+                                                    $btnText = "Change password";
+                                                    $otherClasses = "";
+                                                    $btnLink = "/Credentials";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                {{-- <a href="/Credentials" class="btn btn-primary">Change password</a> --}}
                                             </div>
                                         </div>
                                         <div class="col-md-6 row">

@@ -78,7 +78,14 @@
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
-                                    <a href="/SharedTables" class="btn btn-sm btn-primary my-1"><i class="ft-arrow-left"></i> Back to List</a>
+                                    @php
+                                        $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                        $otherClasses = "my-1";
+                                        $btnLink = "/SharedTables";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/SharedTables" class="btn btn-sm btn-primary my-1"><i class="ft-arrow-left"></i> Back to List</a> --}}
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
                                         <ul class="text-danger" style="color: orangered">
@@ -152,7 +159,14 @@
                                             {{-- <button type="button" class="btn btn-primary btn-sm my-1" id="add_columns_table"><i class="ft-plus"></i> Add Column</button> --}}
                                         </div>
                                         <div class="col-md-6">
-                                            <button type="submit" {{$readonly}} data-html="true" data-toggle="tooltip" title="Click this button to save the table after defining all the columns you need!" class="btn btn-success text-dark btn-sm my-1"><i class="ft-save"></i> Save Table</button>
+                                            @php
+                                                $btnText = "<i class=\"ft-save\"></i> Save Table";
+                                                $otherClasses = "text-dark my-1 ".$readonly;
+                                                $btn_id = "";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="Click this button to save the table after defining all the columns you need!" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            {{-- <button type="submit" {{$readonly}} data-html="true" data-toggle="tooltip" title="Click this button to save the table after defining all the columns you need!" class="btn btn-success text-dark btn-sm my-1"><i class="ft-save"></i> Save Table</button> --}}
                                         </div>
                                     </form>
                                   </div>

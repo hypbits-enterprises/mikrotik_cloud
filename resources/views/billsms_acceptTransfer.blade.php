@@ -117,7 +117,14 @@
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
-                                    <a href="/BillingSms/Transactions/View/{{$transaction_id}}" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back</a>
+                                    @php
+                                        $btnText = "<i class=\"fas fa-arrow-left\"></i> Back";
+                                        $otherClasses = "";
+                                        $btnLink = "/BillingSms/Transactions/View/".$transaction_id;
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="info" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/BillingSms/Transactions/View/{{$transaction_id}}" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back</a> --}}
                                     <p><strong>Note</strong><br>- Confirm the data below is correct before confirming the transfer!</p>
                                 </div>
                                 <div class="card-body row">
@@ -202,10 +209,24 @@
                                 </div>
                                 <div class="card-body row">
                                     <div class="col-md-6">
-                                        <a href="/BillingSms/confirmTransfer/{{$client_data[0]->client_id}}/{{$transaction_details[0]->transaction_id}}" class="btn btn-primary {{$readonly}}">Convert to SMS</a>
+                                        @php
+                                            $btnText = "Convert to SMS";
+                                            $otherClasses = "";
+                                            $btnLink = "/BillingSms/confirmTransfer/".$client_data[0]->client_id."/".$transaction_details[0]->transaction_id;
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        {{-- <a href="/BillingSms/confirmTransfer/{{$client_data[0]->client_id}}/{{$transaction_details[0]->transaction_id}}" class="btn btn-primary {{$readonly}}">Convert to SMS</a> --}}
                                     </div>
                                     <div class="col-md-6">
-                                        <a href="/BillingSms/Transactions/View/{{$transaction_id}}" class="btn btn-danger">Cancel</a>
+                                        @php
+                                            $btnText = "Cancel";
+                                            $otherClasses = "";
+                                            $btnLink = "/BillingSms/Transactions/View/".$transaction_id;
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        {{-- <a href="/BillingSms/Transactions/View/{{$transaction_id}}" class="btn btn-danger">Cancel</a> --}}
                                     </div>
                                 </div>
                             </div>

@@ -189,7 +189,14 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <button class="btn btn-primary" {{$readonly}} type="submit"><i class="ft-plus"></i> Add Administrator</button>
+                                                @php
+                                                    $btnText = "<i class=\"ft-plus\"></i> Add Administrator";
+                                                    $otherClasses = "";
+                                                    $btn_id = "";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button class="btn btn-primary" {{$readonly}} type="submit"><i class="ft-plus"></i> Add Administrator</button> --}}
                                             </div>
                                         </div>
                                         <hr>

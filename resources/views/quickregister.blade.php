@@ -73,8 +73,22 @@
                             </div>
                             <div class="card-header">
                                 <p>- Register clients in either of the following ways!</p>
-                                <a href="/Quick-Register/New-Static" data-toggle="tooltip" title="Register new statically assigned client!" class="btn btn-primary {{$readonly}}"><i class="ft-user-check"></i> Register Static Client</a>
-                                <a href="/Quick-Register/New-PPPoE" data-toggle="tooltip" title="Register new PPPoE assigned client!" class="btn btn-secondary {{$readonly}}"><i class="ft-user-plus"></i> Register PPPoE Client</a>
+                                @php
+                                    $btnText = "<i class=\"ft-user-check\"></i> Register Static Client";
+                                    $otherClasses = "mt-1 ".$readonly;
+                                    $btnLink = "/Quick-Register/New-Static";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link :otherAttributes="$otherAttributes" toolTip="Register new statically assigned client!" :btnText="$btnText" :btnLink="$btnLink" btnType="primary" btnSize="md" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/Quick-Register/New-Static" data-toggle="tooltip" title="Register new statically assigned client!" class="btn btn-primary {{$readonly}}"><i class="ft-user-check"></i> Register Static Client</a> --}}
+                                @php
+                                    $btnText = "<i class=\"ft-user-plus\"></i> Register PPPoE Client";
+                                    $otherClasses = "mt-1 ".$readonly;
+                                    $btnLink = "/Quick-Register/New-PPPoE";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link :otherAttributes="$otherAttributes" toolTip="Register new PPPoE assigned client!" :btnText="$btnText" :btnLink="$btnLink" btnType="secondary" btnSize="md" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/Quick-Register/New-PPPoE" data-toggle="tooltip" title="Register new PPPoE assigned client!" class="btn btn-secondary {{$readonly}}"><i class="ft-user-plus"></i> Register PPPoE Client</a> --}}
                             </div>
                         </div>
                     </div>

@@ -335,10 +335,29 @@ date_default_timezone_set('Africa/Nairobi');
                                                     <span id="interface_list"></span>
                                                     <div class="row my-2">
                                                         <div class="col-md-6">
-                                                            <button id="edit_bridges" type="button" class="btn btn-transparent"><small>Edit existing Bridge</small></button><br><br>
+                                                            @php
+                                                                $btnText = "Edit existing Bridge";
+                                                                $otherClasses = "";
+                                                                $btn_id = "edit_bridges";
+                                                                $btnSize="sm";
+                                                                $type = "button";
+                                                                $otherAttributes = "";
+                                                            @endphp
+                                                            <x-button toolTip="" btnType="transparent" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                            {{-- <button id="edit_bridges" type="button" class="btn btn-transparent"><small>Edit existing Bridge</small></button> --}}
+                                                            <br><br>
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <button class="btn btn-primary float-right" id="add_bridge" ><span class="d-none " id="bridge_create_loader"><i class="fas fa-spinner fa-spin"></i></span>  Add</button>
+                                                            @php
+                                                                $btnText = "<span class=\"d-none \" id=\"bridge_create_loader\"><i class=\"fas fa-spinner fa-spin\"></i></span>  Add";
+                                                                $otherClasses = "float-right";
+                                                                $btn_id = "add_bridge";
+                                                                $btnSize="sm";
+                                                                $type = "button";
+                                                                $otherAttributes = "";
+                                                            @endphp
+                                                            <x-button toolTip="" btnType="primary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                            {{-- <button class="btn btn-primary float-right" id="add_bridge" ><span class="d-none " id="bridge_create_loader"><i class="fas fa-spinner fa-spin"></i></span>  Add</button> --}}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -350,7 +369,17 @@ date_default_timezone_set('Africa/Nairobi');
                                                     <span id="bridge-adding"></span>
                                                     <div class="container row my-2">
                                                         <div class="col-md-6">
-                                                            <button id="add_bridges" type="button" class="btn btn-transparent"><small>Click to add bridge</small></button><br><br>
+                                                            @php
+                                                                $btnText = "Click to add bridge";
+                                                                $otherClasses = "float-right";
+                                                                $btn_id = "add_bridges";
+                                                                $btnSize="sm";
+                                                                $type = "button";
+                                                                $otherAttributes = "";
+                                                            @endphp
+                                                            <x-button toolTip="" btnType="transparent" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                            {{-- <button id="add_bridges" type="button" class="btn btn-transparent"><small>Click to add bridge</small></button> --}}
+                                                            <br><br>
                                                         </div>
                                                         <div class="col-md-6">
                                                             <button type="button" id="change_bridge" class="btn btn-primary float-right"> <span class="d-none " id="bridge_edit_loader"><i class="fas fa-spinner fa-spin"></i></span> Change Bridge</button>

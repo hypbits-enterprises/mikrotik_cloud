@@ -165,7 +165,14 @@
                                                         </div>
                                                     </div>
                                                     <div class="col-md-3">
-                                                        <button class="btn btn-primary mt-2" type="submit"><i class="ft-settings"></i> Generate Reports</button>
+                                                        @php
+                                                            $btnText = "<i class=\"ft-settings\"></i> Generate Reports";
+                                                            $otherClasses = "mt-2 ".$readonly;
+                                                            $btn_id = "";
+                                                            $otherAttributes = "";
+                                                        @endphp
+                                                        <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                        {{-- <button class="btn btn-primary mt-2" type="submit"><i class="ft-settings"></i> Generate Reports</button> --}}
                                                     </div>
                                                 </div>
                                             </form>
@@ -189,7 +196,14 @@
 
                                         </div>
                                         <div class="col-md-3">
-                                            <a href="/Client-Reports/New" class="btn btn-purple btn-sm {{$readonly}}"><i class="ft-plus"></i> New Issue</a>
+                                            @php
+                                                $btnText = "<i class=\"ft-plus\"></i> New Issue";
+                                                $otherClasses = "my-1";
+                                                $btnLink = "/Client-Reports/New";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button-link btnType="purple" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                            {{-- <a href="/Client-Reports/New" class="btn btn-purple btn-sm {{$readonly}}"><i class="ft-plus"></i> New Issue</a> --}}
                                         </div>
                                     </div>
                                     <div class="table-responsive" id="transDataReciever">
@@ -224,9 +238,17 @@
                                                         <td data-toggle="tooltip" title="" data-original-title="{{$report->report_description}}">{{strlen($report->report_description) > 100 ? substr($report->report_description, 0, 100)."...." : $report->report_description}}</td>
                                                         <td><a href="/Clients/View/{{$report->client_id}}" target="_blank" class="text-dark">{{ucwords(strtolower($report->client_name))}} - ({{$report->client_account}})</a></td>
                                                         <td>{{date("D dS M Y H:i:sA", strtotime($report->report_date))}}</td>
-                                                        <td><a href="/Client-Reports/View/{{$report->report_id}}" class="btn btn-sm btn-purple text-bolder"
+                                                        <td>
+                                                            @php
+                                                                $btnText = "<i class=\"ft-eye\"></i>";
+                                                                $otherClasses = "text-bolder";
+                                                                $btnLink = "/Client-Reports/View/".$report->report_id;
+                                                                $otherAttributes = "";
+                                                            @endphp
+                                                            <x-button-link btnType="purple" btnSize="sm" toolTip="View this issue." :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                            {{-- <a href="/Client-Reports/View/{{$report->report_id}}" class="btn btn-sm btn-purple text-bolder"
                                                                 data-toggle="tooltip" title="View this issue."><i
-                                                                    class="ft-eye"></i></a>
+                                                                    class="ft-eye"></i></a> --}}
                                                         </td>
                                                     </tr>
                                                 @endforeach

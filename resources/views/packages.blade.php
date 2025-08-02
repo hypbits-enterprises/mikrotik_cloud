@@ -212,8 +212,15 @@
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                <a href="/BillingSms/Manage" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                    to Bill SMS Manager</a>
+                                @php
+                                    $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to Bill SMS Manager";
+                                    $otherClasses = "";
+                                    $btnLink = "/BillingSms/Manage";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link btnType="infor" btnSize="sm" toolTip="Transaction`s Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/BillingSms/Manage" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
+                                    to Bill SMS Manager</a> --}}
                                 <div class="card-body">
                                     {{-- <p>{{($client_data ?? '')}}</p> --}}
                                     <p class="card-text">- In this table below packages information is displayed. <br>- Add a new package by clicking the new button.</p>
@@ -234,7 +241,14 @@
                                             </div>
                                         </div>
                                         <div class="col-md-4">
-                                            <a href="/BillingSms/NewPackage" class="btn btn-info text-bolder float-right {{$readonly}}"><i class="ft-plus"> Set New Package</i></a>
+                                            @php
+                                                $btnText = "<i class=\"ft-plus\"></i> Set New Package";
+                                                $otherClasses = "text-bolder float-right";
+                                                $btnLink = "/BillingSms/NewPackage";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button-link btnType="info" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                            {{-- <a href="/BillingSms/NewPackage" class="btn btn-info text-bolder float-right {{$readonly}}"><i class="ft-plus"> Set New Package</i></a> --}}
                                         </div>
                                     </div>
                                     <div class="table-responsive" id="transDataReciever">

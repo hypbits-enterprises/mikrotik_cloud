@@ -107,7 +107,16 @@
                                 <div class="heading-elements">
                                     {{-- <button data-action="collapse" class="btn btn-primary"><i class="ft-plus"></i> Add Administrator</button> --}}
                                     <ul class="list-inline mb-0">
-                                        <li><a class="btn btn-outline-primary" data-action="collapse"><i class="ft-plus"></i> Check Frozen Clients</a></li>
+                                        <li>
+                                            @php
+                                                $btnText = "<i class=\"ft-plus\"></i> Check Frozen Clients";
+                                                $otherClasses = "";
+                                                $btnLink = "#";
+                                                $otherAttributes = "data-action=\"collapse\"";
+                                            @endphp
+                                            <x-button-link :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" btnType="primary" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                            {{-- <a class="btn btn-outline-primary" data-action="collapse"><i class="ft-plus"></i> Check Frozen Clients</a> --}}
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -133,7 +142,16 @@
                                                     <td>{{ucwords(strtolower($frozen_clients[$i]->client_name))}}</td>
                                                     <td>{{$frozen_clients[$i]->freeze_days_left}}</td>
                                                     <td>{{($frozen_clients[$i]->client_freeze_untill) == "00000000000000" ? "Indefinate" : date("D dS M Y",strtotime($frozen_clients[$i]->client_freeze_untill))}}</td>
-                                                    <td><a href="/Clients/View/{{$frozen_clients[$i]->client_id}}" class="btn btn-outline-infor btn-sm p-0 my-0"><i class="fas fa-eye"></i> View</a></td>
+                                                    <td>
+                                                        @php
+                                                            $btnText = "<i class=\"fas fa-eye\"></i> View";
+                                                            $otherClasses = "";
+                                                            $btnLink = "/Clients/View/".$frozen_clients[$i]->client_id;
+                                                            $otherAttributes = "";
+                                                        @endphp
+                                                        <x-button-link :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" btnType="info" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                        {{-- <a href="/Clients/View/{{$frozen_clients[$i]->client_id}}" class="btn btn-outline-infor btn-sm p-0 my-0"><i class="fas fa-eye"></i> View</a> --}}
+                                                    </td>
                                                 </tr>
                                             @endfor
                                         </tbody>
@@ -162,9 +180,28 @@
                             <div class="card-header">
                                 <p>- Manage Clients Further!</p>
                                 {{-- <span class='badge badge-warning text-dark'>Reffered</span> --}}
-                                <a href="/Client-Statistics" class="btn btn-secondary mt-1" style="padding: 3px;" data-toggle="tooltip" title="Client`s Statistics"><span class="d-inline-block border border-white" style="border-radius: 2px; padding: 10px;"><i class="ft-bar-chart-2"></i> Client`s Statistics</span></a>
-                                <button class="btn btn-info mt-1" style="padding: 3px;" data-toggle="tooltip" title="Client`s Reports" id="client_reports_btn"><span class="d-inline-block border border-white" style="border-radius: 2px; padding: 10px;"><i class="ft-file-text"></i> Client`s Reports</span></button>
-                                <button class="btn btn-info mt-1 {{$export_data == "disabled" ? "d-none" : ""}}" style="padding: 3px;" {{$export_data}} data-toggle="tooltip" title="Export Client Data" id="export_client_data_btn"><span class="d-inline-block border border-white" style="border-radius: 2px; padding: 10px;"><i class="fa fa-file-export"></i> Export Client Data</span></button>
+                                @php
+                                    $btnText = "<i class=\"ft-bar-chart-2\"></i> Client`s Statistics";
+                                    $otherClasses = "mt-1";
+                                    $btnLink = "/Client-Statistics";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link :otherAttributes="$otherAttributes" toolTip="Client`s Statistics" :btnText="$btnText" :btnLink="$btnLink" btnType="secondary" btnSize="md" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/Client-Statistics" class="btn btn-secondary mt-1" style="padding: 3px;" data-toggle="tooltip" title="Client`s Statistics"><span class="d-inline-block border border-white" style="border-radius: 2px; padding: 10px;"><i class="ft-bar-chart-2"></i> Client`s Statistics</span></a> --}}
+                                @php
+                                    $btnText = "<i class=\"ft-file-text\"></i> Client`s Reports";
+                                    $otherClasses = "mt-1";
+                                    $btn_id = "client_reports_btn";
+                                @endphp
+                                <x-button :btnText="$btnText" btnType="info" type="button" toolTip="Client`s Reports" btnSize="md" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                {{-- <button class="btn btn-info mt-1" style="padding: 3px;" data-toggle="tooltip" title="Client`s Reports" id="client_reports_btn"><span class="d-inline-block border border-white" style="border-radius: 2px; padding: 10px;"><i class="ft-file-text"></i> Client`s Reports</span></button> --}}
+                                @php
+                                    $btnText = "<i class=\"fa fa-file-export\"></i> Export Client Data";
+                                    $otherClasses = "mt-1 ".($export_data == "disabled" ? "d-none" : "");
+                                    $btn_id = "export_client_data_btn";
+                                @endphp
+                                <x-button :btnText="$btnText" btnType="info" type="button" :disabled="$export_data" toolTip="Export Client Data" btnSize="md" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                {{-- <button class="btn btn-info mt-1 {{$export_data == "disabled" ? "d-none" : ""}}" style="padding: 3px;" {{$export_data}} data-toggle="tooltip" title="Export Client Data" id="export_client_data_btn"><span class="d-inline-block border border-white" style="border-radius: 2px; padding: 10px;"><i class="fa fa-file-export"></i> Export Client Data</span></button> --}}
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
@@ -221,10 +258,22 @@
                                                                 
                                                                 <div class="row w-100">
                                                                     <div class="col-md-6">
-                                                                        <button type="submit" class="btn btn-outline-info btn-sm w-100 my-1" {{$export_data == "disabled" ? "d-none" : ""}}><i class="fas fa-download"></i> Download</button>
+                                                                        @php
+                                                                            $btnText = "<i class=\"fas fa-download\"></i> Download";
+                                                                            $otherClasses = "w-100 my-1 ".($export_data == "disabled" ? "d-none" : "");
+                                                                            $btn_id = "export_client_data_btn";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="info" type="submit" :disabled="$export_data" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                        {{-- <button type="submit" class="btn btn-outline-info btn-sm w-100 my-1" {{$export_data == "disabled" ? "d-none" : ""}}><i class="fas fa-download"></i> Download</button> --}}
                                                                     </div>
                                                                     <div class="col-md-6">
-                                                                        <button class="btn btn-outline-secondary btn-sm w-100 my-1" type="button" id="close_export_client_data_2">Cancel</button>
+                                                                        @php
+                                                                            $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                                            $otherClasses = "w-100 my-1 ".($export_data == "disabled" ? "d-none" : "");
+                                                                            $btn_id = "close_export_client_data_2";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="secondary" type="button" :disabled="$export_data" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                        {{-- <button class="btn btn-outline-secondary btn-sm w-100 my-1" type="button" id="close_export_client_data_2">Cancel</button> --}}
                                                                     </div>
                                                                 </div>
                                                             </form>
@@ -297,7 +346,13 @@
                                                         </select>
                                                     </div>
                                                     <div class="col-md-3">
-                                                        <button class="btn btn-outline-primary mt-2" type="submit"><i class="ft-settings"></i> Generate Reports</button>
+                                                        @php
+                                                            $btnText = "<i class=\"ft-settings\"></i> Generate Reports";
+                                                            $otherClasses = "mt-2 ".($export_data == "disabled" ? "d-none" : "");
+                                                            $btn_id = "";
+                                                        @endphp
+                                                        <x-button :btnText="$btnText" btnType="primary" type="submit" :disabled="$export_data" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                        {{-- <button class="btn btn-outline-primary mt-2" type="submit"><i class="ft-settings"></i> Generate Reports</button> --}}
                                                     </div>
                                                 </div>
                                             </form>
@@ -349,7 +404,14 @@
                                         </div>
                                         <div class="col-md-4">
                                             <div class="btn-group mr-1 mb-1 float-right">
-                                                <button type="button" {{$readonly}} class="btn btn-outline-info btn-min-width dropdown-toggle " data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"><i class="ft-plus"> New</i></button>
+                                                @php
+                                                    $btnText = "<i class=\"ft-plus\"></i> New";
+                                                    $otherClasses = "mt-2 btn-min-width dropdown-toggle";
+                                                    $btn_id = "";
+                                                    $otherAttributes = "data-toggle=\"dropdown\" aria-haspopup=\"true\" aria-expanded=\"true\"";
+                                                @endphp
+                                                <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" :readOnly="$readonly" btnType="info" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button type="button" {{$readonly}} class="btn btn-outline-info btn-min-width dropdown-toggle " data-toggle="dropdown" aria-haspopup="true" aria-expanded="true"><i class="ft-plus"> New</i></button> --}}
                                                 <div class="dropdown-menu">
                                                     <a class="dropdown-item" href="/Clients/NewStatic">Static Assignment</a>
                                                     <a class="dropdown-item" href="/Clients/NewPPPoE">PPPoE Assignment</a>
@@ -371,19 +433,47 @@
                                             <form action="/delete_clients" method="POST" class="col-md-3 border-right border-secondary my-1">
                                                 @csrf
                                                 <input type="hidden" name="hold_user_id_data" id="hold_user_id_data">
-                                                <button class="btn btn-sm btn-outline-danger" {{$readonly}} id="delete_clients_id" type="button"><i class="ft-trash"></i> Delete</button>
+                                                @php
+                                                    $btnText = "<i class=\"ft-trash\"></i> Delete";
+                                                    $otherClasses = "";
+                                                    $btn_id = "delete_clients_id";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" :readOnly="$readonly" btnType="danger" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button class="btn btn-sm btn-outline-danger" {{$readonly}} id="delete_clients_id" type="button"><i class="ft-trash"></i> Delete</button> --}}
                                                 <div class="container hide" id="delete_clients_window">
                                                     <p><b>Are you sure you want to delete <span id="delete_number_clients"></span> Client(s)</b>?</p>
                                                     <label for="delete_from_router" class="form-label">Delete Client Data on Router</label>
                                                     <input type="checkbox" checked name="delete_from_router" id="delete_from_router">
-                                                    <button class="btn btn-outline-danger" {{$readonly}} type="submit">Yes</button>
-                                                    <button class="btn btn-outline-secondary" id="no_dont_delete_selected" type="button">No</button>
+                                                    @php
+                                                        $btnText = "<i class=\"ft-check\"></i> Yes";
+                                                        $otherClasses = "";
+                                                        $btn_id = "";
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" :readOnly="$readonly" btnType="danger" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                    {{-- <button class="btn btn-outline-danger" {{$readonly}} type="submit">Yes</button> --}}
+                                                    @php
+                                                        $btnText = "<i class=\"ft-x\"></i> No";
+                                                        $otherClasses = "";
+                                                        $btn_id = "no_dont_delete_selected";
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" :readOnly="$readonly" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                    {{-- <button class="btn btn-outline-secondary" id="no_dont_delete_selected" type="button">No</button> --}}
                                                 </div>
                                             </form>
                                             <form class="col-md-3" action="/send_sms_clients" method="POST" class="col-md-3 my-1">
                                                 @csrf
                                                 <input type="hidden" name="hold_user_id_data" id="hold_user_id_data_2">
-                                                <button class="btn btn-sm btn-outline-info" {{$readonly}} type="submit"><i class="fa-solid fa-paper-plane"></i> Send SMS</button>
+                                                @php
+                                                    $btnText = "<i class=\"fa-solid fa-paper-plane\"></i> Send SMS";
+                                                    $otherClasses = "mt-1";
+                                                    $btn_id = "";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" :readOnly="$readonly" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button class="btn btn-sm btn-outline-info" {{$readonly}} type="submit"><i class="fa-solid fa-paper-plane"></i> Send SMS</button> --}}
                                             </form>
                                             <div class="col-md-12 card-content">
                                                 <h6 class="text-center"><u>Clients Selected</u></h6>

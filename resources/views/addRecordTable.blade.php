@@ -81,7 +81,14 @@
                                   @endif
 
                                   <div class="container p-1">
-                                    <a href="/SharedTables/View/{{$table_id}}/Name/{{$link_table_name}}" class="btn btn-primary btn-sm"><i class="ft-arrow-left"></i> Back to list</a>
+                                    @php
+                                        $btnText = "<i class=\"ft-arrow-left\"></i> Back to list";
+                                        $otherClasses = "ml-1";
+                                        $btnLink = "/SharedTables/View/".$table_id."/Name/".$link_table_name;
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/SharedTables/View/{{$table_id}}/Name/{{$link_table_name}}" class="btn btn-primary btn-sm"><i class="ft-arrow-left"></i> Back to list</a> --}}
                                   </div>
                                   <div class="container p-1 rounded mx-0">
                                     <p><b>Note:</b> - Fill all fields as neccesary! <br>
@@ -122,7 +129,14 @@
                                             </div>
                                         @endfor
                                         <div class="col-md-12">
-                                            <button class="btn btn-primary w-100"  {{$readonly}} type="submit"><i class="ft-save"></i> Save Record!</button>
+                                            @php
+                                                $btnText = "<i class=\"ft-save\"></i> Save Record!";
+                                                $otherClasses = "w-100";
+                                                $btn_id = "";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            {{-- <button class="btn btn-primary w-100"  {{$readonly}} type="submit"><i class="ft-save"></i> Save Record!</button> --}}
                                         </div>
                                     </form>
                                   </div>

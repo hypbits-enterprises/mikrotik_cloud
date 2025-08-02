@@ -115,8 +115,14 @@
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                <a href="/Client-Reports" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                    to list</a>
+                                @php
+                                    $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                    $otherClasses = "";
+                                    $btnLink = "/Client-Reports";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/Client-Reports" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to list</a> --}}
                                 <div class="card-body">
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
@@ -188,14 +194,32 @@
                                                                             placeholder="e.g., The client`s tenda router was faulty">{{ session('solution') ? session('solution') : $report_details->solution }}</textarea>
                                                                     </div>
                                                                 </div>
-                                                                <div class="container">
-                                                                    <button class="btn btn-success btn-sm {{$readonly}}" type="submit"><i class="ft-save"></i> Save</button>
+                                                                <div class="container row">
+                                                                    <div class="col-md-6">
+                                                                        @php
+                                                                            $btnText = "<i class=\"ft-save\"></i> Save";
+                                                                            $otherClasses = "mt-2 ".$readonly;
+                                                                            $btn_id = "";
+                                                                            $otherAttributes = "";
+                                                                        @endphp
+                                                                        <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                        {{-- <button class="btn btn-success btn-sm {{$readonly}}" type="submit"><i class="ft-save"></i> Save</button> --}}
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        @php
+                                                                            $btnText = "<i class=\"ft-x\"></i> Cancel";
+                                                                            $otherClasses = "mt-2 float-right".$readonly;
+                                                                            $btn_id = "close_update_status_window";
+                                                                            $otherAttributes = "data-dismiss=\"modal\"";
+                                                                        @endphp
+                                                                        <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                        {{-- <button type="button" id="close_update_status_window" class="btn btn-secondary btn-sm {{$readonly}}" data-dismiss="modal">Cancel</button> --}}
+                                                                    </div>
                                                                 </div>
                                                             </form>
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" id="close_update_status_window" class="btn btn-sm btn-secondary" data-dismiss="modal">Close</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -243,7 +267,14 @@
                                                             @else
                                                                 <span class="badge text-light bg-success text-dark" data-toggle="tooltip" title="" data-original-title="Resolved!">Resolved</span>
                                                             @endif
-                                                            <button class="btn btn-sm btn-outline-success" {{$readonly}} id="change_status" type="button"><i class="ft-refresh"></i> Change Status</button>
+                                                            @php
+                                                                $btnText = "<i class=\"ft-refresh\"></i> Change Status";
+                                                                $otherClasses = "".$readonly;
+                                                                $btn_id = "change_status";
+                                                                $otherAttributes = "";
+                                                            @endphp
+                                                            <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="success" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                            {{-- <button class="btn btn-sm btn-outline-success" {{$readonly}} id="change_status" type="button"><i class="ft-refresh"></i> Change Status</button> --}}
                                                             {{-- <a href="/Client-Reports/View/Change-Status/{{$report_details->report_id}}" data-toggle="tooltip" title="" data-original-title="Click me to change status!" class="btn btn-sm btn-outline-success">Change Status</a> --}}
                                                         </td>
                                                     </tr>
@@ -312,10 +343,24 @@
                                         </div>
                                         <div class="row mt-2">
                                             <div class="col-md-4">
-                                                <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i class="ft-upload"></i> Update Report</button>
+                                                @php
+                                                    $btnText = "<i class=\"ft-upload\"></i> Update Report";
+                                                    $otherClasses = "text-dark ".$readonly;
+                                                    $btn_id = "";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i class="ft-upload"></i> Update Report</button> --}}
                                             </div>
                                             <div class="col-md-4">
-                                                <button type="button" class="btn btn-outline-purple" {{$readonly}} id="DeleteTable"><i class="ft-trash"></i> Delete</button>
+                                                @php
+                                                    $btnText = "<i class=\"ft-trash\"></i> Delete";
+                                                    $otherClasses = "".$readonly;
+                                                    $btn_id = "DeleteTable";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="danger" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button type="button" class="btn btn-outline-purple" {{$readonly}} id="DeleteTable"><i class="ft-trash"></i> Delete</button> --}}
                                                 <div class="container">
                                                     <div class="modal fade text-left" id="delete_client_report" tabindex="-1" role="dialog" aria-labelledby="myModalLabel11" style="padding-right: 17px;" aria-modal="true">
                                                         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -333,8 +378,22 @@
                                                                     </div>
                                                                 </div>
                                                                 <div class="modal-footer">
-                                                                    <button type="button" id="close_this_window_delete" class="btn btn-sm btn-secondary" data-dismiss="modal">Close</button>
-                                                                    <a href="/Client-Reports/Delete-Report/{{$report_details->report_id}}" class="btn btn-sm btn-danger my-1 "><i class="ft-trash"></i> Delete</a>
+                                                                    @php
+                                                                        $btnText = "<i class=\"ft-x\"></i> Close";
+                                                                        $otherClasses = "".$readonly;
+                                                                        $btn_id = "close_this_window_delete";
+                                                                        $otherAttributes = "data-dismiss=\"modal\"";
+                                                                    @endphp
+                                                                    <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                    {{-- <button type="button" id="close_this_window_delete" class="btn btn-sm btn-secondary" data-dismiss="modal">Close</button> --}}
+                                                                    @php
+                                                                        $btnText = "<i class=\"ft-trash\"></i> Delete";
+                                                                        $otherClasses = "my-1";
+                                                                        $btnLink = "/Client-Reports/Delete-Report/".$report_details->report_id;
+                                                                        $otherAttributes = "";
+                                                                    @endphp
+                                                                    <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                                    {{-- <a href="/Client-Reports/Delete-Report/{{$report_details->report_id}}" class="btn btn-sm btn-danger my-1 "><i class="ft-trash"></i> Delete</a> --}}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -342,8 +401,15 @@
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
-                                                <a class="btn btn-secondary btn-outline" href="/Client-Reports"><i
-                                                        class="ft-x"></i> Cancel</a>
+                                                @php
+                                                    $btnText = "<i class=\"ft-x\"></i> Cancel";
+                                                    $otherClasses = "";
+                                                    $btnLink = "/Client-Reports";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button-link btnType="secondary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                {{-- <a class="btn btn-secondary btn-outline" href="/Client-Reports"><i
+                                                        class="ft-x"></i> Cancel</a> --}}
                                             </div>
                                         </div>
                                     </form>

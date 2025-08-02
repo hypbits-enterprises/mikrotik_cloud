@@ -209,8 +209,15 @@ date_default_timezone_set('Africa/Nairobi');
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                <a href="/BillingSms/Manage" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                    to list</a>
+                                @php
+                                    $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                    $otherClasses = "";
+                                    $btnLink = "/BillingSms/Manage";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/BillingSms/Manage" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
+                                    to list</a> --}}
                                 <div class="card-body">
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
@@ -239,7 +246,14 @@ date_default_timezone_set('Africa/Nairobi');
                                                 <p class="text-primary" ><strong>Are you sure you want to permanently delete this client?</strong></p>
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <a href="/delete_user_sms/{{$client_id}}" class="btn btn-danger btn-sm" >Yes</a>
+                                                        @php
+                                                            $btnText = "Yes";
+                                                            $otherClasses = "";
+                                                            $btnLink = "/delete_user_sms/".$client_id;
+                                                            $otherAttributes = "";
+                                                        @endphp
+                                                        <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                        {{-- <a href="/delete_user_sms/{{$client_id}}" class="btn btn-danger btn-sm" >Yes</a> --}}
                                                     </div>
                                                     <div class="col-md-6">
                                                         <p class="btn btn-secondary btn-sm" id="delet_user_no">No</p>
@@ -254,16 +268,31 @@ date_default_timezone_set('Africa/Nairobi');
                                             @if ($user_data->status == 1)
                                                 <div class="row my-1 border-bottom border-light p-1">
                                                     <div class="col-sm-6"><strong>User status:</strong></div>
-                                                    <div class="col-sm-6"><a
-                                                            href="/deactivate_sms_client/{{ $user_data->client_id }}"
-                                                            class="btn btn-sm btn-danger">De-Activate</a><p class="text-success d-none"><b>De-activated</b></p></div>
+                                                    <div class="col-sm-6">
+                                                        @php
+                                                            $btnText = "De-Activate";
+                                                            $otherClasses = "";
+                                                            $btnLink = "/deactivate_sms_client/".$user_data->client_id;
+                                                            $otherAttributes = "";
+                                                        @endphp
+                                                        <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                        <a href="/deactivate_sms_client/{{ $user_data->client_id }}" class="btn btn-sm btn-danger">De-Activate</a>
+                                                    </div>
                                                 </div>
                                             @else
                                                 <div class="row my-1 border-bottom border-light p-1">
                                                     <div class="col-sm-6"><strong>User status:</strong></div>
-                                                    <div class="col-sm-6"><a
-                                                            href="/activate_sms_client/{{ $user_data->client_id }}"
-                                                            class="btn btn-sm btn-success">Activate</a><p class="text-danger d-none"><b>De-activated</b></p></div>
+                                                    <div class="col-sm-6">
+                                                        @php
+                                                            $btnText = "Activate";
+                                                            $otherClasses = "";
+                                                            $btnLink = "/activate_sms_client/".$user_data->client_id;
+                                                            $otherAttributes = "";
+                                                        @endphp
+                                                        <x-button-link btnType="success" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                        {{-- <a href="/activate_sms_client/{{ $user_data->client_id }}"
+                                                            class="btn btn-sm btn-success">Activate</a><p class="text-danger d-none"><b>De-activated</b></p> --}}
+                                                        </div>
                                                 </div>
                                             @endif
                                             <div class="row my-1 border-bottom border-light py-1">
@@ -282,10 +311,28 @@ date_default_timezone_set('Africa/Nairobi');
                                                     <input type="number" required name="sms_balances" id="sms_balances" class="form-control" placeholder="New SMS balance">
                                                     <div class="row">
                                                         <div class="col-md-6">
-                                                            <button type="submit" class="btn btn-primary my-1"><i class="fas fa-save"></i> Save</button>
+                                                            @php
+                                                                $btnText = "<i class=\"fas fa-save\"></i> Save";
+                                                                $otherClasses = "my-1";
+                                                                $btn_id = "";
+                                                                $btnSize="sm";
+                                                                $type = "submit";
+                                                                $otherAttributes = "";
+                                                            @endphp
+                                                            <x-button toolTip="" btnType="primary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                            {{-- <button type="submit" class="btn btn-primary my-1"><i class="fas fa-save"></i> Save</button> --}}
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <button class="btn btn-secondary my-1" type="button" id="cancel_sns_updates">Cancel</button>
+                                                            @php
+                                                                $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                                $otherClasses = "my-1";
+                                                                $btn_id = "cancel_sns_updates";
+                                                                $btnSize="sm";
+                                                                $type = "submit";
+                                                                $otherAttributes = "";
+                                                            @endphp
+                                                            <x-button toolTip="" btnType="secondary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                            {{-- <button class="btn btn-secondary my-1" type="button" id="cancel_sns_updates">Cancel</button> --}}
                                                         </div>
                                                     </div>
                                                 </form>
@@ -316,10 +363,28 @@ date_default_timezone_set('Africa/Nairobi');
                                                     <input type="date" required name="lc_expiration_date" id="lc_expiration_date" class="form-control">
                                                     <div class="row">
                                                         <div class="col-md-6">
-                                                            <button type="submit" class="btn btn-primary my-1"><i class="fas fa-save"></i> Save</button>
+                                                            @php
+                                                                $btnText = "<i class=\"fas fa-save\"></i> Save";
+                                                                $otherClasses = "my-1";
+                                                                $btn_id = "";
+                                                                $btnSize="sm";
+                                                                $type = "submit";
+                                                                $otherAttributes = "";
+                                                            @endphp
+                                                            <x-button toolTip="" btnType="primary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                            {{-- <button type="submit" class="btn btn-primary my-1"><i class="fas fa-save"></i> Save</button> --}}
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <button class="btn btn-secondary my-1" type="button" id="cancel_lc_edit">Cancel</button>
+                                                            @php
+                                                                $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                                $otherClasses = "my-1";
+                                                                $btn_id = "cancel_lc_edit";
+                                                                $btnSize="sm";
+                                                                $type = "button";
+                                                                $otherAttributes = "";
+                                                            @endphp
+                                                            <x-button toolTip="" btnType="secondary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                            {{-- <button class="btn btn-secondary my-1" type="button" id="cancel_lc_edit">Cancel</button> --}}
                                                         </div>
                                                     </div>
                                                 </form>
@@ -428,8 +493,17 @@ date_default_timezone_set('Africa/Nairobi');
                                         <hr>
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i
-                                                        class="ft-upload"></i> Update User</button>
+                                                @php
+                                                    $btnText = "<i class=\"ft-upload\"></i> Update User";
+                                                    $otherClasses = "text-dark";
+                                                    $btn_id = "update_user_sms";
+                                                    $btnSize="sm";
+                                                    $type = "submit";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button toolTip="" btnType="success" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i
+                                                        class="ft-upload"></i> Update User</button> --}}
                                             </div>
                                             <div class="col-md-6">
                                             </div>

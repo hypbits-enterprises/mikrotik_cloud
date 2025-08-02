@@ -215,8 +215,15 @@ date_default_timezone_set('Africa/Nairobi');
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                <a href="/BillingSms/Manage" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                    to list</a>
+                                @php
+                                    $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                    $otherClasses = "";
+                                    $btnLink = "/BillingSms/Manage";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link btnType="infor" btnSize="sm" toolTip="Transaction`s Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/BillingSms/Manage" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
+                                    to list</a> --}}
                                 <div class="card-body">
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
@@ -340,8 +347,17 @@ date_default_timezone_set('Africa/Nairobi');
                                         <hr>
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i
-                                                        class="ft-plus"></i> Add User</button>
+                                                @php
+                                                    $btnText = "<i class=\"ft-plus\"></i> Add User";
+                                                    $otherClasses = "text-dark";
+                                                    $btn_id = "";
+                                                    $btnSize="sm";
+                                                    $type = "submit";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button toolTip="" btnType="success" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i
+                                                        class="ft-plus"></i> Add User</button> --}}
                                             </div>
                                             <div class="col-md-6">
                                             </div>

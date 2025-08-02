@@ -21,7 +21,8 @@ class Button extends Component
     public $type;
     public $disabled;
     public $toolTip;
-    public function __construct($btnText="", $btnType='primary', $btnSize="md", $otherClasses="", $btnId="", $readOnly = "", $type = "button", $disabled = "", $toolTip = null)
+    public $otherAttributes;
+    public function __construct($btnText="", $btnType='primary', $btnSize="md", $otherClasses="", $btnId="", $readOnly = "", $type = "button", $disabled = "", $toolTip = null, $otherAttributes = "")
     {
         $this->btnText = $btnText;
         $this->btnType = $btnType;
@@ -33,6 +34,7 @@ class Button extends Component
         $this->readOnly = $readOnly;
         $this->toolTip = $toolTip;
         $this->disabled = $disabled;
+        $this->otherAttributes = $otherAttributes;
     }
 
     /**

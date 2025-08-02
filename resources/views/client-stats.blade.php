@@ -252,7 +252,14 @@
                                                     <input type="checkbox" name="from_todays" id="from_todays" checked>
                                                 </div>
                                                 <div class="col-md-3" >
-                                                    <span class="btn btn-primary" id="display_clients">Display Clients</span>
+                                                    @php
+                                                        $btnText = "Display Clients";
+                                                        $otherClasses = "";
+                                                        $btn_id = "display_clients";
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                    {{-- <span class="btn btn-primary" id="display_clients">Display Clients</span> --}}
                                                 </div>
                                             </div>
                                             <span class="hide" id="display_data"></span>

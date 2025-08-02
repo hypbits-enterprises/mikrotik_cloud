@@ -62,8 +62,15 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <a href="/Routers" class="btn btn-infor my-2"><i class="fas fa-arrow-left"></i> Back to
-                                    list</a>
+                                @php
+                                    $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                    $otherClasses = "my-2";
+                                    $btnLink = "/Routers";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/Routers" class="btn btn-infor my-2"><i class="fas fa-arrow-left"></i> Back to
+                                    list</a> --}}
                                     <hr>
                                 <h4 class="card-title">Add Router</h4>
                                 <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
@@ -145,12 +152,28 @@
                                         <hr>
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <button class="btn btn-danger" {{$readonly}} type="submit"><i
-                                                        class="ft-plus"></i> Add Router</button>
+                                                @php
+                                                    $btnText = "<i class=\"ft-plus\"></i> Add Router";
+                                                    $otherClasses = "";
+                                                    $btn_id = "";
+                                                    $btnSize="sm";
+                                                    $type = "submit";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button toolTip="" btnType="danger" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button class="btn btn-danger" {{$readonly}} type="submit"><i
+                                                        class="ft-plus"></i> Add Router</button> --}}
                                             </div>
                                             <div class="col-md-6">
-                                                <a class="btn btn-secondary btn-outline" href="/Routers"
-                                                    type="button"><i class="ft-x"></i> Cancel</a>
+                                                @php
+                                                    $btnText = "<i class=\"ft-x\"></i> Cancel";
+                                                    $otherClasses = "";
+                                                    $btnLink = "/Routers";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button-link btnType="secondary" btnSize="sm" toolTip="Transaction`s Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                {{-- <a class="btn btn-secondary btn-outline" href="/Routers"
+                                                    type="button"><i class="ft-x"></i> Cancel</a> --}}
                                             </div>
                                         </div>
                                     </form>

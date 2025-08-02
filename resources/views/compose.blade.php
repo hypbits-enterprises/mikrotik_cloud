@@ -185,8 +185,15 @@
                                                 required>{{ isset($messages) ? $messages : '' }}</textarea>
                                         </div>
                                         <div class="col-md-6 my-1">
-                                            <button type="submit" {{$readonly}} class="btn btn-primary"><i
-                                                    class="fa-solid fa-paper-plane"></i> Send Message</button>
+                                            @php
+                                                $btnText = "<i class=\"fa-solid fa-paper-plane\"></i> Send Message";
+                                                $otherClasses = "".$readonly;
+                                                $btn_id = "";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            {{-- <button type="submit" {{$readonly}} class="btn btn-primary"><i
+                                                    class="fa-solid fa-paper-plane"></i> Send Message</button> --}}
                                         </div>
                                         <div class="col-md-6 my-1">
                                             <a href="/sms" class="btn btn-danger"><i class="fa-solid fa-xmark"></i>
@@ -280,12 +287,26 @@
                                                 required>{{ isset($messages) ? $messages : '' }}</textarea>
                                         </div>
                                         <div class="col-md-6 my-1">
-                                            <button {{$readonly}} type="submit" class="btn btn-primary"><i
-                                                    class="fa-solid fa-paper-plane"></i> Send Message</button>
+                                            @php
+                                                $btnText = "<i class=\"fa-solid fa-paper-plane\"></i> Send Message";
+                                                $otherClasses = "text-dark ".$readonly;
+                                                $btn_id = "";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            {{-- <button {{$readonly}} type="submit" class="btn btn-primary"><i
+                                                    class="fa-solid fa-paper-plane"></i> Send Message</button> --}}
                                         </div>
                                         <div class="col-md-6 my-1">
-                                            <a href="/sms" class="btn btn-danger"><i class="fa-solid fa-xmark"></i>
-                                                Cancel</a>
+                                            @php
+                                                $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                $otherClasses = "";
+                                                $btnLink = "/sms";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                            {{-- <a href="/sms" class="btn btn-danger"><i class="fa-solid fa-xmark"></i>
+                                                Cancel</a> --}}
                                         </div>
                                     </form>
                                 </div>

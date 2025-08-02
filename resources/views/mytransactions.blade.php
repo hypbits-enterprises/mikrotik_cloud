@@ -114,9 +114,32 @@
                             </div>
                             <div class="card-header">
                                 <p>- Syncs Transaction only!</p>
-                                <a href="/TransactionSync" class="btn btn-primary {{$readonly}} d-none"><i class="ft-refresh-ccw"></i> Sync Transaction</a>
-                                <a href="/Transactions/Statistics" data-toggle="tooltip" title="Transaction`s Statistics" class="btn btn-secondary"><i class="ft-bar-chart-2"></i> Transaction`s Statistics</a>
-                                <span data-toggle="tooltip" title="Transaction Reports" class="btn btn-info" id="transaction_reports_btn"><i class="ft-file-text"></i> Transaction Reports</span>
+                                @php
+                                    $btnText = "<i class=\"ft-refresh-ccw\"></i> Sync Transaction";
+                                    $otherClasses = " d-none";
+                                    $btnLink = "/TransactionSync";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/TransactionSync" class="btn btn-primary {{$readonly}} d-none"><i class="ft-refresh-ccw"></i> Sync Transaction</a> --}}
+                                @php
+                                    $btnText = "<i class=\"ft-bar-chart-2\"></i> Transaction`s Statistics";
+                                    $otherClasses = " d-none";
+                                    $btnLink = "/Transactions/Statistics";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link btnType="secondary" btnSize="sm" toolTip="Transaction`s Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/Transactions/Statistics" data-toggle="tooltip" title="Transaction`s Statistics" class="btn btn-secondary"><i class="ft-bar-chart-2"></i> Transaction`s Statistics</a> --}}
+                                @php
+                                    $btnText = "<i class=\"ft-file-text\"></i> Transaction Reports";
+                                    $otherClasses = "";
+                                    $btn_id = "transaction_reports_btn";
+                                    $btnSize="sm";
+                                    $type = "button";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button toolTip="Transaction Reports" btnType="info" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                {{-- <span data-toggle="tooltip" title="Transaction Reports" class="btn btn-info" id="transaction_reports_btn"><i class="ft-file-text"></i> Transaction Reports</span> --}}
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
@@ -163,7 +186,16 @@
                                                         </div>
                                                     </div>
                                                     <div class="col-md-3">
-                                                        <button class="btn btn-primary mt-2" type="submit"><i class="ft-settings"></i> Generate Reports</button>
+                                                        @php
+                                                            $btnText = "<i class=\"ft-settings\"></i> Generate Reports";
+                                                            $otherClasses = "mt-2";
+                                                            $btn_id = "";
+                                                            $btnSize="sm";
+                                                            $type = "submit";
+                                                            $otherAttributes = "";
+                                                        @endphp
+                                                        <x-button toolTip="" btnType="primary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                        {{-- <button class="btn btn-primary mt-2" type="submit"><i class="ft-settings"></i> Generate Reports</button> --}}
                                                     </div>
                                                 </div>
                                             </form>
@@ -186,7 +218,16 @@
                                         </div>
                                         <div class="col-md-6 row">
                                             <div class="col-md-2">
-                                                <button class="btn btn-sm btn-primary" id="show_totals"><i class="ft-eye"></i> Show Totals</button>
+                                                @php
+                                                    $btnText = "<i class=\"ft-eye\"></i> Show Totals";
+                                                    $otherClasses = "";
+                                                    $btn_id = "show_totals";
+                                                    $btnSize="sm";
+                                                    $type = "button";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button toolTip="" btnType="primary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button class="btn btn-sm btn-primary" id="show_totals"><i class="ft-eye"></i> Show Totals</button> --}}
                                             </div>
                                             <div class="col-md-10">
                                                 <p class="card-text text-right d-none" id="totals_window">

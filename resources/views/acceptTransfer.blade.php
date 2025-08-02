@@ -72,7 +72,14 @@
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
-                                    <a href="/Transactions/View/{{$transaction_id}}" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back</a>
+                                    @php
+                                        $btnText = "<i class=\"fas fa-arrow-left\"></i> Back";
+                                        $otherClasses = "";
+                                        $btnLink = "/Transactions/View/".$transaction_id;
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="infor" btnSize="sm" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/Transactions/View/{{$transaction_id}}" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back</a> --}}
                                     <p><strong>Note</strong><br>- Confirm the data below is correct before confirming the transfer!</p>
                                 </div>
                                 <div class="card-body row">
@@ -151,10 +158,24 @@
                                 </div>
                                 <div class="card-body row">
                                     <div class="col-md-6">
-                                        <a href="/confirmTransfer/{{$client_data[0]->client_id}}/{{$transaction_details[0]->transaction_id}}" class="btn btn-primary {{$readonly}}">Confirm Transfer</a>
+                                        @php
+                                            $btnText = "Confirm Transfer";
+                                            $otherClasses = "";
+                                            $btnLink = "/confirmTransfer/".$client_data[0]->client_id."/".$transaction_details[0]->transaction_id;
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button-link btnType="primary" btnSize="sm" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        {{-- <a href="/confirmTransfer/{{$client_data[0]->client_id}}/{{$transaction_details[0]->transaction_id}}" class="btn btn-primary {{$readonly}}">Confirm Transfer</a> --}}
                                     </div>
                                     <div class="col-md-6">
-                                        <a href="/Transactions/View/{{$transaction_id}}" class="btn btn-danger">Cancel</a>
+                                        @php
+                                            $btnText = "Cancel";
+                                            $otherClasses = "";
+                                            $btnLink = "/Transactions/View/".$transaction_id;
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button-link btnType="danger" btnSize="sm" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        {{-- <a href="/Transactions/View/{{$transaction_id}}" class="btn btn-danger">Cancel</a> --}}
                                     </div>
                                 </div>
                             </div>

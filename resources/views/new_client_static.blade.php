@@ -74,7 +74,14 @@
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                <a href="/Quick-Register" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back</a>
+                                @php
+                                    $btnText = "<i class=\"fas fa-arrow-left\"></i> Back";
+                                    $otherClasses = "";
+                                    $btnLink = "/Quick-Register";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link btnType="infor" btnSize="sm" toolTip="Transaction`s Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/Quick-Register" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back</a> --}}
                                 <div class="card-body">
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
@@ -282,12 +289,26 @@
                                         <hr>
                                         <div class="row">
                                         <div class="col-md-6">
-                                                <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i
-                                                        class="ft-plus"></i> Add User</button>
+                                                {{-- <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i
+                                                        class="ft-plus"></i> Add User</button> --}}
+                                                @php
+                                                    $btnText = "<i class=\"ft-plus\"></i> Add User";
+                                                    $otherClasses = "mt-1 text-dark";
+                                                    $btn_id = "";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" :readOnly="$readonly" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                                             </div>
                                             <div class="col-md-6">
-                                                <a class="btn btn-secondary btn-outline" href="/Quick-Register"><i
-                                                        class="ft-x"></i> Cancel</a>
+                                                {{-- <a class="btn btn-secondary btn-outline" href="/Quick-Register"><i
+                                                        class="ft-x"></i> Cancel</a> --}}
+                                                @php
+                                                    $btnText = "<i class=\"ft-x\"></i> Cancel";
+                                                    $otherClasses = "mt-1 ".$readonly;
+                                                    $btnLink = "/Quick-Register";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button-link :otherAttributes="$otherAttributes"  :btnText="$btnText" :btnLink="$btnLink" btnType="secondary" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
                                             </div>
                                         </div>
                                     </form>

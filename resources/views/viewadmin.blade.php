@@ -90,16 +90,39 @@
                                     @endif
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <a href="/Accounts/add" class="btn btn-infor"><i class="ft-arrow-left"></i>
-                                                Back to list</a>
+                                            @php
+                                                $btnText = "<i class=\"ft-arrow-left\"></i> Back to list";
+                                                $otherClasses = "";
+                                                $btnLink = "/Accounts/add";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                            {{-- <a href="/Accounts/add" class="btn btn-infor"><i class="ft-arrow-left"></i>
+                                                Back to list</a> --}}
                                         </div>
                                         <div class="col-md-6">
-                                            <button id="delete_user" class="btn btn-danger text-lg float-right" {{$readonly}}><i class="ft-trash-2"> Delete</i></button>
+                                            @php
+                                                $btnText = "<i class=\"ft-trash-2\"></i> Delete";
+                                                $otherClasses = "text-lg float-right";
+                                                $btn_id = "delete_user";
+                                                $btnSize="sm";
+                                                $type = "button";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button toolTip="" btnType="danger" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            {{-- <button id="delete_user" class="btn btn-danger text-lg float-right" {{$readonly}}><i class="ft-trash-2"> Delete</i></button> --}}
                                             <div class="container d-none mt-4" id="prompt_del_window">
                                                 <p class="text-secondary"><strong>Are you sure you want to permanently delete this user?</strong></p>
                                                 <div class="row">
                                                     <div class="col-md-6">
-                                                        <a href="{{url()->route("delete_admin",[$admin_data[0]->admin_id])}}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Delete</a>
+                                                        @php
+                                                            $btnText = "<i class=\"fas fa-trash\"></i> Delete";
+                                                            $otherClasses = "";
+                                                            $btnLink = "".url()->route("delete_admin",[$admin_data[0]->admin_id]);
+                                                            $otherAttributes = "";
+                                                        @endphp
+                                                        <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                        {{-- <a href="{{url()->route("delete_admin",[$admin_data[0]->admin_id])}}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Delete</a> --}}
                                                     </div>
                                                 </div>
                                             </div>
@@ -295,8 +318,17 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <button class="btn btn-primary" {{$readonly}} type="submit"><i
-                                                        class="ft-upload"></i> Update Administrator</button>
+                                                    @php
+                                                        $btnText = "<i class=\"ft-upload\"></i> Update Administrator";
+                                                        $otherClasses = "";
+                                                        $btn_id = "update_admin";
+                                                        $btnSize="sm";
+                                                        $type = "submit";
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button toolTip="" btnType="primary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button class="btn btn-primary" {{$readonly}} type="submit"><i
+                                                        class="ft-upload"></i> Update Administrator</button> --}}
                                             </div>
                                         </div>
                                         <hr>

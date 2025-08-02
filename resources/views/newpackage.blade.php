@@ -215,8 +215,15 @@
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                <a href="/BillingSms/Packages" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                    to list</a>
+                                @php
+                                    $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                    $otherClasses = "";
+                                    $btnLink = "/BillingSms/Packages";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link btnType="infor" btnSize="sm" toolTip="Transaction`s Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/BillingSms/Packages" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
+                                    to list</a> --}}
                                 <div class="card-body">
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
@@ -276,8 +283,17 @@
                                         <hr>
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i
-                                                        class="ft-plus"></i> Add Package</button>
+                                                @php
+                                                    $btnText = "<i class=\"ft-plus\"></i> Add Package";
+                                                    $otherClasses = "text-dark";
+                                                    $btn_id = "";
+                                                    $btnSize="sm";
+                                                    $type = "submit";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button toolTip="" btnType="success" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button class="btn btn-success text-dark" {{$readonly}} type="submit"><i
+                                                        class="ft-plus"></i> Add Package</button> --}}
                                             </div>
                                             <div class="col-md-6">
                                             </div>

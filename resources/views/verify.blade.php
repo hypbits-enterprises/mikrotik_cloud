@@ -114,10 +114,20 @@
                                             <input type="number" name="verification_code" class="form-control form-control-user text-center"
                                                 placeholder="Enter verification code . . ." required>
                                         </div>
-                                        <button type="submit" id="login-btn" class="btn btn-primary btn-user btn-block">
+                                        @php
+                                            $btnText = "<span id=\"spinners\" class=\"invisible spinner-grow text-success spinner-grow-sm\"></span> Submit";
+                                            $otherClasses = "btn-block";
+                                            $btn_id = "login-btn";
+                                            $btnSize="md";
+                                            $type = "submit";
+                                            $readonly = "";
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button toolTip="" btnType="primary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                        {{-- <button type="submit" id="login-btn" class="btn btn-primary btn-user btn-block">
                                             <span id="spinners" class="invisible spinner-grow text-success spinner-grow-sm"></span>
                                             Submit
-                                        </button>
+                                        </button> --}}
                                         <p class="text-left text-xxs text-bolder pt-2" id="errHandler"></p>
                                     </form>
                                     <div class="text-center">

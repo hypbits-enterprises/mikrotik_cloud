@@ -214,11 +214,25 @@
                                     <div class="row">
                                         <div class="col-md-4">
                                             <p><b>View transactions for SMS</b></p>
-                                            <a href="/BillingSms/Transactions" class="btn btn-secondary {{$readonly}}">Manage Transactions</a>
+                                            @php
+                                                $btnText = "Manage Transactions";
+                                                $otherClasses = "";
+                                                $btnLink = "/BillingSms/Transactions";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button-link btnType="secondary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                            {{-- <a href="/BillingSms/Transactions" class="btn btn-secondary {{$readonly}}">Manage Transactions</a> --}}
                                         </div>
                                         <div class="col-md-4">
                                             <p class=""><b>Manage Packages</b></p>
-                                            <a href="/BillingSms/Packages" class="btn btn-secondary {{$readonly}}">Manage Packages</a>
+                                            @php
+                                                $btnText = "Manage Packages";
+                                                $otherClasses = "";
+                                                $btnLink = "/BillingSms/Packages";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button-link btnType="secondary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                            {{-- <a href="/BillingSms/Packages" class="btn btn-secondary {{$readonly}}">Manage Packages</a> --}}
                                         </div>
                                     </div>
                                 </div>
@@ -250,7 +264,14 @@
                                             </div>
                                         </div>
                                         <div class="col-md-4">
-                                            <a href="/BillingSms/New" class="btn btn-info text-bolder {{$readonly}} float-right"><i class="ft-plus"> New</i></a>
+                                            @php
+                                                $btnText = "<i class=\"ft-plus\"></i> New";
+                                                $otherClasses = "text-bolder float-right";
+                                                $btnLink = "/BillingSms/New";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button-link btnType="secondary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                            {{-- <a href="/BillingSms/New" class="btn btn-info text-bolder {{$readonly}} float-right"><i class="ft-plus"> New</i></a> --}}
                                         </div>
                                     </div>
                                     <div class="table-responsive" id="transDataReciever">

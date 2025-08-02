@@ -79,12 +79,26 @@
                                     @if (session('success'))
                                         <p class="text-success">{{ session('success') }}</p>
                                     @endif
-                                    <a href="/sms" class="btn btn-infor"><i class="fas fa-arrow-left"></i>
-                                        Back to list</a>
+                                    @php
+                                        $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                        $otherClasses = "";
+                                        $btnLink = "/sms";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/sms" class="btn btn-infor"><i class="fas fa-arrow-left"></i>
+                                        Back to list</a> --}}
                                 </div>
                                 <div class="container">
-                                    <a href="/sms/resend/{{ $sms_data[0]->sms_id }}"
-                                        class="btn btn-primary btn-sm {{$readonly}}">Resend Sms</a>
+                                    @php
+                                        $btnText = "Resend Sms";
+                                        $otherClasses = "";
+                                        $btnLink = "/sms/resend/".$sms_data[0]->sms_id;
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    {{-- <a href="/sms/resend/{{ $sms_data[0]->sms_id }}"
+                                        class="btn btn-primary btn-sm {{$readonly}}">Resend Sms</a> --}}
                                 </div>
                                 <div class="row card-body">
                                     <div class="col-md-7">
@@ -133,12 +147,26 @@
                                 </div>
                                 <div class="card-body row">
                                     <div class="col-md-6">
-                                        <a href="/sms" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Back
-                                            to list</a>
+                                        @php
+                                            $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                            $otherClasses = "";
+                                            $btnLink = "/sms";
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        {{-- <a href="/sms" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Back
+                                            to list</a> --}}
                                     </div>
                                     <div class="col-md-6">
-                                        <a href="/sms/delete/{{ $sms_data[0]->sms_id }}" class="btn btn-danger {{$readonly}}"><i
-                                                class="fas fa-trash"></i> Delete</a>
+                                        @php
+                                            $btnText = "<i class=\"fas fa-trash\"></i> Delete";
+                                            $otherClasses = "";
+                                            $btnLink = "/sms/delete/".$sms_data[0]->sms_id;
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        {{-- <a href="/sms/delete/{{ $sms_data[0]->sms_id }}" class="btn btn-danger {{$readonly}}"><i
+                                                class="fas fa-trash"></i> Delete</a> --}}
                                     </div>
                                 </div>
                             </div>
