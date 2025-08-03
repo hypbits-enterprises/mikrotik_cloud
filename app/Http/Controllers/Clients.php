@@ -2127,7 +2127,6 @@ $export_text .= "
                 $clients_table->min_amount = $minimum_payment;
                 $clients_table->validated = "0";
                 $clients_table->save();
-                session()->flash("success_reg", "The user data has been successfully registered!");
 
                 // get the sms keys
                 $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
@@ -2211,6 +2210,7 @@ $export_text .= "
                     }
                 }
                 
+                session()->flash("success", "Client has been added successfully!");
                 return redirect("/Quick-Register");
             } else {
                 $error = "New client is not added, check if the Hypbits credentials are still present and not altered!";
@@ -2221,7 +2221,7 @@ $export_text .= "
             // return the user to the new client
             // display an error that the account number is already used
             session()->flash("network_presence", "The passwords provided does not match!");
-            return redirect("/Clients/NewPPPoE");
+            return redirect(url()->previous());
         }
     }
     // save a new client in the database
@@ -2662,7 +2662,7 @@ $export_text .= "
             // display an error that the account number is already used
             session()->flash("network_presence", "The account number provided is already present");
             session()->flash("account_number_present", "The account number provided is already present!");
-            return redirect("/Clients/NewStatic");
+            return redirect("/Quick-Register/New-Static");
         } else {
             // check if the client with that username OR client default gateway is present in the system
             $user_information = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_default_gw` = '$client_gw' AND  `router_name` = '" . $router_name . "'");
@@ -2671,7 +2671,7 @@ $export_text .= "
                 // the phone number or the client gw is shared
                 $error = "The clients address (" . $client_gw . ") is present in the database and used by " . $user_information[0]->client_name . "(" . $user_information[0]->client_address . ") use another value to proceed or change the user information to suit your new user.";
                 session()->flash("network_presence", $error);
-                return redirect("Clients/NewStatic");
+                return redirect("/Quick-Register/New-Static");
             } else {
                 // check if the selected router is connected
                 // get the router data

@@ -74,7 +74,14 @@
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                <a href="/Quick-Register" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back</a>
+                                @php
+                                    $btnText = "<i class=\"fas fa-arrow-left\"></i> Back";
+                                    $otherClasses = "ml-1 ";
+                                    $btnLink = "/Quick-Register";
+                                    $otherAttributes = "";
+                                @endphp
+                                <x-button-link :otherAttributes="$otherAttributes"  :btnText="$btnText" :btnLink="$btnLink" btnType="infor" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                {{-- <a href="/Quick-Register" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back</a> --}}
                                 <div class="card-body">
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
@@ -107,6 +114,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-lg-4 form-group">
+                                                <input type="hidden" name="quick_register" value="yes">
                                                 <label for="client_name" class="form-control-label">Clients
                                                     Fullname</label>
                                                 <input type="text" name="client_name" id="client_name"

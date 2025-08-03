@@ -196,8 +196,15 @@
                                                     class="fa-solid fa-paper-plane"></i> Send Message</button> --}}
                                         </div>
                                         <div class="col-md-6 my-1">
-                                            <a href="/sms" class="btn btn-danger"><i class="fa-solid fa-xmark"></i>
-                                                Cancel</a>
+                                            @php
+                                                $btnText = "<i class=\"fa-solid fa-xmark\"></i> Cancel";
+                                                $otherClasses = "";
+                                                $btnLink = "/sms";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                            {{-- <a href="/sms" class="btn btn-danger"><i class="fa-solid fa-xmark"></i>
+                                                Cancel</a> --}}
                                         </div>
                                     </form>
                                 </div>
@@ -289,7 +296,7 @@
                                         <div class="col-md-6 my-1">
                                             @php
                                                 $btnText = "<i class=\"fa-solid fa-paper-plane\"></i> Send Message";
-                                                $otherClasses = "text-dark ".$readonly;
+                                                $otherClasses = "".$readonly;
                                                 $btn_id = "";
                                                 $otherAttributes = "";
                                             @endphp

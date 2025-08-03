@@ -137,14 +137,16 @@ function displayRecord(start, finish, arrays) {
         //create a table of the 10 records
         var counter = start+1;
         for (let index = start; index < finish; index++) {
-            tableData+="<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][0] +" </td><td>" + formatDate(arrays[index][1]) + "</td><td>" + formatDate(arrays[index][2]) + "</td><td>"+arrays[index][3]+"</td><td><a href='SharedTables/View/" + arrays[index][5] + "/Name/"+replacePunctuationWithUnderscore(arrays[index][0])+"' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Shared Table'><i class='ft-eye'></i> View</a></td></tr>";
+            var actions = "<a href='/SharedTables/View/" + arrays[index][5] + "/Name/"+replacePunctuationWithUnderscore(arrays[index][0])+"' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Shared Table' style=\"padding: 3px;\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i> View</span></a>";
+            tableData+="<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][0] +" </td><td>" + formatDate(arrays[index][1]) + "</td><td>" + formatDate(arrays[index][2]) + "</td><td>"+arrays[index][3]+"</td><td>"+actions+"</td></tr>";
             counter++;
         }
     }else{
         //create a table of the 10 records
         var counter = start+1;
         for (let index = start; index < total; index++) {
-            tableData+="<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][0] +" </td><td>" + formatDate(arrays[index][1]) + "</td><td>" + formatDate(arrays[index][2]) + "</td><td>"+arrays[index][3]+"</td><td><a href='SharedTables/View/" + arrays[index][5] + "/Name/"+replacePunctuationWithUnderscore(arrays[index][0])+"' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Shared Table'><i class='ft-eye'></i> View</a></td></tr>";
+            var actions = "<a href='/SharedTables/View/" + arrays[index][5] + "/Name/"+replacePunctuationWithUnderscore(arrays[index][0])+"' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Shared Table' style=\"padding: 3px;\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i> View</span></a>";
+            tableData+="<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][0] +" </td><td>" + formatDate(arrays[index][1]) + "</td><td>" + formatDate(arrays[index][2]) + "</td><td>"+arrays[index][3]+"</td><td>"+actions+"</td></tr>";
             counter++;
         }
         fins = total;

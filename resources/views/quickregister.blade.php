@@ -73,6 +73,18 @@
                             </div>
                             <div class="card-header">
                                 <p>- Register clients in either of the following ways!</p>
+                                @if(session('success_reg'))
+                                    <p class="text-success">{{session('success_reg')}}</p>
+                                @endif
+                                @if (session('success'))
+                                    <p class="success">{{ session('success') }}</p>
+                                @endif
+                                @if (session('network_presence'))
+                                    <p class="text-danger">{{ session('network_presence') }}</p>
+                                @endif
+                                @if (session('error'))
+                                    <p class="text-danger">{{ session('error') }}</p>
+                                @endif
                                 @php
                                     $btnText = "<i class=\"ft-user-check\"></i> Register Static Client";
                                     $otherClasses = "mt-1 ".$readonly;

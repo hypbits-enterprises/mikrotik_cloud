@@ -33,6 +33,10 @@
 </head>
 
 <style>
+    .showBlock{
+      display: block;
+      overflow-y: scroll;
+    }
     .funga,.my_funga{
         font-weight: 800;
         font-size: 20px;
@@ -83,6 +87,49 @@
                 <!-- Basic Tables start -->
                 <div class="row">
                     <div class="col-12">
+                        <div class="container">
+                            {{-- DELETE THE CLIENT --}}
+                            <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="delete_router_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2" style="padding-right: 17px;" aria-modal="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-danger white">
+                                        <h4 class="modal-title white" id="myModalLabel2">Confirm Delete Of {{ucwords(strtolower($router_data[0]->router_name))}}.</h4>
+                                        <button id="hide_delete_expense" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">×</span>
+                                        </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="container">
+                                                <p>Are you sure you want to permanently delete this Router?</p>
+                                                <p><b>Note:</b></p>
+                                                <p>- All {{ $user_count[0]->Total }} User(s) associated to this router will be deleted from the database</p>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="row w-100">
+                                                <div class="col-md-6">
+                                                    @php
+                                                        $btnText = "<i class=\"fas fa-trash\"></i> Proceed to Delete";
+                                                        $otherClasses = "btn-block";
+                                                        $btnLink = "/Routers/Delete/".$router_data[0]->router_id;
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                    {{-- <a href="/Routers/Delete/{{ $router_data[0]->router_id }}" class="btn btn-danger btn-sm" >Proceed to Delete</a> --}}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    @php
+                                                        $btnText = "<i class=\"fas fa-x\"></i> Close";
+                                                        $validated = "btn-block";
+                                                    @endphp
+                                                    <x-button :btnText="$btnText" btnType="secondary" btnSize="sm" :otherClasses="$validated" btnId="close_this_window_delete" :readOnly="$readonly" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">Update Router</h4>
@@ -100,24 +147,23 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <a href="/Routers" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to
-                                                list</a>
+                                            @php
+                                                $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
+                                                $otherClasses = "ml-0";
+                                                $btnLink = "/Routers";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                            {{-- <a href="/Routers" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to list</a> --}}
                                         </div>
                                         <div class="col-md-6">
-                                            <button {{$readonly}} id="delete_user" class="btn btn-danger text-lg float-right"><i class="ft-trash-2"> Delete</i></button>
-                                            <div class="container d-none" id="prompt_del_window">
-                                                <p class="text-primary" ><strong>Are you sure you want to permanently delete this Router?</strong></p>
-                                                <p><b>Note:</b></p>
-                                                <p>- All {{ $user_count[0]->Total }} User(s) associated to this router will be deleted from the database</p>
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <a href="/Routers/Delete/{{ $router_data[0]->router_id }}" class="btn btn-danger btn-sm" >Proceed to Delete</a>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <p class="btn btn-secondary btn-sm" id="delet_user_no">Cancel</p>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            @php
+                                                $btnText = "<i class=\"ft-trash-2\"></i> Delete";
+                                                $otherClasses = "text-lg float-right";
+                                                $btn_id = "delete_user";
+                                            @endphp
+                                            <x-button :btnText="$btnText" btnType="danger" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            {{-- <button {{$readonly}} id="delete_user" class="btn btn-danger text-lg float-right"><i class="ft-trash-2"> Delete</i></button> --}}
                                         </div>
                                     </div>
                                     {{-- <p>{{($client_data)}}</p> --}}
@@ -151,9 +197,21 @@
                                     @if (session('error_router'))
                                         <p class='text-danger'>{{ session('error_router') }}</p>
                                     @endif
-                                    <button id="configuration_show_button" class="btn btn-secondary btn-sm my-2 {{$router_data[0]->activated == 0 ? "d-none" : ""}}">Show Router Configuration</button>
+                                    @php
+                                        $btnText = "Show Router Configuration";
+                                        $otherClasses = "my-2 ".($router_data[0]->activated == 1 ? "d-none" : "");
+                                        $btn_id = "configuration_show_button";
+                                    @endphp
+                                    <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                    {{-- <button id="configuration_show_button" class="btn btn-secondary btn-sm my-2 {{$router_data[0]->activated == 0 ? "d-none" : ""}}">Show Router Configuration</button> --}}
                                     <div id="configuration_window" class="container shadow-0 border border-rounded p-1 w-100 {{$router_data[0]->activated == 1 ? "d-none" : ""}}">
-                                        <button class="btn btn-sm btn-primary mb-2" id="send_to_clipboard"><i class="ft-copy" ></i> Copy</button>
+                                        @php
+                                            $btnText = "<i class=\"ft-copy\" ></i> Copy";
+                                            $otherClasses = "mb-2 ".($router_data[0]->activated == 1 ? "d-none" : "");
+                                            $btn_id = "send_to_clipboard";
+                                        @endphp
+                                        <x-button :btnText="$btnText" btnType="primary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                        {{-- <button class="btn btn-sm btn-primary mb-2" id="send_to_clipboard"><i class="ft-copy" ></i> Copy</button> --}}
                                         <h4 class="text-center">Router Configuration</h4>
                                         <p id="command_holder">
                                             {{-- <span class="text-success">## Set the SSTP Profile</span><br> --}}
@@ -193,7 +251,14 @@
                                             /beep
                                             <br>
                                         </p>
-                                            <a href="{{url()->route("connect_router",$router_data[0]->router_id)}}" class="btn btn-success btn-sm mt-1 {{$router_data[0]->activated == 0 ? "" : "d-none"}}"><i class="ft-settings"></i> Connect</a>
+                                            @php
+                                                $btnText = "<i class=\"ft-settings\"></i> Connect";
+                                                $otherClasses = "mt-1 ".($router_data[0]->activated == 0 ? "" : "d-none");
+                                                $btnLink = "".url()->route("connect_router",$router_data[0]->router_id);
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button-link btnType="success" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                            {{-- <a href="{{url()->route("connect_router",$router_data[0]->router_id)}}" class="btn btn-success btn-sm mt-1 {{$router_data[0]->activated == 0 ? "" : "d-none"}}"><i class="ft-settings"></i> Connect</a> --}}
                                     </div>
                                     <form action="{{url()->route("update_router")}}" method="post">
                                         @csrf
@@ -239,12 +304,24 @@
                                         <hr>
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <button {{$readonly}} class="btn btn-success text-dark" type="submit"><i
-                                                        class="ft-upload"></i> Update</button>
+                                                @php
+                                                    $btnText = "<i class=\"ft-upload\" ></i> Update";
+                                                    $otherClasses = "text-dark ".$readonly;
+                                                    $btn_id = "send_to_clipboard";
+                                                @endphp
+                                                <x-button :btnText="$btnText" btnType="success" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button {{$readonly}} class="btn btn-success text-dark" type="submit"><i class="ft-upload"></i> Update</button> --}}
                                             </div>
                                             <div class="col-md-6">
-                                                <a class="btn btn-secondary btn-outline" href="/Routers"
-                                                    type="button"><i class="ft-x"></i> Cancel</a>
+                                                @php
+                                                    $btnText = "<i class=\"ft-x\"></i> Cancel";
+                                                    $otherClasses = "mt-1 ".($router_data[0]->activated == 0 ? "" : "d-none");
+                                                    $btnLink = "/Routers";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button-link btnType="secondary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                {{-- <a class="btn btn-secondary btn-outline" href="/Routers"
+                                                    type="button"><i class="ft-x"></i> Cancel</a> --}}
                                             </div>
                                         </div>
                                     </form>
@@ -285,8 +362,15 @@
                                         {{-- reboot restart and reset the router --}}
                                         <div class="row my-1">
                                             <div class="col-md-4">
-                                                <a href="/Router/Reboot/{{ $router_data[0]->router_id }}"
-                                                    class="btn btn-primary disabled {{$readonly}}">Reboot</a>
+                                                @php
+                                                    $btnText = "Reboot";
+                                                    $otherClasses = "disabled";
+                                                    $btnLink = "/Router/Reboot/".$router_data[0]->router_id;
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                {{-- <a href="/Router/Reboot/{{ $router_data[0]->router_id }}"
+                                                    class="btn btn-primary disabled {{$readonly}}">Reboot</a> --}}
                                             </div>
                                         </div>
                                         @if (session('success_router'))
@@ -372,7 +456,14 @@
                                             Router may be rebooting at the the moment. <br> - The router ip address
                                             provided is not the correct one.</p>
                                         <p>You can refresh your page with the button below</p>
-                                        <a href="" class="btn btn-primary">Refresh</a>
+                                        {{-- <a href="" class="btn btn-primary">Refresh</a> --}}
+                                        @php
+                                            $btnText = "Refresh";
+                                            $otherClasses = "";
+                                            $btnLink = "";
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
                                     </div>
                                 </div>
                             </div>
@@ -422,14 +513,14 @@
             }
             milli_seconds--;
         }, 1000);
-        var delete_user = document.getElementById("delete_user");
-        delete_user.addEventListener("click", function () {
-            document.getElementById("prompt_del_window").classList.remove("d-none");
-        });
-        var delet_user_no = document.getElementById("delet_user_no");
-        delet_user_no.addEventListener("click", function () {
-            document.getElementById("prompt_del_window").classList.add("d-none");
-        });
+        // var delete_user = document.getElementById("delete_user");
+        // delete_user.addEventListener("click", function () {
+        //     document.getElementById("prompt_del_window").classList.remove("d-none");
+        // });
+        // var delet_user_no = document.getElementById("delet_user_no");
+        // delet_user_no.addEventListener("click", function () {
+        //     document.getElementById("prompt_del_window").classList.add("d-none");
+        // });
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text)
@@ -449,6 +540,35 @@
 
         document.getElementById("configuration_show_button").onclick = function () {
             document.getElementById("configuration_window").classList.toggle("d-none");
+        }
+    
+        function showModal(modal_id) {
+            cObj(modal_id).classList.remove("hide");
+            cObj(modal_id).classList.add("show");
+            cObj(modal_id).classList.add("showBlock");
+        }
+
+        function hideModal(modal_id) {
+            cObj(modal_id).classList.add("hide");
+            cObj(modal_id).classList.remove("show");
+            cObj(modal_id).classList.remove("showBlock");
+        }
+
+        /**DELETE EXPENSE MODAL */
+        cObj("delete_user").onclick = function () {
+            showModal("delete_router_modal");
+        }
+
+        cObj("hide_delete_expense").onclick = function () {
+            hideModal("delete_router_modal");
+        }
+
+        cObj("close_this_window_delete").onclick = function () {
+            hideModal("delete_router_modal");
+        }
+        // get an object by id 
+        function cObj(id) {
+            return document.getElementById(id);
         }
     </script>
 </body>

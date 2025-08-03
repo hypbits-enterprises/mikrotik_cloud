@@ -103,7 +103,14 @@
                                                     <a class="dropdown-item" href="/Clients/NewRouterSetup">Set-up New Router</a>
                                                 </div>
                                             </div> --}}
-                                            <a href="/Routers/New" class="btn btn-info text-bolder float-right"><i class="ft-plus"> New</i></a>
+                                            @php
+                                                $btnText = "<i class=\"ft-plus\"></i> New";
+                                                $otherClasses = "text-bolder float-right w-50";
+                                                $btnLink = "/Routers/New";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button-link btnType="info" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                            {{-- <a href="/Routers/New" class="btn btn-info text-bolder float-right"><i class="ft-plus"> New</i></a> --}}
                                         </div>
                                     </div>
                                     <div class="table-responsive" id="transDataReciever">

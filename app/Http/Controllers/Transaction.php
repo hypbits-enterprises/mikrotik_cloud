@@ -16,9 +16,12 @@ class Transaction extends Controller
 {
     // print receipt
     function print_receipt($receipt_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
         $transaction = DB::connection("mysql2")->select("SELECT * FROM transaction_tables WHERE transaction_id = ?", [$receipt_id]);
         if (count($transaction) > 0) {
-            $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE client_account = ?",[$transaction[0]->transaction_account]);
+            $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE client_id = ?",[$transaction[0]->transaction_acc_id]);
             if (count($client_data) > 0) {
                 $this->create_document($transaction[0], session("organization"), $client_data[0]);
             }else{

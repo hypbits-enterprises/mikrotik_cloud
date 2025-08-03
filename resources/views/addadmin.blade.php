@@ -65,7 +65,16 @@
                                 <div class="heading-elements">
                                     {{-- <button data-action="collapse" class="btn btn-primary"><i class="ft-plus"></i> Add Administrator</button> --}}
                                     <ul class="list-inline mb-0">
-                                        <li><a class="btn btn-primary text-white" data-action="collapse"><i class="ft-plus"></i> Add Admin</a></li>
+                                        <li>
+                                            @php
+                                                $btnText = "<i class=\"ft-plus\"></i> Add Admin";
+                                                $otherClasses = "text-white";
+                                                $btnLink = "";
+                                                $otherAttributes = "data-action=\"collapse\"";
+                                            @endphp
+                                            <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                            {{-- <a class="btn btn-primary text-white" data-action="collapse"><i class="ft-plus"></i> Add Admin</a> --}}
+                                        </li>
                                     </ul>
                                 </div>
                             </div>

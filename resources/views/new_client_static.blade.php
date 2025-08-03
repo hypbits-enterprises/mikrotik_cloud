@@ -76,7 +76,7 @@
                             <div class="card-content collapse show">
                                 @php
                                     $btnText = "<i class=\"fas fa-arrow-left\"></i> Back";
-                                    $otherClasses = "";
+                                    $otherClasses = "ml-1";
                                     $btnLink = "/Quick-Register";
                                     $otherAttributes = "";
                                 @endphp
@@ -114,6 +114,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-4 form-group">
+                                                <input type="hidden" name="quick_register" value="yes">
                                                 <label for="client_name" class="form-control-label">Client`s Fullname</label>
                                                 <input type="text" name="client_name" id="client_name"
                                                     class="form-control rounded-lg p-1"

@@ -81,7 +81,7 @@
                                     @endif
                                     @php
                                         $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
-                                        $otherClasses = "";
+                                        $otherClasses = "ml-1";
                                         $btnLink = "/sms";
                                         $otherAttributes = "";
                                     @endphp
@@ -89,10 +89,10 @@
                                     {{-- <a href="/sms" class="btn btn-infor"><i class="fas fa-arrow-left"></i>
                                         Back to list</a> --}}
                                 </div>
-                                <div class="container">
+                                <div class="container p-1">
                                     @php
-                                        $btnText = "Resend Sms";
-                                        $otherClasses = "";
+                                        $btnText = "<i class=\"fas fa-refresh\"></i> Resend Sms";
+                                        $otherClasses = "ml-1";
                                         $btnLink = "/sms/resend/".$sms_data[0]->sms_id;
                                         $otherAttributes = "";
                                     @endphp

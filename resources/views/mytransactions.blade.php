@@ -124,7 +124,7 @@
                                 {{-- <a href="/TransactionSync" class="btn btn-primary {{$readonly}} d-none"><i class="ft-refresh-ccw"></i> Sync Transaction</a> --}}
                                 @php
                                     $btnText = "<i class=\"ft-bar-chart-2\"></i> Transaction`s Statistics";
-                                    $otherClasses = " d-none";
+                                    $otherClasses = "";
                                     $btnLink = "/Transactions/Statistics";
                                     $otherAttributes = "";
                                 @endphp

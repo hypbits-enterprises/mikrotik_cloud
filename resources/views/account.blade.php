@@ -212,7 +212,7 @@
                                   @php
                                       $btnText = "<i class=\"ft-trash\"></i>";
                                       $otherClasses = " ";
-                                      $btnLink = "/delete_pp".$admin_data[0]->admin_id;
+                                      $btnLink = "/delete_pp/".$admin_data[0]->admin_id;
                                       $otherAttributes = "";
                                   @endphp
                                   <x-button-link btnType="danger" btnSize="sm" :otherAttributes="$otherAttributes" toolTip="Remove my profile image" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />

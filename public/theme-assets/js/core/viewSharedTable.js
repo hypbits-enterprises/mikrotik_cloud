@@ -153,7 +153,8 @@ function displayRecord(start, finish, arrays) {
                 tableData+="<td>"+element.col_value+"</td>";
 
             }
-            tableData+="<td><a href='/SharedTables/Edit/" + tables_data.table_id + "/Name/"+replacePunctuationWithUnderscore(tables_data.table_name)+"/Record/"+arrays[index][(arrays[index].length - 1)]+"' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Shared Table'><i class='ft-eye'></i> View</a></td></tr>";
+            var actions = "<a href='/SharedTables/Edit/" + tables_data.table_id + "/Name/"+replacePunctuationWithUnderscore(tables_data.table_name)+"/Record/"+arrays[index][(arrays[index].length - 1)].row_id+"' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Shared Table' style=\"padding: 3px;\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i> View</span></a>";
+            tableData+="<td>"+actions+"</td></tr>";
             counter++;
         }
     }else{
@@ -169,7 +170,9 @@ function displayRecord(start, finish, arrays) {
                 }
                 tableData+="<td>"+element.col_value+"</td>";
             }
-            tableData+="<td><a href='/SharedTables/Edit/" + tables_data.table_id + "/Name/"+replacePunctuationWithUnderscore(tables_data.table_name)+"/Record/"+arrays[index][(arrays[index].length - 1)].row_id+"' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Shared Table'><i class='ft-eye'></i> View</a></td></tr>";
+            var actions = "<a href='/SharedTables/Edit/" + tables_data.table_id + "/Name/"+replacePunctuationWithUnderscore(tables_data.table_name)+"/Record/"+arrays[index][(arrays[index].length - 1)].row_id+"' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Shared Table' style=\"padding: 3px;\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i> View</span></a>";
+            tableData+="<td>"+actions+"</td></tr>";
+            // tableData+="<td><a href='/SharedTables/Edit/" + tables_data.table_id + "/Name/"+replacePunctuationWithUnderscore(tables_data.table_name)+"/Record/"+arrays[index][(arrays[index].length - 1)].row_id+"' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Shared Table'><i class='ft-eye'></i> View</a></td></tr>";
             counter++;
         }
         fins = total;

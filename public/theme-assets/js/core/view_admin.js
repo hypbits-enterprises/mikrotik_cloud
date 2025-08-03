@@ -11,9 +11,30 @@ window.onload = function () {
     client_options();
     checkChecked();
 }
+    
+function showModal(modal_id) {
+    cObj(modal_id).classList.remove("hide");
+    cObj(modal_id).classList.add("show");
+    cObj(modal_id).classList.add("showBlock");
+}
 
+function hideModal(modal_id) {
+    cObj(modal_id).classList.add("hide");
+    cObj(modal_id).classList.remove("show");
+    cObj(modal_id).classList.remove("showBlock");
+}
+
+/**DELETE EXPENSE MODAL */
 cObj("delete_user").onclick = function () {
-    cObj("prompt_del_window").classList.toggle("d-none");
+    showModal("delete_admin_modal");
+}
+
+cObj("hide_delete_expense").onclick = function () {
+    hideModal("delete_admin_modal");
+}
+
+cObj("close_this_window_delete").onclick = function () {
+    hideModal("delete_admin_modal");
 }
 
 function checkChecked() {

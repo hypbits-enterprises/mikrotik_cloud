@@ -20,6 +20,10 @@
     
 </head>
 <style>
+    .showBlock{
+      display: block;
+      overflow-y: scroll;
+    }
     .hide{
         display: none;
     }
@@ -59,6 +63,47 @@
                 <!-- Basic Tables start -->
                 <div class="row">
                     <div class="col-12">
+                        <div class="container">
+                            {{-- DELETE THE CLIENT --}}
+                            <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="delete_admin_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2" style="padding-right: 17px;" aria-modal="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-danger white">
+                                        <h4 class="modal-title white" id="myModalLabel2">Confirm Delete Of {{ucwords(strtolower($admin_data[0]->admin_fullname))}}.</h4>
+                                        <button id="hide_delete_expense" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">×</span>
+                                        </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="container">
+                                                <p>Are you sure you want to permanently delete this user?</p>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="row w-100">
+                                                <div class="col-md-6">
+                                                    @php
+                                                        $btnText = "<i class=\"fas fa-trash\"></i> Delete";
+                                                        $otherClasses = "btn-block";
+                                                        $btnLink = "".url()->route("delete_admin",[$admin_data[0]->admin_id]);
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                    {{-- <a href="/Routers/Delete/{{ $router_data[0]->router_id }}" class="btn btn-danger btn-sm" >Proceed to Delete</a> --}}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    @php
+                                                        $btnText = "<i class=\"fas fa-x\"></i> Close";
+                                                        $validated = "btn-block";
+                                                    @endphp
+                                                    <x-button :btnText="$btnText" btnType="secondary" btnSize="sm" :otherClasses="$validated" btnId="close_this_window_delete" :readOnly="$readonly" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">Account and Profile</h4>
@@ -111,21 +156,6 @@
                                             @endphp
                                             <x-button toolTip="" btnType="danger" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                                             {{-- <button id="delete_user" class="btn btn-danger text-lg float-right" {{$readonly}}><i class="ft-trash-2"> Delete</i></button> --}}
-                                            <div class="container d-none mt-4" id="prompt_del_window">
-                                                <p class="text-secondary"><strong>Are you sure you want to permanently delete this user?</strong></p>
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        @php
-                                                            $btnText = "<i class=\"fas fa-trash\"></i> Delete";
-                                                            $otherClasses = "";
-                                                            $btnLink = "".url()->route("delete_admin",[$admin_data[0]->admin_id]);
-                                                            $otherAttributes = "";
-                                                        @endphp
-                                                        <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                                        {{-- <a href="{{url()->route("delete_admin",[$admin_data[0]->admin_id])}}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Delete</a> --}}
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                     <h6><strong>Update Administrator</strong></h6>

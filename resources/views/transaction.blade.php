@@ -105,7 +105,7 @@
                                                         $btnText = "Assigned";
                                                         $otherClasses = "ml-1";
                                                         $btnLink = "#";
-                                                        $otherAttributes = "target='_blank'";
+                                                        $otherAttributes = "";
                                                     @endphp
                                                     <x-button-link btnType="success" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
                                                     {{-- <a href="#" {{$readonly}} class="btn btn-sm btn-success">Assigned</a> --}}

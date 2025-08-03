@@ -136,7 +136,7 @@
                                     </ul>
                                     @php
                                         $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
-                                        $otherClasses = "ml-2";
+                                        $otherClasses = "ml-0";
                                         $btnLink = "/Clients";
                                         $otherAttributes = "";
                                     @endphp
@@ -160,11 +160,23 @@
                                                                 <div class="form-group">
                                                                     @php
                                                                         $btnText = "<i class=\"ft-trash\"></i>";
-                                                                        $otherClasses = "text-dark";
+                                                                        $otherClasses = "";
                                                                         $btn_id = "delete_user_from_the_system";
                                                                     @endphp
                                                                     <x-button :btnText="$btnText" btnType="danger" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                                                                     {{-- <button type="button" id="delete_user_from_the_system" class="btn btn-sm btn-outline-danger"><i class="ft-trash"></i></button> --}}
+                                                                    <div class="container my-1 border border-dark rounded p-1 d-none" id="delete_the_user">
+                                                                        <h4 class="text-center">Delete User!</h4>
+                                                                        <p><b>Delete this user from the system?</b></p>
+                                                                        @php
+                                                                            $btnText = "<i class=\"ft-trash\"></i> Delete User";
+                                                                            $otherClasses = "btn-block";
+                                                                            $btnLink = "/delete_user/".$clients_data[0]->client_id;
+                                                                            $otherAttributes = "";
+                                                                        @endphp
+                                                                        <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                                        {{-- <a href="/delete_user/{{$clients_data[0]->client_id}}" class="btn btn-sm btn-outline-danger btn-block"><i class="ft-trash"></i> Delete User</a> --}}
+                                                                    </div>
                                                                 </div>
                                                                 <div class="form-group">
                                                                     <label for="expiry_date" class="form-control-label"><b>Expiry Date</b></label>
@@ -185,26 +197,30 @@
                                                                             value="{{date("H:i", strtotime("20250101000000"))}}">
                                                                     </div>
                                                                 </div>
-                                                                <div class="container">
-                                                                    @php
-                                                                        $btnText = "<i class=\"ft-save\"></i> Save";
-                                                                        $otherClasses = "";
-                                                                        $btn_id = "";
-                                                                    @endphp
-                                                                    <x-button :btnText="$btnText" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
-                                                                    {{-- <button class="btn btn-success btn-sm {{$readonly}}" type="submit"><i class="ft-save"></i> Save</button> --}}
+                                                                <div class="container row">
+                                                                    <div class="col-md-6">
+                                                                        @php
+                                                                            $btnText = "<i class=\"ft-save\"></i> Save";
+                                                                            $otherClasses = "w-100";
+                                                                            $btn_id = "";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                        {{-- <button class="btn btn-success btn-sm {{$readonly}}" type="submit"><i class="ft-save"></i> Save</button> --}}
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        @php
+                                                                            $btnText = "<i class=\"ft-x\"></i> Close";
+                                                                            $otherClasses = "w-100";
+                                                                            $btn_id = "close_update_status_window";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                        {{-- <button type="button" id="close_update_status_window" class="btn btn-sm btn-secondary" data-dismiss="modal">Close</button> --}}
+                                                                    </div>
                                                                 </div>
                                                             </form>
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        @php
-                                                            $btnText = "<i class=\"ft-x\"></i> Close";
-                                                            $otherClasses = "";
-                                                            $btn_id = "close_update_status_window";
-                                                        @endphp
-                                                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
-                                                        {{-- <button type="button" id="close_update_status_window" class="btn btn-sm btn-secondary" data-dismiss="modal">Close</button> --}}
                                                     </div>
                                                 </div>
                                             </div>
@@ -236,8 +252,8 @@
                                     <div class="mx-auto my-2 {{$clients_data[0]->validated == 1 ? "d-none" : ""}}">
                                         <div class="d-flex justify-content-center">
                                             @php
-                                                $btnText = "<i class=\"ft-save\"></i> Save";
-                                                $otherClasses = "";
+                                                $btnText = "<i class=\"ft-refresh\"></i> Validate User";
+                                                $otherClasses = "w-50";
                                                 $btn_id = "change_status";
                                             @endphp
                                             <x-button :btnText="$btnText" btnType="success" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />

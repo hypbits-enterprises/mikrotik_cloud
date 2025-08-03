@@ -117,7 +117,7 @@
                             <div class="card-content collapse show">
                                 @php
                                     $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
-                                    $otherClasses = "";
+                                    $otherClasses = "ml-1";
                                     $btnLink = "/Client-Reports";
                                     $otherAttributes = "";
                                 @endphp

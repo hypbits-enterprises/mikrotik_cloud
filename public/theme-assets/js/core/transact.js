@@ -187,7 +187,8 @@ function displayRecord(start, finish, arrays) {
                     // if the user is active
                     status = "<span class='badge badge-danger'> </span>";
                 }
-            tableData += "<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][7] +" "+status+"<small>{"+arrays[index][12]+"}</small></td><td data-toggle='tooltip' title='Paid Ksh "+arrays[index][2]+" to "+arrays[index][4]+" {"+arrays[index][10]+"} using "+arrays[index][11]+" {"+arrays[index][0]+"} on "+arrays[index][12]+".'>" + arrays[index][4] + " <small><a href='/Clients/View/"+arrays[index][3]+"' class='text-secondary'>{"+arrays[index][10]+"}</a></small></td><td>Kes " + arrays[index][2] + "</td><td><a href='/Transactions/View/" + arrays[index][6] + "' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View this transaction'><i class='ft-eye'></i> View</a><a class='btn btn-sm btn-info ml-1' data-toggle='tooltip' title='Print receipt' target='_blank' href='/Print-Reciept/"+arrays[index][6]+"'><i class='ft-printer'></i></a></td></tr>";
+            var actions = "<a href='/Transactions/View/" + arrays[index][6] + "' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View this transaction' style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\" title=\"\" ><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i> View</span></a><a class='btn btn-sm btn-info ml-1' data-toggle='tooltip' title='Print receipt' target='_blank' href='/Print-Reciept/"+arrays[index][6]+"' style=\"padding: 3px;\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class=\"ft-printer\"></i></span></a>";
+            tableData += "<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][7] +" "+status+"<small>{"+arrays[index][12]+"}</small></td><td data-toggle='tooltip' title='Paid Ksh "+arrays[index][2]+" to "+arrays[index][4]+" {"+arrays[index][10]+"} using "+arrays[index][11]+" {"+arrays[index][0]+"} on "+arrays[index][12]+".'>" + arrays[index][4] + " <small><a href='/Clients/View/"+arrays[index][3]+"' class='text-secondary'>{"+arrays[index][10]+"}</a></small></td><td>Kes " + arrays[index][2] + "</td><td>"+actions+"</td></tr>";
             counter++;
         }
     }else{
@@ -199,7 +200,8 @@ function displayRecord(start, finish, arrays) {
                 // if the user is active
                 status = "<span class='badge badge-danger'> </span>";
             }
-            tableData += "<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][7] +" "+status+"<small>{"+arrays[index][12]+"}</small></td><td data-toggle='tooltip' title='Paid Ksh "+arrays[index][2]+" to "+arrays[index][4]+" {"+arrays[index][10]+"} using "+arrays[index][11]+" {"+arrays[index][0]+"} on "+arrays[index][12]+".'>" + arrays[index][4] + " <small><a href='/Clients/View/"+arrays[index][3]+"' class='text-secondary'>{"+arrays[index][10]+"}</a></small></td><td>Kes " + arrays[index][2] + "</td><td><a href='/Transactions/View/" + arrays[index][6] + "' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View this transaction'><i class='ft-eye'></i> View</a><a class='btn btn-sm btn-info ml-1' data-toggle='tooltip' title='Print receipt' target='_blank' href='/Print-Reciept/"+arrays[index][6]+"'><i class='ft-printer'></i></a></td></tr>";
+            var actions = "<a href='/Transactions/View/" + arrays[index][6] + "' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View this transaction' style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\" title=\"\" ><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i> View</span></a><a class='btn btn-sm btn-info ml-1' data-toggle='tooltip' title='Print receipt' target='_blank' href='/Print-Reciept/"+arrays[index][6]+"' style=\"padding: 3px;\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class=\"ft-printer\"></i></span></a>";
+            tableData += "<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][7] +" "+status+"<small>{"+arrays[index][12]+"}</small></td><td data-toggle='tooltip' title='Paid Ksh "+arrays[index][2]+" to "+arrays[index][4]+" {"+arrays[index][10]+"} using "+arrays[index][11]+" {"+arrays[index][0]+"} on "+arrays[index][12]+".'>" + arrays[index][4] + " <small><a href='/Clients/View/"+arrays[index][3]+"' class='text-secondary'>{"+arrays[index][10]+"}</a></small></td><td>Kes " + arrays[index][2] + "</td><td>"+actions+"</td></tr>";
             counter++;
         }
         fins = total;
@@ -381,11 +383,11 @@ cObj("show_totals").onclick = function () {
     if (closedWin == 0) {
         cObj("totals_window").classList.remove("d-none");
         closedWin = 1;
-        this.innerHTML = "<i class='ft-eye-off'></i> Hide Totals";
+        this.innerHTML = "<span class=\"d-inline-block border border-white w-100 \" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye-off'></i> Hide Totals</span>";
     }else{
         cObj("totals_window").classList.add("d-none");
         closedWin = 0;
-        this.innerHTML = "<i class='ft-eye'></i> Show Totals";
+        this.innerHTML = "<span class=\"d-inline-block border border-white w-100 \" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i> Show Totals</span>";
     }
 }
 

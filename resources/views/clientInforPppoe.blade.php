@@ -166,7 +166,13 @@
                                                             <form action="{{route("validate_user")}}" method="post">
                                                                 @csrf
                                                                 <div class="form-group">
-                                                                    <button type="button" id="delete_user_from_the_system" class="btn btn-sm btn-outline-danger"><i class="ft-trash"></i></button>
+                                                                    @php
+                                                                        $btnText = "<i class=\"ft-trash\"></i>";
+                                                                        $otherClasses = "";
+                                                                        $btn_id = "delete_user_from_the_system";
+                                                                    @endphp
+                                                                    <x-button :btnText="$btnText" btnType="danger" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                    {{-- <button type="button" id="delete_user_from_the_system" class="btn btn-sm btn-outline-danger"><i class="ft-trash"></i></button> --}}
                                                                     <div class="container my-1 border border-dark rounded p-1 d-none" id="delete_the_user">
                                                                         <h4 class="text-center">Delete User!</h4>
                                                                         <p><b>Delete this user from the system?</b></p>
@@ -199,14 +205,30 @@
                                                                             value="{{date("H:i", strtotime("20250101000000"))}}">
                                                                     </div>
                                                                 </div>
-                                                                <div class="container">
-                                                                    <button class="btn btn-success btn-sm {{$readonly}}" type="submit"><i class="ft-save"></i> Save</button>
+                                                                <div class="container row">
+                                                                    <div class="col-md-6">
+                                                                        @php
+                                                                            $btnText = "<i class=\"ft-save\"></i> Save";
+                                                                            $otherClasses = "w-100";
+                                                                            $btn_id = "";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                        {{-- <button class="btn btn-success btn-sm {{$readonly}}" type="submit"><i class="ft-save"></i> Save</button> --}}
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        @php
+                                                                            $btnText = "<i class=\"ft-x\"></i> Cancel";
+                                                                            $otherClasses = "w-100";
+                                                                            $btn_id = "close_update_status_window";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                        {{-- <button type="button" id="close_update_status_window" class="btn btn-sm btn-secondary" data-dismiss="modal">Close</button> --}}
+                                                                    </div>
                                                                 </div>
                                                             </form>
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" id="close_update_status_window" class="btn btn-sm btn-secondary" data-dismiss="modal">Close</button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -231,7 +253,13 @@
                                     </div>
                                     <div class="mx-auto my-2 {{$clients_data[0]->validated == 1 ? "d-none" : ""}}">
                                         <div class="d-flex justify-content-center">
-                                            <button class="btn btn-sm btn-block btn-success" {{$readonly}} id="change_status" type="button"><i class="ft-refresh"></i> Validate User</button>
+                                            @php
+                                                $btnText = "<i class=\"ft-refresh\"></i> Validate User";
+                                                $otherClasses = "w-50";
+                                                $btn_id = "change_status";
+                                            @endphp
+                                            <x-button :btnText="$btnText" btnType="success" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            {{-- <button class="btn btn-sm btn-block btn-success" {{$readonly}} id="change_status" type="button"><i class="ft-refresh"></i> Validate User</button> --}}
                                         </div>
                                     </div>
                                     <div class="tab-content" id="myTabsContent">
@@ -340,7 +368,14 @@
                                                     <div class="col-md-6">
                                                         <span class="d-none" id="secret_holder"></span>
                                                         <label  id="errorMsg1" for="client_secret_password" class="form-control-label">Clients Secret Password {
-                                                            <span class="primary" id="addresses"></span> } <button type="button" id="display_secret" class="btn btn-sm btn-infor"><span class="text-secondary"><i class="fas fa-eye"></i></span></button></label>
+                                                            <span class="primary" id="addresses"></span> } 
+                                                            @php
+                                                                $btnText = "<i class=\"fas fa-eye\"></i>";
+                                                                $otherClasses = "w-50";
+                                                                $btn_id = "display_secret";
+                                                            @endphp
+                                                            <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                            {{-- <button type="button" id="display_secret" class="btn btn-sm btn-infor"><span class="text-secondary"><i class="fas fa-eye"></i></span></button></label> --}}
                                                         <input type="password" name="client_secret_password" id="client_secret_password"
                                                             class="form-control rounded-lg p-1" placeholder="ex 10.10.30.1/24"
                                                             required value="{{ old('client_secret_password') }}">
@@ -369,8 +404,14 @@
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         @if ($clients_data[0]->validated == 1)
-                                                            <button {{$readonly}} class="btn btn-success text-dark" type="submit"><i
-                                                                    class="ft-upload"></i> Update User</button>
+                                                            @php
+                                                                $btnText = "<i class=\"ft-upload\"></i> Update User";
+                                                                $otherClasses = "text-dark";
+                                                                $btn_id = "";
+                                                            @endphp
+                                                            <x-button :btnText="$btnText" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                            {{-- <button {{$readonly}} class="btn btn-success text-dark" type="submit"><i
+                                                                    class="ft-upload"></i> Update User</button> --}}
                                                         @else
                                                             <p>Update button appears here but user is not validated yet!</p>
                                                         @endif
