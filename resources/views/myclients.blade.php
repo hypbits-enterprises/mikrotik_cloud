@@ -148,8 +148,9 @@
                                                             $otherClasses = "";
                                                             $btnLink = "/Clients/View/".$frozen_clients[$i]->client_id;
                                                             $otherAttributes = "";
+                                                            $btnId="no_id_".$i;
                                                         @endphp
-                                                        <x-button-link :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" btnType="info" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                        <x-button-link :btnId="$btnId" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" btnType="info" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
                                                         {{-- <a href="/Clients/View/{{$frozen_clients[$i]->client_id}}" class="btn btn-outline-infor btn-sm p-0 my-0"><i class="fas fa-eye"></i> View</a> --}}
                                                     </td>
                                                 </tr>

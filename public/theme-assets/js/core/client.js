@@ -1272,15 +1272,17 @@ function autocomplete(inp) {
         a = document.createElement("DIV");
         a.setAttribute("id", this.id + "autocomplete-list");
         a.setAttribute("class", "autocomplete-items");
+        a.style.maxHeight = "250px";
+        a.style.overflowY = "auto";
+        a.style.overflowX = "hidden";
         /*append the DIV element as a child of the autocomplete container:*/
         this.parentNode.appendChild(a);
         /*for each item in the array...*/
-        var counter = 0;
+        var counter = 1;
         for (i = 0; i < arr.length; i++) {
             if (counter > 10) {
                 break;
             }
-            console.log((arr[i]+"").toUpperCase().includes(val.toUpperCase()));
             
             /*check if the item starts with the same letters as the text field value:*/
             if ((arr2[i]+"").toUpperCase().includes(val.toUpperCase()) ||
@@ -1291,7 +1293,7 @@ function autocomplete(inp) {
                 b = document.createElement("DIV");
                 /*make the matching letters bold:*/
                 var display_text = arr2[i] + " (" + arr3[i] + ") - " + arr4[i];
-                b.innerHTML = (counter+1)+".) "+highlightNeedleInHaystack(display_text, val);
+                b.innerHTML = (counter)+".) "+highlightNeedleInHaystack(display_text, val);
                 // b.innerHTML += display_text.substring(val.length);
                 /*insert a input field that will hold the current array item's value:*/
                 b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";

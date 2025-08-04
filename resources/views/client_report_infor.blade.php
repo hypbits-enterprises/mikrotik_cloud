@@ -546,6 +546,9 @@
                 a = document.createElement("DIV");
                 a.setAttribute("id", this.id + "autocomplete-list");
                 a.setAttribute("class", "autocomplete-items");
+                a.style.maxHeight = "250px";
+                a.style.overflowY = "auto";
+                a.style.overflowX = "hidden";
                 /*append the DIV element as a child of the autocomplete container:*/
                 this.parentNode.appendChild(a);
                 /*for each item in the array...*/
@@ -671,6 +674,9 @@
                 a = document.createElement("DIV");
                 a.setAttribute("id", this.id + "autocomplete-list-1");
                 a.setAttribute("class", "autocomplete-items");
+                a.style.maxHeight = "250px";
+                a.style.overflowY = "auto";
+                a.style.overflowX = "hidden";
                 /*append the DIV element as a child of the autocomplete container:*/
                 this.parentNode.appendChild(a);
                 /*for each item in the array...*/
