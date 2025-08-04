@@ -367,17 +367,16 @@
                                                     </div>
                                                     <div class="col-md-6">
                                                         <span class="d-none" id="secret_holder"></span>
-                                                        <label  id="errorMsg1" for="client_secret_password" class="form-control-label">Clients Secret Password {
-                                                            <span class="primary" id="addresses"></span> } 
+                                                        <label  id="errorMsg1" for="client_secret_password" class="form-control-label">Clients Secret Password {<span class="primary" id="addresses"></span>}</label>
                                                             @php
                                                                 $btnText = "<i class=\"fas fa-eye\"></i>";
-                                                                $otherClasses = "w-50";
+                                                                $otherClasses = "w-25";
                                                                 $btn_id = "display_secret";
                                                             @endphp
                                                             <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
-                                                            {{-- <button type="button" id="display_secret" class="btn btn-sm btn-infor"><span class="text-secondary"><i class="fas fa-eye"></i></span></button></label> --}}
+                                                            {{-- <button type="button" id="display_secret" class="btn btn-sm btn-infor"><span class="text-secondary"><i class="fas fa-eye"></i></span></button> --}}
                                                         <input type="password" name="client_secret_password" id="client_secret_password"
-                                                            class="form-control rounded-lg p-1" placeholder="ex 10.10.30.1/24"
+                                                            class="form-control rounded-lg p-1 w-100" placeholder="ex 10.10.30.1/24"
                                                             required value="{{ old('client_secret_password') }}">
                                                     </div>
                                                 </div>

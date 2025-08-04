@@ -398,11 +398,11 @@ cObj("display_secret").onclick = function () {
     if (notseen == 1) {
         cObj("addresses").innerText = pass;
         notseen = 0;
-        this.innerHTML = "<span class='text-secondary'><i class='fas fa-eye-slash'></i></span>";
+        this.innerHTML = "<span class=\"d-inline-block border border-white w-100 \" style=\"border-radius: 2px; padding: 5px;\"><i class=\"fas fa-eye-slash\"></i></span>";
     }else{
         cObj("addresses").innerText = "********";
         notseen = 1;
-        this.innerHTML = "<span class='text-secondary'><i class='fas fa-eye'></i></span>";
+        this.innerHTML = "<span class=\"d-inline-block border border-white w-100 \" style=\"border-radius: 2px; padding: 5px;\"><i class=\"fas fa-eye\"></i></span>";
     }
 }
 
