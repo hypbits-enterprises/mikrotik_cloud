@@ -191,13 +191,16 @@
                                                     required readonly
                                                     value="{{ session('client_secret_username') ? session('client_secret_username') : '' }}">
                                             </div>
+                                            @php
+                                                $random = rand(100000, 999999);
+                                            @endphp
                                             <div class="col-lg-4">
                                                 <label for="client_secret_password"  id="errorMsg1" class="form-control-label">Clients Secret
-                                                    Password</label>
+                                                    Password <span class="badge bg-success">Suggested</span>{ {{$random}} }</label>
                                                 <input type="password" name="client_secret_password" id="client_secret_password"
                                                     class="form-control rounded-lg p-1" placeholder="Secret Password"
                                                     required
-                                                    value="{{ session('client_secret_password') ? session('client_secret_password') : '' }}">
+                                                    value="{{ $random }}">
                                             </div>
                                             <div class="col-lg-4">
                                                 <label for="repeat_secret_password"  id="errorMsg1" class="form-control-label">Repeat Secret
@@ -205,7 +208,7 @@
                                                 <input type="password" name="repeat_secret_password" id="repeat_secret_password"
                                                     class="form-control rounded-lg p-1" placeholder="Secret Password"
                                                     required
-                                                    value="{{ session('repeat_secret_password') ? session('repeat_secret_password') : '' }}">
+                                                    value="{{ $random }}">
                                             </div>
                                         </div>
                                         <div class="row my-1">

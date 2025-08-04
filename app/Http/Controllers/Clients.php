@@ -727,7 +727,7 @@ $export_text .= "
         (SELECT (SELECT admin_tables.admin_fullname FROM ".session("database_name").".client_reports LEFT JOIN mikrotik_cloud_manager.admin_tables ON admin_tables.admin_id = client_reports.closed_by WHERE client_reports.report_id = CR.report_id LIMIT 1) AS admin_fullname FROM `client_reports` AS CR WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'closed_by',
         (SELECT `admin_attender` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'admin_attender'
          FROM `client_tables`
-         WHERE `deleted` = '0' ORDER BY `client_id` DESC;");
+         WHERE `deleted` = '0' ORDER BY `client_id` DESC LIMIT 100;");
         //  return $client_data;
          
         // router data
@@ -756,6 +756,17 @@ $export_text .= "
             $client_data[$index]->date_reported = $client_data[$index]->date_reported != null ? date("D dS M Y H:iA", strtotime($client_data[$index]->date_reported)) : $client_data[$index]->date_reported;
         }
         return view('myclients', ["frozen_clients" => $frozen_clients, 'client_data' => $client_data, "router_infor" => $router_data]);
+    }
+
+    function searchClients(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // get the clients
+        $keyword = $req->input("keyword");
+        $clients = DB::connection("mysql2")->select("SELECT client_id, client_name, client_account, clients_contacts FROM `client_tables` WHERE client_name LIKE ? OR client_account LIKE ? OR clients_contacts LIKE ?", ["%".$keyword."%","%".$keyword."%","%".$keyword."%"]);
+        return $clients;
     }
 
     function validate_user(Request $request){

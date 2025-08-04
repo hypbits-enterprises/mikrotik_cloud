@@ -13,24 +13,36 @@ function stopInterval(id) {
     clearInterval(id);
 }
 
-// Send data with get
-function sendDataGet(method, file, object1, object2) {
-    //make the loading window show
-    object2.classList.remove("invisible");
-    let xml = new XMLHttpRequest();
-    xml.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            object1.innerHTML = this.responseText;
-            object2.classList.add("invisible");
-        } else if (this.status == 500) {
-            object2.classList.add("invisible");
-            // cObj("loadings").classList.add("invisible");
-            object1.innerHTML = "<p class='red_notice'>Cannot establish connection to server.<br>Try reloading your page</p>";
+async function sendDataGet(method, url, object1 = null, object2 = null) {
+    if (object2) object2.classList.remove("invisible");
+
+    try {
+        const response = await fetch(url, { method });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
-    };
-    xml.open(method, file, true);
-    xml.send();
+
+        const text = await response.text(); // You can change this to response.json() if the response is JSON
+
+        if (object1) object1.innerHTML = "";
+        if (object2) object2.classList.add("invisible");
+
+        // Try converting to array if it's JSON
+        try {
+            return JSON.parse(text); // return as array/object if response is JSON
+        } catch (e) {
+            return []; // fallback to empty array if not JSON
+        }
+
+    } catch (error) {
+        if (object2) object2.classList.add("invisible");
+        if (object1) object1.innerHTML = `<p class='red_notice'>Cannot establish connection to server.<br>Try reloading your page</p>`;
+        console.error("Fetch error:", error);
+        return [];
+    }
 }
+
 
 var rowsColStudents = [];
 var rowsNCols_original = [];
@@ -278,7 +290,7 @@ cObj("select_all_clients").onchange = function () {
 }
 
 function addSelectedClients() {
-    var this_ids = this.id.substr(11);
+    var this_ids = this.id.substring(11);
     if (this.checked) {
         var hold_user_id_data = cObj("hold_user_id_data").value;
         if (hasJsonStructure(hold_user_id_data)) {
@@ -522,8 +534,8 @@ function displayRecord(start, finish, arrays) {
             var reffered = "";
             if (arrays[index][12] != null && arrays[index][12] != "") {
                 var mainData = arrays[index][12];
-                if (arrays[index][12].substr(0, 1) == "\"") {
-                    mainData = mainData.substr(1, mainData.length - 2);
+                if (arrays[index][12].substring(0, 1) == "\"") {
+                    mainData = mainData.substring(1, mainData.length - 2);
                     mainData = mainData.replace(/\\/g, "");
                     mainData = mainData.replace(/'/g, "\"");
                 }
@@ -571,8 +583,8 @@ function displayRecord(start, finish, arrays) {
             var reffered = "";
             if (arrays[index][12] != null && arrays[index][12] != "") {
                 var mainData = arrays[index][12];
-                if (arrays[index][12].substr(0, 1) == "\"") {
-                    mainData = mainData.substr(1, mainData.length - 2);
+                if (arrays[index][12].substring(0, 1) == "\"") {
+                    mainData = mainData.substring(1, mainData.length - 2);
                     mainData = mainData.replace(/\\/g, "");
                 }
                 if (hasJsonStructure(mainData)) {
@@ -631,7 +643,7 @@ function ucwords(string) {
     var final_word = "";
     for (let index = 0; index < cases.length; index++) {
         const element = cases[index];
-        final_word += element.substr(0, 1).toUpperCase() + element.substr(1) + " ";
+        final_word += element.substring(0, 1).toUpperCase() + element.substring(1) + " ";
     }
     return final_word.trim();
 }
@@ -639,7 +651,7 @@ function ucword(string) {
     if (string != null) {
         var cases = string.toLowerCase();
         // split the string to get the number of words present
-        var final_word = cases.substr(0, 1).toUpperCase() + cases.substr(1);
+        var final_word = cases.substring(0, 1).toUpperCase() + cases.substring(1);
         return final_word.trim();
     }
     return "";
@@ -658,12 +670,12 @@ function hasJsonStructure(str) {
 // fornat the date we are given
 function setDate(string) {
     string = string.toString();
-    var year = string.substr(0, 4);
-    var month = string.substr(4, 2) - 1;
-    var day = string.substr(6, 2);
-    var hour = string.substr(8, 2);
-    var min = string.substr(10, 2);
-    var sec = string.substr(12, 2);
+    var year = string.substring(0, 4);
+    var month = string.substring(4, 2) - 1;
+    var day = string.substring(6, 2);
+    var hour = string.substring(8, 2);
+    var min = string.substring(10, 2);
+    var sec = string.substring(12, 2);
     const d = new Date(year, month, day, hour, min, sec);
     var hours = d.getHours() > 9 ? d.getHours() : "0" + d.getHours();
     var minutes = d.getMinutes() > 9 ? d.getMinutes() : "0" + d.getMinutes();
@@ -1234,4 +1246,151 @@ cObj("close_export_client_data_2").onclick = function () {
     cObj("export_client_data").classList.add("hide");
     cObj("export_client_data").classList.remove("show");
     cObj("export_client_data").classList.remove("showBlock");
+}
+
+// initiate autocomplete for the search input
+autocomplete(cObj("searchkey"));
+function autocomplete(inp) {
+    let arr,arr2,arr3,arr4 = [];
+    /*the autocomplete function takes an array of possible autocompleted values:*/
+    var currentFocus;
+    /*execute a function when someone writes in the text field:*/
+    inp.addEventListener("input", async function(e) {
+        var a, b, i, val = this.value;
+        var search_results = await searchClients(this.value);
+        arr = search_results[0];
+        arr2 = search_results[1];
+        arr3 = search_results[2];
+        arr4 = search_results[3];
+        /*close any already open lists of autocompleted values*/
+        closeAllLists();
+        if (!val) {
+            return false;
+        }
+        currentFocus = -1;
+        /*create a DIV element that will contain the items (values):*/
+        a = document.createElement("DIV");
+        a.setAttribute("id", this.id + "autocomplete-list");
+        a.setAttribute("class", "autocomplete-items");
+        /*append the DIV element as a child of the autocomplete container:*/
+        this.parentNode.appendChild(a);
+        /*for each item in the array...*/
+        var counter = 0;
+        for (i = 0; i < arr.length; i++) {
+            if (counter > 10) {
+                break;
+            }
+            console.log((arr[i]+"").toUpperCase().includes(val.toUpperCase()));
+            
+            /*check if the item starts with the same letters as the text field value:*/
+            if ((arr2[i]+"").toUpperCase().includes(val.toUpperCase()) ||
+                (arr3[i]+"").toUpperCase().includes(val.toUpperCase()) ||
+                (arr4[i]+"").toUpperCase().includes(val.toUpperCase())
+            ) {
+                /*create a DIV element for each matching element:*/
+                b = document.createElement("DIV");
+                /*make the matching letters bold:*/
+                var display_text = arr2[i] + " (" + arr3[i] + ") - " + arr4[i];
+                b.innerHTML = highlightNeedleInHaystack(display_text, val);
+                // b.innerHTML += display_text.substring(val.length);
+                /*insert a input field that will hold the current array item's value:*/
+                b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+                /*execute a function when someone clicks on the item value (DIV element):*/
+                b.addEventListener("click", function(e) {
+                    /*insert the value for the autocomplete text field:*/
+                    window.location.href = "/Clients/View/"+this.getElementsByTagName("input")[0].value;
+                    // inp.value = this.getElementsByTagName("input")[0].value;
+                    /*close the list of autocompleted values,
+                    (or any other open lists of autocompleted values:*/
+                    closeAllLists();
+                });
+                a.appendChild(b);
+                counter++;
+            }
+        }
+    });
+    /*execute a function presses a key on the keyboard:*/
+    inp.addEventListener("keydown", function(e) {
+        var x = document.getElementById(this.id + "autocomplete-list");
+        if (x) x = x.getElementsByTagName("div");
+        if (e.keyCode == 40) {
+            /*If the arrow DOWN key is pressed,
+            increase the currentFocus variable:*/
+            currentFocus++;
+            /*and and make the current item more visible:*/
+            addActive(x);
+        } else if (e.keyCode == 38) { //up
+            /*If the arrow UP key is pressed,
+            decrease the currentFocus variable:*/
+            currentFocus--;
+            /*and and make the current item more visible:*/
+            addActive(x);
+        } else if (e.keyCode == 13) {
+            /*If the ENTER key is pressed, prevent the form from being submitted,*/
+            e.preventDefault();
+            if (currentFocus > -1) {
+                /*and simulate a click on the "active" item:*/
+                if (x) x[currentFocus].click();
+            }
+        }
+    });
+
+    function addActive(x) {
+        /*a function to classify an item as "active":*/
+        if (!x) return false;
+        /*start by removing the "active" class on all items:*/
+        removeActive(x);
+        if (currentFocus >= x.length) currentFocus = 0;
+        if (currentFocus < 0) currentFocus = (x.length - 1);
+        /*add class "autocomplete-active":*/
+        x[currentFocus].classList.add("autocomplete-active");
+    }
+
+    function removeActive(x) {
+        /*a function to remove the "active" class from all autocomplete items:*/
+        for (var i = 0; i < x.length; i++) {
+            x[i].classList.remove("autocomplete-active");
+        }
+    }
+
+    function closeAllLists(elmnt) {
+        /*close all autocomplete lists in the document,
+        except the one passed as an argument:*/
+        var x = document.getElementsByClassName("autocomplete-items");
+        for (var i = 0; i < x.length; i++) {
+            if (elmnt != x[i] && elmnt != inp) {
+                x[i].parentNode.removeChild(x[i]);
+            }
+        }
+    }
+    /*execute a function when someone clicks in the document:*/
+    document.addEventListener("click", function(e) {
+        closeAllLists(e.target);
+    });
+}
+
+function highlightNeedleInHaystack(haystack, needle) {
+    if (!needle) return haystack;
+
+    const escapedNeedle = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape regex special chars
+    const regex = new RegExp(escapedNeedle, 'gi'); // Case-insensitive global match
+
+    return haystack.replace(regex, (match) => `<b class='text-danger'>${match}</b>`);
+}
+
+async function searchClients(keyword){
+    var client_list = await sendDataGet("GET", "/Clients/search?keyword=" + keyword, cObj("clients_search_loader"), cObj("clients_search_loader"));
+    let data = [];
+    data[0] = [];
+    data[1] = [];
+    data[2] = [];
+    data[3] = [];
+    for (let index = 0; index < client_list.length; index++) {
+        const element = client_list[index];
+        data[0].push(element.client_id);
+        data[1].push(element.client_name);
+        data[2].push(element.client_account);
+        data[3].push(element.clients_contacts);
+    }
+    return data;
 }

@@ -67,6 +67,7 @@ Route::post("addClientPppoe", [Clients::class, 'processClientPPPoE'])->name("cli
 Route::post("/Quick-Register/New-PPPoE-Client", [Clients::class, 'processQuickRegisterNewClientPPPoE'])->name("quick_register.new_pppoe_client");
 // the clients controller route
 Route::get("/Clients", [Clients::class, 'getClientData'])->name("myclients")->middleware("validated");
+Route::get("Clients/search", [Clients::class, 'searchClients'])->name("search_clients")->middleware("validated");
 // get the router information for the new client
 Route::get("/Clients/NewStatic", [Clients::class, "getRouterDataClients"])->middleware("validated");
 Route::get("/Clients/NewPPPoE", [Clients::class, "getRouterDatappoe"])->name("newclient.pppoe")->middleware("validated");

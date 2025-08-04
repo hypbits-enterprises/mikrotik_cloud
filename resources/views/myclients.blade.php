@@ -360,7 +360,8 @@
                                     </div>
                                     {{-- <p>{{($client_data)}}</p> --}}
                                     <p class="card-text">In this table below Client information can be displayed.</p>
-                                    <p>Search options</p>
+                                    <p>Search options <span id="clients_search_loader" class="text-primary invisible"><i class="fas fa-refresh fa-spin"></i> Loading...</span></p>
+                                    <p class="d-none" id="client_search_results"></p>
                                     @if(session('success_reg'))
                                         <p class="text-success">{{session('success_reg')}}</p>
                                     @endif
@@ -371,9 +372,11 @@
                                         <p class="text-danger">{{ session('error_clients') }}</p>
                                     @endif
                                     <div class="row">
-                                        <div class="col-md-8 form-group row border-right border-dark">
+                                        <div class="col-md-9 form-group row border-right border-dark">
                                             <div class="col-md-4">
-                                                <input type="text" name="search" id="searchkey" class="form-control rounded-lg " placeholder="Your keyword ..">
+                                                <div class="autocomplete">
+                                                    <input type="text" name="search" id="searchkey" class="form-control rounded-lg " placeholder="Your keyword ..">
+                                                </div>
                                             </div>
                                             <div class="col-md-4">
                                                 @if (isset($router_infor))
@@ -402,7 +405,7 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <div class="btn-group mr-1 mb-1 float-right">
                                                 @php
                                                     $btnText = "<i class=\"ft-plus\"></i> New";
