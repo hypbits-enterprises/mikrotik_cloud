@@ -1291,7 +1291,7 @@ function autocomplete(inp) {
                 b = document.createElement("DIV");
                 /*make the matching letters bold:*/
                 var display_text = arr2[i] + " (" + arr3[i] + ") - " + arr4[i];
-                b.innerHTML = highlightNeedleInHaystack(display_text, val);
+                b.innerHTML = (counter+1)+".) "+highlightNeedleInHaystack(display_text, val);
                 // b.innerHTML += display_text.substring(val.length);
                 /*insert a input field that will hold the current array item's value:*/
                 b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
