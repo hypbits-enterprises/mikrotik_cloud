@@ -121,6 +121,7 @@ window.onload = function () {
     rowsColStudents = refferal_payment;
     // console.log(refferal_payment);
     cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+    hoverEffect();
 
 
     // 
@@ -268,6 +269,7 @@ cObj("tonextNav").onclick = function() {
             pagecounttrans++;
             var endpage = startpage + 50;
             cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+            hoverEffect();
         } else {
             pagecounttrans = pagecountTransaction;
         }
@@ -279,6 +281,7 @@ cObj("toprevNac").onclick = function() {
         startpage -= 50;
         var endpage = startpage + 50;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
     }
 }
 cObj("tofirstNav").onclick = function() {
@@ -287,6 +290,7 @@ cObj("tofirstNav").onclick = function() {
         startpage = 0;
         var endpage = startpage + 50;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
     }
 }
 cObj("tolastNav").onclick = function() {
@@ -295,6 +299,7 @@ cObj("tolastNav").onclick = function() {
         startpage = (pagecounttrans * 50) - 50;
         var endpage = startpage + 50;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
     }
 }
 

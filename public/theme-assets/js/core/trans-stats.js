@@ -350,6 +350,7 @@ function getTransactionData(clients_data) {
         //create the display table
         //get the number of pages
         cObj("transDataReciever").innerHTML = displayRecord(0, 20, rowsColStudents);
+        hoverEffect();
 
         //show the number of pages for each record
         var counted = rows.length / 20;
@@ -419,6 +420,7 @@ cObj("tonextNav").onclick = function() {
         pagecounttrans++;
         var endpage = startpage + 20;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
     } else {
         pagecounttrans = pagecountTransaction;
     }
@@ -430,6 +432,7 @@ if (pagecounttrans > 1) {
     startpage -= 20;
     var endpage = startpage + 20;
     cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+    hoverEffect();
 }
 }
 cObj("tofirstNav").onclick = function() {
@@ -438,6 +441,7 @@ if (pagecountTransaction > 0) {
     startpage = 0;
     var endpage = startpage + 20;
     cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+    hoverEffect();
 }
 }
 cObj("tolastNav").onclick = function() {
@@ -446,6 +450,7 @@ if (pagecountTransaction > 0) {
     startpage = (pagecounttrans * 20) - 20;
     var endpage = startpage + 20;
     cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+    hoverEffect();
 }
 }
 
@@ -506,6 +511,7 @@ if (rowsNcol2.length > 0) {
     var counted = rowsNcol2.length / 20;
     pagecountTransaction = Math.ceil(counted);
     cObj("transDataReciever").innerHTML = displayRecord(0, 20, rowsNcol2);
+    hoverEffect();
     cObj("tot_records").innerText = rowsNcol2.length;
 } else {
     cObj("transDataReciever").innerHTML = "<p class='sm-text text-danger text-bold text-center'><span style='font-size:40px;'><i class='ft-alert-triangle'></i></span> <br>Ooops! your search for \"" + keyword + "\" was not found</p>";

@@ -1,3 +1,14 @@
+.btn-invert-hover span {
+  transition: all 0.3s ease;
+  color: inherit;
+  background-color: transparent;
+}
+
+.btn-invert-hover:hover span {
+  background-color: currentColor;
+  color: inherit;
+  border-color: white;
+}
 a:focus {
     outline: none;
 }

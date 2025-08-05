@@ -306,7 +306,7 @@
                                             <div class="col-md-6">
                                                 @php
                                                     $btnText = "<i class=\"ft-upload\" ></i> Update";
-                                                    $otherClasses = "text-dark ".$readonly;
+                                                    $otherClasses = "".$readonly;
                                                     $btn_id = "send_to_clipboard";
                                                 @endphp
                                                 <x-button :btnText="$btnText" btnType="success" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />

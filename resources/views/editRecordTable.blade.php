@@ -88,14 +88,14 @@
                                   @endif
 
                                   <div class="container p-1">
-                                    @php
+                                    {{-- @php
                                         $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                         $otherClasses = "";
                                         $btnLink = "/SharedTables/View/".$table_id."/Name/".$link_table_name;
                                         $otherAttributes = "";
                                     @endphp
-                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                    {{-- <a href="/SharedTables/View/{{$table_id}}/Name/{{$link_table_name}}" class="btn btn-primary btn-sm"><i class="ft-arrow-left"></i> Back to list</a> --}}
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                    <a href="/SharedTables/View/{{$table_id}}/Name/{{$link_table_name}}" class="btn btn-primary btn-sm"><i class="ft-arrow-left"></i> Back to list</a>
                                   </div>
                                   <div class="container p-1 rounded mx-0">
                                     <p><b>Note:</b> - Fill all fields as neccesary! <br>

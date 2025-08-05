@@ -304,4 +304,46 @@
         $.app.menu.manualScroller.updateHeight();
     });
 
+    // Initialize hover effect for buttons
+    hoverEffect();
+
 })(window, document, jQuery);
+
+function hoverEffect() {
+    document.querySelectorAll('.btn').forEach(button => {
+        const span = button.querySelector('.d-inline-block');
+        if (!span) return; // Skip if no span found
+        
+        // Store original colors to restore on mouseout
+        const originalButtonBg = getComputedStyle(button).backgroundColor;
+        const originalSpanColor = getComputedStyle(span).color;
+        const originalSpanBorderColor = getComputedStyle(span).borderColor;
+        const originalSpanBg = getComputedStyle(span).backgroundColor;
+        
+        button.addEventListener('mouseenter', () => {
+            // Get current computed styles
+            const buttonBg = getComputedStyle(button).backgroundColor;
+            const spanColor = getComputedStyle(span).color;
+            
+            // Swap colors: button background takes span's text color
+            button.style.backgroundColor = spanColor;
+            // Span background and border take button's original background color
+            span.style.backgroundColor = "#fff";
+            span.style.color = buttonBg;
+            // span.style.borderColor = buttonBg;
+            span.style.setProperty('border-color', buttonBg, 'important')
+            
+            // Ensure smooth transition
+            button.style.transition = 'background-color 0.3s ease';
+            span.style.transition = 'color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease';
+        });
+        
+        button.addEventListener('mouseleave', () => {
+            // Restore original colors
+            button.style.backgroundColor = originalButtonBg;
+            span.style.backgroundColor = originalSpanBg;
+            span.style.color = originalSpanColor;
+            span.style.borderColor = originalSpanBorderColor;
+        });
+    });
+}

@@ -63,14 +63,14 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header my-0">
-                                @php
+                                {{-- @php
                                     $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to SMS";
                                     $otherClasses = "ml-1 my-0";
                                     $btnLink = "/sms";
                                     $otherAttributes = "";
                                 @endphp
-                                <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                {{-- <a href="/sms" class="btn btn-infor my-0"><i class="fas fa-arrow-left"></i> Back to SMS</a> --}}
+                                <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                <a href="/sms" class="btn btn-infor my-0"><i class="fas fa-arrow-left"></i> Back to SMS</a>
                                 <h4 class="card-title">Customize System Sms</h4>
                                 <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
                                 <div class="heading-elements">

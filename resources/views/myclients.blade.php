@@ -167,6 +167,57 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
+                                <h4 class="card-title">Client Summary</h4>
+                                <a class="heading-elements-toggle">
+                                    <i class="la la-ellipsis-v font-medium-3"></i>
+                                </a>
+                                <div class="heading-elements">
+                                    <ul class="list-inline mb-0">
+                                        <li>
+                                            @php
+                                                $btnText = "<i class=\"ft-plus\"></i> View Client Summary";
+                                                $otherClasses = "";
+                                                $btnLink = "#";
+                                                $otherAttributes = "data-action=\"collapse\"";
+                                            @endphp
+                                            <x-button-link :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" btnType="primary" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        </li>
+                                        {{-- <li>
+                                            <a data-action="reload">
+                                                <i class="ft-rotate-cw"></i>
+                                            </a>
+                                        </li> --}}
+                                        {{-- <li>
+                                            <a data-action="close">
+                                                <i class="ft-x"></i>
+                                            </a>
+                                        </li> --}}
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-content collapse">
+                                <div class="card-body">
+                                    <div id="vertical-bar2" class="row">
+                                        <div class="col-md-4 border border-secondary rounded shadow">
+                                            <h6 class="text-sm mt-1">Clients Stats</h6>
+                                            <hr class="my-1">
+                                            <p><b># of Total Clients</b>: {{$client_count}} Client(s)</p>
+                                            <p><b># of Frozen Clients</b>: {{$frozen_count}} Client(s)</p>
+                                            <p><b># of Active Clients</b>: {{$active_clients}} Client(s)</p>
+                                            <p><b># of In-Active Clients</b>: {{$inactive_clients}} Client(s)</p>
+                                            <p><b># Added Last one week</b>: {{$total_added_last_week}} Client(s)</p>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <canvas class="w-75 mx-auto" id="onboarding_canvas" aria-label="Data will appear here" role="img" >
+                                                <p class="text-secondary text-bold-700" >Data will be displayed here!</p>
+                                            </canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
                                 <h4 class="card-title">Client Table</h4>
                                 <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
                                 <div class="heading-elements">
@@ -374,7 +425,7 @@
                                     @endif
                                     <div class="row">
                                         <div class="col-md-9 form-group row border-right border-dark">
-                                            <div class="col-md-4">
+                                            <div class="col-md-5">
                                                 <div class="autocomplete">
                                                     <input type="text" name="search" id="searchkey" class="form-control rounded-lg " placeholder="Your keyword ..">
                                                 </div>
@@ -394,7 +445,7 @@
                                                     <p id="select_router" class="text-secondary">No routers found! Please add a router to proceed</p>
                                                 @endif
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-3">
                                                 <select name="client_status" id="client_status" class="form-control">
                                                     <option value="" hidden>Select Status</option>
                                                     <option value="2">All</option>
@@ -583,12 +634,14 @@
     <script>
         let table = new DataTable('#myTable');
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- BEGIN CHAMELEON  JS-->
     <script src="theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
     <script src="theme-assets/js/core/app-lite.js" type="text/javascript"></script>
     <!-- END CHAMELEON  JS-->
     <script>
         var data = @json($client_data);
+        var added_last_week = @json($added_last_week);
         // here now you create the clients table
         // console.log(data);
     </script>

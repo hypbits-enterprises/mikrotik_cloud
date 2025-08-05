@@ -135,15 +135,15 @@
                                         </ul>
                                     @endif
                                     </ul>
-                                    @php
+                                    {{-- @php
                                         $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                         $otherClasses = "";
                                         $btnLink = "/Clients";
                                         $otherAttributes = "";
                                     @endphp
-                                    <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                    {{-- <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                        to list</a> --}}
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                    <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
+                                        to list</a>
                                     @if (session('success'))
                                         <p class="success">{{ session('success') }}</p>
                                     @endif
@@ -405,7 +405,7 @@
                                                         @if ($clients_data[0]->validated == 1)
                                                             @php
                                                                 $btnText = "<i class=\"ft-upload\"></i> Update User";
-                                                                $otherClasses = "text-dark";
+                                                                $otherClasses = "";
                                                                 $btn_id = "";
                                                             @endphp
                                                             <x-button :btnText="$btnText" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
@@ -474,14 +474,14 @@
                                         </ul>
                                     @endif
                                     </ul>
-                                    @php
+                                    {{-- @php
                                         $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                         $otherClasses = "";
                                         $btnLink = "/Clients";
                                         $otherAttributes = "";
                                     @endphp
-                                    <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                    {{-- <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to list</a> --}}
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                    <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to list</a>
                                     @if (session('success'))
                                         <p class="success">{{ session('success') }}</p>
                                     @endif

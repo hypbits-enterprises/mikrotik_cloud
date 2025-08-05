@@ -79,15 +79,15 @@
                                     @if (session('success'))
                                         <p class="text-success">{{ session('success') }}</p>
                                     @endif
-                                    @php
+                                    {{-- @php
                                         $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                         $otherClasses = "ml-1";
                                         $btnLink = "/sms";
                                         $otherAttributes = "";
                                     @endphp
-                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                    {{-- <a href="/sms" class="btn btn-infor"><i class="fas fa-arrow-left"></i>
-                                        Back to list</a> --}}
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                    <a href="/sms" class="btn btn-infor"><i class="fas fa-arrow-left"></i>
+                                        Back to list</a>
                                 </div>
                                 <div class="container p-1">
                                     @php

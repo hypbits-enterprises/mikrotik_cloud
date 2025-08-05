@@ -215,15 +215,15 @@ date_default_timezone_set('Africa/Nairobi');
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                @php
+                                {{-- @php
                                     $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                     $otherClasses = "";
                                     $btnLink = "/BillingSms/Manage";
                                     $otherAttributes = "";
                                 @endphp
-                                <x-button-link btnType="infor" btnSize="sm" toolTip="Transaction`s Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                {{-- <a href="/BillingSms/Manage" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                    to list</a> --}}
+                                <x-button-link btnType="infor" btnSize="sm" toolTip="Transaction`s Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                <a href="/BillingSms/Manage" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
+                                    to list</a>
                                 <div class="card-body">
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
@@ -349,7 +349,7 @@ date_default_timezone_set('Africa/Nairobi');
                                             <div class="col-md-6">
                                                 @php
                                                     $btnText = "<i class=\"ft-plus\"></i> Add User";
-                                                    $otherClasses = "text-dark";
+                                                    $otherClasses = "";
                                                     $btn_id = "";
                                                     $btnSize="sm";
                                                     $type = "submit";

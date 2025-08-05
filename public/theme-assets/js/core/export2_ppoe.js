@@ -86,6 +86,7 @@ cObj("tonextNav_ppoe").onclick = function() {
             pagecounttrans_ppoe++;
             var endpage = startpage_ppoe + 25;
             cObj("transDataReciever_ppoe").innerHTML = displayRecord_ppoe(startpage_ppoe, endpage, rowsColStudents_ppoe);
+            hoverEffect();
         } else {
             pagecounttrans_ppoe = pagecountTransaction_ppoe;
         }
@@ -97,6 +98,7 @@ cObj("toprevNac_ppoe").onclick = function() {
         startpage_ppoe -= 25;
         var endpage = startpage_ppoe + 25;
         cObj("transDataReciever_ppoe").innerHTML = displayRecord_ppoe(startpage_ppoe, endpage, rowsColStudents_ppoe);
+        hoverEffect();
     }
 }
 cObj("tofirstNav_ppoe").onclick = function() {
@@ -105,6 +107,7 @@ cObj("tofirstNav_ppoe").onclick = function() {
         startpage_ppoe = 0;
         var endpage = startpage_ppoe + 25;
         cObj("transDataReciever_ppoe").innerHTML = displayRecord_ppoe(startpage_ppoe, endpage, rowsColStudents_ppoe);
+        hoverEffect();
     }
 }
 cObj("tolastNav_ppoe").onclick = function() {
@@ -113,6 +116,7 @@ cObj("tolastNav_ppoe").onclick = function() {
         startpage_ppoe = (pagecounttrans_ppoe * 25) - 25;
         var endpage = startpage_ppoe + 25;
         cObj("transDataReciever_ppoe").innerHTML = displayRecord_ppoe(startpage_ppoe, endpage, rowsColStudents_ppoe);
+        hoverEffect();
     }
 }
 
@@ -163,6 +167,7 @@ function checkName_ppoe(keyword) {
         var counted = rowsNcol2.length / 25;
         pagecountTransaction_ppoe = Math.ceil(counted);
         cObj("transDataReciever_ppoe").innerHTML = displayRecord_ppoe(0, 25, rowsNcol2);
+        hoverEffect();
         cObj("tot_records_ppoe").innerText = rowsNcol2.length;
     } else {
         cObj("transDataReciever_ppoe").innerHTML = "<p class='sm-text text-danger text-bold text-center'><span style='font-size:40px;'><i class='ft-alert-triangle'></i></span> <br>Ooops! your search for \"" + keyword + "\" was not found</p>";

@@ -115,14 +115,14 @@
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                @php
+                                {{-- @php
                                     $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                     $otherClasses = "ml-1";
                                     $btnLink = "/Client-Reports";
                                     $otherAttributes = "";
                                 @endphp
-                                <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                {{-- <a href="/Client-Reports" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to list</a> --}}
+                                <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                <a href="/Client-Reports" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to list</a>
                                 <div class="card-body">
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
@@ -345,7 +345,7 @@
                                             <div class="col-md-4">
                                                 @php
                                                     $btnText = "<i class=\"ft-upload\"></i> Update Report";
-                                                    $otherClasses = "text-dark ".$readonly;
+                                                    $otherClasses = "".$readonly;
                                                     $btn_id = "";
                                                     $otherAttributes = "";
                                                 @endphp

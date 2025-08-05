@@ -74,15 +74,15 @@
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                @php
+                                {{-- @php
                                     $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                     $otherClasses = "ml-1";
                                     $btnLink = "/Clients";
                                     $otherAttributes = "";
                                 @endphp
-                                <x-button-link btnType="infor" btnSize="sm" toolTip="Transaction`s Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                {{-- <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                    to list</a> --}}
+                                <x-button-link btnType="infor" btnSize="sm" toolTip="Transaction`s Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
+                                    to list</a>
                                 <div class="card-body">
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
@@ -270,7 +270,7 @@
                                             <div class="col-lg-6">
                                                 @php
                                                     $btnText = "<i class=\"ft-plus\"></i> Add User";
-                                                    $otherClasses = "text-dark";
+                                                    $otherClasses = "";
                                                     $btn_id = "";
                                                     $btnSize="sm";
                                                     $type = "submit";

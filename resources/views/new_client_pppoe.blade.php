@@ -74,14 +74,14 @@
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                @php
+                                {{-- @php
                                     $btnText = "<i class=\"fas fa-arrow-left\"></i> Back";
                                     $otherClasses = "ml-1 ";
                                     $btnLink = "/Quick-Register";
                                     $otherAttributes = "";
                                 @endphp
-                                <x-button-link :otherAttributes="$otherAttributes"  :btnText="$btnText" :btnLink="$btnLink" btnType="infor" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                {{-- <a href="/Quick-Register" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back</a> --}}
+                                <x-button-link :otherAttributes="$otherAttributes"  :btnText="$btnText" :btnLink="$btnLink" btnType="infor" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                <a href="/Quick-Register" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back</a>
                                 <div class="card-body">
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
@@ -272,7 +272,7 @@
                                                         class="ft-plus"></i> Add User</button> --}}
                                                 @php
                                                     $btnText = "<i class=\"ft-plus\"></i> Add User";
-                                                    $otherClasses = "mt-1 text-dark";
+                                                    $otherClasses = "mt-1";
                                                     $btn_id = "";
                                                     $otherAttributes = "";
                                                 @endphp

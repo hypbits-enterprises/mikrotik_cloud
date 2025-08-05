@@ -79,14 +79,14 @@
                           </div>
                           <div class="card-content collapse show">
                               <div class="card-body">
-                                @php
+                                {{-- @php
                                     $btnText = "<i class=\"ft-arrow-left\"></i> Back to List";
                                     $otherClasses = "my-1";
                                     $btnLink = "/SharedTables/View/".$table_id."/Name/".$table_name;
                                     $otherAttributes = "";
                                 @endphp
-                                <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                {{-- <a href="/SharedTables/View/{{$table_id}}/Name/{{$table_name}}" class="btn btn-sm btn-primary my-1"><i class="ft-arrow-left"></i> Back to List</a> --}}
+                                <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                <a href="/SharedTables/View/{{$table_id}}/Name/{{$table_name}}" class="btn btn-sm btn-primary my-1"><i class="ft-arrow-left"></i> Back to List</a>
                                   @if (session('shared_table_error'))
                                       <p class="text-danger">{{ session('shared_table_error') }}</p>
                                   @endif
@@ -135,7 +135,7 @@
                                         <div class="col-md-6">
                                             @php
                                                 $btnText = "<i class=\"ft-save\"></i> Save Changes";
-                                                $otherClasses = "text-dark my-1";
+                                                $otherClasses = "my-1";
                                                 $btn_id = "";
                                                 $otherAttributes = "";
                                             @endphp
@@ -175,7 +175,7 @@
                                                 <div class="modal-footer">
                                                     @php
                                                         $btnText = "<i class=\"ft-x\"></i> Close";
-                                                        $otherClasses = "text-dark my-1";
+                                                        $otherClasses = "my-1";
                                                         $btn_id = "close_this_window";
                                                         $otherAttributes = "data-dismiss=\"modal\"";
                                                     @endphp

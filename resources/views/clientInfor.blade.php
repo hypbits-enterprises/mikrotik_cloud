@@ -134,14 +134,14 @@
                                         </ul>
                                     @endif
                                     </ul>
-                                    @php
+                                    {{-- @php
                                         $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                         $otherClasses = "ml-0";
                                         $btnLink = "/Clients";
                                         $otherAttributes = "";
                                     @endphp
-                                    <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                    {{-- <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to list</a> --}}
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                    <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to list</a>
                                     <div class="container">
                                         <div class="modal fade text-left" id="change_issue_status" tabindex="-1" role="dialog" aria-labelledby="myModalLabel1" style="padding-right: 17px;" aria-modal="true">
                                             <div class="modal-dialog modal-dialog-centered" role="document">
@@ -425,7 +425,7 @@
                                                         @if ($clients_data[0]->validated == 1)
                                                             @php
                                                                 $btnText = "<i class=\"ft-upload\"></i> Update User";
-                                                                $otherClasses = "text-dark";
+                                                                $otherClasses = "";
                                                                 $btn_id = "";
                                                             @endphp
                                                             <x-button :btnText="$btnText" toolTip="Send Invoice" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
@@ -490,15 +490,15 @@
                                         </ul>
                                     @endif
                                     </ul>
-                                    @php
+                                    {{-- @php
                                         $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                         $otherClasses = "";
                                         $btnLink = "/Clients";
                                         $otherAttributes = "";
                                     @endphp
-                                    <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                    {{-- <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                        to list</a> --}}
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                    <a href="/Clients" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
+                                        to list</a>
                                     @if (session('success'))
                                         <p class="success">{{ session('success') }}</p>
                                     @endif

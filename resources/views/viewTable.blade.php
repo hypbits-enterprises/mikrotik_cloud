@@ -87,14 +87,14 @@
                                   @endif
 
                                   <div class="container p-1">
-                                    @php
+                                    {{-- @php
                                         $btnText = "<i class=\"ft-arrow-left\"></i> Back to list";
                                         $otherClasses = "";
                                         $btnLink = "/SharedTables";
                                         $otherAttributes = "";
                                     @endphp
-                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                    {{-- <a href="/SharedTables" class="btn btn-primary btn-sm"><i class="ft-arrow-left"></i> Back to list</a> --}}
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                    <a href="/SharedTables" class="btn btn-primary btn-sm"><i class="ft-arrow-left"></i> Back to list</a>
                                   </div>
                                   <div class="container w-50 p-1 rounded mx-0">
                                     <h6 class="text-left">Table Tools</h6>

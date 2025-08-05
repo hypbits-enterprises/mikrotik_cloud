@@ -102,6 +102,7 @@ window.onload = function () {
         //create the display table
         //get the number of pages
         cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+        hoverEffect();
 
         //show the number of pages for each record
         var counted = rows.length / 50;
@@ -123,6 +124,122 @@ window.onload = function () {
         cObj("transDataReciever").innerHTML = "<p class='sm-text text-danger text-bold text-center'><span style='font-size:40px;'><i class='ft-alert-triangle'></i></span> <br>Ooops! No results found!</p>";
         cObj("tablefooter").classList.add("invisible");
     }
+
+    // plot graph
+    plotGraph(added_last_week);
+}
+
+var myChart;
+function plotGraph(client_data) {
+    if (myChart != null) {
+        myChart.destroy();
+    }
+    var data = [client_data];
+    console.log(data);
+    var show_x_axis = true;
+    var show_y_axis = true;
+    
+    var ctx = cObj("onboarding_canvas");
+    var type = "line" //line, pie, bar, doughnut, polarArea, radar;
+    var backgroundColor = ['rgb(48, 182, 215)'];
+    if (type == "pie") {
+        backgroundColor = [];
+        for (let index = 0; index < data[0].length; index++) {
+            const element = data[0][index];
+            var rand_red = generateRandomNumber(100,255);
+            var rand_green = generateRandomNumber(100,255);
+            var rand_blue = generateRandomNumber(100,255);
+            var rand_color = 'rgb('+rand_red+', '+rand_green+', '+rand_blue+')';
+            backgroundColor.push(rand_color);
+        }
+    }
+
+    // get the labels
+    var labels = [];
+    var from = "";
+    var to = "";
+    for (let index = 0; index < data[0].length; index++) {
+        const element = data[0][index];
+        if (index == 0) {
+            from = "between ("+element.x;
+        }
+        if (index == data[0].length-1) {
+            to = element.x;
+        }
+        labels.push(element.x);
+    }
+
+    var title = "Clients registered in the last 7 days";
+    // chart data
+    var chart_data = data[0];
+    if (type == "pie") {
+        chart_data = [];
+        for (let index = 0; index < data[0].length; index++) {
+            const element = data[0][index];
+            chart_data.push(element.y);
+        }
+    }
+
+    myChart = new Chart(ctx, {
+        type: type,
+        data: {
+            labels:labels,
+            datasets: [{
+                tension: 0.4,
+                label: 'Client(s) Registered',
+                data: chart_data,
+                borderWidth: 1,
+                font: {
+                    size: 14
+                },
+                backgroundColor: backgroundColor,
+                borderColor:'rgb(55, 61, 125)'
+            }],
+            hoverOffset: 4
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks:{
+                        stepSize: 1
+                    },
+                    grid:{
+                        display:true,
+                        drawOnChartArea:true,
+                        drawTicks:true
+                    },
+                    display:show_y_axis
+                },
+                x:{
+                    grid:{
+                        display:true,
+                        drawOnChartArea:true,
+                        drawTicks:true
+                    },
+                    display:show_x_axis
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: title,
+                    font: {
+                        size: 14
+                    }
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    font: {
+                        size: 14
+                    }
+                }
+            }
+        }
+    });
 }
 
 function checkedUnchecked() {
@@ -290,7 +407,7 @@ cObj("select_all_clients").onchange = function () {
 }
 
 function addSelectedClients() {
-    var this_ids = this.id.substring(11);
+    var this_ids = this.id.substr(11);
     if (this.checked) {
         var hold_user_id_data = cObj("hold_user_id_data").value;
         if (hasJsonStructure(hold_user_id_data)) {
@@ -350,6 +467,7 @@ function sortByRegDate() {
     }
     // console.log(sort_by_date);
     cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+    hoverEffect();
     if (sort_by_date == 0) {
         cObj("sort_by_reg_date").innerHTML = "# <i class='ft-chevron-down'></i>";
     } else {
@@ -380,6 +498,7 @@ function sortByExpDate() {
     }
     // console.log(sort_by_expirations);
     cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+    hoverEffect();
     if (sort_by_expirations == 0) {
         cObj("sort_by_expiration").innerHTML = "Due Date <i class='ft-chevron-down'></i>";
     } else {
@@ -409,6 +528,7 @@ function sortByName() {
     }
     // console.log(sortbyname);
     cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+    hoverEffect();
     if (sortbyname == 0) {
         cObj("sort_by_name").innerHTML = "Full Names <i class='ft-chevron-down'></i>";
     } else {
@@ -437,6 +557,7 @@ function sortByAccNo() {
     }
     // console.log(sortbyaccno);
     cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+    hoverEffect();
     if (sortbyaccno == 0) {
         cObj("sort_by_acc_number").innerHTML = "Account Number <i class='ft-chevron-down'></i>";
     } else {
@@ -467,6 +588,7 @@ function sort_by_location() {
     }
     // console.log(sortByLocation);
     cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+    hoverEffect();
     if (sortByLocation == 0) {
         cObj("sort_by_location").innerHTML = "Location <i class='ft-chevron-down'></i>";
     } else {
@@ -497,6 +619,7 @@ function sort_by_network() {
     }
     // console.log(sort_by_net);
     cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+    hoverEffect();
     if (sort_by_net == 0) {
         cObj("sort_by_network_gateway").innerHTML = "Network & Gateway <i class='ft-chevron-down'></i>";
     } else {
@@ -534,8 +657,8 @@ function displayRecord(start, finish, arrays) {
             var reffered = "";
             if (arrays[index][12] != null && arrays[index][12] != "") {
                 var mainData = arrays[index][12];
-                if (arrays[index][12].substring(0, 1) == "\"") {
-                    mainData = mainData.substring(1, mainData.length - 2);
+                if (arrays[index][12].substr(0, 1) == "\"") {
+                    mainData = mainData.substr(1, mainData.length - 2);
                     mainData = mainData.replace(/\\/g, "");
                     mainData = mainData.replace(/'/g, "\"");
                 }
@@ -583,8 +706,8 @@ function displayRecord(start, finish, arrays) {
             var reffered = "";
             if (arrays[index][12] != null && arrays[index][12] != "") {
                 var mainData = arrays[index][12];
-                if (arrays[index][12].substring(0, 1) == "\"") {
-                    mainData = mainData.substring(1, mainData.length - 2);
+                if (arrays[index][12].substr(0, 1) == "\"") {
+                    mainData = mainData.substr(1, mainData.length - 2);
                     mainData = mainData.replace(/\\/g, "");
                 }
                 if (hasJsonStructure(mainData)) {
@@ -643,7 +766,7 @@ function ucwords(string) {
     var final_word = "";
     for (let index = 0; index < cases.length; index++) {
         const element = cases[index];
-        final_word += element.substring(0, 1).toUpperCase() + element.substring(1) + " ";
+        final_word += element.substr(0, 1).toUpperCase() + element.substr(1) + " ";
     }
     return final_word.trim();
 }
@@ -651,7 +774,7 @@ function ucword(string) {
     if (string != null) {
         var cases = string.toLowerCase();
         // split the string to get the number of words present
-        var final_word = cases.substring(0, 1).toUpperCase() + cases.substring(1);
+        var final_word = cases.substr(0, 1).toUpperCase() + cases.substr(1);
         return final_word.trim();
     }
     return "";
@@ -670,12 +793,12 @@ function hasJsonStructure(str) {
 // fornat the date we are given
 function setDate(string) {
     string = string.toString();
-    var year = string.substring(0, 4);
-    var month = string.substring(4, 2) - 1;
-    var day = string.substring(6, 2);
-    var hour = string.substring(8, 2);
-    var min = string.substring(10, 2);
-    var sec = string.substring(12, 2);
+    var year = string.substr(0, 4);
+    var month = string.substr(4, 2) - 1;
+    var day = string.substr(6, 2);
+    var hour = string.substr(8, 2);
+    var min = string.substr(10, 2);
+    var sec = string.substr(12, 2);
     const d = new Date(year, month, day, hour, min, sec);
     var hours = d.getHours() > 9 ? d.getHours() : "0" + d.getHours();
     var minutes = d.getMinutes() > 9 ? d.getMinutes() : "0" + d.getMinutes();
@@ -735,6 +858,7 @@ cObj("tonextNav").onclick = function () {
         pagecounttrans++;
         var endpage = startpage + 50;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
         if (rowsColStudents.length > 0) {
             cObj("sort_by_reg_date").addEventListener("click", sortByRegDate);
             cObj("sort_by_name").addEventListener("click", sortByName);
@@ -756,6 +880,7 @@ cObj("toprevNac").onclick = function () {
         startpage -= 50;
         var endpage = startpage + 50;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
         if (rowsColStudents.length > 0) {
             cObj("sort_by_reg_date").addEventListener("click", sortByRegDate);
             cObj("sort_by_name").addEventListener("click", sortByName);
@@ -775,6 +900,7 @@ cObj("tofirstNav").onclick = function () {
         startpage = 0;
         var endpage = startpage + 50;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
         if (rowsColStudents.length > 0) {
             cObj("sort_by_reg_date").addEventListener("click", sortByRegDate);
             cObj("sort_by_name").addEventListener("click", sortByName);
@@ -793,6 +919,7 @@ cObj("tolastNav").onclick = function () {
         startpage = (pagecounttrans * 50) - 50;
         var endpage = startpage + 50;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
         if (rowsColStudents.length > 0) {
             cObj("sort_by_reg_date").addEventListener("click", sortByRegDate);
             cObj("sort_by_name").addEventListener("click", sortByName);
@@ -866,6 +993,7 @@ function checkName(keyword) {
         pagecountTransaction = Math.ceil(counted);
         // console.log(rowsNcol2);
         cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsNcol2);
+        hoverEffect();
         cObj("tot_records").innerText = rowsNcol2.length;
         if (rowsColStudents.length > 0) {
             cObj("sort_by_reg_date").addEventListener("click", sortByRegDate);
@@ -915,6 +1043,7 @@ cObj("client_status").onchange = function () {
             var counted = rowsNcol2.length / 50;
             pagecountTransaction = Math.ceil(counted);
             cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsNcol2);
+            hoverEffect();
             cObj("tot_records").innerText = rowsNcol2.length;
             if (rowsColStudents.length > 0) {
                 cObj("sort_by_reg_date").addEventListener("click", sortByRegDate);
@@ -945,6 +1074,7 @@ cObj("client_status").onchange = function () {
             var counted = rowsNcol2.length / 50;
             pagecountTransaction = Math.ceil(counted);
             cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsNcol2);
+            hoverEffect();
             cObj("tot_records").innerText = rowsNcol2.length;
             if (rowsColStudents.length > 0) {
                 cObj("sort_by_reg_date").addEventListener("click", sortByRegDate);
@@ -984,6 +1114,7 @@ cObj("client_status").onchange = function () {
             var counted = rowsNcol2.length / 50;
             pagecountTransaction = Math.ceil(counted);
             cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsNcol2);
+            hoverEffect();
             cObj("tot_records").innerText = rowsNcol2.length;
             if (rowsColStudents.length > 0) {
                 cObj("sort_by_reg_date").addEventListener("click", sortByRegDate);
@@ -1023,6 +1154,7 @@ cObj("client_status").onchange = function () {
             var counted = rowsNcol2.length / 50;
             pagecountTransaction = Math.ceil(counted);
             cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsNcol2);
+            hoverEffect();
             cObj("tot_records").innerText = rowsNcol2.length;
             if (rowsColStudents.length > 0) {
                 cObj("sort_by_reg_date").addEventListener("click", sortByRegDate);
@@ -1062,6 +1194,7 @@ cObj("client_status").onchange = function () {
             var counted = rowsNcol2.length / 50;
             pagecountTransaction = Math.ceil(counted);
             cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsNcol2);
+            hoverEffect();
             cObj("tot_records").innerText = rowsNcol2.length;
             if (rowsColStudents.length > 0) {
                 cObj("sort_by_reg_date").addEventListener("click", sortByRegDate);
@@ -1112,6 +1245,7 @@ cObj("select_router").onchange = function () {
             var counted = rowsNcol2.length / 50;
             pagecountTransaction = Math.ceil(counted);
             cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsNcol2);
+            hoverEffect();
             cObj("tot_records").innerText = rowsNcol2.length;
             router_and_keyword = rowsNcol2;
             if (rowsColStudents.length > 0) {
@@ -1141,6 +1275,7 @@ cObj("select_router").onchange = function () {
             var counted = rowsNcol2.length / 50;
             pagecountTransaction = Math.ceil(counted);
             cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsNcol2);
+            hoverEffect();
             cObj("tot_records").innerText = rowsNcol2.length;
             router_and_keyword = rowsNcol2;
             if (rowsColStudents.length > 0) {
@@ -1251,7 +1386,7 @@ cObj("close_export_client_data_2").onclick = function () {
 // initiate autocomplete for the search input
 autocomplete(cObj("searchkey"));
 function autocomplete(inp) {
-    let arr,arr2,arr3,arr4 = [];
+    let arr,arr2,arr3,arr4,arr5 = [];
     /*the autocomplete function takes an array of possible autocompleted values:*/
     var currentFocus;
     /*execute a function when someone writes in the text field:*/
@@ -1262,6 +1397,7 @@ function autocomplete(inp) {
         arr2 = search_results[1];
         arr3 = search_results[2];
         arr4 = search_results[3];
+        arr5 = search_results[4];
         /*close any already open lists of autocompleted values*/
         closeAllLists();
         if (!val) {
@@ -1287,12 +1423,13 @@ function autocomplete(inp) {
             /*check if the item starts with the same letters as the text field value:*/
             if ((arr2[i]+"").toUpperCase().includes(val.toUpperCase()) ||
                 (arr3[i]+"").toUpperCase().includes(val.toUpperCase()) ||
-                (arr4[i]+"").toUpperCase().includes(val.toUpperCase())
+                (arr4[i]+"").toUpperCase().includes(val.toUpperCase()) ||
+                (arr5[i]+"").toUpperCase().includes(val.toUpperCase())
             ) {
                 /*create a DIV element for each matching element:*/
                 b = document.createElement("DIV");
                 /*make the matching letters bold:*/
-                var display_text = arr2[i] + " (" + arr3[i] + ") - " + arr4[i];
+                var display_text = arr2[i] + " (" + arr3[i] + ") - " + arr4[i]+" - " + arr5[i];
                 b.innerHTML = (counter)+".) "+highlightNeedleInHaystack(display_text, val);
                 // b.innerHTML += display_text.substring(val.length);
                 /*insert a input field that will hold the current array item's value:*/
@@ -1387,12 +1524,14 @@ async function searchClients(keyword){
     data[1] = [];
     data[2] = [];
     data[3] = [];
+    data[4] = [];
     for (let index = 0; index < client_list.length; index++) {
         const element = client_list[index];
         data[0].push(element.client_id);
         data[1].push(element.client_name);
         data[2].push(element.client_account);
         data[3].push(element.clients_contacts);
+        data[4].push(element.client_address);
     }
     return data;
 }

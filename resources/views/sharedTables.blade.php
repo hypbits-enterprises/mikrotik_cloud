@@ -88,14 +88,14 @@
                                     @if (session('network_presence'))
                                         <p class="text-danger">{{ session('network_presence') }}</p>
                                     @endif
-                                    @php
+                                    {{-- @php
                                         $btnText = "<i class=\"ft-arrow-left\"></i> Back to Accounts";
                                         $otherClasses = "";
                                         $btnLink = "/Accounts";
                                         $otherAttributes = "";
                                     @endphp
-                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                    {{-- <a href="/Accounts" class="btn btn-primary btn-sm"><i class="ft-arrow-left"></i> Back to Accounts</a> --}}
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                    <a href="/Accounts" class="btn btn-primary btn-sm"><i class="ft-arrow-left"></i> Back to Accounts</a>
                                     <p>- <code class="highlighter-rouge"><b>A Shared table</b></code>- is a table that can be worked on by a team simultaneously without being excempted access, unlike normal files that cannot be access by two individuals at once. This shared tables can be accessed by more than one person. <br>
                                     - Start by creating a tables and giving it a name then define its columns and the column`s default values.<br>
                                     - You will be able to manipulate the data of the table except the records that are being change by someone else.</p>

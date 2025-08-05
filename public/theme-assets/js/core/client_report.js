@@ -39,6 +39,7 @@ window.onload = function () {
         //create the display table
         //get the number of pages
         cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+        hoverEffect();
 
         //show the number of pages for each record
         var counted = rows.length / 50;

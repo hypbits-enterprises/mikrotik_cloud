@@ -45,6 +45,7 @@ window.onload = function() {
         //create the display table
         //get the number of pages
         cObj("transDataReciever").innerHTML = displayRecord(0, 10, rowsColStudents);
+        hoverEffect();
 
         //show the number of pages for each record
         var counted = rows.length / 10;
@@ -107,6 +108,7 @@ cObj("tonextNav").onclick = function() {
             pagecounttrans++;
             var endpage = startpage + 10;
             cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+            hoverEffect();
         } else {
             pagecounttrans = pagecountTransaction;
         }
@@ -118,6 +120,7 @@ cObj("toprevNac").onclick = function() {
         startpage -= 10;
         var endpage = startpage + 10;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
     }
 }
 cObj("tofirstNav").onclick = function() {
@@ -126,6 +129,7 @@ cObj("tofirstNav").onclick = function() {
         startpage = 0;
         var endpage = startpage + 10;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
     }
 }
 cObj("tolastNav").onclick = function() {
@@ -134,6 +138,7 @@ cObj("tolastNav").onclick = function() {
         startpage = (pagecounttrans * 10) - 10;
         var endpage = startpage + 10;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
     }
 }
 
@@ -179,6 +184,7 @@ function checkName(keyword) {
     }
     if (rowsNcol2.length > 0) {
         cObj("transDataReciever").innerHTML = displayRecord(0, 10, rowsNcol2);
+        hoverEffect();
     } else {
         cObj("transDataReciever").innerHTML = "<p class='sm-text text-danger text-bold text-center'><span style='font-size:40px;'><i class='ft-alert-triangle'></i></span> <br>Ooops! your search for \"" + keyword + "\" was not found</p>";
         cObj("tablefooter").classList.add("invisible");

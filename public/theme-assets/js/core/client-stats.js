@@ -499,6 +499,7 @@ function getClientData(clients_data) {
         //create the display table
         //get the number of pages
         cObj("transDataReciever").innerHTML = displayRecord(0, 20, rowsColStudents);
+        hoverEffect();
 
         //show the number of pages for each record
         var counted = rows.length / 20;
@@ -689,6 +690,7 @@ cObj("tonextNav").onclick = function() {
             pagecounttrans++;
             var endpage = startpage + 20;
             cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+            hoverEffect();
             if (rowsColStudents.length > 0 ) {
                 cObj("sort_by_reg_date").addEventListener("click",sortByRegDate);
                 cObj("sort_by_name").addEventListener("click",sortByName);
@@ -706,6 +708,7 @@ cObj("toprevNac").onclick = function() {
         startpage -= 20;
         var endpage = startpage + 20;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
         if (rowsColStudents.length > 0 ) {
             cObj("sort_by_reg_date").addEventListener("click",sortByRegDate);
             cObj("sort_by_name").addEventListener("click",sortByName);
@@ -720,6 +723,7 @@ cObj("tofirstNav").onclick = function() {
         startpage = 0;
         var endpage = startpage + 20;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
         if (rowsColStudents.length > 0 ) {
             cObj("sort_by_reg_date").addEventListener("click",sortByRegDate);
             cObj("sort_by_name").addEventListener("click",sortByName);
@@ -734,6 +738,7 @@ cObj("tolastNav").onclick = function() {
         startpage = (pagecounttrans * 20) - 20;
         var endpage = startpage + 20;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
         if (rowsColStudents.length > 0 ) {
             cObj("sort_by_reg_date").addEventListener("click",sortByRegDate);
             cObj("sort_by_name").addEventListener("click",sortByName);
@@ -792,6 +797,7 @@ function checkName(keyword) {
         var counted = rowsNcol2.length / 20;
         pagecountTransaction = Math.ceil(counted);
         cObj("transDataReciever").innerHTML = displayRecord(0, 20, rowsNcol2);
+        hoverEffect();
         cObj("tot_records").innerText = rowsNcol2.length;
         if (rowsColStudents.length > 0 ) {
             cObj("sort_by_reg_date").addEventListener("click",sortByRegDate);
@@ -821,6 +827,7 @@ function sortByRegDate() {
     }
     // console.log(sort_by_date);
     cObj("transDataReciever").innerHTML = displayRecord(0, 20, rowsColStudents);
+    hoverEffect();
     if (sort_by_date == 0) {
         cObj("sort_by_reg_date").innerHTML = "# <i class='ft-chevron-down'></i>";
     }else{
@@ -847,6 +854,7 @@ function sortByExpDate() {
     }
     // console.log(sort_by_expirations);
     cObj("transDataReciever").innerHTML = displayRecord(0, 20, rowsColStudents);
+    hoverEffect();
     if (sort_by_expirations == 0) {
         cObj("sort_by_expiration").innerHTML = "Due Date <i class='ft-chevron-down'></i>";
     }else{
@@ -872,6 +880,7 @@ function sortByName() {
     }
     // console.log(sortbyname);
     cObj("transDataReciever").innerHTML = displayRecord(0, 20, rowsColStudents);
+    hoverEffect();
     if (sortbyname == 0) {
         cObj("sort_by_name").innerHTML = "Full Names <i class='ft-chevron-down'></i>";
     }else{
@@ -896,6 +905,7 @@ function sortByAccNo() {
     }
     // console.log(sortbyaccno);
     cObj("transDataReciever").innerHTML = displayRecord(0, 20, rowsColStudents);
+    hoverEffect();
     if (sortbyaccno == 0) {
         cObj("sort_by_acc_number").innerHTML = "Account Number <i class='ft-chevron-down'></i>";
     }else{
@@ -1096,6 +1106,7 @@ function displayDueDemographics(data) {
                 rowsColStudents_2.push(col);
                 //get the number of pages
                 cObj("demographics_data").innerHTML = displayRecord_2(0, 20, rowsColStudents_2);
+                hoverEffect();
         
                 //show the number of pages for each record
                 var counted = rows.length / 20;
@@ -1238,6 +1249,7 @@ cObj("tonextNav_2").onclick = function() {
             pagecounttrans_2++;
             var endpage = startpage_2 + 20;
             cObj("demographics_data").innerHTML = displayRecord_2(startpage_2, endpage, rowsColStudents_2);
+            hoverEffect();
             if (rowsColStudents_2.length > 0 ) {
                 cObj("sort_by_reg_date_2").addEventListener("click",sortByRegDate_2);
                 cObj("sort_by_name_2").addEventListener("click",sortByName_2);
@@ -1255,6 +1267,7 @@ cObj("toprevNac_2").onclick = function() {
         startpage_2 -= 20;
         var endpage = startpage_2 + 20;
         cObj("demographics_data").innerHTML = displayRecord_2(startpage_2, endpage, rowsColStudents_2);
+        hoverEffect();
         if (rowsColStudents_2.length > 0 ) {
             cObj("sort_by_reg_date_2").addEventListener("click",sortByRegDate_2);
             cObj("sort_by_name_2").addEventListener("click",sortByName_2);
@@ -1269,6 +1282,7 @@ cObj("tofirstNav_2").onclick = function() {
         startpage_2 = 0;
         var endpage = startpage_2 + 20;
         cObj("demographics_data").innerHTML = displayRecord_2(startpage_2, endpage, rowsColStudents_2);
+        hoverEffect();
         if (rowsColStudents_2.length > 0 ) {
             cObj("sort_by_reg_date_2").addEventListener("click",sortByRegDate_2);
             cObj("sort_by_name_2").addEventListener("click",sortByName_2);
@@ -1283,6 +1297,7 @@ cObj("tolastNav_2").onclick = function() {
         startpage_2 = (pagecounttrans_2 * 20) - 20;
         var endpage = startpage_2 + 20;
         cObj("demographics_data").innerHTML = displayRecord_2(startpage_2, endpage, rowsColStudents_2);
+        hoverEffect();
         if (rowsColStudents_2.length > 0 ) {
             cObj("sort_by_reg_date_2").addEventListener("click",sortByRegDate_2);
             cObj("sort_by_name_2").addEventListener("click",sortByName_2);
@@ -1341,6 +1356,7 @@ function checkName_2(keyword) {
         var counted = rowsNcol2.length / 20;
         pagecountTransaction_2 = Math.ceil(counted);
         cObj("demographics_data").innerHTML = displayRecord_2(0, 20, rowsNcol2);
+        hoverEffect();
         cObj("tot_records_2").innerText = rowsNcol2.length;
         if (rowsColStudents_2.length > 0 ) {
             cObj("sort_by_reg_date_2").addEventListener("click",sortByRegDate_2);
@@ -1370,6 +1386,7 @@ function sortByRegDate_2() {
     }
     // console.log(sort_by_date_2);
     cObj("demographics_data").innerHTML = displayRecord_2(0, 20, rowsColStudents_2);
+    hoverEffect();
     if (sort_by_date_2 == 0) {
         cObj("sort_by_reg_date_2").innerHTML = "# <i class='ft-chevron-down'></i>";
     }else{
@@ -1396,6 +1413,7 @@ function sortByExpDate_2() {
     }
     // console.log(sort_by_expirations_2);
     cObj("demographics_data").innerHTML = displayRecord_2(0, 20, rowsColStudents_2);
+    hoverEffect();
     if (sort_by_expirations_2 == 0) {
         cObj("sort_by_expiration_2").innerHTML = "Due Date <i class='ft-chevron-down'></i>";
     }else{
@@ -1421,6 +1439,7 @@ function sortByName_2() {
     }
     // console.log(sortbyname_2);
     cObj("demographics_data").innerHTML = displayRecord_2(0, 20, rowsColStudents_2);
+    hoverEffect();
     if (sortbyname_2 == 0) {
         cObj("sort_by_name_2").innerHTML = "Full Names <i class='ft-chevron-down'></i>";
     }else{
@@ -1445,6 +1464,7 @@ function sortByAccNo_2() {
     }
     // console.log(sortbyaccno_2);
     cObj("demographics_data").innerHTML = displayRecord_2(0, 20, rowsColStudents_2);
+    hoverEffect();
     if (sortbyaccno_2 == 0) {
         cObj("sort_by_acc_number_2").innerHTML = "Account Number <i class='ft-chevron-down'></i>";
     }else{

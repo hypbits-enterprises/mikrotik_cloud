@@ -58,6 +58,7 @@ window.onload = function() {
         //create the display table
         //get the number of pages
         cObj("transDataReciever").innerHTML = displayRecord(0, 25, rowsColStudents);
+        hoverEffect();
 
         //show the number of pages for each record
         var counted = rows.length / 25;
@@ -94,6 +95,7 @@ window.onload = function() {
         //create the display table
         //get the number of pages
         cObj("transDataReciever_ppoe").innerHTML = displayRecord_ppoe(0, 25, rowsColStudents_ppoe);
+        hoverEffect();
 
         //show the number of pages for each record
         var counted = rows.length / 25;
@@ -199,6 +201,7 @@ cObj("tonextNav").onclick = function() {
             pagecounttrans++;
             var endpage = startpage + 25;
             cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+            hoverEffect();
         } else {
             pagecounttrans = pagecountTransaction;
         }
@@ -210,6 +213,7 @@ cObj("toprevNac").onclick = function() {
         startpage -= 25;
         var endpage = startpage + 25;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
     }
 }
 cObj("tofirstNav").onclick = function() {
@@ -218,6 +222,7 @@ cObj("tofirstNav").onclick = function() {
         startpage = 0;
         var endpage = startpage + 25;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
     }
 }
 cObj("tolastNav").onclick = function() {
@@ -226,6 +231,7 @@ cObj("tolastNav").onclick = function() {
         startpage = (pagecounttrans * 25) - 25;
         var endpage = startpage + 25;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
     }
 }
 
@@ -276,6 +282,7 @@ function checkName(keyword) {
         var counted = rowsNcol2.length / 25;
         pagecountTransaction = Math.ceil(counted);
         cObj("transDataReciever").innerHTML = displayRecord(0, 25, rowsNcol2);
+        hoverEffect();
         cObj("tot_records").innerText = rowsNcol2.length;
     } else {
         cObj("transDataReciever").innerHTML = "<p class='sm-text text-danger text-bold text-center'><span style='font-size:40px;'><i class='ft-alert-triangle'></i></span> <br>Ooops! your search for \"" + keyword + "\" was not found</p>";

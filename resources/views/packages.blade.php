@@ -212,15 +212,15 @@
                                 </div>
                             </div>
                             <div class="card-content collapse show">
-                                @php
+                                {{-- @php
                                     $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to Bill SMS Manager";
                                     $otherClasses = "";
                                     $btnLink = "/BillingSms/Manage";
                                     $otherAttributes = "";
                                 @endphp
-                                <x-button-link btnType="infor" btnSize="sm" toolTip="Transaction`s Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                {{-- <a href="/BillingSms/Manage" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                    to Bill SMS Manager</a> --}}
+                                <x-button-link btnType="infor" btnSize="sm" toolTip="Transaction`s Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                <a href="/BillingSms/Manage" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
+                                    to Bill SMS Manager</a>
                                 <div class="card-body">
                                     {{-- <p>{{($client_data ?? '')}}</p> --}}
                                     <p class="card-text">- In this table below packages information is displayed. <br>- Add a new package by clicking the new button.</p>

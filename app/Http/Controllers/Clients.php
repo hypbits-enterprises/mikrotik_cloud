@@ -749,13 +749,69 @@ $export_text .= "
 
             $frozen_clients[$index]->freeze_days_left = $days;
         }
+
+        $client_count = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'total_clients' FROM `client_tables`");
+        $client_count = count($client_count) > 0 ? $client_count[0]->total_clients : 0;
+
+        $frozen_count = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'total_clients' FROM `client_tables` WHERE client_freeze_status ='1'");
+        $frozen_count = count($frozen_count) > 0 ? $frozen_count[0]->total_clients : 0;
+
+        $active_clients = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'total_clients' FROM `client_tables` WHERE client_status = '1'");
+        $active_clients = count($active_clients) > 0 ? $active_clients[0]->total_clients : 0;
+
+        $inactive_clients = $client_count - $active_clients;
+
+        // last one week
+        $date_last_week = date("Ymd", strtotime("-7 days"))."000000";
+        $added_last_week = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'total_clients', SUBSTRING(clients_reg_date, 1, 8) AS 'clients_reg_date' FROM client_tables WHERE clients_reg_date >= ? GROUP BY SUBSTRING(clients_reg_date, 1, 8) ORDER BY clients_reg_date DESC;", [$date_last_week]);
+        // $added_last_week = count($added_last_week) > 0 ? $added_last_week[0]->total_clients : 0;
         
         for ($index = 0; $index < count($client_data); $index++) {
             $client_data[$index]->reffered_by = str_replace("'", "\"", $client_data[$index]->reffered_by);
             $latest_issue = DB::connection("mysql2")->select("SELECT * FROM `client_reports` WHERE client_id = ? ORDER BY report_date DESC LIMIT 1;", [$client_data[$index]->client_id]);
             $client_data[$index]->date_reported = $client_data[$index]->date_reported != null ? date("D dS M Y H:iA", strtotime($client_data[$index]->date_reported)) : $client_data[$index]->date_reported;
         }
-        return view('myclients', ["frozen_clients" => $frozen_clients, 'client_data' => $client_data, "router_infor" => $router_data]);
+        $total_added_last_week = 0;
+        for ($index = 0; $index < count($added_last_week); $index++){
+            $total_added_last_week += $added_last_week[$index]->total_clients;
+        }
+
+        // fill empty values for the date
+        $new_data = [];
+        for ($index=7; $index > 0; $index--) {
+            $date = date("Ymd", strtotime("-".$index." days"));
+            $present = false;
+            for ($index_2=0; $index_2 < count($added_last_week); $index_2++) { 
+                if($date == date("Ymd", strtotime($added_last_week[$index_2]->clients_reg_date))){
+                    $present = true;
+                    break;
+                }
+            }
+
+            if (!$present) {
+                array_push($new_data, array(
+                    "clients_reg_date" => $date,
+                    "total_clients" => 0
+                ));
+            }
+        }
+        $added_last_week = array_merge($added_last_week, $new_data);
+        $added_last_week = $this->sortArrayByKey($added_last_week, "clients_reg_date", "asc");
+        $added_last_week = json_decode(json_encode($added_last_week), true);
+        foreach ($added_last_week as $key => $value) {
+            // return $value['clients_reg_date'];
+            $added_last_week[$key]['clients_reg_date'] = date("D dS", strtotime($value['clients_reg_date']));
+        }
+
+        $plot_data = [];
+        foreach ($added_last_week as $key => $value) {
+            // return $value['clients_reg_date'];
+            $plot_data[] = array(
+                "x" => $value['clients_reg_date'],
+                "y" => $value['total_clients']
+            );
+        }
+        return view('myclients', ["total_added_last_week" => $total_added_last_week, "added_last_week" => $plot_data, "inactive_clients" => $inactive_clients, "active_clients" => $active_clients, "frozen_count" => $frozen_count, "client_count" => $client_count, "frozen_clients" => $frozen_clients, 'client_data' => $client_data, "router_infor" => $router_data]);
     }
 
     function searchClients(Request $req){
@@ -765,7 +821,7 @@ $export_text .= "
 
         // get the clients
         $keyword = $req->input("keyword");
-        $clients = DB::connection("mysql2")->select("SELECT client_id, client_name, client_account, clients_contacts FROM `client_tables` WHERE client_name LIKE ? OR client_account LIKE ? OR clients_contacts LIKE ?", ["%".$keyword."%","%".$keyword."%","%".$keyword."%"]);
+        $clients = DB::connection("mysql2")->select("SELECT client_id, client_name, client_account, clients_contacts, client_address FROM `client_tables` WHERE client_name LIKE ? OR client_account LIKE ? OR clients_contacts LIKE ? OR client_address LIKE ? LIMIT 20", ["%".$keyword."%","%".$keyword."%","%".$keyword."%","%".$keyword."%"]);
         return $clients;
     }
 

@@ -135,15 +135,15 @@
                                     @endif
                                     <div class="row">
                                         <div class="col-md-6">
-                                            @php
+                                            {{-- @php
                                                 $btnText = "<i class=\"ft-arrow-left\"></i> Back to list";
                                                 $otherClasses = "";
                                                 $btnLink = "/Accounts/add";
                                                 $otherAttributes = "";
                                             @endphp
-                                            <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                            {{-- <a href="/Accounts/add" class="btn btn-infor"><i class="ft-arrow-left"></i>
-                                                Back to list</a> --}}
+                                            <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                            <a href="/Accounts/add" class="btn btn-infor"><i class="ft-arrow-left"></i>
+                                                Back to list</a>
                                         </div>
                                         <div class="col-md-6">
                                             @php

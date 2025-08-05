@@ -53,6 +53,7 @@ window.onload = function() {
         //create the display table
         //get the number of pages
         cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+        hoverEffect();
 
         //show the number of pages for each record
         var counted = rows.length / 50;
@@ -81,6 +82,7 @@ function sortbydates() {
     }
     // console.log(sortbydatess);
     cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+    hoverEffect();
     if (sortbydatess == 0) {
         cObj("sortbydate").innerHTML = "# <i class='ft-chevron-down'></i>";
     }else{
@@ -106,6 +108,7 @@ function sort_by_transaction_code() {
     }
     // console.log(sort_transcode);
     cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+    hoverEffect();
     if (sort_transcode == 0) {
         cObj("sortTransCode").innerHTML = "Transaction ID <i class='ft-chevron-down'></i>";
     }else{
@@ -132,6 +135,7 @@ function sort_by_acc_no() {
     }
     // console.log(sort_accno);
     cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+    hoverEffect();
     if (sort_accno == 0) {
         cObj("trans_account_number").innerHTML = "Account Number <i class='ft-chevron-down'></i>";
     }else{
@@ -157,6 +161,7 @@ function sortByAmount() {
     }
     // console.log(sortAmount);
     cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+    hoverEffect();
     if (sortAmount == 0) {
         cObj("transaction_amount_id").innerHTML = "Amount <i class='ft-chevron-down'></i>";
     }else{
@@ -225,6 +230,7 @@ cObj("tonextNav").onclick = function() {
             pagecounttrans++;
             var endpage = startpage + 50;
             cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+            hoverEffect();
             if (rowsColStudents.length > 0 ) {
                 // cObj("sort_by_reg_date").addEventListener("click",sortByRegDate);
                 cObj("sortTransCode").addEventListener("click",sort_by_transaction_code);
@@ -243,6 +249,7 @@ cObj("toprevNac").onclick = function() {
         startpage -= 50;
         var endpage = startpage + 50;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
         if (rowsColStudents.length > 0 ) {
             // cObj("sort_by_reg_date").addEventListener("click",sortByRegDate);
             cObj("sortTransCode").addEventListener("click",sort_by_transaction_code);
@@ -258,6 +265,7 @@ cObj("tofirstNav").onclick = function() {
         startpage = 0;
         var endpage = startpage + 50;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
         if (rowsColStudents.length > 0 ) {
             // cObj("sort_by_reg_date").addEventListener("click",sortByRegDate);
             cObj("sortTransCode").addEventListener("click",sort_by_transaction_code);
@@ -273,6 +281,7 @@ cObj("tolastNav").onclick = function() {
         startpage = (pagecounttrans * 50) - 50;
         var endpage = startpage + 50;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
         if (rowsColStudents.length > 0 ) {
             // cObj("sort_by_reg_date").addEventListener("click",sortByRegDate);
             cObj("sortTransCode").addEventListener("click",sort_by_transaction_code);
@@ -334,6 +343,7 @@ function checkName(keyword) {
         var counted = rowsNcol2.length / 50;
         pagecountTransaction = Math.ceil(counted);
         cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsNcol2);
+        hoverEffect();
         if (rowsColStudents.length > 0 ) {
             // cObj("sort_by_reg_date").addEventListener("click",sortByRegDate);
             cObj("sortTransCode").addEventListener("click",sort_by_transaction_code);

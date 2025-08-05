@@ -118,6 +118,7 @@ window.onload = function () {
         //create the display table
         //get the number of pages
         cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsColStudents);
+        hoverEffect();
 
         //show the number of pages for each record
         var counted = rows.length / 50;
@@ -186,6 +187,7 @@ cObj("tonextNav").onclick = function () {
         pagecounttrans++;
         var endpage = startpage + 50;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
     } else {
         pagecounttrans = pagecountTransaction;
     }
@@ -197,6 +199,7 @@ cObj("toprevNac").onclick = function () {
         startpage -= 50;
         var endpage = startpage + 50;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
     }
 }
 cObj("tofirstNav").onclick = function () {
@@ -205,6 +208,7 @@ cObj("tofirstNav").onclick = function () {
         startpage = 0;
         var endpage = startpage + 50;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
     }
 }
 cObj("tolastNav").onclick = function () {
@@ -213,6 +217,7 @@ cObj("tolastNav").onclick = function () {
         startpage = (pagecounttrans * 50) - 50;
         var endpage = startpage + 50;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
     }
 }
 cObj("searchkey").onkeyup = function () {
@@ -268,6 +273,7 @@ function checkName(keyword) {
         var counted = rowsNcol2.length / 50;
         pagecountTransaction = Math.ceil(counted);
         cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsNcol2);
+        hoverEffect();
         cObj("tot_records").innerText = rowsNcol2.length;
     } else {
         cObj("transDataReciever").innerHTML = "<p class='sm-text text-danger text-bold text-center'><span style='font-size:40px;'><i class='ft-alert-triangle'></i></span> <br>Ooops! your search for \"" + keyword + "\" was not found</p>";
@@ -326,6 +332,7 @@ cObj("expense_category_filter").onchange = function () {
             var counted = rowsNcol2.length / 50;
             pagecountTransaction = Math.ceil(counted);
             cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsNcol2);
+            hoverEffect();
             cObj("tot_records").innerText = rowsNcol2.length;
             router_and_keyword = rowsNcol2;
         } else {
@@ -344,6 +351,7 @@ cObj("expense_category_filter").onchange = function () {
             var counted = rowsNcol2.length / 50;
             pagecountTransaction = Math.ceil(counted);
             cObj("transDataReciever").innerHTML = displayRecord(0, 50, rowsNcol2);
+            hoverEffect();
             cObj("tot_records").innerText = rowsNcol2.length;
             router_and_keyword = rowsNcol2;
         } else {

@@ -163,14 +163,14 @@
                                 <p>- View, update or delete the expense entry!</p>
                                 <div class="row">
                                     <div class="col-md-8">
-                                        @php
+                                        {{-- @php
                                             $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to List";
                                             $otherClasses = "text-primary";
                                             $btnLink = "/Expenses";
                                             $otherAttributes = "";
                                         @endphp
-                                        <x-button-link btnType="white" btnSize="sm" toolTip="Expense Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                        {{-- <a href="/Expenses" class="btn btn-white text-primary"><i class="fas fa-arrow-left"></i> Back to List</a> --}}
+                                        <x-button-link btnType="white" btnSize="sm" toolTip="Expense Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                        <a href="/Expenses" class="btn btn-infor text-primary"><i class="fas fa-arrow-left"></i> Back to List</a>
                                     </div>
                                     <div class="col-md-4">
                                         @php

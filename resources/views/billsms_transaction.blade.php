@@ -219,14 +219,14 @@
                                 </div>
                             </div>
                             <div class="card-header">
-                                @php
+                                {{-- @php
                                     $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to Billing SMS Manager";
                                     $otherClasses = "";
                                     $btnLink = "/BillingSms/Transactions/View/".$transaction_id;
                                     $otherAttributes = "";
                                 @endphp
-                                <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                {{-- <a href="/BillingSms/Manage" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to Billing SMS Manager</a> --}}
+                                <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                <a href="/BillingSms/Manage" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to Billing SMS Manager</a>
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">

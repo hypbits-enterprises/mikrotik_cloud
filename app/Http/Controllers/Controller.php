@@ -84,4 +84,16 @@ class Controller extends BaseController
         }
         return $router_secrets;
     }
+    function sortArrayByKey (array $data, string $key, string $order = 'asc'): array {
+        usort($data, function ($a, $b) use ($key, $order) {
+            $valA = is_object($a) ? ($a->$key ?? null) : ($a[$key] ?? null);
+            $valB = is_object($b) ? ($b->$key ?? null) : ($b[$key] ?? null);
+
+            if ($valA === $valB) return 0;
+
+            return $order === 'asc' ? $valA <=> $valB : $valB <=> $valA;
+        });
+
+        return $data;
+    }
 }

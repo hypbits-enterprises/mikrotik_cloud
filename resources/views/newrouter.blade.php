@@ -62,15 +62,15 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                @php
+                                {{-- @php
                                     $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                     $otherClasses = "my-2";
                                     $btnLink = "/Routers";
                                     $otherAttributes = "";
                                 @endphp
-                                <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                {{-- <a href="/Routers" class="btn btn-infor my-2"><i class="fas fa-arrow-left"></i> Back to
-                                    list</a> --}}
+                                <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                <a href="/Routers" class="btn btn-infor my-2"><i class="fas fa-arrow-left"></i> Back to
+                                    list</a>
                                     <hr>
                                 <h4 class="card-title">Add Router</h4>
                                 <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>

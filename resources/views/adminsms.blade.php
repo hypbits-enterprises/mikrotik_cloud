@@ -151,12 +151,14 @@
                                         @endphp
                                         <x-button-link btnType="secondary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
                                         {{-- <a href="/sms/system_sms" class="btn btn-secondary text-bolder {{$readonly}}">Customize SMS</a> --}}
+
                                         @php
                                             $btnText = "<i class=\"ft-file-text\" ></i> SMS Reports";
                                             $otherClasses = "";
                                             $btn_id = "sms_reports_btn";
+                                            $otherAttributes = "";
                                         @endphp
-                                        <x-button :btnText="$btnText" toolTip="SMS Reports" btnType="info" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                        <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="info" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                                         {{-- <span data-toggle="tooltip" title="SMS Reports" class="btn btn-info" id="sms_reports_btn"><i class="ft-file-text"></i> SMS Reports</span> --}}
                                     </div>
                                     <div class="row  my-2">

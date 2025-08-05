@@ -217,15 +217,15 @@ date_default_timezone_set('Africa/Nairobi');
                             <div class="card-content collapse show">
                                 <div class="row">
                                     <div class="col-md-8">
-                                        @php
+                                        {{-- @php
                                             $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                             $otherClasses = "";
                                             $btnLink = "/BillingSms/Packages";
                                             $otherAttributes = "";
                                         @endphp
-                                        <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                        {{-- <a href="/BillingSms/Packages" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
-                                            to list</a> --}}
+                                        <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                        <a href="/BillingSms/Packages" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back
+                                            to list</a>
                                     </div>
                                     <div class="col-md-3 border-left border-secondary">
                                         <p id="prompt_delete" class="btn btn-secondary float-right btn-sm my-1"><i class="fas fa-trash"></i> Delete</p>
@@ -304,7 +304,7 @@ date_default_timezone_set('Africa/Nairobi');
                                             <div class="col-md-6">
                                                 @php
                                                     $btnText = "<i class=\"ft-upload\"></i> Update Package";
-                                                    $otherClasses = "text-dark";
+                                                    $otherClasses = "";
                                                     $btn_id = "delete_user";
                                                     $btnSize="sm";
                                                     $type = "submit";

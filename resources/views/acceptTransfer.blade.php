@@ -72,14 +72,14 @@
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
-                                    @php
+                                    {{-- @php
                                         $btnText = "<i class=\"fas fa-arrow-left\"></i> Back";
                                         $otherClasses = "";
                                         $btnLink = "/Transactions/View/".$transaction_id;
                                         $otherAttributes = "";
                                     @endphp
-                                    <x-button-link btnType="infor" btnSize="sm" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                    {{-- <a href="/Transactions/View/{{$transaction_id}}" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back</a> --}}
+                                    <x-button-link btnType="primary" btnSize="sm" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                    <a href="/Transactions/View/{{$transaction_id}}" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back</a>
                                     <p><strong>Note</strong><br>- Confirm the data below is correct before confirming the transfer!</p>
                                 </div>
                                 <div class="card-body row">

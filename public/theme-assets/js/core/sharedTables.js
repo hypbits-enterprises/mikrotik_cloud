@@ -110,6 +110,7 @@ window.onload = function() {
         //create the display table
         //get the number of pages
         cObj("transDataReciever").innerHTML = displayRecord(0, 10, rowsColStudents);
+        hoverEffect();
 
         //show the number of pages for each record
         var counted = rows.length / 10;
@@ -168,6 +169,7 @@ cObj("tonextNav").onclick = function() {
             pagecounttrans++;
             var endpage = startpage + 10;
             cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+            hoverEffect();
             $(function () {
                 $('[data-toggle="tooltip"]').tooltip()
             });
@@ -182,6 +184,7 @@ cObj("toprevNac").onclick = function() {
         startpage -= 10;
         var endpage = startpage + 10;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()
         });
@@ -193,6 +196,7 @@ cObj("tofirstNav").onclick = function() {
         startpage = 0;
         var endpage = startpage + 10;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()
         });
@@ -204,6 +208,7 @@ cObj("tolastNav").onclick = function() {
         startpage = (pagecounttrans * 10) - 10;
         var endpage = startpage + 10;
         cObj("transDataReciever").innerHTML = displayRecord(startpage, endpage, rowsColStudents);
+        hoverEffect();
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()
         });
@@ -246,6 +251,7 @@ function checkName(keyword) {
     }
     if (rowsNcol2.length > 0) {
         cObj("transDataReciever").innerHTML = displayRecord(0, 10, rowsNcol2);
+        hoverEffect();
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()
         });

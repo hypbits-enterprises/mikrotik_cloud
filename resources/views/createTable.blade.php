@@ -78,14 +78,14 @@
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
-                                    @php
+                                    {{-- @php
                                         $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                         $otherClasses = "my-1";
                                         $btnLink = "/SharedTables";
                                         $otherAttributes = "";
                                     @endphp
-                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                    {{-- <a href="/SharedTables" class="btn btn-sm btn-primary my-1"><i class="ft-arrow-left"></i> Back to List</a> --}}
+                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                    <a href="/SharedTables" class="btn btn-sm btn-primary my-1"><i class="ft-arrow-left"></i> Back to List</a>
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
                                         <ul class="text-danger" style="color: orangered">
@@ -161,7 +161,7 @@
                                         <div class="col-md-6">
                                             @php
                                                 $btnText = "<i class=\"ft-save\"></i> Save Table";
-                                                $otherClasses = "text-dark my-1 ".$readonly;
+                                                $otherClasses = "my-1 ".$readonly;
                                                 $btn_id = "";
                                                 $otherAttributes = "";
                                             @endphp

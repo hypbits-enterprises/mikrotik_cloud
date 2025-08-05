@@ -83,15 +83,15 @@
                                     @if (session('success'))
                                         <p class="text-success">{{ session('success') }}</p>
                                     @endif
-                                    @php
+                                    {{-- @php
                                         $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                         $otherClasses = "ml-1";
                                         $btnLink = "/Transactions";
                                         $otherAttributes = "";
                                     @endphp
-                                    <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                    {{-- <a href="/Transactions" class="btn btn-infor"><i class="fas fa-arrow-left"></i>
-                                        Back to list</a> --}}
+                                    <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
+                                    <a href="/Transactions" class="btn btn-infor"><i class="fas fa-arrow-left"></i>
+                                        Back to list</a>
                                 </div>
                                 <div class="card-body row">
                                     <input type="hidden" id="transaction_id"
