@@ -3665,7 +3665,7 @@ $export_text .= "
                                         "password" => $client_secret_password,
                                         "profile"  => $pppoe_profile,
                                         "comment"  => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account,
-                                        "disabled" => "false",
+                                        "disabled" => $client_data[0]->client_status == "1" ? "false" : "true",
                                         ".id" => $secret_id
                                     )
                                 );
@@ -3681,7 +3681,7 @@ $export_text .= "
                                         "password" => $client_secret_password,
                                         "profile"  => $pppoe_profile,
                                         "comment"  => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account,
-                                        "disabled" => "false"
+                                        "disabled" => $client_data[0]->client_status == "1" ? "false" : "true"
                                     )
                                 );
 
@@ -3694,9 +3694,9 @@ $export_text .= "
                             DB::connection("mysql2")->table('client_tables')
                             ->where('client_id', $client_data[0]->client_id)
                             ->update([
-                                'client_network' => "",
-                                'client_default_gw' => "",
-                                'max_upload_download' => "",
+                                // 'client_network' => "",
+                                // 'client_default_gw' => "",
+                                // 'max_upload_download' => "",
                                 'router_name' => $router_list,
                                 'assignment' => "pppoe",
                                 'client_secret' => $client_secret_username,
@@ -3848,6 +3848,7 @@ $export_text .= "
                                         "address"     => $request->input('client_gw'),
                                         "interface" => $request->input('interface_name'),
                                         "comment"  => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account,
+                                        "disabled" => $client_data[0]->client_status == "1" ? "false" : "true",
                                         ".id" => $value_address['.id']
                                     )
                                 );
@@ -3858,6 +3859,7 @@ $export_text .= "
                                         array(
                                             "interface" => $request->input('interface_name'),
                                             "comment"  => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account,
+                                            "disabled" => $client_data[0]->client_status == "1" ? "false" : "true",
                                             ".id" => $value_address['.id']
                                         )
                                     );
@@ -3875,6 +3877,7 @@ $export_text .= "
                                     "address"     => $request->input('client_gw'),
                                     "interface" => $request->input('interface_name'),
                                     "network" => $request->input('client_network'),
+                                    "disabled" => $client_data[0]->client_status == "1" ? "false" : "true",
                                     "comment"  => $client_data[0]->client_name . " (" . $client_data[0]->client_address . " - " . $client_data[0]->location_coordinates . ") - " . $client_data[0]->client_account
                                 )
                             );
@@ -3932,9 +3935,9 @@ $export_text .= "
                             'max_upload_download' => $upload . "/" . $download,
                             'router_name' => $router_name,
                             'assignment' => "static",
-                            'client_secret' => "",
-                            'client_secret_password' => "",
-                            'client_profile' => "",
+                            // 'client_secret' => "",
+                            // 'client_secret_password' => "",
+                            // 'client_profile' => "",
                             'date_changed' => date("YmdHis")
                         ]);
 

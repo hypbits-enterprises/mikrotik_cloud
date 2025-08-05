@@ -53,10 +53,10 @@
                                     $password = rand(100000,999999);
                                 @endphp
                                 <span class="d-none" id="secret_holder"></span>
-                                <label  id="errorMsg1" for="client_secret_password" class="form-control-label">Clients Secret Password <span class=""><span class="badge bg-info">suggested</span> ({{$password}})</span></label>
+                                <label  id="errorMsg1" for="client_secret_password" class="form-control-label">Clients Secret Password <span class="">({{$clients_data[0]->client_secret_password != "" ? $clients_data[0]->client_secret_password : $password}})</span></label>
                                 <input type="password" name="client_secret_password" id="client_secret_password"
                                     class="form-control rounded-lg p-1" placeholder="Client Password"
-                                    required value="{{$password}}">
+                                    required value="{{$clients_data[0]->client_secret_password != "" ? $clients_data[0]->client_secret_password : $password}}">
                             </div>
                             <div class="form-group">
                                 <label for="router_list" class="form-control-label">Router Name: <span class="invisible" id="secrets_load"><i class="fas ft-rotate-cw fa-spin"></i></span></label>
@@ -121,38 +121,40 @@
                                     { <span class="primary" id="networks">{{$last_client_details[0]->client_network ?? "[pp]"}}</span> }</label>
                                 <input type="text" name="client_network" id="client_network"
                                     class="form-control rounded-lg p-1" placeholder="ex 10.10.30.0"
-                                    required value="">
+                                    required value="{{$clients_data[0]->client_network}}">
                             </div>
                             <div class="form-group">
                                 <label  id="errorMsg1" for="client_gw" class="form-control-label">Clients Gateway {<span class="primary">{{$last_client_details[0]->client_default_gw ?? ""}}</span> } </label>
                                 <input type="text" name="client_gw" id="client_gw"
                                     class="form-control rounded-lg p-1" placeholder="ex 10.10.30.1/24"
-                                    required value="">
+                                    required value="{{$clients_data[0]->client_default_gw}}">
                             </div>
                             <div class="form-group row">
+                                @php
+                                    $upload = explode("/", $clients_data[0]->max_upload_download)[0];
+                                    $download = explode("/", $clients_data[0]->max_upload_download)[1];
+                                @endphp
                                 <div class="col-md-6">
                                     <label for="upload_speed" class="form-control-label">Upload { <span class="primary">{{ $clients_data[0]->max_upload_download }}</span> }</label>
                                     <input class="form-control" type="number" name="upload_speed"
                                         id="upload_speed" placeholder="128" required
-                                        value="">
+                                        value="{{substr($upload, 0, strlen($upload)-1)}}">
                                     <select class="form-control" name="unit1" id="unit1" required
                                         value="">
                                         <option class="innit" value="" hidden>Select unit
                                         </option>
-                                        <option class="innit" selected value="K">Kbps</option>
-                                        <option class="innit" value="M">Mbps</option>
+                                        <option class="innit" {{substr($upload, -1) == "K" ? "selected" : ""}} value="K">Kbps</option>
+                                        <option class="innit" {{substr($upload, -1) == "M" ? "selected" : ""}} value="M">Mbps</option>
                                     </select>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="download_speeds" class="form-control-label">Download
                                     </label>
-                                    <input class="form-control" type="number" name="download_speed" id="download_speeds" placeholder="128" required>
-                                    <select class="form-control" name="unit2" id="unit2" required
-                                        value="">
-                                        <option class="downinit" value="" hidden>Select unit
-                                        </option>
-                                        <option class="downinit" selected value="K">Kbps</option>
-                                        <option class="downinit" value="M">Mbps</option>
+                                    <input class="form-control" type="number" name="download_speed" id="download_speeds" placeholder="128" value="{{substr($download, 0, strlen($download)-1)}}" required>
+                                    <select class="form-control" name="unit2" id="unit2" required>
+                                        <option class="downinit" value="" hidden>Select unit</option>
+                                        <option class="downinit" {{substr($download, -1) == "K" ? "selected" : ""}} value="K">Kbps</option>
+                                        <option class="downinit" {{substr($download, -1) == "M" ? "selected" : ""}} value="M">Mbps</option>
                                     </select>
                                 </div>
                             </div>
@@ -766,10 +768,10 @@
                     <div class="col-sm-6">
                         @php
                             $btnText = "<i class=\"fas fa-pen\"></i> Edit";
-                            $otherClasses = "text-secondary w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                            $otherClasses = "w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
                             $btn_id = "edit_phone_number";
                         @endphp
-                        <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                         {{-- <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_phone_number"><i class="fas fa-pen"></i> Edit</button> --}}
                     </div>
                 </div>
@@ -780,10 +782,10 @@
                     <div class="col-sm-5">
                         @php
                             $btnText = "<i class=\"fas fa-pen\"></i> Edit";
-                            $otherClasses = "text-secondary w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                            $otherClasses = "w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
                             $btn_id = "edit_monthly_payments";
                         @endphp
-                        <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                         {{-- <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_monthly_payments"><i class="fas fa-pen"></i> Edit</button> --}}
                     </div>
                 </div>
@@ -833,9 +835,9 @@
                     <div class="col-sm-5">
                         @php
                             $btnText = "<i class=\"fas fa-pen\"></i> Edit";
-                            $otherClasses = "w-100 my-1 text-secondary ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                            $otherClasses = "w-100 my-1 ".($clients_data[0]->validated == 0 ? "d-none" : "");
                         @endphp
-                        <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="edit_minimum_amount" :readOnly="$readonly" />
+                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="edit_minimum_amount" :readOnly="$readonly" />
                             {{-- <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} id="edit_minimum_amount"><i class="fas fa-pen"></i> Edit</button> --}}
                     </div>
                 </div>
@@ -854,10 +856,10 @@
                     <div class="col-sm-5">
                         @php
                             $btnText = "<i class=\"fas fa-pen\"></i> Edit";
-                            $otherClasses = "text-secondary w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                            $otherClasses = "w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
                             $btn_id = "edit_wallet";
                         @endphp
-                        <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                         {{-- <button {{$readonly}} class="btn btn-infor btn-sm mx-1 text-xxs text-secondary {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" style="width: fit-content;" id="edit_wallet"><i class="fas fa-pen"></i> Edit</button> --}}
                     </div>
                 </div>
@@ -870,10 +872,10 @@
                     <div class="col-sm-6"> 
                         @php
                             $btnText = "<i class=\"fas fa-pen\"></i> Edit";
-                            $otherClasses = "text-secondary w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                            $otherClasses = "w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
                             $btn_id = "edit_expiration_date";
                         @endphp
-                        <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                         {{-- <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} style="width: fit-content;" id="edit_expiration_date"><i class="fas fa-pen"></i> Edit</button> --}}
                     </div>
                 </div>
@@ -884,10 +886,10 @@
                     <div class="col-sm-5">
                         @php
                             $btnText = "<i class=\"fas fa-pen\"></i> Edit";
-                            $otherClasses = "text-secondary w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                            $otherClasses = "w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
                             $btn_id = "edit_freeze_client";
                         @endphp
-                        <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                         {{-- <button class="text-secondary btn btn-infor btn-sm mx-1 {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" {{$readonly}} id="edit_freeze_client"><i class="fas fa-pen"></i> Edit</button> --}}
                     </div>
                 </div>
@@ -910,10 +912,10 @@
                     <div class="col-sm-5">
                         @php
                             $btnText = "<i class=\"fas fa-pen\"></i> Edit";
-                            $otherClasses = "text-secondary w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                            $otherClasses = "w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
                             $btn_id = "edit_refferal";
                         @endphp
-                        <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                         {{-- <button {{$readonly}} class="btn btn-infor btn-sm mx-1 text-xxs text-secondary {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" id="edit_refferal"><i class="fas fa-pen"></i> Edit</button> --}}
                     </div>
                 </div>
@@ -928,10 +930,10 @@
                     <div class="col-md-3">
                         @php
                             $btnText = "<i class=\"fas fa-pen\"></i> Edit";
-                            $otherClasses = "text-secondary w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                            $otherClasses = "w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
                             $btn_id = "edit_comments";
                         @endphp
-                        <x-button :btnText="$btnText" btnType="infor" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                         {{-- <button {{$readonly}} class="btn btn-infor btn-sm mx-1 text-xxs text-secondary {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" id="edit_comments"><i class="fas fa-pen"></i> Edit</button> --}}
                     </div>
                 </div>
