@@ -778,7 +778,7 @@ $export_text .= "
 
         // fill empty values for the date
         $new_data = [];
-        for ($index=7; $index > 0; $index--) {
+        for ($index=6; $index >= 0; $index--) {
             $date = date("Ymd", strtotime("-".$index." days"));
             $present = false;
             for ($index_2=0; $index_2 < count($added_last_week); $index_2++) { 
@@ -821,7 +821,7 @@ $export_text .= "
 
         // get the clients
         $keyword = $req->input("keyword");
-        $clients = DB::connection("mysql2")->select("SELECT client_id, client_name, client_account, clients_contacts, client_address FROM `client_tables` WHERE client_name LIKE ? OR client_account LIKE ? OR clients_contacts LIKE ? OR client_address LIKE ? LIMIT 20", ["%".$keyword."%","%".$keyword."%","%".$keyword."%","%".$keyword."%"]);
+        $clients = DB::connection("mysql2")->select("SELECT client_id, client_name, client_account, clients_contacts, client_address, CONCAT(client_network,' ', client_default_gw) AS 'client_network_address'  FROM `client_tables` WHERE client_name LIKE ? OR client_account LIKE ? OR clients_contacts LIKE ? OR client_address LIKE ? OR CONCAT(client_network,' ', client_default_gw) LIKE ? LIMIT 20", ["%".$keyword."%","%".$keyword."%","%".$keyword."%","%".$keyword."%","%".$keyword."%"]);
         return $clients;
     }
 

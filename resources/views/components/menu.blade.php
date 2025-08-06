@@ -7,7 +7,38 @@
                     <li class="nav-item d-block d-md-none"><a class="nav-link nav-menu-main menu-toggle hidden-xs"
                             href="#"><i class="ft-menu"></i></a></li>
                     <li class="nav-item dropdown navbar-search">
-                        <span class="text-light">Hello, {{ session('Usernames') }}</span>
+                        @if (session()->has("show_payment_notice") && session("show_payment_notice") == "true")
+                            <div class="alert round {{session("days_to_expire") >= 0 ? (session("days_to_expire") == 0 ? "bg-warning text-dark" : "bg-primary") : "bg-danger"}} alert-icon-left alert-dismissible ml-2 mt-1 mx-auto" role="alert">
+                                <span class="alert-icon">
+                                    <i class="ft-bell bell-shake"></i>
+                                </span>
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                </button>
+                                @if (session("days_to_expire") >= 0)
+                                    @php
+                                        $organization = session("organization");
+                                        $days = abs(session("days_to_expire"));
+                                    @endphp
+                                    @if ($days == 0)
+                                        <strong>Hello {{ session('Usernames') }}!</strong> Your account is due today, This month`s payment is: <b>Kes {{number_format(session("monthly_payment"))}}</b><br><br>
+                                        Pay Kes <b>{{session("amount_to_pay")}}</b> via Paybill: <b>xxxxxx</b> Account: <b>{{$organization->account_no}}</b>. (Wallet balance: Kes {{number_format(session("wallet_balance"))}})<br>
+                                    @else
+                                        <strong>Hello {{ session('Usernames') }}!</strong> Your account is due in {{$days}} day(s), This month`s payment is: <b>Kes {{number_format(session("monthly_payment"))}}</b><br><br>
+                                        Pay Kes <b>{{session("amount_to_pay")}}</b> via Paybill: <b>xxxxxx</b> Account: <b>{{$organization->account_no}}</b>. (Wallet balance: Kes {{number_format(session("wallet_balance"))}})<br>
+                                    @endif
+                                @else
+                                    @php
+                                        $organization = session("organization");
+                                        $days = abs((int) session("days_to_expire"));
+                                    @endphp
+                                    <strong>Hello {{ session('Usernames') }}!</strong> Your account expired {{$days}} days ago. This month`s payment is: <b>Kes {{number_format(session("monthly_payment"))}}</b><br><br>
+                                    Pay Kes <b>{{session("amount_to_pay")}}</b> via Paybill: <b>xxxxxx</b> Account: <b>{{$organization->account_no}}</b>. (Wallet balance: Kes {{number_format(session("wallet_balance"))}})<br>
+                                @endif
+                            </div>
+                        @else
+                            <span class="text-light">Hello, {{ session('Usernames') }}</span>
+                        @endif
                     </li>
                 </ul>
                 @if (!Session::has('Usernames'))
@@ -84,7 +115,7 @@
                                             }
                                         @endphp
                                         @foreach ($collection_items as $item)
-                                            <a href="/Clients/View/{{$item->client_id}}">
+                                            <a href="{{session()->has("inactive_menu") ? (session("inactive_menu") == "true" ? "#" : "/Clients/View/".$item->client_id) : "/Clients/View/".$item->client_id}}">
                                                 <div class="media">
                                                     <div class="media-left align-self-center"><i class="ft-users info font-medium-4 mt-2"></i></div>
                                                     <div class="media-body">
@@ -105,50 +136,6 @@
                                             </div>
                                         </a>
                                     @endif
-                                    {{-- <a href="javascript:void(0)">
-                                        <div class="media">
-                                            <div class="media-left align-self-center"><i class="ft-share info font-medium-4 mt-2"></i></div>
-                                            <div class="media-body">
-                                                <h6 class="media-heading info">New Order Received</h6>
-                                                <p class="notification-text font-small-3 text-muted text-bold-600">Lorem ipsum dolor sit amet!</p><small>
-                                                    <time class="media-meta text-muted" datetime="2015-06-11T18:29:20+08:00">3:30 PM</time></small>
-                                            </div>
-                                        </div>
-                                    </a><a href="javascript:void(0)">
-                                        <div class="media">
-                                            <div class="media-left align-self-center"><i class="ft-save font-medium-4 mt-2 warning"></i></div>
-                                            <div class="media-body">
-                                                <h6 class="media-heading warning">New User Registered</h6>
-                                                <p class="notification-text font-small-3 text-muted text-bold-600">Aliquam tincidunt mauris eu risus.</p><small>
-                                                    <time class="media-meta text-muted" datetime="2015-06-11T18:29:20+08:00">10:05 AM</time></small>
-                                            </div>
-                                        </div>
-                                    </a><a href="javascript:void(0)">
-                                        <div class="media">
-                                            <div class="media-left align-self-center"><i class="ft-repeat font-medium-4 mt-2 danger"></i></div>
-                                            <div class="media-body">
-                                                <h6 class="media-heading danger">New Purchase</h6>
-                                                <p class="notification-text font-small-3 text-muted text-bold-600">Lorem ipsum dolor sit ametest?</p><small>
-                                                    <time class="media-meta text-muted" datetime="2015-06-11T18:29:20+08:00">Yesterday</time></small>
-                                            </div>
-                                        </div>
-                                    </a><a href="javascript:void(0)">
-                                        <div class="media">
-                                            <div class="media-left align-self-center"><i class="ft-shopping-cart font-medium-4 mt-2 primary"></i></div>
-                                            <div class="media-body">
-                                                <h6 class="media-heading primary">New Item In Your Cart</h6><small>
-                                                    <time class="media-meta text-muted" datetime="2015-06-11T18:29:20+08:00">Last week</time></small>
-                                            </div>
-                                        </div>
-                                    </a><a href="javascript:void(0)">
-                                        <div class="media">
-                                            <div class="media-left align-self-center"><i class="ft-heart font-medium-4 mt-2 info"></i></div>
-                                            <div class="media-body">
-                                                <h6 class="media-heading info">New Sale</h6><small>
-                                                    <time class="media-meta text-muted" datetime="2015-06-11T18:29:20+08:00">Last month</time></small>
-                                            </div>
-                                        </div>
-                                    </a> --}}
                                     <div class="ps__rail-x" style="left: 0px; bottom: -224px;">
                                         <div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div>
                                     </div>
@@ -178,7 +165,7 @@
                                             src="{{ session('dp_locale') ? session('dp_locale') : '/theme-assets/images/pngegg.png' }}"
                                             alt="avatar"><br><br><span
                                             class="user-name text-bold-700 ml-1">{{ session('Usernames') }}</span></span></a>
-                                <div class="dropdown-divider"></div><a class="dropdown-item" href="/Accounts"><i
+                                <div class="dropdown-divider"></div><a class="dropdown-item" href="{{session()->has("inactive_menu") ? (session("inactive_menu") == "true" ? "#" : "/Accounts") : "/Accounts"}}"><i
                                         class="ft-user"></i>Account & Settings</a>
                                 {{-- <a class="dropdown-item" href="#"><i class="ft-mail"></i> My Inbox</a><a class="dropdown-item" href="#"><i class="ft-check-square"></i> Task</a><a class="dropdown-item" href="#"><i class="ft-message-square"></i> Chats</a> --}}
                                 <div class="dropdown-divider"></div><a class="dropdown-item" href="/Login"><i
@@ -196,6 +183,10 @@
     $privilleged = session("priviledges");
     $priviledges = ($privilleged);
     function showOption($priviledges,$name){
+        $block_users = session()->has("inactive_menu") ? session("inactive_menu") == "true" : false;
+        if ($block_users) {
+            return "disabled";
+        }
         if (isJson($priviledges)) {
             $priviledges = json_decode($priviledges);
             for ($index=0; $index < count($priviledges); $index++) { 
@@ -211,6 +202,10 @@
         return "";
     }
     function readOnly($priviledges,$name){
+        $block_users = session()->has("block_edits") ? session("block_edits") == "true" : false;
+        if ($block_users) {
+            return "disabled";
+        }
         if (isJson($priviledges)){
             $priviledges = json_decode($priviledges);
             for ($index=0; $index < count($priviledges); $index++) { 

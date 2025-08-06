@@ -642,6 +642,7 @@
     <script>
         var data = @json($client_data);
         var added_last_week = @json($added_last_week);
+        var readonly = @json($readonly);
         // here now you create the clients table
         // console.log(data);
     </script>

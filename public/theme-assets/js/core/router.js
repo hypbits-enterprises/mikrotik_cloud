@@ -78,7 +78,7 @@ function displayRecord(start, finish, arrays) {
                     // if the user is active
                     status = "<span class='badge badge-danger'> </span>";
                 }
-                var actions = "<a href='Router/View/" + arrays[index][3] + "' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Router' style=\"padding: 3px;\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i> View</span></a>";
+                var actions = "<a href='Router/View/" + arrays[index][3] + "' class='btn btn-sm btn-primary text-bolder "+readonly+"' data-toggle='tooltip' title='View this Router' style=\"padding: 3px;\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i> View</span></a>";
                 tableData+="<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][5] +" "+status+"</td><td>" + arrays[index][4] +" "+ (arrays[index][9] != null ? " <a class='text-danger' href = 'https://www.google.com/maps/place/"+arrays[index][9]+"' target = '_blank'><u>Locate</u> </a>": "")+"</td><td>" + arrays[index][8]+" Client(s)" + "</td><td>"+actions+"</td></tr>";
             counter++;
         }
@@ -91,7 +91,7 @@ function displayRecord(start, finish, arrays) {
                     // if the user is active
                     status = "<span class='badge badge-danger'> </span>";
                 }
-                var actions = "<a href='Router/View/" + arrays[index][3] + "' class='btn btn-sm btn-primary text-bolder ' data-toggle='tooltip' title='View this Router' style=\"padding: 3px;\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i> View</span></a>";
+                var actions = "<a href='Router/View/" + arrays[index][3] + "' class='btn btn-sm btn-primary text-bolder "+readonly+"' data-toggle='tooltip' title='View this Router' style=\"padding: 3px;\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i> View</span></a>";
                 tableData+="<tr><th scope='row'>"+counter+"</th><td>" + arrays[index][5] +" "+status+"</td><td>" + arrays[index][4] +" "+ (arrays[index][9] != null ? " <a class='text-danger' href = 'https://www.google.com/maps/place/"+arrays[index][9]+"' target = '_blank'><u>Locate</u> </a>": "")+"</td><td>" + arrays[index][8]+" Client(s)" + "</td><td>"+actions+"</td></tr>";
             counter++;
         }

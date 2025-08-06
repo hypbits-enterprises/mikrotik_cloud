@@ -26,10 +26,10 @@ class login extends Controller
             // send money
             $result = DB::select("SELECT * FROM `admin_tables` WHERE `deleted` = '0' AND `admin_username` = '$username' AND `admin_password` = '$password'");
             if (count($result) > 0) {
-                if ($result[0]->activated == 0) {
-                    session()->flash('error',"You account has been deactivated by the administrator! Contact them to be allowed back in!");
-                    return redirect("/Login");
-                }
+                // if ($result[0]->activated == 0) {
+                //     session()->flash('error',"You account has been deactivated by the administrator! Contact them to be allowed back in!");
+                //     return redirect("/Login");
+                // }
 
                 // check the organization details
                 $organization_details = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[$result[0]->organization_id]);

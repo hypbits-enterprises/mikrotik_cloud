@@ -646,6 +646,7 @@
     <script>
         var expenses = @json($expenses ?? '');
         var exp_category = @json($exp_category ?? '');
+        var readonly = @json($readonly ?? '');
         // console.log(today);
     </script>
 

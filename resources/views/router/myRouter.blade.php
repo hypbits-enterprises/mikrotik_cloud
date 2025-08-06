@@ -211,6 +211,7 @@
     <!-- BEGIN PAGE VENDOR JS-->
     <script>
         var router_data = @json($router_data);
+        var readonly = @json($readonly);
     </script>
     <!-- END PAGE VENDOR JS-->
     <script src="theme-assets/js/core/router.js"></script>

@@ -82,14 +82,14 @@
                                 @php
                                     $btnText = "<i class=\"fas fa-refresh\"></i> Convert";
                                 @endphp
-                                <x-button :btnText="$btnText" btnType="info" btnSize="sm" otherClasses="w-100 my-1" btnId="confirm_client_convert" />
+                                <x-button :btnText="$btnText" btnType="info" btnSize="sm" otherClasses="w-100 my-1" btnId="confirm_client_convert" :readOnly="$readonly"/>
                                 
                             </div>
                             <div class="col-md-6">
                                 @php
                                     $btnText = "<i class=\"ft-x\"></i> Close";
                                 @endphp
-                                <x-button :btnText="$btnText" btnType="secondary" btnSize="sm" otherClasses="w-100 my-1" btnId="close_convert_client" />
+                                <x-button :btnText="$btnText" btnType="secondary" btnSize="sm" otherClasses="w-100 my-1" btnId="close_convert_client" :readOnly="$readonly"/>
                             </div>
                         </div>
                     </div>
@@ -131,8 +131,8 @@
                             </div>
                             <div class="form-group row">
                                 @php
-                                    $upload = explode("/", $clients_data[0]->max_upload_download)[0];
-                                    $download = explode("/", $clients_data[0]->max_upload_download)[1];
+                                    $upload = explode("/", $clients_data[0]->max_upload_download)[0] ?? "";
+                                    $download = explode("/", $clients_data[0]->max_upload_download)[1] ?? "";
                                 @endphp
                                 <div class="col-md-6">
                                     <label for="upload_speed" class="form-control-label">Upload { <span class="primary">{{ $clients_data[0]->max_upload_download }}</span> }</label>
@@ -182,14 +182,14 @@
                                 @php
                                     $btnText = "<i class=\"fas fa-refresh\"></i> Convert";
                                 @endphp
-                                <x-button :btnText="$btnText" btnType="info" btnSize="sm" otherClasses="w-100 my-1" btnId="confirm_client_convert" />
+                                <x-button :btnText="$btnText" btnType="info" btnSize="sm" otherClasses="w-100 my-1" btnId="confirm_client_convert" :readOnly="$readonly"/>
                                 
                             </div>
                             <div class="col-md-6">
                                 @php
                                     $btnText = "<i class=\"ft-x\"></i> Close";
                                 @endphp
-                                <x-button :btnText="$btnText" btnType="secondary" btnSize="sm" otherClasses="w-100 my-1" btnId="close_convert_client" />
+                                <x-button :btnText="$btnText" btnType="secondary" btnSize="sm" otherClasses="w-100 my-1" btnId="close_convert_client" :readOnly="$readonly"/>
                             </div>
                         </div>
                     </div>
@@ -498,7 +498,7 @@
                                     $otherClasses = "".$readonly;
                                     $btnLink = "/Client/deactivate_freeze/".$clients_data[0]->client_id;
                                 @endphp
-                                <x-button-link :btnLink="$btnLink" :btnText="$btnText" toolTip="Print Invoice" btnType="info" btnSize="sm" :otherClasses="$otherClasses"/>
+                                <x-button-link :btnLink="$btnLink" :btnText="$btnText" toolTip="Print Invoice" btnType="info" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly"/>
                                 {{-- <a href="/Client/deactivate_freeze/{{$clients_data[0]->client_id}}" class="btn btn-secondary btn-sm">Deactivate Freeze</a> --}}
                                 <hr>
                             @else

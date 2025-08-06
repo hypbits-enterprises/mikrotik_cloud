@@ -370,6 +370,7 @@
         var client_names = @json($clients_name ?? '');
         var client_contacts = @json($clients_phone ?? '');
         var client_account = @json($clients_acc ?? '');
+        var readonly = @json($readonly ?? '');
     </script>
 
     <script>

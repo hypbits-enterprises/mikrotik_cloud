@@ -689,7 +689,7 @@ function displayRecord(start, finish, arrays) {
             }else{
                 verification = "<span class='text-danger' data-toggle='tooltip' title='Not Verified'>"+ucwords(arrays[index][1])+"</span>";
             }
-            var action = "<a href=\"/Clients/View/" + arrays[index][0] + "\" class=\"btn btn-primary btn-sm \" style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\" title=\"\" data-original-title=\"View this client!\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class=\"ft-eye\"></i></span></a><a href=\"/deactivate/" + arrays[index][0] + "\" class=\"btn btn-danger btn-sm \" style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\" title=\"\" data-original-title=\"Disable this client!\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class=\"ft-x\"></i></span></a>";
+            var action = "<a href=\"/Clients/View/" + arrays[index][0] + "\" class=\"btn btn-primary btn-sm "+readonly+"\" style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\" title=\"\" data-original-title=\"View this client!\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class=\"ft-eye\"></i></span></a><a href=\"/deactivate/" + arrays[index][0] + "\" class=\"btn btn-danger btn-sm "+readonly+"\" style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\" title=\"\" data-original-title=\"Disable this client!\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class=\"ft-x\"></i></span></a>";
             var location = (arrays[index][14] != null && arrays[index][14].length > 0) ? "<a class='text-danger' href = 'https://www.google.com/maps/place/" + arrays[index][14] + "' target = '_blank'><u>Locate Client</u> </a>" : "";
             tableData += "<tr><th scope=\"row\"><input type=\"checkbox\" class=\"actions_id\" id=\"actions_id_"+arrays[index][11]+"\"><input type=\"hidden\" id=\"actions_value_"+arrays[index][11]+"\" value=\""+arrays[index][11]+"\"> " + counter +"</th><td>" + assignment + " <a href=\"/Clients/View/" + arrays[index][0] + "\" class=\"text-secondary\">" + verification + " " + status + "</a><br><small class=\"text-gray d-none d-xl-block\">" + ucword(arrays[index][13]) + "</small></td><td data-html=\"true\" data-toggle=\"tooltip\" title=\"\" data-original-title=\""+(arrays[index][17] != null ? "<b>Last Report :</b> "+(arrays[index][17] ? arrays[index][17] : "N/A")+" <br> <b>Problem : </b>"+(arrays[index][24] ? arrays[index][24] : "N/A")+"<br> <b>Diagnosis : </b>"+(arrays[index][26] ? arrays[index][26] : "N/A")+"<br> <b>Comment : </b>"+(arrays[index][18] ? arrays[index][18] : "N/A")+"<br> <b>Resolution : </b>"+(arrays[index][25] ? arrays[index][25] : "N/A")+"<br> <b>Status : </b> "+(arrays[index][21] == "cleared" ? "RESOLVED" : arrays[index][21].toUpperCase())+"<br><b>Date Reported</b> : "+(arrays[index][19] ? arrays[index][19] : "N/A")+"<br><b>Attended By : </b>"+(arrays[index][29] ? arrays[index][29] : "Not Set!")+"<br><b>Opened By : </b>"+(arrays[index][28] ? arrays[index][28] : "Not Set!")+"<br><b>Closed By : </b>"+(arrays[index][27] ? arrays[index][27] : "Not Set!")+"" : "No Issues Yet!")+"\">" + (arrays[index][17] != null ? "<a href=\"/Client-Reports/View/" + arrays[index][23] + "\" class=\"text-secondary\">"+arrays[index][11].toUpperCase()+"</a>" : arrays[index][11].toUpperCase()) + " " + reffered + "</td><td>" + ucwords(arrays[index][5]) + "<br><small class=\"d-none d-md-block\">" + location + "</small></td><td>" + setDate(arrays[index][7]) + "</td><td><small>"+arrays[index][2]+" <br> "+arrays[index][16]+" </small> <br> <small class=\"text-gray d-xl-block\">{" + ucword(arrays[index][22]) + "}</small></td><td>"+action+"</td></tr>";
             counter++;
@@ -740,7 +740,7 @@ function displayRecord(start, finish, arrays) {
             }
             var location = (arrays[index][14] != null && arrays[index][14].length > 0) ? "<a class='text-danger' href = 'https://www.google.com/maps/place/" + arrays[index][14] + "' target = '_blank'><u>Locate Client</u> </a>" : "";
             // console.log(location);
-            var action = "<a href=\"/Clients/View/" + arrays[index][0] + "\" class=\"btn btn-primary btn-sm \" style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\" title=\"\" data-original-title=\"View this client!\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class=\"ft-eye\"></i></span></a><a href=\"/deactivate/" + arrays[index][0] + "\" class=\"btn btn-danger btn-sm \" style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\" title=\"\" data-original-title=\"Disable this client!\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class=\"ft-x\"></i></span></a>";
+            var action = "<a href=\"/Clients/View/" + arrays[index][0] + "\" class=\"btn btn-primary btn-sm "+readonly+"\" style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\" title=\"\" data-original-title=\"View this client!\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class=\"ft-eye\"></i></span></a><a href=\"/deactivate/" + arrays[index][0] + "\" class=\"btn btn-danger btn-sm "+readonly+"\" style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\" title=\"\" data-original-title=\"Disable this client!\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class=\"ft-x\"></i></span></a>";
             tableData += "<tr><th scope=\"row\"><input type=\"checkbox\" class=\"actions_id\" id=\"actions_id_"+arrays[index][11]+"\"><input type=\"hidden\" id=\"actions_value_"+arrays[index][11]+"\" value=\""+arrays[index][11]+"\"> " + counter + " </th><td>" + assignment + " <a href=\"/Clients/View/" + arrays[index][0] + "\" class=\"text-secondary\">" + verification+ " " + status + "</a><br><small class=\"text-gray d-none d-xl-block\">" + ucword(arrays[index][13]) + "</small></td><td data-html=\"true\" data-toggle=\"tooltip\" title=\"\" data-original-title=\""+(arrays[index][17] != null ? "<b>Last Report :</b> "+(arrays[index][17] ? arrays[index][17] : "N/A")+" <br> <b>Problem : </b>"+(arrays[index][24] ? arrays[index][24] : "N/A")+"<br> <b>Diagnosis : </b>"+(arrays[index][26] ? arrays[index][26] : "N/A")+"<br> <b>Comment : </b>"+(arrays[index][18] ? arrays[index][18] : "N/A")+"<br> <b>Resolution : </b>"+(arrays[index][25] ? arrays[index][25] : "N/A")+"<br> <b>Status : </b> "+(arrays[index][21] == "cleared" ? "RESOLVED" : arrays[index][21].toUpperCase())+"<br><b>Date Reported</b> : "+(arrays[index][19] ? arrays[index][19] : "N/A")+"<br><b>Attended By : </b>"+(arrays[index][29] ? arrays[index][29] : "Not Set!")+"<br><b>Opened By : </b>"+(arrays[index][28] ? arrays[index][28] : "Not Set!")+"<br><b>Closed By : </b>"+(arrays[index][27] ? arrays[index][27] : "Not Set!")+"" : "No Issues Yet!")+"\">" + (arrays[index][17] != null ? "<a href=\"/Client-Reports/View/" + arrays[index][23] + "\" class=\"text-secondary\">"+arrays[index][11].toUpperCase()+"</a>" : arrays[index][11].toUpperCase()) + " " + reffered + "</td><td>" + ucwords(arrays[index][5]) + "<br><small class=\"d-none d-md-block\">" + location + "</small></td><td>" + setDate(arrays[index][7]) + "</td><td><small>"+arrays[index][2]+" <br> "+arrays[index][16]+" </small> <br> <small class=\"text-gray d-xl-block\">{" + ucword(arrays[index][22]) + "}</small></td><td>"+action+"</td></tr>";
             counter++;
         }
@@ -1386,7 +1386,7 @@ cObj("close_export_client_data_2").onclick = function () {
 // initiate autocomplete for the search input
 autocomplete(cObj("searchkey"));
 function autocomplete(inp) {
-    let arr,arr2,arr3,arr4,arr5 = [];
+    let arr,arr2,arr3,arr4,arr5,arr6 = [];
     /*the autocomplete function takes an array of possible autocompleted values:*/
     var currentFocus;
     /*execute a function when someone writes in the text field:*/
@@ -1398,6 +1398,7 @@ function autocomplete(inp) {
         arr3 = search_results[2];
         arr4 = search_results[3];
         arr5 = search_results[4];
+        arr6 = search_results[5];
         /*close any already open lists of autocompleted values*/
         closeAllLists();
         if (!val) {
@@ -1424,12 +1425,13 @@ function autocomplete(inp) {
             if ((arr2[i]+"").toUpperCase().includes(val.toUpperCase()) ||
                 (arr3[i]+"").toUpperCase().includes(val.toUpperCase()) ||
                 (arr4[i]+"").toUpperCase().includes(val.toUpperCase()) ||
-                (arr5[i]+"").toUpperCase().includes(val.toUpperCase())
+                (arr5[i]+"").toUpperCase().includes(val.toUpperCase()) ||
+                (arr6[i]+"").toUpperCase().includes(val.toUpperCase())
             ) {
                 /*create a DIV element for each matching element:*/
                 b = document.createElement("DIV");
                 /*make the matching letters bold:*/
-                var display_text = arr2[i] + " (" + arr3[i] + ") - " + arr4[i]+" - " + arr5[i];
+                var display_text = arr2[i] + " (" + arr3[i] + ") - " + arr4[i]+" - " + arr5[i] +" | "+arr6[i];
                 b.innerHTML = (counter)+".) "+highlightNeedleInHaystack(display_text, val);
                 // b.innerHTML += display_text.substring(val.length);
                 /*insert a input field that will hold the current array item's value:*/
@@ -1525,6 +1527,7 @@ async function searchClients(keyword){
     data[2] = [];
     data[3] = [];
     data[4] = [];
+    data[5] = [];
     for (let index = 0; index < client_list.length; index++) {
         const element = client_list[index];
         data[0].push(element.client_id);
@@ -1532,6 +1535,7 @@ async function searchClients(keyword){
         data[2].push(element.client_account);
         data[3].push(element.clients_contacts);
         data[4].push(element.client_address);
+        data[5].push(element.client_network_address);
     }
     return data;
 }

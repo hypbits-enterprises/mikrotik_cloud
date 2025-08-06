@@ -152,7 +152,7 @@ function displayRecord(start, finish, arrays) {
                 // if the user is active
                 status = "<span class='badge badge-danger'> </span>";
             }
-            var actions = "<a href='/Expense/View/"+arrays[index][0]+"' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View this expense' style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i> View</span></a>";
+            var actions = "<a href='/Expense/View/"+arrays[index][0]+"' class='btn btn-sm btn-primary text-bolder "+readonly+"' data-toggle='tooltip' title='View this expense' style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i> View</span></a>";
             tableData += "<tr><th scope='row'>" + counter + "</th><td>" + arrays[index][1] + "</td><td>" + arrays[index][2]+ "</td><td>" + arrays[index][5] +" " + (arrays[index][3] != null ? arrays[index][3] : "Unit(s)") +"</td><td>Kes " + arrays[index][4] + "</td><td>Kes " + arrays[index][6] + "</td><td>" + setDate(arrays[index][7]) + "</td><td>"+actions+"</td></tr>";
             counter++;
         }
@@ -160,7 +160,7 @@ function displayRecord(start, finish, arrays) {
         //create a table of the 50 records
         var counter = start + 1;
         for (let index = start; index < total; index++) {
-            var actions = "<a href='/Expense/View/"+arrays[index][0]+"' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View this expense' style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i> View</span></a>";
+            var actions = "<a href='/Expense/View/"+arrays[index][0]+"' class='btn btn-sm btn-primary text-bolder "+readonly+"' data-toggle='tooltip' title='View this expense' style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i> View</span></a>";
             tableData += "<tr><th scope='row'>" + counter + "</th><td>" + arrays[index][1] + "</td><td>" + arrays[index][2]+ "</td><td>" + arrays[index][5] +" " + (arrays[index][3] != null ? arrays[index][3] : "Unit(s)") +"</td><td>Kes " + arrays[index][4] + "</td><td>Kes " + arrays[index][6] + "</td><td>" + setDate(arrays[index][7]) + "</td><td>"+actions+"</td></tr>";
             counter++;
         }

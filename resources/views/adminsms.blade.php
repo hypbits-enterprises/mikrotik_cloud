@@ -425,6 +425,7 @@
         var client_named = @json($clients_name ?? '');
         var client_contacts = @json($clients_phone ?? '');
         var client_account = @json($clients_acc ?? '');
+        var readonly = @json($readonly ?? '');
     </script>
     <script>
         function autocomplete(inp, arr, arr2, arr3) {
