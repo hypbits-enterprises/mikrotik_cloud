@@ -184,22 +184,19 @@
     $priviledges = ($privilleged);
     function showOption($priviledges,$name){
         $block_users = session()->has("inactive_menu") ? session("inactive_menu") == "true" : false;
-        if ($block_users) {
-            return "disabled";
-        }
         if (isJson($priviledges)) {
             $priviledges = json_decode($priviledges);
             for ($index=0; $index < count($priviledges); $index++) { 
                 if ($priviledges[$index]->option == $name) {
                     if ($priviledges[$index]->view) {
-                        return "";
+                        return $block_users ? "disabled" : "";
                     }else {
-                        return "d-none";
+                        return $block_users ? "disabled d-none" : "d-none";
                     }
                 }
             }
         }
-        return "";
+        return $block_users ? "disabled" : "";
     }
     function readOnly($priviledges,$name){
         $block_users = session()->has("block_edits") ? session("block_edits") == "true" : false;
@@ -245,14 +242,14 @@
         <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
             <li class="{{$active == "dashboard" ? "active" : ""}}"><a href="/Dashboard"><i class="ft-home"></i><span class="menu-title" data-i18n="">Dashboard</span></a>
             </li>
-            <li class="{{showOption($priviledges,"My Clients") == "d-none" && showOption($priviledges,"Clients Issues") == "d-none" ? "d-none" : ""}} nav-item has-sub {{$active == "myclients" || $active == "client_issues" || $active == "quick_register" ? "active open" : ""}}"><a href="#"><i class="ft-users"></i><span class="menu-title" data-i18n="">Clients</span></a>
+            <li class="{{((showOption($priviledges,"My Clients") == "d-none" && showOption($priviledges,"Clients Issues") == "d-none") || (showOption($priviledges,"My Clients") == "disabled d-none" && showOption($priviledges,"Clients Issues") == "disabled d-none")) ? "d-none" : ""}} nav-item has-sub {{$active == "myclients" || $active == "client_issues" || $active == "quick_register" ? "active open" : ""}}"><a href="#"><i class="ft-users"></i><span class="menu-title" data-i18n="">Clients</span></a>
                 <ul class="menu-content" style="">
                     <li class="{{showOption($priviledges,"My Clients")}} {{$active == "myclients" ? "active" : ""}} nav-item"><a href="/Clients"><span><i class="ft-user"></i> My Clients</span></a></li>
                     <li class="{{showOption($priviledges,"Quick Register")}} {{$active == "quick_register" ? "active" : ""}} nav-item"><a href="/Quick-Register"><i class="ft-cloud-lightning"></i> Quick Register</a></li>
                     <li class="{{showOption($priviledges,"Clients Issues")}} {{$active == "client_issues" ? "active" : ""}} nav-item"><a href="/Client-Reports"><i class="ft-flag"></i> Client Issues</a></li>
                 </ul>
             </li>
-            <li class="{{(showOption($priviledges,"Transactions") == "d-none" && showOption($priviledges,"Expenses") == "d-none") ? "d-none" : ""}} {{$active == "transactions" || $active == "expenses" ? "active open" : ""}} nav-item has-sub"><a href="#"><i class="ft-activity"></i><span class="menu-title" data-i18n="">Accounts</span></a>
+            <li class="{{((showOption($priviledges,"Transactions") == "d-none" && showOption($priviledges,"Expenses") == "d-none") || (showOption($priviledges,"Transactions") == "disabled d-none" && showOption($priviledges,"Expenses") == "disabled d-none")) ? "d-none" : ""}} {{$active == "transactions" || $active == "expenses" ? "active open" : ""}} nav-item has-sub"><a href="#"><i class="ft-activity"></i><span class="menu-title" data-i18n="">Accounts</span></a>
                 <ul class="menu-content" style="">
                     <li class="{{showOption($priviledges,"Transactions")}} nav-item {{$active == "transactions" ? "active" : ""}}"><a href="/Transactions"><span><i class="ft-award"></i> Transactions</span></a>
                     </li>
