@@ -39,11 +39,10 @@ class login extends Controller
                 }
 
                 // check the organization details
-                $organization_details = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[$result[0]->organization_id]);
-                if ($organization_details[0]->organization_status == "0") {
-                    session()->flash('error',"Your cannot access your account at this time, contact us now!");
-                    return redirect("/Login");
-                }
+                // if ($organization_details[0]->organization_status == "0") {
+                //     session()->flash('error',"Your cannot access your account at this time, contact us now!");
+                //     return redirect("/Login");
+                // }
 
                 // store the database name in the session so that its connected to when needed
                 session()->put("database_name",$organization_details[0]->organization_database);
@@ -94,44 +93,8 @@ class login extends Controller
                     $partnerID = $sms_partner_id;
                     $apikey = $sms_api_key;
                     $shortcode = $sms_shortcode;
-                
-                    if($sms_sender == "celcom"){
-                        $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
-                        $ch = \curl_init();
-                        \curl_setopt($ch, CURLOPT_URL, $finalURL);
-                        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                        \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                        $response = \curl_exec($ch);
-                        \curl_close($ch);
-                        $res = json_decode($response);
-                        // return $res;
-                        $values = isset($res->responses) ? ($res->responses[0] ? $res->responses[0] : []) : [];
-                        // return $values;
-                        foreach ($values as  $key => $value) {
-                            // echo $key;
-                            if ($key == "response-code") {
-                                if ($value == "200") {
-                                    // if its 200 the message is sent delete the
-                                    $message_status = 1;
-                                }
-                            }
-                        }
-                    }elseif($sms_sender == "afrokatt"){
-                        $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$mobile."&from=".$shortcode."&sms=".urlencode($message);
-                        $ch = \curl_init();
-                        \curl_setopt($ch, CURLOPT_URL, $finalURL);
-                        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                        \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                        $response = \curl_exec($ch);
-                        \curl_close($ch);
-                        $res = json_decode($response);
-                        $values = $res->code;
-                        if (isset($res->code)) {
-                            if($res->code == "200"){
-                                $message_status = 1;
-                            }
-                        }
-                    }
+                    $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+                    $message_status = 1;
                 }elseif ($send_code == "EMAILS" || ($send_code == "SMS" && $sms_status == 0)) {
                     // if the username email is null redirect and show error
                     if ($result[0]->email == null || strlen($result[0]->email) < 1) {
@@ -232,6 +195,8 @@ class login extends Controller
                 $admin_id = $result[0]->client_id;
                 $contact = substr($contacts,0,4)."XXXX".substr($contacts,8);
                 // GET THE SMS KEYS FROM THE DATABASE
+                $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+                $sms_sender = count($select) > 0 ? $select[0]->value : "";
                 $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
                 $sms_api_key = $sms_keys[0]->value;
                 $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
@@ -247,26 +212,10 @@ class login extends Controller
                 $random_no = rand(1000,9999);
                 $mobile = $contacts; // Bulk messages can be comma separated
                 $message = "Your verification code is ".$random_no.". It will expire in 5 minutes";
-                
-                $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
-                $ch = \curl_init();
-                \curl_setopt($ch, CURLOPT_URL, $finalURL);
-                \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                $response = \curl_exec($ch);
-                \curl_close($ch);
-                $res = json_decode($response);
-                // return $res;
-                $values = $res->responses[0] ? $res->responses[0] : [];
-                // return $values;
-                foreach ($values as  $key => $value) {
-                    // echo $key;
-                    if ($key == "response-code") {
-                        if ($value == "200") {
-                            // if its 200 the message is sent delete the
-                            $message_status = 1;
-                        }
-                    }
+                $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+                if(!$result){
+                    session()->flash("error","There is an issue with SMS, use email instead!");
+                    return redirect("/Login");
                 }
 
 

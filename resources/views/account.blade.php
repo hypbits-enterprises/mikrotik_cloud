@@ -407,17 +407,18 @@
                                   <option value="" hidden>Select Sender</option>
                                   <option {{$organization->sms_sender == "celcom" ? "selected" : ""}} value="celcom">Celcom Kenya</option>
                                   <option {{$organization->sms_sender == "afrokatt" ? "selected" : ""}} value="afrokatt">Afrokatt Kenya</option>
+                                  <option {{$organization->sms_sender == "hostpinnacle" ? "selected" : ""}} value="hostpinnacle">Hostpinnacle Kenya</option>
                                 </select>
                               </div>
                             </div>
                             <div class="row mb-3">
-                              <label for="sms_api_key" class="col-md-4 col-lg-3 col-form-label">SMS API Key</label>
+                              <label for="sms_api_key" class="col-md-4 col-lg-3 col-form-label">SMS API Key/ API USERNAME</label>
                               <div class="col-md-8 col-lg-9">
                                 <input name="sms_api_key" type="text" class="form-control" id="sms_api_key" value="{{$organization->sms_api_key ?$organization->sms_api_key:""}}" placeholder="(leave blank if not present)" >
                               </div>
                             </div>
                             <div class="row mb-3">
-                              <label for="sms_partner_id" class="col-md-4 col-lg-3 col-form-label">SMS PATNER ID</label>
+                              <label for="sms_partner_id" class="col-md-4 col-lg-3 col-form-label">SMS PATNER ID/ API PASSWORD</label>
                               <div class="col-md-8 col-lg-9">
                                 <input name="sms_partner_id" type="text" class="form-control" id="sms_partner_id" value="{{$organization->sms_partner_id ?$organization->sms_partner_id:""}}" placeholder="(leave blank if not present)" >
                               </div>

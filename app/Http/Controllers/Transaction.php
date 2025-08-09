@@ -570,6 +570,8 @@ class Transaction extends Controller
                     $sms_partner_id = $sms_keys[0]->value;
                     $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
                     $sms_shortcode = $sms_keys[0]->value;
+                    $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+                    $sms_sender = count($select) > 0 ? $select[0]->value : "";
     
     
                     $partnerID = $sms_partner_id;
@@ -593,27 +595,7 @@ class Transaction extends Controller
                         // replace false with message above
                         $trans_amount = $jsonMpesaResponse['TransAmount'];
                         $message = $this->message_content($message,$client_id,$trans_amount);
-                        // send_sms($conn,$row['clients_contacts'],$message,$row['client_id']);
-                        $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
-                        $ch = \curl_init();
-                        \curl_setopt($ch, CURLOPT_URL, $finalURL);
-                        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                        \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                        $response = \curl_exec($ch);
-                        \curl_close($ch);
-                        $res = json_decode($response);
-                        // return $res;
-                        $values = $res->responses[0];
-                        // return $values;
-                        foreach ($values as  $key => $value) {
-                            // echo $key;
-                            if ($key == "response-code") {
-                                if ($value == "200") {
-                                    // if its 200 the message is sent delete the
-                                    $message_status = 1;
-                                }
-                            }
-                        }
+                        $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
                         // get the user id of the number from the database
                         $user_data = [];
                         $client_id = (count($user_data) > 0) ? $user_data[0]->client_id : 0;
@@ -622,7 +604,7 @@ class Transaction extends Controller
                         $sms_table->sms_content = $message;
                         $sms_table->date_sent = date("YmdHis");
                         $sms_table->recipient_phone = $mobile;
-                        $sms_table->sms_status = $message_status;
+                        $sms_table->sms_status = "1"; // message status
                         $sms_table->account_id = $client_transaction_id;
                         $sms_table->sms_type = $sms_type;
                         $sms_table->save();
@@ -656,28 +638,12 @@ class Transaction extends Controller
                             if ($message) {// replace false with message above
                                 $trans_amount = $refferal_amount;
                                 $refferer_id = trim($jsonMpesaResponse['BillRefNumber']);
+
+                                // send message to the refferer
+                                $message_status = 1;
                                 $message = $this->message_content($message,$refferer_dets[0]->client_id,$trans_amount,$trans_amount,$refferer_id);
-                                // send_sms($conn,$row['clients_contacts'],$message,$row['client_id']);
-                                $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
-                                $ch = \curl_init();
-                                \curl_setopt($ch, CURLOPT_URL, $finalURL);
-                                \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                                \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                                $response = \curl_exec($ch);
-                                \curl_close($ch);
-                                $res = json_decode($response);
-                                // return $res;
-                                $values = $res->responses[0];
-                                // return $values;
-                                foreach ($values as  $key => $value) {
-                                    // echo $key;
-                                    if ($key == "response-code") {
-                                        if ($value == "200") {
-                                            // if its 200 the message is sent delete the
-                                            $message_status = 1;
-                                        }
-                                    }
-                                }
+                                $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+
                                 // get the user id of the number from the database
                                 $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `client_account` = '".$client_refferal->client_acc."'");
                                 $client_id = (count($user_data) > 0) ? $user_data[0]->client_id : 0;
@@ -704,6 +670,8 @@ class Transaction extends Controller
                     $sms_partner_id = $sms_keys[0]->value;
                     $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
                     $sms_shortcode = $sms_keys[0]->value;
+                    $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+                    $sms_sender = count($select) > 0 ? $select[0]->value : "";
     
     
                     $partnerID = $sms_partner_id;
@@ -715,41 +683,17 @@ class Transaction extends Controller
                     if ($message) {// replace false with message
                         $trans_amount = $jsonMpesaResponse['TransAmount'];
                         $message = $this->message_content($message,$client_id,$trans_amount);
-                        // send the sms
-                        $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
-                        $ch = \curl_init();
-                        \curl_setopt($ch, CURLOPT_URL, $finalURL);
-                        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                        \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                        $response = \curl_exec($ch);
-                        \curl_close($ch);
-                        $res = json_decode($response);
-                        // return $res;
-                        $values = (isset($res->responses[0])) ? $res->responses[0] : $res->success ;
-                        // return $values;
-                        if ((isset($res->responses[0]))) {
-                            if ($values != "false") {
-                                $message_status = 0;
-                                foreach ($values as  $key => $value) {
-                                    // echo $key;
-                                    if ($key == "response-code") {
-                                        if ($value == "200") {
-                                            // if its 200 the message is sent delete the
-                                            $message_status = 1;
-                                        }
-                                    }
-                                }
-                    
-                                // save to the database the transaction made
-                                $sms_table = new sms_table();
-                                $sms_table->sms_content = $message;
-                                $sms_table->date_sent = date("YmdHis");
-                                $sms_table->recipient_phone = $mobile;
-                                $sms_table->sms_status = $message_status;
-                                $sms_table->account_id = "0";
-                                $sms_table->sms_type = "1";
-                                $sms_table->save();
-                            }
+                        $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+                        if($result){
+                            // save to the database the transaction made
+                            $sms_table = new sms_table();
+                            $sms_table->sms_content = $message;
+                            $sms_table->date_sent = date("YmdHis");
+                            $sms_table->recipient_phone = $mobile;
+                            $sms_table->sms_status = "1";
+                            $sms_table->account_id = "0";
+                            $sms_table->sms_type = "1";
+                            $sms_table->save();
                         }
                     }
                 }
@@ -869,6 +813,8 @@ class Transaction extends Controller
             $sms_partner_id = $sms_keys[0]->value;
             $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
             $sms_shortcode = $sms_keys[0]->value;
+            $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+            $sms_sender = count($select) > 0 ? $select[0]->value : "";
             $partnerID = $sms_partner_id;
             $apikey = $sms_api_key;
             $shortcode = $sms_shortcode;
@@ -893,27 +839,11 @@ class Transaction extends Controller
             if ($message) {// replace false with message above
                 $trans_amount = $new_wallet_balance;
                 $message = $this->message_content($message,$refferer_dets[0]->client_id,$trans_amount);
-                // send_sms($conn,$row['clients_contacts'],$message,$row['client_id']);
-                $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
-                $ch = \curl_init();
-                \curl_setopt($ch, CURLOPT_URL, $finalURL);
-                \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                $response = \curl_exec($ch);
-                \curl_close($ch);
-                $res = json_decode($response);
-                // return $res;
-                $values = $res->responses[0];
-                // return $values;
-                foreach ($values as  $key => $value) {
-                    // echo $key;
-                    if ($key == "response-code") {
-                        if ($value == "200") {
-                            // if its 200 the message is sent delete the
-                            $message_status = 1;
-                        }
-                    }
+                $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+                if(!$result){
+                    session()->flash("error_sms","No message sent, an error occured!");
                 }
+                $message_status = 1;
                 $sms_type = 1;
                 // get the user id of the number from the database
                 $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `client_account` = '".$client_refferal->client_acc."'");

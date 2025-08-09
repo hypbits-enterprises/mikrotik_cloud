@@ -6,6 +6,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Support\Facades\DB;
 
 class Controller extends BaseController
 {
@@ -95,5 +96,179 @@ class Controller extends BaseController
         });
 
         return $data;
+    }
+    function formatKenyanPhone($number) {
+        // Remove spaces, dashes, and plus sign
+        $number = preg_replace('/[\s\-\+]/', '', $number);
+
+        // If it starts with "07", replace with "2547"
+        if (preg_match('/^07\d{8}$/', $number)) {
+            return '254' . substr($number, 1);
+        }
+
+        // If it starts with "+2547" (after plus removal)
+        if (preg_match('/^2547\d{8}$/', $number)) {
+            return $number;
+        }
+
+        // If it starts with "7" only, add "254"
+        if (preg_match('/^7\d{8}$/', $number)) {
+            return '254' . $number;
+        }
+
+        // Invalid number
+        return false;
+    }
+
+    function sendHostPinnacleSMS($message, $mobile, $apikey, $partnerID, $shortcode) {
+        // API URL
+        $url = "https://smsportal.hostpinnacle.co.ke/SMSApi/send";
+        
+        // Prepare POST fields
+        $postData = [
+            "userid"     => $apikey,
+            "password"     => $partnerID,
+            "senderid"   => urlencode($shortcode),
+            "msg"        => urlencode($message),
+            "mobile"   => $this->formatKenyanPhone($mobile),
+            "sendMethod" => "quick",
+            "msgType"    => "text",  // or 'unicode' if sending special characters
+            "output"     => "json"   // Response format: json, xml, plain
+        ];
+        // return $postData;
+        
+        // Initialize cURL
+        $ch = \curl_init();
+        \curl_setopt_array($ch, [
+            CURLOPT_URL            => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $postData,
+            CURLOPT_SSL_VERIFYPEER => false
+        ]);
+        $response = \curl_exec($ch);
+        \curl_close($ch);
+
+        return $response;
+    }
+
+    function sendAfrokattSMS($message, $phone_number, $apikey, $shortcode) {
+        $client_phone = explode(",",$phone_number);
+        foreach ($client_phone as $key => $phone) {
+            $phone = $this->formatKenyanPhone($phone);
+            $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$phone."&from=".$shortcode."&sms=".urlencode($message)."&unicode=1";
+            $ch = \curl_init();
+            \curl_setopt($ch, CURLOPT_URL, $finalURL);
+            \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            $response = \curl_exec($ch);
+            \curl_close($ch);
+            $res = json_decode($response);
+            $values = $res->code;
+            if (isset($res->code)) {
+                if($res->code == "200"){
+                    $message_status = 1;
+                }
+            }
+            return $res;
+        }
+    }
+
+    function sendCelcomSMS($message, $mobile, $apikey, $shortcode, $partnerID) {
+        $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
+        $ch = \curl_init();
+        \curl_setopt($ch, CURLOPT_URL, $finalURL);
+        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $response = \curl_exec($ch);
+        \curl_close($ch);
+        $res = json_decode($response);
+        // return $res;
+        $values = $res->responses[0];
+        // return $values;
+        foreach ($values as  $key => $value) {
+            // echo $key;
+            if ($key == "response-code") {
+                if ($value == "200") {
+                    // if its 200 the message is sent delete the
+                    $message_status = 1;
+                }
+            }
+        }
+    }
+
+    function GlobalSendSMS($message, $phone_number, $apiKey, $smsSender, $shortcode, $partnerID) {
+        if ($smsSender == "hostpinnacle") {
+            return $this->sendHostPinnacleSMS($message, $phone_number, $apiKey, $partnerID, $shortcode);
+        } elseif ($smsSender == "afrokatt") {
+            return $this->sendAfrokattSMS($message, $phone_number, $apiKey, $shortcode);
+        } elseif ($smsSender == "celcom") {
+            return $this->sendCelcomSMS($message, $phone_number, $apiKey, $shortcode, $partnerID);
+        }
+        return false;
+    }
+
+    function getSMSBalance($apikey, $smsSender, $shortcode, $partnerID){
+        if ($smsSender == "celcom") {
+            // if send sms is 1 we send  the sms
+            // get the sms balance
+            $finalURL = "https://isms.celcomafrica.com/api/services/getbalance/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID);
+            $ch = \curl_init();
+            \curl_setopt($ch, CURLOPT_URL, $finalURL);
+            \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            $response = \curl_exec($ch);
+            \curl_close($ch);
+            $res = json_decode($response);
+            $credit_balance = $res->credit;
+            return round($credit_balance)." SMS";
+        } elseif($smsSender == "afrokatt") {
+            // get the sms balance
+            $finalURL = "https://account.afrokatt.com/sms/api?action=check-balance&api_key=".urlencode($apikey)."&response=json";
+            $ch = \curl_init();
+            \curl_setopt($ch, CURLOPT_URL, $finalURL);
+            \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            $response = \curl_exec($ch);
+            \curl_close($ch);
+            $res = json_decode($response);
+            if(isset($res->balance)){
+                $credit_balance = $res->balance;
+            }else{
+                $credit_balance = 0;
+            }
+            return round($credit_balance)." SMS";
+        }elseif ($smsSender == "hostpinnacle") {
+            // API URL
+            $url = "https://smsportal.hostpinnacle.co.ke/SMSApi/account/readstatus";
+            
+            // Prepare POST fields
+            $postData = [
+                "userid"     => $apikey,
+                "password"     => $partnerID,
+                "senderid"   => urlencode($shortcode),
+                "sendMethod" => "quick",
+                "msgType"    => "text",  // or 'unicode' if sending special characters
+                "output"     => "json"   // Response format: json, xml, plain
+            ];
+            
+            // Initialize cURL
+            $ch = \curl_init();
+            \curl_setopt_array($ch, [
+                CURLOPT_URL            => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => $postData,
+                CURLOPT_SSL_VERIFYPEER => false
+            ]);
+            $response = \curl_exec($ch);
+            \curl_close($ch);
+
+            $response = json_decode($response, true);
+            if (isset($response['response']['code']) && $response['response']['code'] == 200) {
+                return round($response['response']['account']['smsBalance'])." SMS";
+            }
+        }
+        return "0 SMS";
     }
 }

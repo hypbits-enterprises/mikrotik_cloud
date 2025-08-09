@@ -92,63 +92,19 @@ class Sms extends Controller
         // change db
         $change_db = new login();
         $change_db->change_db();
+        
+        // GET THE SMS KEYS FROM THE DATABASE
+        $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+        $sms_sender = count($select) > 0 ? $select[0]->value : "";
+        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
+        $sms_api_key = $sms_keys[0]->value;
+        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
+        $sms_partner_id = $sms_keys[0]->value;
+        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
+        $sms_shortcode = $sms_keys[0]->value;
 
-        // GET THE SMS SENDER
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_sender'");
-        $sms_sender = $sms_keys[0]->value;
-        if ($sms_sender == "celcom") {
-
-            // GET THE SMS KEYS FROM THE DATABASE
-            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
-            $sms_api_key = $sms_keys[0]->value;
-            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
-            $sms_partner_id = $sms_keys[0]->value;
-            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
-            $sms_shortcode = $sms_keys[0]->value;
-    
-    
-            // if send sms is 1 we send  the sms
-            $partnerID = $sms_partner_id;
-            $apikey = $sms_api_key;
-            // get the sms balance
-            $finalURL = "https://isms.celcomafrica.com/api/services/getbalance/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID);
-            $ch = \curl_init();
-            \curl_setopt($ch, CURLOPT_URL, $finalURL);
-            \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            $response = \curl_exec($ch);
-            \curl_close($ch);
-            $res = json_decode($response);
-            $credit_balance = $res->credit;
-            return round($credit_balance)." SMS";
-        } elseif($sms_sender == "afrokatt") {
-            // GET THE SMS KEYS FROM THE DATABASE
-            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
-            $sms_api_key = $sms_keys[0]->value;
-            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
-            $sms_partner_id = $sms_keys[0]->value;
-            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
-            $sms_shortcode = $sms_keys[0]->value;
-    
-    
-            // if send sms is 1 we send  the sms
-            $apikey = $sms_api_key;
-            // get the sms balance
-            $finalURL = "https://account.afrokatt.com/sms/api?action=check-balance&api_key=".urlencode($apikey)."&response=json";
-            $ch = \curl_init();
-            \curl_setopt($ch, CURLOPT_URL, $finalURL);
-            \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            $response = \curl_exec($ch);
-            \curl_close($ch);
-            $res = json_decode($response);
-            if(isset($res->balance)){
-                $credit_balance = $res->balance;
-            }else{
-                $credit_balance = 0;
-            }
-            return round($credit_balance)." SMS";
-        }
+        $sms_balance = $this->getSMSBalance($sms_api_key, $sms_sender, $sms_shortcode, $sms_partner_id);
+        return $sms_balance;
     }
 
     // get the sms id
@@ -353,47 +309,12 @@ class Sms extends Controller
             
             $mobile = $phone_number; // Bulk messages can be comma separated
             $message = $messages;
-
-            if($sms_sender == "celcom"){
-                $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
-                $ch = \curl_init();
-                \curl_setopt($ch, CURLOPT_URL, $finalURL);
-                \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                $response = \curl_exec($ch);
-                \curl_close($ch);
-                $res = json_decode($response);
-                // return $res;
-                $values = $res->responses[0];
-                // return $values;
-                foreach ($values as  $key => $value) {
-                    // echo $key;
-                    if ($key == "response-code") {
-                        if ($value == "200") {
-                            // if its 200 the message is sent delete the
-                            $message_status = 1;
-                        }
-                    }
-                }
-            }elseif ($sms_sender == "afrokatt") {
-                $client_phone = explode(",",$phone_number);
-                foreach ($client_phone as $key => $phone) {
-                    $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$phone."&from=".$shortcode."&sms=".urlencode($message)."&unicode=1";
-                    $ch = \curl_init();
-                    \curl_setopt($ch, CURLOPT_URL, $finalURL);
-                    \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                    $response = \curl_exec($ch);
-                    \curl_close($ch);
-                    $res = json_decode($response);
-                    $values = $res->code;
-                    if (isset($res->code)) {
-                        if($res->code == "200"){
-                            $message_status = 1;
-                        }
-                    }
-                }
+            $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+            if(!$result){
+                session()->flash("error_sms","No message sent, an error occured!");
+                return redirect("/sms");
             }
+
             // check if the phone numbers are connected as an array
             $client_phone = explode(",",$phone_number);
             if (count($client_phone) > 1) {
@@ -543,47 +464,10 @@ class Sms extends Controller
             
             $mobile = $phone_number; // Bulk messages can be comma separated
             $message = $messages;
-            
-            if($sms_sender == "celcom"){
-                $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
-                $ch = \curl_init();
-                \curl_setopt($ch, CURLOPT_URL, $finalURL);
-                \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                $response = \curl_exec($ch);
-                \curl_close($ch);
-                $res = json_decode($response);
-                // return $res;
-                $values = $res->responses[0];
-                // return $values;
-                foreach ($values as  $key => $value) {
-                    // echo $key;
-                    if ($key == "response-code") {
-                        if ($value == "200") {
-                            // if its 200 the message is sent delete the
-                            $message_status = 1;
-                        }
-                    }
-                }
-            }elseif ($sms_sender == "afrokatt") {
-                $client_phone = explode(",",$phone_number);
-                // sms sender
-                foreach ($client_phone as $key => $phone) {
-                    $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$phone."&from=".$shortcode."&sms=".urlencode($message);
-                    $ch = \curl_init();
-                    \curl_setopt($ch, CURLOPT_URL, $finalURL);
-                    \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                    $response = \curl_exec($ch);
-                    \curl_close($ch);
-                    $res = json_decode($response);
-                    $values = $res->code;
-                    if (isset($res->code)) {
-                        if($res->code == "200"){
-                            $message_status = 1;
-                        }
-                    }
-                }
+            $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+            if(!$result){
+                session()->flash("error_sms","No message sent, an error occured!");
+                return redirect("/sms/compose");
             }
 
             // check if the phone numbers are connected as an array
@@ -1301,43 +1185,10 @@ class Sms extends Controller
                     
                     $mobile = $recipient_phone; // Bulk messages can be comma separated
                     $message = $sms_content;
-                    
-                    if($sms_sender == "celcom"){
-                        $finalURL = "https://isms.celcomafrica.com/api/services/sendsms/?apikey=" . urlencode($apikey) . "&partnerID=" . urlencode($partnerID) . "&message=" . urlencode($message) . "&shortcode=$shortcode&mobile=$mobile";
-                        $ch = \curl_init();
-                        \curl_setopt($ch, CURLOPT_URL, $finalURL);
-                        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                        \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                        $response = \curl_exec($ch);
-                        \curl_close($ch);
-                        $res = json_decode($response);
-                        // return $res;
-                        $values = $res->responses[0];
-                        // return $values;
-                        foreach ($values as  $key => $value) {
-                            // echo $key;
-                            if ($key == "response-code") {
-                                if ($value == "200") {
-                                    // if its 200 the message is sent delete the
-                                    $message_status = 1;
-                                }
-                            }
-                        }
-                    }elseif ($sms_sender == "afrokatt") {
-                        $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$mobile."&from=".$shortcode."&sms=".urlencode($message);
-                        $ch = \curl_init();
-                        \curl_setopt($ch, CURLOPT_URL, $finalURL);
-                        \curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                        \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                        $response = \curl_exec($ch);
-                        \curl_close($ch);
-                        $res = json_decode($response);
-                        $values = $res->code;
-                        if (isset($res->code)) {
-                            if($res->code == "200"){
-                                $message_status = 1;
-                            }
-                        }
+                    $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+                    if(!$result){
+                        session()->flash("error_sms","No message sent, an error occured!");
+                        return redirect("/sms");
                     }
                     // if the message status is one the message is already sent to the user
                     $sms_table = new sms_table();
