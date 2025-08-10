@@ -212,8 +212,9 @@ class login extends Controller
                 $random_no = rand(1000,9999);
                 $mobile = $contacts; // Bulk messages can be comma separated
                 $message = "Your verification code is ".$random_no.". It will expire in 5 minutes";
-                $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                if(!$result){
+                $resulted = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+                $message_status = $resulted != null ? 1 : 0;
+                if($resulted != null){
                     session()->flash("error","There is an issue with SMS, use email instead!");
                     return redirect("/Login");
                 }

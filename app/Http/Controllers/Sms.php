@@ -301,7 +301,6 @@ class Sms extends Controller
 
         // message status
         if ($send_sms == 1) {
-            $message_status = 0;
             // if send sms is 1 we send  the sms
             $partnerID = $sms_partner_id;
             $apikey = $sms_api_key;
@@ -310,8 +309,9 @@ class Sms extends Controller
             $mobile = $phone_number; // Bulk messages can be comma separated
             $message = $messages;
             $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-            if(!$result){
-                session()->flash("error_sms","No message sent, an error occured!");
+            $message_status = $result != null ? 1 : 0;
+            if($result == null){
+                session()->flash("error_sms","Your account cannot send sms, contact us for more information!");
                 return redirect("/sms");
             }
 
@@ -456,7 +456,6 @@ class Sms extends Controller
 
         // message status
         if ($send_sms == 1) {
-            $message_status = 0;
             // if send sms is 1 we send  the sms
             $partnerID = $sms_partner_id;
             $apikey = $sms_api_key;
@@ -465,8 +464,9 @@ class Sms extends Controller
             $mobile = $phone_number; // Bulk messages can be comma separated
             $message = $messages;
             $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-            if(!$result){
-                session()->flash("error_sms","No message sent, an error occured!");
+            $message_status = $result != null ? 1 : 0;
+            if($result == null){
+                session()->flash("error_sms","Your account cannot send sms, contact us for more information!");
                 return redirect("/sms/compose");
             }
 
@@ -1177,7 +1177,6 @@ class Sms extends Controller
                     $sms_content = $sms_data[0]->sms_content;
     
     
-                    $message_status = 0;
                     // if send sms is 1 we send  the sms
                     $partnerID = $sms_partner_id;
                     $apikey = $sms_api_key;
@@ -1186,8 +1185,9 @@ class Sms extends Controller
                     $mobile = $recipient_phone; // Bulk messages can be comma separated
                     $message = $sms_content;
                     $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                    if(!$result){
-                        session()->flash("error_sms","No message sent, an error occured!");
+                    $message_status = $result != null ? 1 : 0;
+                    if($result == null){
+                        session()->flash("error_sms","Your account cannot send sms, contact us for more information!");
                         return redirect("/sms");
                     }
                     // if the message status is one the message is already sent to the user

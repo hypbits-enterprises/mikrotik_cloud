@@ -30,6 +30,11 @@ class checkAccount
 
         // get the organization account details
         $organization = DB::select("SELECT * FROM organizations WHERE organization_id = ?", [session("organization_id")]);
+        if(!session()->has("organization_id")){
+            // if no organization found, redirect to login
+            return redirect("/Login")->with("error", "Your session expired please login and try again!");
+        }
+        
         if(count($organization) == 0){
             // if no organization found, redirect to login
             return redirect("/Login")->with("error", "Invalid Account. Please contact us.");

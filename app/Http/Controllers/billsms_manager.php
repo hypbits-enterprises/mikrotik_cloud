@@ -167,7 +167,7 @@ class billsms_manager extends Controller
                     $message = $wlcm_sms;
                     $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
                     $message_status = 1;
-                    if(!$result){
+                    if($result == null){
                         session()->flash("network_presence","SMS is not setup, use email instead!");
                         $message_status = 0;
                     }

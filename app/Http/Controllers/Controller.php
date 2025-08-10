@@ -154,6 +154,7 @@ class Controller extends BaseController
 
     function sendAfrokattSMS($message, $phone_number, $apikey, $shortcode) {
         $client_phone = explode(",",$phone_number);
+        $message_status = 0;
         foreach ($client_phone as $key => $phone) {
             $phone = $this->formatKenyanPhone($phone);
             $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$phone."&from=".$shortcode."&sms=".urlencode($message)."&unicode=1";
@@ -170,8 +171,8 @@ class Controller extends BaseController
                     $message_status = 1;
                 }
             }
-            return $res;
         }
+        return $message_status;
     }
 
     function sendCelcomSMS($message, $mobile, $apikey, $shortcode, $partnerID) {
@@ -185,7 +186,6 @@ class Controller extends BaseController
         $res = json_decode($response);
         // return $res;
         $values = $res->responses[0];
-        // return $values;
         foreach ($values as  $key => $value) {
             // echo $key;
             if ($key == "response-code") {
@@ -195,9 +195,13 @@ class Controller extends BaseController
                 }
             }
         }
+        return $values;
     }
 
     function GlobalSendSMS($message, $phone_number, $apiKey, $smsSender, $shortcode, $partnerID) {
+        if ((session()->has("organization") && session("organization")->send_sms == 0)) {
+            return null;
+        }
         if ($smsSender == "hostpinnacle") {
             return $this->sendHostPinnacleSMS($message, $phone_number, $apiKey, $partnerID, $shortcode);
         } elseif ($smsSender == "afrokatt") {
@@ -205,7 +209,7 @@ class Controller extends BaseController
         } elseif ($smsSender == "celcom") {
             return $this->sendCelcomSMS($message, $phone_number, $apiKey, $shortcode, $partnerID);
         }
-        return false;
+        return null;
     }
 
     function getSMSBalance($apikey, $smsSender, $shortcode, $partnerID){

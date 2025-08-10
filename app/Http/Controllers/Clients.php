@@ -342,7 +342,6 @@ $export_text .= "
                         $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
                         $sms_shortcode = $sms_keys[0]->value;
 
-                        $message_status = 0;
                         // if send sms is 1 we send  the sms
                         $partnerID = $sms_partner_id;
                         $apikey = $sms_api_key;
@@ -351,10 +350,9 @@ $export_text .= "
                         $mobile = $client_data[0]->clients_contacts; // Bulk messages can be comma separated
                         $message = $convert_message;
                         $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                        $message_status = 1;
-                        if(!$result){
-                            session()->flash("error","SMS is not setup, use email instead!");
-                            $message_status = 0;
+                        $message_status = $result != null ? 1 : 0;
+                        if($result == null){
+                            session()->flash("error","Your account cannot send sms, contact us for more information!");
                         }
                         // check if the phone numbers are connected as an array
                         $client_phone = explode(",",$mobile);
@@ -1916,10 +1914,9 @@ $export_text .= "
                         $trans_amount = 0;
                         $message = $this->message_content($message, $client_id, $trans_amount);
                         $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                        $message_status = 1;
-                        if(!$result){
-                            session()->flash("error","SMS is not setup, use email instead!");
-                            $message_status = 0;
+                        $message_status = $result != null ? 1 : 0;
+                        if($result == null){
+                            session()->flash("error","Your account cannot send sms, contact us for more information!");
                         }
                         // if the message status is one the message is already sent to the user
                         $sms_table = new sms_table();
@@ -2163,10 +2160,9 @@ $export_text .= "
                         $trans_amount = 0;
                         $message = $this->message_content($message, $client_id, $trans_amount);
                         $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                        $message_status = 1;
-                        if(!$result){
-                            session()->flash("error","SMS is not setup, use email instead!");
-                            $message_status = 0;
+                        $message_status = $result != null ? 1 : 0;
+                        if($result == null){
+                            session()->flash("error","Your account cannot send sms, contact us for more information!");
                         }
                         // if the message status is one the message is already sent to the user
                         $sms_table = new sms_table();
@@ -2493,10 +2489,9 @@ $export_text .= "
                             $trans_amount = 0;
                             $message = $this->message_content($message, $client_id, $trans_amount);
                             $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                            $message_status = 1;
-                            if(!$result){
-                                session()->flash("error","SMS is not setup, use email instead!");
-                                $message_status = 0;
+                            $message_status = $result != null ? 1 : 0;
+                            if($result == null){
+                                session()->flash("error","Your account cannot send sms, contact us for more information!");
                             }
                             // if the message status is one the message is already sent to the user
                             $sms_table = new sms_table();
@@ -2821,10 +2816,9 @@ $export_text .= "
                             $trans_amount = 0;
                             $message = $this->message_content($message, $client_id, $trans_amount);
                             $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                            $message_status = 1;
-                            if(!$result){
-                                session()->flash("error","SMS is not setup, use email instead!");
-                                $message_status = 0;
+                            $message_status = $result != null ? 1 : 0;
+                            if($result == null){
+                                session()->flash("error","Your account cannot send sms, contact us for more information!");
                             }
                             // if the message status is one the message is already sent to the user
                             $sms_table = new sms_table();
@@ -3956,10 +3950,9 @@ $export_text .= "
 
                     $trans_amount = 0;
                     $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                    $message_status = 1;
-                    if(!$result){
-                        session()->flash("error","SMS is not setup, use email instead!");
-                        $message_status = 0;
+                    $message_status = $result != null ? 1 : 0;
+                    if($result == null){
+                        session()->flash("error","Your account cannot send sms, contact us for more information!");
                     }
 
                     // if the message status is one the message is already sent to the user
@@ -4077,10 +4070,9 @@ $export_text .= "
 
                     $trans_amount = 0;
                     $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                    $message_status = 1;
-                    if(!$result){
-                        session()->flash("error","SMS is not setup, use email instead!");
-                        $message_status = 0;
+                    $message_status = $result != null ? 1 : 0;
+                    if($result == null){
+                        session()->flash("error","Your account cannot send sms, contact us for more information!");
                     }
 
                     // if the message status is one the message is already sent to the user
@@ -4221,10 +4213,9 @@ $export_text .= "
 
                 $trans_amount = 0;
                 $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                $message_status = 1;
-                if(!$result){
-                    session()->flash("error","SMS is not setup, use email instead!");
-                    $message_status = 0;
+                $message_status = $result != null ? 1 : 0;
+                if($result == null){
+                    session()->flash("error","Your account cannot send sms, contact us for more information!");
                 }
 
                 // if the message status is one the message is already sent to the user

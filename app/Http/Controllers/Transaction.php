@@ -596,6 +596,7 @@ class Transaction extends Controller
                         $trans_amount = $jsonMpesaResponse['TransAmount'];
                         $message = $this->message_content($message,$client_id,$trans_amount);
                         $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+                        $message_status = $result != null ? 1 : 0;
                         // get the user id of the number from the database
                         $user_data = [];
                         $client_id = (count($user_data) > 0) ? $user_data[0]->client_id : 0;
@@ -604,7 +605,7 @@ class Transaction extends Controller
                         $sms_table->sms_content = $message;
                         $sms_table->date_sent = date("YmdHis");
                         $sms_table->recipient_phone = $mobile;
-                        $sms_table->sms_status = "1"; // message status
+                        $sms_table->sms_status = $message_status; // message status
                         $sms_table->account_id = $client_transaction_id;
                         $sms_table->sms_type = $sms_type;
                         $sms_table->save();
@@ -635,14 +636,14 @@ class Transaction extends Controller
                             // send sms
                             $message_contents = $this->get_sms();
                             $message = $message_contents[1]->messages[2]->message;
-                            if ($message) {// replace false with message above
+                            if ($message && (session()->has("organization") && session("organization")->send_sms == 1)) {// replace false with message above
                                 $trans_amount = $refferal_amount;
                                 $refferer_id = trim($jsonMpesaResponse['BillRefNumber']);
 
                                 // send message to the refferer
-                                $message_status = 1;
                                 $message = $this->message_content($message,$refferer_dets[0]->client_id,$trans_amount,$trans_amount,$refferer_id);
                                 $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+                                $message_status = $result != null ? 1 : 0;
 
                                 // get the user id of the number from the database
                                 $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `client_account` = '".$client_refferal->client_acc."'");
@@ -680,21 +681,21 @@ class Transaction extends Controller
                     $mobile = $jsonMpesaResponse['MSISDN'];
                     $message_contents = $this->get_sms();
                     $message = $message_contents[1]->messages[1]->message;
-                    if ($message) {// replace false with message
+                    if ($message && (session()->has("organization") && session("organization")->send_sms == 1)) {// replace false with message
                         $trans_amount = $jsonMpesaResponse['TransAmount'];
                         $message = $this->message_content($message,$client_id,$trans_amount);
                         $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                        if($result){
-                            // save to the database the transaction made
-                            $sms_table = new sms_table();
-                            $sms_table->sms_content = $message;
-                            $sms_table->date_sent = date("YmdHis");
-                            $sms_table->recipient_phone = $mobile;
-                            $sms_table->sms_status = "1";
-                            $sms_table->account_id = "0";
-                            $sms_table->sms_type = "1";
-                            $sms_table->save();
-                        }
+                        $message_status = $result != null ? 1 : 0;
+                        
+                        // save to the database the transaction made
+                        $sms_table = new sms_table();
+                        $sms_table->sms_content = $message;
+                        $sms_table->date_sent = date("YmdHis");
+                        $sms_table->recipient_phone = $mobile;
+                        $sms_table->sms_status = $message_status;
+                        $sms_table->account_id = "0";
+                        $sms_table->sms_type = "1";
+                        $sms_table->save();
                     }
                 }
     
@@ -836,14 +837,14 @@ class Transaction extends Controller
             // send sms
             $message_contents = $this->get_sms();
             $message = $message_contents[1]->messages[0]->message;
-            if ($message) {// replace false with message above
+            if ($message && (session()->has("organization") && session("organization")->send_sms == 1)) {// replace false with message above
                 $trans_amount = $new_wallet_balance;
                 $message = $this->message_content($message,$refferer_dets[0]->client_id,$trans_amount);
                 $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                if(!$result){
-                    session()->flash("error_sms","No message sent, an error occured!");
+                $message_status = $result != null ? 1 : 0;
+                if($result == null){
+                    session()->flash("error_sms","Your account cannot send sms, contact us for more information!");
                 }
-                $message_status = 1;
                 $sms_type = 1;
                 // get the user id of the number from the database
                 $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `client_account` = '".$client_refferal->client_acc."'");
