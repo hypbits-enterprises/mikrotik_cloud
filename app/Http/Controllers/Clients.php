@@ -5058,6 +5058,13 @@ $export_text .= "
         // get the user router and update the setting
         $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$userid' AND `deleted` = '0'");
         if (count($client_data) > 0) {
+            // update the user data to de-activated
+            DB::connection("mysql2")->table('client_tables')
+                ->where('client_id', $userid)
+                ->update([
+                    'client_status' => "0",
+                    'date_changed' => date("YmdHis")
+            ]);
             if ($client_data[0]->assignment == "static") {
                 $router_id = $client_data[0]->router_name;
                 // connect to the router and deactivate the client address
@@ -5069,12 +5076,12 @@ $export_text .= "
                         return redirect(url()->previous());
                     } else {
                         // update the user data to de-activated
-                        DB::connection("mysql2")->table('client_tables')
-                            ->where('client_id', $userid)
-                            ->update([
-                                'client_status' => "0",
-                                'date_changed' => date("YmdHis")
-                            ]);
+                        // DB::connection("mysql2")->table('client_tables')
+                        //     ->where('client_id', $userid)
+                        //     ->update([
+                        //         'client_status' => "0",
+                        //         'date_changed' => date("YmdHis")
+                        //     ]);
                         return ["success" => false, "message" => "Router that the client is connected to is not present!"];
                     }
                 }
@@ -5094,12 +5101,12 @@ $export_text .= "
                         return redirect(url()->previous());
                     } else {
                         // update the user data to de-activated
-                        DB::connection("mysql2")->table('client_tables')
-                            ->where('client_id', $userid)
-                            ->update([
-                                'client_status' => "0",
-                                'date_changed' => date("YmdHis")
-                            ]);
+                        // DB::connection("mysql2")->table('client_tables')
+                        //     ->where('client_id', $userid)
+                        //     ->update([
+                        //         'client_status' => "0",
+                        //         'date_changed' => date("YmdHis")
+                        //     ]);
                         return ["success" => false, "message" => "The SSTP server is not set, Contact your administrator!"];
                     }
                 }
@@ -5120,12 +5127,12 @@ $export_text .= "
                         return redirect(url()->previous());
                     } else {
                         // update the user data to de-activated
-                        DB::connection("mysql2")->table('client_tables')
-                            ->where('client_id', $userid)
-                            ->update([
-                                'client_status' => "0",
-                                'date_changed' => date("YmdHis")
-                            ]);
+                        // DB::connection("mysql2")->table('client_tables')
+                        //     ->where('client_id', $userid)
+                        //     ->update([
+                        //         'client_status' => "0",
+                        //         'date_changed' => date("YmdHis")
+                        //     ]);
                         return ["success" => false, "message" => "An error has occured!"];
                     }
                 }
@@ -5160,12 +5167,12 @@ $export_text .= "
                         ));
 
                         // update the user data to de-activated
-                        DB::connection("mysql2")->table('client_tables')
-                            ->where('client_id', $userid)
-                            ->update([
-                                'client_status' => "0",
-                                'date_changed' => date("YmdHis")
-                        ]);
+                        // DB::connection("mysql2")->table('client_tables')
+                        //     ->where('client_id', $userid)
+                        //     ->update([
+                        //         'client_status' => "0",
+                        //         'date_changed' => date("YmdHis")
+                        // ]);
 
                         // log message
                         $txt = ":Client (" . $client_data[0]->client_name . " - " . $client_data[0]->client_account . ") deactivated by " . (session('Usernames') ? session('Usernames') : "System");
@@ -5189,12 +5196,12 @@ $export_text .= "
                     }
                 } else {
                     // update the user data to de-activated
-                    DB::connection("mysql2")->table('client_tables')
-                        ->where('client_id', $userid)
-                        ->update([
-                            'client_status' => "0",
-                            'date_changed' => date("YmdHis")
-                        ]);
+                    // DB::connection("mysql2")->table('client_tables')
+                    //     ->where('client_id', $userid)
+                    //     ->update([
+                    //         'client_status' => "0",
+                    //         'date_changed' => date("YmdHis")
+                    //     ]);
 
                     // redirect
                     if (session('Usernames')) {
@@ -5217,12 +5224,12 @@ $export_text .= "
                         return redirect(url()->previous());
                     } else {
                         // update the user data to de-activated
-                        DB::connection("mysql2")->table('client_tables')
-                            ->where('client_id', $userid)
-                            ->update([
-                                'client_status' => "0",
-                                'date_changed' => date("YmdHis")
-                            ]);
+                        // DB::connection("mysql2")->table('client_tables')
+                        //     ->where('client_id', $userid)
+                        //     ->update([
+                        //         'client_status' => "0",
+                        //         'date_changed' => date("YmdHis")
+                        //     ]);
                         return ["success" => false, "message" => "Router that the client is connected to is not present!"];
                     }
                 }
@@ -5242,12 +5249,12 @@ $export_text .= "
                         return redirect(url()->previous());
                     } else {
                         // update the user data to de-activated
-                        DB::connection("mysql2")->table('client_tables')
-                            ->where('client_id', $userid)
-                            ->update([
-                                'client_status' => "0",
-                                'date_changed' => date("YmdHis")
-                            ]);
+                        // DB::connection("mysql2")->table('client_tables')
+                        //     ->where('client_id', $userid)
+                        //     ->update([
+                        //         'client_status' => "0",
+                        //         'date_changed' => date("YmdHis")
+                        //     ]);
                         return ["success" => false, "message" => "The SSTP server is not set, Contact your administrator!"];
                     }
                 }
@@ -5268,12 +5275,12 @@ $export_text .= "
                         return redirect(url()->previous());
                     } else {
                         // update the user data to de-activated
-                        DB::connection("mysql2")->table('client_tables')
-                            ->where('client_id', $userid)
-                            ->update([
-                                'client_status' => "0",
-                                'date_changed' => date("YmdHis")
-                            ]);
+                        // DB::connection("mysql2")->table('client_tables')
+                        //     ->where('client_id', $userid)
+                        //     ->update([
+                        //         'client_status' => "0",
+                        //         'date_changed' => date("YmdHis")
+                        //     ]);
                         return ["success" => false, "message" => "Router not active!"];
                     }
                 }
@@ -5329,12 +5336,12 @@ $export_text .= "
 
                     // uodate the database
                     // update the user data to de-activated
-                    DB::connection("mysql2")->table('client_tables')
-                        ->where('client_id', $userid)
-                        ->update([
-                            'client_status' => "0",
-                            'date_changed' => date("YmdHis")
-                        ]);
+                    // DB::connection("mysql2")->table('client_tables')
+                    //     ->where('client_id', $userid)
+                    //     ->update([
+                    //         'client_status' => "0",
+                    //         'date_changed' => date("YmdHis")
+                    //     ]);
 
                     // log message
                     $txt = ":Client (" . $client_data[0]->client_name . " - " . $client_data[0]->client_account . ") deactivated by " . (session('Usernames') ? session('Usernames') : "System");
@@ -5348,12 +5355,12 @@ $export_text .= "
                     }
                 } else {
                     // update the user data to de-activated
-                    DB::connection("mysql2")->table('client_tables')
-                        ->where('client_id', $userid)
-                        ->update([
-                            'client_status' => "0",
-                            'date_changed' => date("YmdHis")
-                        ]);
+                    // DB::connection("mysql2")->table('client_tables')
+                    //     ->where('client_id', $userid)
+                    //     ->update([
+                    //         'client_status' => "0",
+                    //         'date_changed' => date("YmdHis")
+                    //     ]);
 
                     // update the user data to deactivate
                     if (session('Usernames')) {
@@ -5389,6 +5396,13 @@ $export_text .= "
         // get the user router and update the setting
         $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$userid' AND `deleted` = '0'");
         if (count($client_data) > 0) {
+            // UPDATE THE CLIENT STATUS FIRST
+            DB::connection("mysql2")->table('client_tables')
+            ->where('client_id', $userid)
+            ->update([
+                'client_status' => "1",
+                'date_changed' => date("YmdHis")
+            ]);
             if ($client_data[0]->assignment == "static") {
                 $router_id = $client_data[0]->router_name;
                 // connect to the router and deactivate the client address
@@ -5471,12 +5485,12 @@ $export_text .= "
                         ));
 
                         // update the user data to de-activated
-                        DB::connection("mysql2")->table('client_tables')
-                            ->where('client_id', $userid)
-                            ->update([
-                                'client_status' => "1",
-                                'date_changed' => date("YmdHis")
-                            ]);
+                        // DB::connection("mysql2")->table('client_tables')
+                        //     ->where('client_id', $userid)
+                        //     ->update([
+                        //         'client_status' => "1",
+                        //         'date_changed' => date("YmdHis")
+                        //     ]);
 
                         // log message
                         $txt = ":Client (" . $client_data[0]->client_name . " - " . $client_data[0]->client_account . ") activated by " . (session('Usernames') ? session('Usernames') : "System");
@@ -5589,12 +5603,12 @@ $export_text .= "
 
                     // uodate the database
                     // update the user data to de-activated
-                    DB::connection("mysql2")->table('client_tables')
-                        ->where('client_id', $userid)
-                        ->update([
-                            'client_status' => "1",
-                            'date_changed' => date("YmdHis")
-                        ]);
+                    // DB::connection("mysql2")->table('client_tables')
+                    //     ->where('client_id', $userid)
+                    //     ->update([
+                    //         'client_status' => "1",
+                    //         'date_changed' => date("YmdHis")
+                    //     ]);
 
                     // log message
                     $txt = ":Client (" . $client_data[0]->client_name . " - " . $client_data[0]->client_account . ") activated by " . (session('Usernames') ? session('Usernames') : "System");
