@@ -112,10 +112,10 @@ class login extends Controller
             
                     $mail->isSMTP();
                     // $mail->SMTPDebug = SMTP::DEBUG_SERVER;
-                    $mail->Host = 'smtp.gmail.com';
+                    $mail->Host = env("EMAIL_HOST");
                     // $mail->Host = $email_host_addr;
                     $mail->SMTPAuth = true;
-                    $mail->Username = "hypbits@gmail.com";
+                    $mail->Username = env("EMAIL_USERNAME");
                     $mail->Password = env("EMAIL_PASSWORD");
                     // $mail->Username = $email_username;
                     // $mail->Password = $email_password;

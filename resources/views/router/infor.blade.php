@@ -199,7 +199,7 @@
                                     @endif
                                     @php
                                         $btnText = "Show Router Configuration";
-                                        $otherClasses = "my-2 ".($router_data[0]->activated == 1 ? "d-none" : "");
+                                        $otherClasses = "my-2 ".($readonly);
                                         $btn_id = "configuration_show_button";
                                     @endphp
                                     <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
@@ -207,7 +207,7 @@
                                     <div id="configuration_window" class="container shadow-0 border border-rounded p-1 w-100 {{$router_data[0]->activated == 1 ? "d-none" : ""}}">
                                         @php
                                             $btnText = "<i class=\"ft-copy\" ></i> Copy";
-                                            $otherClasses = "mb-2 ".($router_data[0]->activated == 1 ? "d-none" : "");
+                                            $otherClasses = "mb-2 ".($readonly);
                                             $btn_id = "send_to_clipboard";
                                         @endphp
                                         <x-button :btnText="$btnText" btnType="primary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
@@ -534,6 +534,15 @@
         var send_to_clipboard = document.getElementById("send_to_clipboard");
         send_to_clipboard.addEventListener("click", function () {
             var this_inner_text = document.getElementById("command_holder").innerText;
+            var child = this.children;
+            if (child[0]!=undefined) {
+                child[0].innerHTML = "<i class='ft-check-circle'></i> Copied!";
+            }
+            setTimeout(() => {
+                if (child[0]!=undefined) {
+                    child[0].innerHTML = "<i class='ft-copy'></i> Copy";
+                }
+            }, 2000);
             copyToClipboard(this_inner_text);
             // console.log(this_inner_text);
         });
