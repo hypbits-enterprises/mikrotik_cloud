@@ -492,7 +492,7 @@ class Transaction extends Controller
             array_push($dates_trans,$dates2);
         }
 
-        // get the client data 
+        // get the client data
         $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0'  ORDER BY `client_id` DESC LIMIT 8");
         return view("index", ["sms_sent" => $sms_sent, "fullnames" => $user_fullname, "dates" => $dates, "transaction_data" => $transaction_data, "trans_fullname" => $fullnames, "trans_dates" => $dates_trans, "client_data" => $client_data]);
     }

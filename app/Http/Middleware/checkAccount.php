@@ -28,6 +28,12 @@ class checkAccount
         session()->remove("block_edits");
         session()->remove("inactive_menu");
 
+        // check admin password reset account
+        $check_reset = $this->checkAdminPasswordResetRequest();
+        if($check_reset){
+            return redirect("/Reset-Password")->with("success", "You must change your password before you can proceed!");
+        }
+
         // get the organization account details
         $organization = DB::select("SELECT * FROM organizations WHERE organization_id = ?", [session("organization_id")]);
         if(!session()->has("organization_id")){
@@ -84,5 +90,13 @@ class checkAccount
         }
         session()->put("show_payment_notice", "false");
         return $next($request);
+    }
+
+    function checkAdminPasswordResetRequest(){
+        $admin = DB::select("SELECT * FROM admin_tables WHERE admin_id = ? AND use_otp = '1'", [session("Userid")]);
+        if(count($admin) > 0){
+            return true;
+        }
+        return false;
     }
 }

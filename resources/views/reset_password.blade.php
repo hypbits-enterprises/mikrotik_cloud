@@ -8,7 +8,7 @@
     <meta name="description" content="My ISP is the number one kenyan webserver software that helps you manage and monitor your webserver.">
     <meta name="keywords" content="admin template, Client template, dashboard template, gradient admin template, responsive client template, webapp, eCommerce dashboard, analytic dashboard">
     <meta name="author" content="ThemeSelect">
-    <title>Hypbits - Login</title>
+    <title>Hypbits - Forgot Password</title>
     <link rel="apple-touch-icon" href="/theme-assets/images/logo2.jpeg">
     <link rel="shortcut icon" href="/theme-assets/images/logo2.jpeg">
     <link href="https://fonts.googleapis.com/css?family=Muli:300,300i,400,400i,600,600i,700,700i%7CComfortaa:300,400,700" rel="stylesheet">
@@ -56,46 +56,35 @@
                                                 <img class="w-100" src="/theme-assets/images/logo2.jpeg" alt="" srcset="">
                                             </a>
                                         </div>
-                                        <h1 class="h4 text-gray-900 my-2">Login!</h1>
-                                        @php
-                                            Session::forget('Usernames');
-                                        @endphp
+                                        <h1 class="h4 text-gray-900 my-2">Reset My Password!</h1>
                                     </div>
-                                    <form class="user" action="{{url()->route("process_login")}}" method="POST">
+                                    <form class="user" action="{{url()->route("reset_my_password")}}" method="POST">
                                         @csrf
                                         <div class="form-group">
                                             @if(session('error'))
                                                 <p class="text-danger text-bolder">{{session('error')}}</p>
                                             @endif
                                             @if(session('success'))
-                                                <p class="text-success text-center text-bolder">{{session('success')}}</p>
+                                                <p class="text-success text-bolder">{{session('success')}}</p>
                                             @endif
                                         </div>
                                         <div class="form-group">
-                                            <select name="send_code" id="send_code" class="form-control" required>
-                                                <option value="" hidden >How to recieve code!</option>
-                                                <option value="SMS">Send SMS</option>
-                                                <option selected value="EMAILS">Send Email</option>
-                                            </select>
+                                            <input type="password" name="old_user_password" class="form-control form-control-user text-center"
+                                                id="old_user_password" aria-describedby="emailHelp"
+                                                placeholder="Old Password ..." required>
                                         </div>
                                         <div class="form-group">
-                                            <select name="authority" id="authority" class="form-control d-none" required>
-                                                <option value="" hidden >Select an option to proceed!</option>
-                                                <option selected value="admin">Administrator</option>
-                                                <option value="client">Clients</option>
-                                            </select>
+                                            <input type="password" name="new_user_password" class="form-control form-control-user text-center"
+                                                id="new_user_password" aria-describedby="emailHelp"
+                                                placeholder="New Password ..." required>
                                         </div>
                                         <div class="form-group">
-                                            <input type="text" name="emails" class="form-control form-control-user text-center"
-                                                id="exampleInputEmail" aria-describedby="emailHelp"
-                                                placeholder="Enter Username . . ." required>
-                                        </div>
-                                        <div class="form-group">
-                                            <input type="password" name="password" class="form-control form-control-user  text-center"
-                                                id="exampleInputPassword" placeholder="Password . . ." required>
+                                            <input type="password" name="repeat_user_password" class="form-control form-control-user text-center"
+                                                id="repeat_user_password" aria-describedby="emailHelp"
+                                                placeholder="Repeat Password ..." required>
                                         </div>
                                         @php
-                                            $btnText = "Login";
+                                            $btnText = "Reset Password";
                                             $otherClasses = "btn-user btn-block";
                                             $btn_id = "login-btn";
                                             $btnSize="md";
@@ -110,7 +99,7 @@
                                         <p class="text-left text-xxs text-bolder pt-2" id="errHandler"></p>
                                     </form>
                                     <div class="text-center">
-                                        <a href="/Forgot-Password" class="secondary">Forgot Password?</a>
+                                        <a href="/No-Change-Password" class="secondary">I don`t want to change my password!</a>
                                     </div>
                                     <hr>
                                     <div class="text-center">
@@ -132,9 +121,9 @@
     var login_btn = document.getElementById("login-btn");
     login_btn.onclick = function () {
         var err = 0;
-        err+=checkBlank("authority");
-        err+=checkBlank("exampleInputEmail");
-        err+=checkBlank("exampleInputPassword");
+        // err+=checkBlank("authority");
+        // err+=checkBlank("exampleInputEmail");
+        // err+=checkBlank("exampleInputPassword");
         if (err == 0) {
             setTimeout(() => {
                 login_btn.disabled = true;

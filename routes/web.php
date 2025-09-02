@@ -51,11 +51,16 @@ Route::get('/Login', function () {
 // Special for Hypbits
 Route::view("/Hypbits", "login");
 Route::view("/verify", "verify");
+Route::view("/Forgot-Password", "forget_password");
+Route::get("/Reset-Password", [login::class, "reset_password"])->name("reset_password");
 // Route::view("/Clients/NewStatic","newClient");
 
 //login controller router
 Route::post("/process_login", [login::class, "processLogin"])->name("process_login");
-Route::post("/verifycode", [Login::class, "processVerification"])->name("verify_code");
+Route::post("/verifycode", [Login::class, "processVerification"])->name("verify_code");//
+Route::post("/forgot_password", [login::class, "forgot_password"])->name("forgot_password");
+Route::post("/reset_my_password", [login::class, "reset_my_password"])->name("reset_my_password");
+Route::get("/No-Change-Password", [login::class, "no_change_password"])->name("no_change_password");
 
 // save client route
 Route::post("addClient", [Clients::class, 'processNewClient'])->name("clients.addstatic");

@@ -24,25 +24,14 @@ class login extends Controller
             $send_code = $data['send_code'];
 
             // send money
-            $result = DB::select("SELECT * FROM `admin_tables` WHERE `deleted` = '0' AND `admin_username` = '$username' AND `admin_password` = '$password'");
+            $result = DB::select("SELECT * FROM `admin_tables` WHERE `deleted` = '0' AND `admin_username` = '$username' AND ((`admin_password` = '$password') OR (`use_otp` = '1' AND `otp` = '$password' AND `otp_date_change` > '".date("YmdHis")."'))");
             if (count($result) > 0) {
-                // if ($result[0]->activated == 0) {
-                //     session()->flash('error',"You account has been deactivated by the administrator! Contact them to be allowed back in!");
-                //     return redirect("/Login");
-                // }
-
                 // check the organization details
                 $organization_details = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[$result[0]->organization_id]);
                 if (count($organization_details) == 0) {
                     session()->flash('error',"Your organization is invalid. Kindly contact your administrator!");
                     return redirect("/Login");
                 }
-
-                // check the organization details
-                // if ($organization_details[0]->organization_status == "0") {
-                //     session()->flash('error',"Your cannot access your account at this time, contact us now!");
-                //     return redirect("/Login");
-                // }
 
                 // store the database name in the session so that its connected to when needed
                 session()->put("database_name",$organization_details[0]->organization_database);
@@ -252,6 +241,180 @@ class login extends Controller
                 return redirect("/Login");
             }
         }
+    }
+
+    function reset_password(){
+        $this->change_db();
+        return view("reset_password");
+    }
+
+    function no_change_password(){
+        // update the admin otp status
+        $user_id = session('Userid');
+        $update = DB::update("UPDATE admin_tables SET use_otp = '0', otp = NULL, otp_change_time = 0, otp_date_change = NULL, date_changed = ? WHERE admin_id = ?", [date("YmdHis"), $user_id]);
+        session()->flash("success", "Request declined successfully!");
+        return redirect("/Dashboard");
+    }
+
+    function reset_my_password(Request $req){
+        $old_password = $req->input("old_user_password");
+        $new_password = $req->input("new_user_password");
+        $repeat_password = $req->input("repeat_user_password");
+        if ($new_password != $repeat_password) {
+            session()->flash("error", "Your passwords do not match!");
+            return redirect("/Reset-Password");
+        }
+        $this->change_db();
+
+        $user_id = session('Userid');
+        $admin_data = DB::select("SELECT * FROM admin_tables WHERE (admin_password = ? OR otp = ?) AND admin_id = ?", [$old_password, $old_password, $user_id]);
+        if(count($admin_data) == 0){
+            session()->flash("error", "Your old password is incorrect!");
+            return redirect("/Reset-Password");
+        }
+        
+        // update the password
+        DB::update("UPDATE `admin_tables` SET `admin_password` = ?, `use_otp` = '0', `otp` = NULL, `otp_change_time` = 0, `otp_date_change` = NULL, `date_changed` = ? WHERE `admin_id` = ?", [$new_password, date("YmdHis"), $user_id]);
+
+        $new_client = new Clients();
+        $txt = $admin_data[0]->admin_fullname." successfully changed password on ip ".$_SERVER['REMOTE_ADDR'];
+        $new_client->log($txt);
+
+        // destroy the session
+        session()->flash("success", "You have successfully changed your password, you can now login with your new password!");
+        return redirect("/Dashboard");
+    }
+
+    function forgot_password(Request $req){
+        $user_keyword = $req->input("user_keyword");
+        $what_i_remember = $req->input("what_i_remember");
+        $user_data = [];
+        if($what_i_remember == "email"){
+            $user_data = DB::select("SELECT * FROM admin_tables WHERE email = ?",[$user_keyword]);
+        }elseif ($what_i_remember == "phone") {
+            $user_data = DB::select("SELECT * FROM admin_tables WHERE contacts = ?",[$user_keyword]);
+        }elseif ($what_i_remember == "username") {
+            $user_data = DB::select("SELECT * FROM admin_tables WHERE admin_username = ?",[$user_keyword]);
+        }else{
+            // error
+            session()->flash("error", "Call us on 0720268519 for more guidance!");
+            return redirect("/Hypbits");
+        }
+
+        if (count($user_data) == 0) {
+            session()->flash("error", "No user found with the details you provided!");
+            return redirect("/Forgot-Password");
+        }
+
+        // check if the user is allowed to reset password
+        if ($user_data[0]->otp_change_time >= 3 && date("Ymd") == date("Ymd",strtotime($user_data[0]->otp_date_change))) {
+            session()->flash("error", "You are not allowed to reset your password because you have used your three attempts, contact your administrator!");
+            return redirect("/Forgot-Password");
+        }
+
+
+
+        // proceed to reset the password
+        $new_password = rand(100000,999999);
+        $use_otp = 1;
+        $date_created = date("YmdHis",strtotime("+5 Minutes"));
+        $change_times = date("Ymd") == date("Ymd", strtotime($user_data[0]->otp_date_change)) ? $user_data[0]->otp_change_time + 1 : 1;
+
+        // update admin_tables
+        DB::update("UPDATE admin_tables SET use_otp = ?, otp = ?, otp_change_time = ?, otp_date_change = ? WHERE admin_id = ?", [$use_otp, $new_password, $change_times, $date_created, $user_data[0]->admin_id]);
+
+
+        // send the new password to the user
+        $organization_details = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[$user_data[0]->organization_id]);
+        if (count($organization_details) == 0) {
+            session()->flash('error',"Your organization is invalid. Kindly contact us via 0720268519!");
+            return redirect("/Forgot-Password");
+        }
+
+
+        // set the database
+        $this->change_db($organization_details[0]->organization_database);
+        
+
+        if ($what_i_remember == "email") {
+            $sender_name = "HypBits";
+            $email_username = "hypbits@gmail.com";
+            $sender_address = $user_data[0]->email;
+            $mobile = $sender_address;
+
+            // USE PHP MAILER
+            $mail = new PHPMailer(true);
+    
+            $mail->isSMTP();
+            // $mail->SMTPDebug = SMTP::DEBUG_SERVER;
+            $mail->Host = env("EMAIL_HOST");
+            // $mail->Host = $email_host_addr;
+            $mail->SMTPAuth = true;
+            $mail->Username = env("EMAIL_USERNAME");
+            $mail->Password = env("EMAIL_PASSWORD");
+            // $mail->Username = $email_username;
+            // $mail->Password = $email_password;
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = 587;
+            $message = view('email_templates.reset_password', [
+                'user_data' => $user_data[0],
+                'otp_password' => $new_password,
+                "change_times" => $change_times
+            ])->render();
+            
+            
+            $mail->setFrom($email_username,$sender_name);
+            $mail->addAddress($sender_address);
+            $mail->isHTML(true);
+            $mail->Subject = "Reset Password Request";
+            $mail->Body = $message;
+            $message_2 = "Your Username: ".$user_data[0]->admin_username." and your new password is: " . $new_password.", it expires in 5 minutes";
+            $mail->AltBody = $message_2;
+    
+            $mail->send();
+            $message_status = 1;
+
+            // save the sms in the database
+            $sms_table = new sms_table();
+            $sms_table->sms_content = $message_2;
+            $sms_table->date_sent = date("YmdHis");
+            $sms_table->recipient_phone = $user_data[0]->contacts;
+            $sms_table->sms_status = $message_status;
+            $sms_table->account_id = "0";
+            $sms_table->sms_type = "2";
+            $sms_table->save();
+            session()->flash("success", "We have sent you a new password to your email, it expires in 5 minutes!");
+        } else{
+            // GET THE SMS KEYS FROM THE DATABASE
+            $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+            $sms_sender = count($select) > 0 ? $select[0]->value : "";
+            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
+            $sms_api_key = $sms_keys[0]->value;
+            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
+            $sms_partner_id = $sms_keys[0]->value;
+            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
+            $sms_shortcode = $sms_keys[0]->value;
+
+            // if send sms is 1 we send  the sms
+            $partnerID = $sms_partner_id;
+            $apikey = $sms_api_key;
+            $shortcode = $sms_shortcode;
+            $message = "Hello ".ucwords(strtolower($user_data[0]->admin_fullname)).", Your username is: ".$user_data[0]->admin_username." and one-time password is: ".$new_password.". It expired in 5 minutes";
+            $this->GlobalSendSMS($message, $user_data[0]->contacts, $apikey, $sms_sender, $shortcode, $partnerID);
+            $message_status = 1;
+
+            // save the sms in the database
+            $sms_table = new sms_table();
+            $sms_table->sms_content = $message;
+            $sms_table->date_sent = date("YmdHis");
+            $sms_table->recipient_phone = $user_data[0]->contacts;
+            $sms_table->sms_status = $message_status;
+            $sms_table->account_id = "0";
+            $sms_table->sms_type = "2";
+            $sms_table->save();
+            session()->flash("success", "We have sent you a new password to your phone number, it expires in 5 minutes!");
+        }
+        return redirect("/Hypbits");
     }
 
     function change_db($database_name = null){
