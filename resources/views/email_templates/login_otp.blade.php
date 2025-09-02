@@ -100,14 +100,14 @@ table, td { color: #000000; } @media (max-width: 480px) { #u_content_image_1 .v-
     <tr>
       <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:0px 0px 0px;font-family:'Raleway',sans-serif;" align="left">
         
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-  <tr>
-    <td class="v-text-align" style="padding-right: 0px;padding-left: 0px;" align="center">
-      <a href="https://billing.hypbits.com/" target="_blank" style="color: rgb(0, 0, 238); text-decoration: underline; line-height: inherit;"><img align="center" border="0" src="https://billing.hypbits.com/theme-assets/images/email_logo.jpg" alt="image" title="image" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: inline-block !important;border: none;height: auto;float: none;width: 45%;max-width: 270px;" width="270" class="v-src-width v-src-max-width"/>
-      </a>
-    </td>
-  </tr>
-</table>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+            <td class="v-text-align" style="padding-right: 0px;padding-left: 0px;" align="center">
+            <a href="https://billing.hypbits.com/" target="_blank" style="color: rgb(0, 0, 238); text-decoration: underline; line-height: inherit;"><img align="center" border="0" src="https://billing.hypbits.com/theme-assets/images/email_logo.jpg" alt="image" title="image" style="outline: none;text-decoration: none;-ms-interpolation-mode: bicubic;clear: both;display: inline-block !important;border: none;height: auto;float: none;width: 45%;max-width: 270px;" width="270" class="v-src-width v-src-max-width"/>
+            </a>
+            </td>
+        </tr>
+        </table>
 
       </td>
     </tr>
@@ -120,21 +120,7 @@ table, td { color: #000000; } @media (max-width: 480px) { #u_content_image_1 .v-
       <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:10px 10px 0px;font-family:'Raleway',sans-serif;" align="left">
         
   <!--[if mso]><table role="presentation" width="100%"><tr><td><![endif]-->
-    <h1 class="v-text-align v-font-size" style="margin: 0px; line-height: 140%; text-align: center; word-wrap: break-word; font-size: 22px; font-weight: 400;"><strong>Your Password Reset request accepted!</strong></h1>
-  <!--[if mso]></td></tr></table><![endif]-->
-
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<table id="u_content_heading_2" style="font-family:'Raleway',sans-serif;" role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0">
-  <tbody>
-    <tr>
-      <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:5px 10px 50px;font-family:'Raleway',sans-serif;" align="left">
-        
-  <!--[if mso]><table role="presentation" width="100%"><tr><td><![endif]-->
-    <h1 class="v-text-align v-font-size" style="margin: 0px; color: #5c5c5c; line-height: 140%; text-align: center; word-wrap: break-word; font-size: 14px; font-weight: 400;"><span>If you did not request to change your password, contact us now.</span></h1>
+    <h1 class="v-text-align v-font-size" style="margin: 0px; line-height: 140%; text-align: center; word-wrap: break-word; font-size: 22px; font-weight: 400;"><strong>Login OTP!</strong></h1>
   <!--[if mso]></td></tr></table><![endif]-->
 
       </td>
@@ -173,12 +159,11 @@ table, td { color: #000000; } @media (max-width: 480px) { #u_content_image_1 .v-
         <div class="v-text-align v-font-size" style="font-size: 14px; line-height: 140%; text-align: justify; word-wrap: break-word;">
           <p style="line-height: 140%; margin: 0px;">Dear {{ucwords(strtolower($user_data->admin_fullname))}},</p>
           <p style="line-height: 140%; margin: 0px;">&nbsp;</p>
-          <p style="line-height: 140%; margin: 0px;">Your request to update your password is successfull. You have {{3-$change_times}} attempts left. Use this OTP below to login and change your password. It expires in 5 minutes</p>
+          <p style="line-height: 140%; margin: 0px;">Your request to login has been accepted. Below is your OTP, use it to login and don`t share it with anyone. It expires in 5 minutes</p>
           <p style="line-height: 140%; margin: 0px;">&nbsp;</p>
-          <p style="line-height: 140%; margin: 0px;"><span style="font-size: 16px; line-height: 22.4px;"><strong>Username : {{$user_data->admin_username}}</strong></span></p>
-          <p style="line-height: 140%; margin: 0px;"><span style="font-size: 16px; line-height: 22.4px;"><strong>OTP-Password : {{$otp_password}}</strong></span></p>
+          <p style="line-height: 140%; margin: 0px;"><span style="font-size: 16px; line-height: 22.4px;"><strong>OTP : {{$otp_password}}</strong></span></p>
           <p style="line-height: 140%; margin: 0px;">&nbsp;</p>
-          <p style="line-height: 140%; margin: 0px;">If you did not change your password, please contact us immediately to report any unauthorized access to your account..</p>
+          <p style="line-height: 140%; margin: 0px;">If you did not request for the OTP, please contact us immediately to report any unauthorized access to your account.</p>
           <p style="line-height: 140%; margin: 0px;">&nbsp;</p>
           <p style="line-height: 140%; margin: 0px;">Thank you for trusting us.</p>
           <p style="line-height: 140%; margin: 0px;">&nbsp;</p>
@@ -186,24 +171,6 @@ table, td { color: #000000; } @media (max-width: 480px) { #u_content_image_1 .v-
           <p style="line-height: 140%; margin: 0px;">HypBits Enterprises</p>
           <p style="line-height: 140%; margin: 0px;">Call: 0720268519</p>
         </div>
-
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<table id="u_content_button_1" style="font-family:'Raleway',sans-serif;" role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0">
-  <tbody>
-    <tr>
-      <td class="v-container-padding-padding" style="overflow-wrap:break-word;word-break:break-word;padding:10px;font-family:'Raleway',sans-serif;" align="left">
-        
-  <!--[if mso]><style>.v-button {background: transparent !important;}</style><![endif]-->
-<div class="v-text-align" align="center">
-  <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="https://billing.hypbits.com/" style="height:37px; v-text-anchor:middle; width:155px;" arcsize="11%"  stroke="f" fillcolor="#7473d2"><w:anchorlock/><center style="color:#FFFFFF;"><![endif]-->
-    <a href="https://billing.hypbits.com/" target="_blank" class="v-button v-size-width v-font-size" style="box-sizing: border-box; display: inline-block; text-decoration: none; text-size-adjust: none; text-align: center; color: rgb(255, 255, 255); background: rgb(116, 115, 210); border-radius: 4px; width: auto; max-width: 100%; word-break: break-word; overflow-wrap: break-word; font-size: 14px; line-height: inherit;"><span style="display:block;padding:10px 20px;line-height:120%;"><span style="line-height: 16.8px;">Go to my Account</span></span>
-    </a>
-    <!--[if mso]></center></v:roundrect><![endif]-->
-</div>
 
       </td>
     </tr>
@@ -232,7 +199,7 @@ table, td { color: #000000; } @media (max-width: 480px) { #u_content_image_1 .v-
 <div class="u-col u-col-100" style="max-width: 320px;min-width: 600px;display: table-cell;vertical-align: top;">
   <div style="background-color: #ecf0f1;height: 100%;width: 100% !important;border-radius: 0px;-webkit-border-radius: 0px; -moz-border-radius: 0px;">
   <!--[if (!mso)&(!IE)]><!--><div style="box-sizing: border-box; height: 100%; padding: 0px;border-top: 0px solid transparent;border-left: 0px solid transparent;border-right: 0px solid transparent;border-bottom: 0px solid transparent;border-radius: 0px;-webkit-border-radius: 0px; -moz-border-radius: 0px;"><!--<![endif]-->
-    
+  
 
 <table id="u_content_text_deprecated_1" style="font-family:'Raleway',sans-serif;" role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0">
   <tbody>

@@ -110,6 +110,10 @@ class login extends Controller
                     // $mail->Password = $email_password;
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     $mail->Port = 587;
+                    $message = view('email_templates.login_otp', [
+                        'user_data' => $result[0],
+                        'otp_password' => $random_no
+                    ])->render();
                     
                     
                     $mail->setFrom($email_username,$sender_name);
