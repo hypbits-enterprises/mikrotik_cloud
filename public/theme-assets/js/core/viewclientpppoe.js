@@ -445,3 +445,68 @@ cObj("hide_convert_client").onclick = function () {
 cObj("confirm_client_convert").onclick = function () {
     cObj("submit_convert").click();
 }
+// MODAL FOR STK PUSH
+cObj("initiate_payment").onclick = function() {
+    showModal("initiate_payment_modal");
+}
+cObj("close_initiate_payment_modal_1").onclick = function() {
+    hideModal("initiate_payment_modal");
+}
+cObj("close_initiate_payment_modal_2").onclick = function() {
+    hideModal("initiate_payment_modal");
+}
+
+cObj("initiate_client_payment_mpesa").onclick = function () {
+    var err = checkBlank("client_amount");
+    err += checkBlank("client_phone_number");
+    err += checkBlank("clients_account_number");
+    if (err == 0) {
+        this.disabled = true;
+        this.classList.add("disabled");
+        cObj("error_mpesa_holder").innerHTML = "";
+        cObj("initiate_process_holder").innerHTML = "<span id='initiate_loader' class='invisible'></span> <i class='fas fa-refresh fa-spin'></i> Please wait...";
+        sendDataPost1("POST", "/Payment/stkpush", "amount="+cObj("client_amount").value+"&phone_number="+cObj("client_phone_number").value+"&account_number="+cObj("clients_account_number").value, cObj("error_mpesa_holder"), cObj("initiate_loader"));
+        setTimeout(() => {
+            var timeout = 0;
+            var ids = setInterval(() => {
+                timeout++;
+                //after two minutes of slow connection the next process wont be executed
+                if (timeout==1200) {
+                    stopInterval(ids);
+                }
+                if (cObj("initiate_loader").classList.contains("invisible")) {
+                    this.disabled = false;
+                    this.classList.remove("disabled");
+                    cObj("initiate_process_holder").innerHTML = "<i class=\"fas fa-money-bill\"></i> Initiate";
+                    // cObj("error_mpesa_holder").innerHTML = "";
+                    stopInterval(ids);
+                
+                }
+            }, 100);
+        }, 200);
+    }else{
+        cObj("error_mpesa_holder").innerHTML = "<p class='text-danger'>Please fill all fields covered with a red border!</p>";
+    }
+}
+// Send date with post request
+function sendDataPost1(method, file, datapassing, object1, object2) {
+    //make the loading window show
+    object2.classList.remove("invisible");
+    let xml = new XMLHttpRequest();
+    xml.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            object1.innerHTML = this.responseText;
+            object2.classList.add("invisible");
+        } else if (this.status == 500) {
+            object2.classList.add("invisible");
+            object1.innerHTML = "<p class='red_notice'>Cannot establish connection to server.<br>Try reloading your page</p>";
+        } else if (this.status == 204) {
+            object2.classList.add("invisible");
+            object1.innerHTML = "<p class='red_notice'>Password updated successfully!</p>";
+        }
+        // console.log(this.status);
+    };
+    xml.open(method, "" + file, true);
+    xml.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xml.send(datapassing);
+}
