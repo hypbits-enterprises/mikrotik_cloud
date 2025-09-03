@@ -554,6 +554,50 @@ cObj("close_generate_client_invoice_2").onclick = function() {
     hideModal("generate_client_invoice");
 }
 
+// MODAL FOR STK PUSH
+cObj("initiate_payment").onclick = function() {
+    showModal("initiate_payment_modal");
+}
+cObj("close_initiate_payment_modal_1").onclick = function() {
+    hideModal("initiate_payment_modal");
+}
+cObj("close_initiate_payment_modal_2").onclick = function() {
+    hideModal("initiate_payment_modal");
+}
+
+cObj("initiate_client_payment_mpesa").onclick = function () {
+    var err = checkBlank("client_amount");
+    err += checkBlank("client_phone_number");
+    err += checkBlank("clients_account_number");
+    if (err == 0) {
+        this.disabled = true;
+        this.classList.add("disabled");
+        cObj("error_mpesa_holder").innerHTML = "";
+        cObj("initiate_process_holder").innerHTML = "<span id='initiate_loader' class='invisible'></span> <i class='fas fa-refresh fa-spin'></i> Please wait...";
+        sendDataPost1("POST", "/Payment/stkpush", "amount="+cObj("client_amount").value+"&phone_number="+cObj("client_phone_number").value+"&account_number="+cObj("clients_account_number").value, cObj("error_mpesa_holder"), cObj("initiate_loader"));
+        setTimeout(() => {
+            var timeout = 0;
+            var ids = setInterval(() => {
+                timeout++;
+                //after two minutes of slow connection the next process wont be executed
+                if (timeout==1200) {
+                    stopInterval(ids);                        
+                }
+                if (cObj("initiate_loader").classList.contains("invisible")) {
+                    this.disabled = false;
+                    this.classList.remove("disabled");
+                    cObj("initiate_process_holder").innerHTML = "<i class=\"fas fa-money-bill\"></i> Initiate";
+                    // cObj("error_mpesa_holder").innerHTML = "";
+                    stopInterval(ids);
+                
+                }
+            }, 100);
+        }, 200);
+    }else{
+        cObj("error_mpesa_holder").innerHTML = "<p class='text-danger'>Please fill all fields covered with a red border!</p>";
+    }
+}
+
 function checkBlank(object_id) {
     if (cObj(object_id).value.trim().length > 0) {
         cObj(object_id).classList.add("border");

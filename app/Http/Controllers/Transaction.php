@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Classes\MpesaService;
 use App\Classes\reports\PDF;
 use App\Classes\reports\RECEIPT;
 use Illuminate\Http\Request;
@@ -862,6 +863,81 @@ class Transaction extends Controller
         }
     }
 
+    function initiate_stk(MpesaService $mpesa, Request $request){
+        $phone = $request->input("phone_number");
+        $amount = $request->input("amount");
+        $acc_no = $request->input("account_number");
+
+        
+        $phone = $this->formatKenyanPhone($phone);
+
+        if($phone == null){
+            return "<p class='text-danger'>Please enter a valid phone number</p>";
+        }
+
+        if ($amount < 1) {
+            return "<p class='text-danger'>Please enter a valid amount</p>";
+        }
+
+        $response = $mpesa->stkPush($phone, $amount, $acc_no, "Payment for $acc_no");
+        $response = $this->handleStkPushResponse($response);
+        if ($response['status'] == "success") {
+            return "<p class='text-success'>".$response['message']."</p>";
+        }
+        if ($response['status'] == "error" || $response['status'] == "unknown") {
+            return "<p class='text-danger'>".$response['message']."</p>";
+        }
+        
+        return $response;
+    }
+
+    function handleStkPushResponse($response)
+    {
+        // Convert JSON string to array if needed
+        if (is_string($response)) {
+            $response = json_decode($response, true);
+        }
+
+        // Handle invalid JSON
+        if ($response === null) {
+            return [
+                'status'  => 'error',
+                'message' => 'Invalid JSON response',
+                'data'    => null,
+            ];
+        }
+
+        // Check for error response
+        if (isset($response['errorCode'])) {
+            return [
+                'status'  => 'error',
+                'code'    => $response['errorCode'],
+                'message' => $response['errorMessage'] ?? 'Unknown error occurred',
+                'data'    => $response,
+            ];
+        }
+
+        // Check for success response
+        if (isset($response['ResponseCode']) && $response['ResponseCode'] == "0") {
+            return [
+                'status'   => 'success',
+                'code'     => $response['ResponseCode'],
+                'message'  => $response['CustomerMessage'] ?? 'Request accepted',
+                'requestId'=> $response['MerchantRequestID'] ?? null,
+                'checkoutId'=> $response['CheckoutRequestID'] ?? null,
+                'data'     => $response,
+            ];
+        }
+
+        // If neither errorCode nor success is present, return unknown
+        return [
+            'status'  => 'unknown',
+            'message' => 'Unexpected response format',
+            'data'    => $response,
+        ];
+    }
+
+
     function stkpush(){
         // change db
         $change_db = new login();
@@ -869,7 +945,8 @@ class Transaction extends Controller
 
         // get the clients id 
         // push stk
-        $client_id =  session("client_id");
+        // $client_id =  session("client_id");
+        $client_id = "584";
         $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `client_id` = '$client_id'");
         $phone_number = strlen($client_data[0]->clients_contacts) == 12? $client_data[0]->clients_contacts: "254".substr($client_data[0]->clients_contacts,1);
         $monthly_payment = $client_data[0]->monthly_payment;

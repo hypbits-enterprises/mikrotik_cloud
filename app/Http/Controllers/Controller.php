@@ -117,7 +117,7 @@ class Controller extends BaseController
         }
 
         // Invalid number
-        return false;
+        return null;
     }
 
     function sendHostPinnacleSMS($message, $mobile, $apikey, $partnerID, $shortcode) {

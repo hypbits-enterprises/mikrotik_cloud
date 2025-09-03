@@ -226,7 +226,8 @@ Route::view("/Payment/Confirm", "confirmPay");
 Route::get("/Payment/mpesa/{mpesaid}", [Clients_data::class, "confirm_mpesa"]);
 Route::view("/Credentials", "credential");
 Route::post("/changePassword", [Clients_data::class, "change_password"]);
-Route::get("/Payment/stkpush", [Transaction::class, "stkpush"]);
+Route::get("/Payment/stkpush_init", [Transaction::class, "stkpush"]);
+Route::post("/Payment/stkpush", [Transaction::class, "initiate_stk"]);
 
 // get ip addresses
 Route::get("/ipAddress/{routerid}", [Clients::class, "getIpaddresses"]);

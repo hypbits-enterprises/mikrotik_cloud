@@ -710,6 +710,62 @@
             </div>
         </div>
     </div>
+
+    {{-- Initiate Payement --}}
+    <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="initiate_payment_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel110" style="padding-right: 17px;" aria-modal="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info white">
+                <h4 class="modal-title white" id="myModalLabel110">Initiate Payment to "{{ucwords(strtolower($clients_data[0]->client_name))}}".</h4>
+                {{-- <input type="hidden" id="delete_columns_ids"> --}}
+                <button id="close_initiate_payment_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container">
+                        <form action="/update_client_comment" method="post" class="form-control-group">
+                            @csrf
+                            <h6 class="text-center">Update Comment</h6>
+                            <p><b>Note</b> This will only work if we have done M-Pesa Integration</p>
+                            <div class="form-group">
+                                <label for="client_amount" class="form-control-label">Amount to Pay</label>
+                                <input type="number" name="client_amount" id="client_amount" placeholder="Client Amount" class="form-control" value="{{$clients_data[0]->monthly_payment}}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="client_phone_number" class="form-control-label">Phone number to pay</label>
+                                <input type="text" class="form-control" id="client_phone_number" placeholder="Phone number to pay" value="{{$clients_data[0]->clients_contacts}}" name="client_phone_number" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="clients_account_number" class="form-control-label">Account Number</label>
+                                <input type="text" class="form-control" id="clients_account_number" placeholder="Phone number to pay" value="{{$clients_data[0]->client_account}}" name="clients_account_number" required>
+                            </div>
+                            <input type="hidden" name="clients_id" value="{{ $clients_data[0]->client_id }}">
+                            <p id="error_mpesa_holder"></p>
+                            <div class="row w-100">
+                                <div class="col-md-6">
+                                    @php
+                                        $btnText = "<span id='initiate_process_holder'><i class=\"fas fa-money-bill\"></i> Initiate</span>";
+                                        $otherClasses = "w-100 my-1";
+                                    @endphp
+                                    <x-button :btnText="$btnText" btnType="info" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="initiate_client_payment_mpesa" :readOnly="$readonly" />
+                                </div>
+                                <div class="col-md-6">
+                                    @php
+                                        $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                        $otherClasses = "w-100 my-1";
+                                    @endphp
+                                    <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_initiate_payment_modal_2" :readOnly="$readonly" />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <div class="container my-2">
     <h4 class="text-center"><u>Edit "{{ucwords(strtolower($clients_data[0]->client_name))}}" Data</u></h4>
@@ -717,8 +773,8 @@
         <tr>
             <td>
                 <div class="row">
-                    <div class="col-sm-6"><strong>Account Number:</strong></div>
-                    <div class="col-sm-6">{{ $clients_data[0]->client_account }}</div>
+                    <div class="col-sm-7"><strong>Account Number:</strong></div>
+                    <div class="col-sm-5">{{ $clients_data[0]->client_account }}</div>
                 </div>
             </td>
             <td>
@@ -764,8 +820,8 @@
         <tr>
             <td>
                 <div class="row">
-                    <div class="col-sm-6"><strong>Phone Number:</strong> <br>{{ $clients_data[0]->clients_contacts }}</div>
-                    <div class="col-sm-6">
+                    <div class="col-sm-7"><strong>Phone Number:</strong> <br>{{ $clients_data[0]->clients_contacts }}</div>
+                    <div class="col-sm-5">
                         @php
                             $btnText = "<i class=\"fas fa-pen\"></i> Edit";
                             $otherClasses = "w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
@@ -796,8 +852,8 @@
                 @if ($clients_data[0]->validated == "1")
                     @if ($clients_data[0]->client_status == 1)
                         <div class="row">
-                            <div class="col-sm-6"><strong>User status: <div class='badge badge-success'>Activated</div></strong></div>
-                            <div class="col-sm-6">
+                            <div class="col-sm-7"><strong>User status: <div class='badge badge-success'>Activated</div></strong></div>
+                            <div class="col-sm-5">
                             @php
                                 $btnText = "De-Activate";
                                 $otherClasses = ($clients_data[0]->client_freeze_status == "1" ? "disabled":"")." w-100 my-1";
@@ -808,8 +864,8 @@
                         </div>
                     @else
                         <div class="row">
-                            <div class="col-sm-6"><strong>User status: <div class='badge badge-danger'>De-activated</div></strong></div>
-                            <div class="col-sm-6">
+                            <div class="col-sm-7"><strong>User status: <div class='badge badge-danger'>De-activated</div></strong></div>
+                            <div class="col-sm-5">
                                 @php
                                     $btnText = "Activate";
                                     $otherClasses = ($clients_data[0]->client_freeze_status == "1" ? "disabled $readonly":"$readonly")." w-100 my-1";
@@ -868,8 +924,8 @@
         <tr>
             <td>
                 <div class="row">
-                    <div class="col-sm-6"><strong>Expiration Date:</strong> <br>{{$expire_date ? $expire_date : "Null"}}</div>
-                    <div class="col-sm-6"> 
+                    <div class="col-sm-7"><strong>Expiration Date:</strong> <br>{{$expire_date ? $expire_date : "Null"}}</div>
+                    <div class="col-sm-5"> 
                         @php
                             $btnText = "<i class=\"fas fa-pen\"></i> Edit";
                             $otherClasses = "w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
@@ -922,12 +978,12 @@
             </td>
         </tr>
         <tr>
-            <td colspan="2">
+            <td>
                 <div class="row">
-                    <div class="col-md-9">
+                    <div class="col-md-7">
                         <strong>Comment:</strong> <br><p>{{isset($clients_data[0]->comment) ? ucwords(strtolower($clients_data[0]->comment)) : "No comments set!"}} </p>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-5">
                         @php
                             $btnText = "<i class=\"fas fa-pen\"></i> Edit";
                             $otherClasses = "w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
@@ -935,6 +991,24 @@
                         @endphp
                         <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                         {{-- <button {{$readonly}} class="btn btn-infor btn-sm mx-1 text-xxs text-secondary {{$clients_data[0]->validated == 0 ? "d-none" : ""}}" id="edit_comments"><i class="fas fa-pen"></i> Edit</button> --}}
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="row">
+                    <div class="col-md-7">
+                        <strong>Initiate Payment:</strong> 
+                        @if (date("Ymd") < 20251030)
+                            <span class="badge bg-info text-center fa-beat-fade">New</span>
+                        @endif <br><p>Use STK push to make it easier for the client to pay!</p>
+                    </div>
+                    <div class="col-md-5">
+                        @php
+                            $btnText = "<i class=\"fas fa-money-bill\"></i> Initiate Payment";
+                            $otherClasses = "w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                            $btn_id = "initiate_payment";
+                        @endphp
+                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                     </div>
                 </div>
             </td>

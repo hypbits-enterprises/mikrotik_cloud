@@ -37,6 +37,7 @@ class VerifyCsrfToken extends Middleware
         'wireless_settings',
         '/Client-due-demographics',
         '/New-Invoice',
-        '/register_mpesa_url'
+        '/register_mpesa_url',
+        '/Payment/stkpush'
     ];
 }

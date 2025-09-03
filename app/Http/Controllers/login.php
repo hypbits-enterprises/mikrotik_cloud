@@ -125,6 +125,7 @@ class login extends Controller
                     $mail->send();
                     $message_status = 1;
                 }
+                $message = "Your verification code is ".$random_no.". It will expire in 5 minutes";
 
 
                 // save the sms in the database
@@ -379,14 +380,14 @@ class login extends Controller
             $message_status = 1;
 
             // save the sms in the database
-            $sms_table = new sms_table();
-            $sms_table->sms_content = $message_2;
-            $sms_table->date_sent = date("YmdHis");
-            $sms_table->recipient_phone = $user_data[0]->contacts;
-            $sms_table->sms_status = $message_status;
-            $sms_table->account_id = "0";
-            $sms_table->sms_type = "2";
-            $sms_table->save();
+            // $sms_table = new sms_table();
+            // $sms_table->sms_content = $message_2;
+            // $sms_table->date_sent = date("YmdHis");
+            // $sms_table->recipient_phone = $user_data[0]->contacts;
+            // $sms_table->sms_status = $message_status;
+            // $sms_table->account_id = "0";
+            // $sms_table->sms_type = "2";
+            // $sms_table->save();
             session()->flash("success", "We have sent you a new password to your email, it expires in 5 minutes!");
         } else{
             // GET THE SMS KEYS FROM THE DATABASE
@@ -408,14 +409,14 @@ class login extends Controller
             $message_status = 1;
 
             // save the sms in the database
-            $sms_table = new sms_table();
-            $sms_table->sms_content = $message;
-            $sms_table->date_sent = date("YmdHis");
-            $sms_table->recipient_phone = $user_data[0]->contacts;
-            $sms_table->sms_status = $message_status;
-            $sms_table->account_id = "0";
-            $sms_table->sms_type = "2";
-            $sms_table->save();
+            // $sms_table = new sms_table();
+            // $sms_table->sms_content = $message;
+            // $sms_table->date_sent = date("YmdHis");
+            // $sms_table->recipient_phone = $user_data[0]->contacts;
+            // $sms_table->sms_status = $message_status;
+            // $sms_table->account_id = "0";
+            // $sms_table->sms_type = "2";
+            // $sms_table->save();
             session()->flash("success", "We have sent you a new password to your phone number, it expires in 5 minutes!");
         }
         return redirect("/Hypbits");
