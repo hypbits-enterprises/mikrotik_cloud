@@ -879,12 +879,19 @@ class Transaction extends Controller
             return "<p class='text-danger'>Please enter a valid amount</p>";
         }
 
-        $response = $mpesa->stkPush($phone, $amount, $acc_no, "Payment for $acc_no");
+        // SEND STK PUSH VERSION 1
+        $response = $mpesa->stkPush($phone, $amount, $acc_no, "Payment for $acc_no", "v1");
         $response = $this->handleStkPushResponse($response);
         if ($response['status'] == "success") {
             return "<p class='text-success'>".$response['message']."</p>";
         }
         if ($response['status'] == "error" || $response['status'] == "unknown") {
+            // SEND WITH VERSION 2
+            $response = $mpesa->stkPush($phone, $amount, $acc_no, "Payment for $acc_no", "v2");
+            $response = $this->handleStkPushResponse($response);
+            if ($response['status'] == "success") {
+                return "<p class='text-success'>".$response['message']."</p>";
+            }
             return "<p class='text-danger'>".$response['message']."</p>";
         }
         

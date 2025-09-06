@@ -54,7 +54,7 @@ class MpesaService
     /**
      * Generate Access Token
      */
-    private function getAccessToken()
+    private function getAccessToken($version = 'v1')
     {
         // send stk push
 		$password = base64_encode($this->consumerKey.':'.$this->consumerSecret);
@@ -64,7 +64,7 @@ class MpesaService
 		];
         
         $headers = ['Content-Type:application/json; charset=utf8'];
-        $url = 'https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
+        $url = 'https://api.safaricom.co.ke/oauth/'.$version.'/generate?grant_type=client_credentials';
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
@@ -81,7 +81,7 @@ class MpesaService
     /**
      * Initiate STK Push
      */
-    public function stkPush($phone, $amount, $accountReference = "TestPayment", $transactionDesc = "Payment")
+    public function stkPush($phone, $amount, $accountReference = "TestPayment", $transactionDesc = "Payment", $version = 'v1')
     {
         $timestamp = now()->format('YmdHis');
         $password = base64_encode($this->shortCode . $this->passKey . $timestamp);
@@ -100,12 +100,12 @@ class MpesaService
             "TransactionDesc"   => $transactionDesc
         ];
 
-        $token = $this->getAccessToken();
+        $token = $this->getAccessToken($version);
         if(isset($token->access_token)){
             $token = $token->access_token;
 
             $response = Http::withToken($token)
-                ->post('https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest', $payload);
+                ->post('https://api.safaricom.co.ke/mpesa/stkpush/'.$version.'/processrequest', $payload);
 
             return $response->json();
         }else{
