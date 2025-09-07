@@ -151,6 +151,55 @@ class Controller extends BaseController
 
         return $response;
     }
+    
+
+    function sendTalkSasaSms($message, $phone, $apiKey, $senderId)
+    {
+        $url = "https://bulksms.talksasa.com/api/v3/sms/send";
+        $phone = explode(",",$phone);
+        $phone = array_map(function($num) {
+            return $this->formatKenyanPhone($num);
+        }, $phone);
+        $phone = implode(",", $phone);
+
+        $payload = [
+            "recipient" => $phone,
+            "sender_id" => $senderId,
+            "message" => $message,
+            "type" => "plain", // or 'unicode' if sending special characters
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FAILONERROR    => false,
+            CURLOPT_HTTPHEADER     => [
+                "Authorization: Bearer " . $apiKey,
+                "Accept: application/json",
+                "Content-Type: application/json",
+            ],
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => json_encode($payload),
+        ]);
+
+        $response = curl_exec($ch);
+        $error    = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($response === false) {
+            return ["success" => false, "response" => "cURL error: {$error}"];
+        }
+
+        $decoded = json_decode($response, true);
+
+        return [
+            "success"  => $httpCode >= 200 && $httpCode < 300,
+            "status"   => $httpCode,
+            "response" => $decoded ?: $response,
+        ];
+    }
+
 
     function sendAfrokattSMS($message, $phone_number, $apikey, $shortcode) {
         $client_phone = explode(",",$phone_number);
@@ -208,6 +257,8 @@ class Controller extends BaseController
             return $this->sendAfrokattSMS($message, $phone_number, $apiKey, $shortcode);
         } elseif ($smsSender == "celcom") {
             return $this->sendCelcomSMS($message, $phone_number, $apiKey, $shortcode, $partnerID);
+        } elseif ($smsSender == "talksasa") {
+            return $this->sendTalkSasaSms($message, $phone_number, $apiKey, $shortcode);
         }
         return null;
     }
@@ -271,6 +322,39 @@ class Controller extends BaseController
             $response = json_decode($response, true);
             if (isset($response['response']['code']) && $response['response']['code'] == 200) {
                 return round($response['response']['account']['smsBalance'])." SMS";
+            }
+        }elseif ($smsSender == "talksasa") {
+            $url = "https://bulksms.talksasa.com/api/v3/balance";
+            $payload = [];
+
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FAILONERROR    => false,
+                CURLOPT_HTTPHEADER     => [
+                    "Authorization: Bearer " . $apikey,
+                    "Accept: application/json",
+                ],
+            ]);
+
+            $response = curl_exec($ch);
+            $error    = curl_error($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($response === false) {
+                return "Can`t fetch balance now!";
+            }
+
+            $decoded = json_decode($response, true);
+
+            $response = [
+                "success"  => $httpCode >= 200 && $httpCode < 300,
+                "status"   => $httpCode,
+                "response" => $decoded ?: $response,
+            ];
+            if(isset($response['response']['data']['remaining_balance'])){
+                return number_format(substr($response['response']['data']['remaining_balance'], 3))." SMS";
             }
         }
         return "0 SMS";

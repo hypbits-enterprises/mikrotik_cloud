@@ -408,6 +408,7 @@
                                   <option {{$organization->sms_sender == "celcom" ? "selected" : ""}} value="celcom">Celcom Kenya</option>
                                   <option {{$organization->sms_sender == "afrokatt" ? "selected" : ""}} value="afrokatt">Afrokatt Kenya</option>
                                   <option {{$organization->sms_sender == "hostpinnacle" ? "selected" : ""}} value="hostpinnacle">Hostpinnacle Kenya</option>
+                                  <option {{$organization->sms_sender == "talksasa" ? "selected" : ""}} value="talksasa">Talk Sasa Kenya</option>
                                 </select>
                               </div>
                             </div>

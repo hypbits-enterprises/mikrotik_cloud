@@ -582,7 +582,12 @@ class Transaction extends Controller
                     $message = "";
                     $sms_type = 1;
     
-                    $mobile = "254$phone_db"; // Bulk messages can be comma separated
+                    // $mobile = "254$phone_db"; // Bulk messages can be comma separated
+                    $phone = explode(",",$phone_db);
+                    $phone = array_map(function($num) {
+                        return $this->formatKenyanPhone($num);
+                    }, $phone);
+                    $mobile = implode(",", $phone);
                     // send sms
                     $message_contents = $this->get_sms();
                     $message = "";
@@ -637,7 +642,7 @@ class Transaction extends Controller
                             // send sms
                             $message_contents = $this->get_sms();
                             $message = $message_contents[1]->messages[2]->message;
-                            if ($message && (session()->has("organization") && session("organization")->send_sms == 1)) {// replace false with message above
+                            if ($message) {// replace false with message above
                                 $trans_amount = $refferal_amount;
                                 $refferer_id = trim($jsonMpesaResponse['BillRefNumber']);
 
