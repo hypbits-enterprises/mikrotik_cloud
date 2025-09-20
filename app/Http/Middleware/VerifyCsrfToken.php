@@ -38,6 +38,7 @@ class VerifyCsrfToken extends Middleware
         '/Client-due-demographics',
         '/New-Invoice',
         '/register_mpesa_url',
-        '/Payment/stkpush'
+        '/Payment/stkpush',
+        '/router_clients/{acc_name}/{r_name}'
     ];
 }

@@ -154,6 +154,10 @@ Route::get("/activate/{userid}", [Clients::class, "activate"]);
 Route::get("/activate/{userid}/{db_name}", [Clients::class, "activate"]);
 Route::get("/activate/{userid}/{db_name}/{subdirectory}", [Clients::class, "activate"]);
 
+
+// ROUTER QUERIES CLIENTS
+Route::get("/router_clients/{acc_name}/{r_name}", [Clients::class, "getRouterClientInfo"]);
+
 // deactivate and activate the user api
 // Route::get("/deactivate_user/{userid}",[Clients::class,"deactivate2"]);
 // Route::get("/activate_user/{userid}",[Clients::class,"activate2"]);

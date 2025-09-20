@@ -251,6 +251,7 @@ class Controller extends BaseController
         if ((session()->has("organization") && session("organization")->send_sms == 0)) {
             return null;
         }
+
         if ($smsSender == "hostpinnacle") {
             return $this->sendHostPinnacleSMS($message, $phone_number, $apiKey, $partnerID, $shortcode);
         } elseif ($smsSender == "afrokatt") {
