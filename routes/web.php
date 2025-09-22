@@ -157,6 +157,7 @@ Route::get("/activate/{userid}/{db_name}/{subdirectory}", [Clients::class, "acti
 
 // ROUTER QUERIES CLIENTS
 Route::get("/router_clients/{acc_name}/{r_name}", [Clients::class, "getRouterClientInfo"]);
+Route::get("/my_global_config", [Clients::class, "getMyGlobalConfig"]);
 
 // deactivate and activate the user api
 // Route::get("/deactivate_user/{userid}",[Clients::class,"deactivate2"]);

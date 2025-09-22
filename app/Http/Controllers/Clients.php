@@ -5732,6 +5732,85 @@ $export_text .= "
         ]);
     }
 
+    function getMyGlobalConfig(Request $req){
+        $router_ip_address = $req->input("ip_address");
+        if(empty($router_ip_address)){
+            return response()->json(["success" => false, "message" => "IP address is required"]);
+        }
+
+        // get the ip address from the active connections
+
+        // get the server details
+        $sstp_settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
+        if (count($sstp_settings) == 0) {
+            return response()->json(["success" => false, "message" => "An error has occured!"]);
+        }
+        $sstp_value = $this->isJson($sstp_settings[0]->value) ? json_decode($sstp_settings[0]->value) : null;
+        if ($sstp_value == null) {
+            return response()->json(["success" => false, "message" => "An error has occured!"]);
+        }
+        
+        // connect to the chr and get the active connections
+        $server_ip_address = $sstp_value->ip_address;
+        $user = $sstp_value->username;
+        $pass = $sstp_value->password;
+        $port = $sstp_value->port;
+
+        // check if the router is actively connected
+        $API = new routeros_api();
+        $API->debug = false;
+
+        if ($API->connect($server_ip_address, $user, $pass, $port)) {
+            // connect and get the 
+            $active = $API->comm("/ppp/active/print");
+
+            // loop through the active routers to get if the router is active or not so that we connect
+            $router_username = null;
+            for ($index = 0; $index < count($active); $index++) {
+                if ($active[$index]['address'] == $router_ip_address) {
+                    $router_username = $active[$index]['name'];
+                    break;
+                }
+            }
+
+            // check the router username
+            if(empty($router_username)) {
+                return response()->json(["success" => false, "message" => "Router not active"]);
+            }
+
+            // check secrets
+            $secrets = $API->comm("/ppp/secret/print", array(
+                "?name" => $router_username
+            ));
+
+            if (count($secrets) == 0) {
+                return response()->json(["success" => false, "message" => "Router not active"]);
+            }
+
+            // get the router username and password
+            $secret_username = $secrets[0]['name'];
+            $secret_password = $secrets[0]['password'];
+
+            // go through the organizations
+            $organizations = DB::select("SELECT * FROM organizations WHERE organization_status = '1'");
+            foreach($organizations as $key => $org){
+                $org_db = $org->organization_database;
+                // change db
+                $change_db = new login();
+                $change_db->change_db($org_db);
+
+                // check if the username and password is present
+                $check = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `sstp_username` = ? AND `sstp_password` = ?",[$secret_username, $secret_password]);
+                if(count($check) > 0){
+                    return response()->json(["success" => true, "domain" => "http://192.168.86.16:8000", "router_id" => $check[0]->router_id, "account" => $org->organization_database]);
+                }
+            }
+            
+            $API->disconnect();
+        }
+        return response()->json(["success" => false, "message" => "An error has occured!"]);
+    }
+
 
     function client_account_action($client_data){
         // send the message
@@ -5765,46 +5844,49 @@ $export_text .= "
             $wallet_balance = $wallet_amount - $monthly_payment;
 
             // update the client
-            // $update = DB::connection("mysql2")->select("UPDATE `client_tables` SET `client_status` = '1', `date_changed` = '".date("YmdHis")."', `next_expiration_date` = ?, `wallet_amount` = ? WHERE `client_id` = ?",[$next_expiry_date,$wallet_balance,$client_id]);
+            $update = DB::connection("mysql2")->select("UPDATE `client_tables` SET `client_status` = '1', `date_changed` = '".date("YmdHis")."', `next_expiration_date` = ?, `wallet_amount` = ? WHERE `client_id` = ?",[$next_expiry_date,$wallet_balance,$client_id]);
 
             // activate the user
-            // if ($client_data->client_status == 0) {
-            //     $message_contents = $this->get_sms();
-            //     $message = $message_contents[2]->messages[0]->message;
-            //     if (!empty($message)) {
-            //         $trans_amount = 0;
-            //         $message = $this->message_content($message, $client_id, $trans_amount);
-            //         $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+            if ($client_data->client_status == 0) {
+                $message_contents = $this->get_sms();
+                $message = $message_contents[2]->messages[0]->message;
+                if (!empty($message)) {
+                    $trans_amount = 0;
+                    $message = $this->message_content($message, $client_id, $trans_amount);
+                    $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
 
-            //         // if the message status is one the message is already sent to the user
-            //         $sms_table = new sms_table();
-            //         $sms_table->sms_content = $message;
-            //         $sms_table->date_sent = date("YmdHis");
-            //         $sms_table->recipient_phone = $mobile;
-            //         $sms_table->sms_status = "1";
-            //         $sms_table->account_id = $client_id;
-            //         $sms_table->sms_type = "1";
-            //         $sms_table->save();
-            //     }
-            // }else {
-            //     $message_contents = $this->get_sms();
-            //     $message = $message_contents[2]->messages[1]->message;
-            //     if ($message) {
-            //         $trans_amount = 0;
-            //         $message = $this->message_content($message, $client_id, $trans_amount);
-            //         $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+                    // if the message status is one the message is already sent to the user
+                    $sms_table = new sms_table();
+                    $sms_table->sms_content = $message;
+                    $sms_table->date_sent = date("YmdHis");
+                    $sms_table->recipient_phone = $mobile;
+                    $sms_table->sms_status = "1";
+                    $sms_table->account_id = $client_id;
+                    $sms_table->sms_type = "1";
+                    $sms_table->save();
+                }
+            }else {
+                $message_contents = $this->get_sms();
+                $message = $message_contents[2]->messages[1]->message;
+                if ($message) {
+                    $trans_amount = 0;
+                    $message = $this->message_content($message, $client_id, $trans_amount);
+                    $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
 
-            //         // if the message status is one the message is already sent to the user
-            //         $sms_table = new sms_table();
-            //         $sms_table->sms_content = $message;
-            //         $sms_table->date_sent = date("YmdHis");
-            //         $sms_table->recipient_phone = $mobile;
-            //         $sms_table->sms_status = "1";
-            //         $sms_table->account_id = $client_id;
-            //         $sms_table->sms_type = "1";
-            //         $sms_table->save();
-            //     }
-            // }
+                    // if the message status is one the message is already sent to the user
+                    $sms_table = new sms_table();
+                    $sms_table->sms_content = $message;
+                    $sms_table->date_sent = date("YmdHis");
+                    $sms_table->recipient_phone = $mobile;
+                    $sms_table->sms_status = "1";
+                    $sms_table->account_id = $client_id;
+                    $sms_table->sms_type = "1";
+                    $sms_table->save();
+                }
+            }
+            // log message
+            $txt = ":Client (" . $client_data->client_name . " - " . $client_data->client_account . ") activated by " . (session()->has('Usernames') ? session('Usernames') : "System");
+            $this->log($txt);
             return ["user_status" => "activated"];
         }else {
             $minimum_pay = ceil($monthly_payment * ($min_amount / 100));
@@ -5812,82 +5894,95 @@ $export_text .= "
             // the minimum pay should not be less than 0
             if ($minimum_pay > 0) {
                 if ($wallet_amount < $minimum_pay) {
-                    // if ($client_data->client_status == 1) {
-                    //     $message_contents = $this->get_sms();
-                    //     $message = $message_contents[2]->messages[2]->message;
-                    //     if ($message) {
-                    //         $trans_amount = 0;
-                    //         $message = $this->message_content($message, $client_id, $trans_amount);
-                    //         $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+                    if ($client_data->client_status == 1) {
+                        $message_contents = $this->get_sms();
+                        $message = $message_contents[2]->messages[2]->message;
+                        if ($message) {
+                            $trans_amount = 0;
+                            $message = $this->message_content($message, $client_id, $trans_amount);
+                            $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
 
-                    //         // if the message status is one the message is already sent to the user
-                    //         $sms_table = new sms_table();
-                    //         $sms_table->sms_content = $message;
-                    //         $sms_table->date_sent = date("YmdHis");
-                    //         $sms_table->recipient_phone = $mobile;
-                    //         $sms_table->sms_status = "1";
-                    //         $sms_table->account_id = $client_id;
-                    //         $sms_table->sms_type = "1";
-                    //         $sms_table->save();
-                    //     }
-                    // }
+                            // if the message status is one the message is already sent to the user
+                            $sms_table = new sms_table();
+                            $sms_table->sms_content = $message;
+                            $sms_table->date_sent = date("YmdHis");
+                            $sms_table->recipient_phone = $mobile;
+                            $sms_table->sms_status = "1";
+                            $sms_table->account_id = $client_id;
+                            $sms_table->sms_type = "1";
+                            $sms_table->save();
+                        }
+                    }
                     
                     // update the client
-                    // $update = DB::connection("mysql2")->select("UPDATE `client_tables` SET `client_status` = '0', `date_changed` = '".date("YmdHis")."' WHERE `client_id` = ?",[$client_id]);
+                    $update = DB::connection("mysql2")->select("UPDATE `client_tables` SET `client_status` = '0', `date_changed` = '".date("YmdHis")."' WHERE `client_id` = ?",[$client_id]);
+                    // log message
+                    $txt = ":Client (" . $client_data->client_name . " - " . $client_data->client_account . ") deactivated by " . (session()->has('Usernames') ? session('Usernames') : "System");
+                    $this->log($txt);
                     return ["user_status" => "deactivated"];
                 }else {
                     // if the amount in the wallet is greater than the minimum
                     // get the percentage of the amount and know till when 
                     // will the amount take them for a 30 day period
-                    // $percentage = ($wallet_amount/$monthly_payment) * 100;
-                    // $dayed = round(($percentage/100) * 30,1);
-                    // // check if it gives hours and days so that they days and hours are added
+                    $percentage = ($wallet_amount/$monthly_payment) * 100;
+                    $dayed = round(($percentage/100) * 30,1);
+                    // check if it gives hours and days so that they days and hours are added
 
-                    // // split to get days and hours
-                    // $days = explode(".",$dayed);
-                    // $time_period = "0 hours";
-                    // if (count($days) > 0) {
-                    //     // means it has both days and hours
-                    //     $day = $days[0];
-                    //     $hours = isset($days[1]) ? round(($days[1]/10) * 24) : 0;
-                    //     $time_period = $day." days ".$hours." hours";
-                    // }else {
-                    //     $time_period = $days[0]." days";
-                    // }
+                    // split to get days and hours
+                    $days = explode(".",$dayed);
+                    $time_period = "0 hours";
+                    if (count($days) > 0) {
+                        // means it has both days and hours
+                        $day = $days[0];
+                        $hours = isset($days[1]) ? round(($days[1]/10) * 24) : 0;
+                        $time_period = $day." days ".$hours." hours";
+                    }else {
+                        $time_period = $days[0]." days";
+                    }
                     
                     
-                    // // next expiration date
-                    // $NextExpDate = date("YmdHis",strtotime($time_period));
-                    // $wallet_amount = 0;
+                    // next expiration date
+                    $NextExpDate = date("YmdHis",strtotime($time_period));
+                    $wallet_amount = 0;
 
-                    // // update the client
-                    // $update = DB::connection("mysql2")->select("UPDATE `client_tables` SET `client_status` = '1', `date_changed` = '".date("YmdHis")."', `next_expiration_date` = ?, `wallet_amount` = ? WHERE `client_id` = ?",[$NextExpDate,$wallet_amount,$client_id]);
+                    // update the client
+                    $update = DB::connection("mysql2")->select("UPDATE `client_tables` SET `client_status` = '1', `date_changed` = '".date("YmdHis")."', `next_expiration_date` = ?, `wallet_amount` = ? WHERE `client_id` = ?",[$NextExpDate,$wallet_amount,$client_id]);
                     
-                    // // send sms
-                    // $message_contents = $this->get_sms();
-                    // $message = $message_contents[2]->messages[1]->message;
-                    // if ($message) {
-                    //     $trans_amount = 0;
-                    //     $message = $this->message_content($message, $client_id, $trans_amount);
-                    //     $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+                    // send sms
+                    $message_contents = $this->get_sms();
+                    $message = $message_contents[2]->messages[1]->message;
+                    if ($message) {
+                        $trans_amount = 0;
+                        $message = $this->message_content($message, $client_id, $trans_amount);
+                        $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
 
-                    //     // if the message status is one the message is already sent to the user
-                    //     $sms_table = new sms_table();
-                    //     $sms_table->sms_content = $message;
-                    //     $sms_table->date_sent = date("YmdHis");
-                    //     $sms_table->recipient_phone = $mobile;
-                    //     $sms_table->sms_status = "1";
-                    //     $sms_table->account_id = $client_id;
-                    //     $sms_table->sms_type = "1";
-                    //     $sms_table->save();
-                    // }
+                        // if the message status is one the message is already sent to the user
+                        $sms_table = new sms_table();
+                        $sms_table->sms_content = $message;
+                        $sms_table->date_sent = date("YmdHis");
+                        $sms_table->recipient_phone = $mobile;
+                        $sms_table->sms_status = "1";
+                        $sms_table->account_id = $client_id;
+                        $sms_table->sms_type = "1";
+                        $sms_table->save();
+                    }
+                    // log message
+                    $txt = ":Client (" . $client_data->client_name . " - " . $client_data->client_account . ") activated by " . (session()->has('Usernames') ? session('Usernames') : "System");
+                    $this->log($txt);
                     return ["user_status" => "activated"];
                 }
             }else {
                 // deactivate the client
+                // log message
+                $txt = ":Client (" . $client_data->client_name . " - " . $client_data->client_account . ") deactivated by " . (session()->has('Usernames') ? session('Usernames') : "System");
+                $this->log($txt);
                 return ["user_status" => "deactivated"];
             }
         }
+
+        // log message
+        $txt = ":Client (" . $client_data->client_name . " - " . $client_data->client_account . ") deactivated by " . (session()->has('Usernames') ? session('Usernames') : "System");
+        $this->log($txt);
         return ["user_status" => "deactivated"];
     }
 
