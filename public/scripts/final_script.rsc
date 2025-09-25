@@ -28,15 +28,22 @@
 
 # Mikrotik script (RouterOS v6.x)
 :local apiUrl "$domain/router_clients/$userAccount/$routerId"
+
 #:local apiUrl "http://192.168.86.16:8000/router_clients/mikrotik_cloud/22"
 
 #:log info ("[API-SYNC] starting fetch from " . $apiUrl)
 
-/tool fetch url=$apiUrl mode=https keep-result=yes dst-path=client_list.txt
+#create the file if its not present
+:local f [/file find name="client_list.txt"]
+:if ([:len $f] = 0) do={
+    :put "Create the file"
+    /file print file="client_list.txt"
+}
+/tool fetch url=$apiUrl mode=http keep-result=yes dst-path=client_list.txt
 
 # read file contents (string)
 :local content [/file get client_list.txt contents]
-
+:put $content;
 #ACTIVE STATIC CLIENTS
 :local start [:find $content "\"active_static\":["]
 :local end [:find $content "]" $start]
@@ -52,7 +59,6 @@ if ([:len $subStr] > 0) do= {
         :local netStart [:find $obj "\"network\":\""]
         :local netEnd [:find $obj "\",\"gateway\"" $netStart]
         :local network [:pick $obj ($netStart + 11) $netEnd]
-        :put "Network = $network";
 
         #GATEWAY
         :local gwStart [:find $obj "\"gateway\":\""]
@@ -114,7 +120,7 @@ if ([:len $subStr] > 0) do= {
 
         # take prefix up to the last dot (10.10.70.)
         :local prefix [:pick $network 0 ($thirdDot + 1)]
-        
+               
         :local regex ("^" . $prefix . "[0-9]+/24")
         :put $regex;
 
@@ -176,7 +182,7 @@ if ([:len $subStr] > 0) do= {
 #:put $subStr;
 
 if ([:len $subStr] > 0) do= {
-    :local objects [:toarray ($subStr)]
+:local objects [:toarray ($subStr)]
     :set objects [:toarray [:pick $subStr 0 [:len $subStr]]]
     #:put $objects;
     
@@ -206,9 +212,13 @@ if ([:len $subStr] > 0) do= {
 }
 
 # Clean up temporary file
-/file remove $tmpFile
+:local fileId [/file find name="client_list.txt"]
+:if ([:len $fileId] > 0) do={
+    /file remove $fileId
+}
 
 # Restore logging state silently
 :foreach logEntry in=$loggingState do={
     /system logging set $logEntry disabled=no
 }
+:put "Script completed successfully."

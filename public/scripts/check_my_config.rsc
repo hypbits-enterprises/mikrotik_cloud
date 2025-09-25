@@ -20,6 +20,11 @@
     :local apiUrl "http://192.168.86.16:8000/my_global_config?ip_address=$ipAddress";
     :put $apiUrl;
     
+    #check if the file is present
+    :if ([:len [/file find name="global_config.txt"]] = 0) do={
+        /file print file="global_config.txt"
+    }
+    
     /tool fetch url=$apiUrl mode=https keep-result=yes dst-path=global_config.txt
     :local globalConfig [/file get global_config.txt contents]
     
@@ -65,4 +70,11 @@
         :set $routerId $routerIds
         :set $userAccount $accName
     }
+
+    #delete the file
+    :local f1 [/file find name="global_config.txt"];
+    :if ([:len $f1] > 0) do={
+        /file remove $f1
+    }
 }
+

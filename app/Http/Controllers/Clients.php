@@ -5732,6 +5732,15 @@ $export_text .= "
         ]);
     }
 
+    function upload_client_stats(Request $req){
+        $filePath = public_path('/usage/client_usages/mikrotik_cloud-22-stats.json');
+        if (file_exists($filePath)){
+            // $filePath = public_path('usage/clientStats.json');
+            $fileContent = file_get_contents($filePath);
+            return response()->json(["success" => true, "message" => "Stats uploaded successfully", "content" => $fileContent, "req" => $req->all()]);
+        }
+    }
+
     function getMyGlobalConfig(Request $req){
         $router_ip_address = $req->input("ip_address");
         if(empty($router_ip_address)){
@@ -5743,11 +5752,11 @@ $export_text .= "
         // get the server details
         $sstp_settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
         if (count($sstp_settings) == 0) {
-            return response()->json(["success" => false, "message" => "An error has occured!"]);
+            return response()->json(["success" => false, "message" => "SSTP Server not set!"]);
         }
         $sstp_value = $this->isJson($sstp_settings[0]->value) ? json_decode($sstp_settings[0]->value) : null;
         if ($sstp_value == null) {
-            return response()->json(["success" => false, "message" => "An error has occured!"]);
+            return response()->json(["success" => false, "message" => "SSTP Server not set 2!"]);
         }
         
         // connect to the chr and get the active connections
@@ -5808,7 +5817,7 @@ $export_text .= "
             
             $API->disconnect();
         }
-        return response()->json(["success" => false, "message" => "An error has occured!"]);
+        return response()->json(["success" => false, "message" => "Cannot connect to sstp server $server_ip_address $user $pass $port!"]);
     }
 
 
