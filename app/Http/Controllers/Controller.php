@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use DateTime;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -22,6 +23,92 @@ class Controller extends BaseController
         curl_close($curl_handle);
         $ppp_secrets = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
         return $ppp_secrets;
+    }
+
+    function getLast5MinuteInterval() {
+        $now = new DateTime(); // current time
+
+        // Get current minutes and floor to nearest 5
+        $minutes = (int)$now->format('i');
+        $roundedMinutes = $minutes - ($minutes % 5);
+
+        // Set new time with seconds = 0
+        $now->setTime((int)$now->format('H'), $roundedMinutes, 0);
+
+        return $now->format('YmdHis');
+    }
+
+    function getLast30MinuteInterval() {
+        $now = new DateTime(); // current time
+
+        // Get minutes and floor to 30 min blocks
+        $minutes = (int)$now->format('i');
+        $roundedMinutes = $minutes - ($minutes % 30);
+
+        // Set the minutes & seconds
+        $now->setTime((int)$now->format('H'), $roundedMinutes, 0);
+
+        return $now->format('YmdHis');
+    }
+
+    function getLast6AM() {
+        $now = new DateTime();  
+        
+        // Clone to avoid modifying original
+        $last6am = clone $now;  
+        $last6am->setTime(6, 0, 0);
+
+        // If current time is before today's 6 AM → go back to yesterday 6 AM
+        if ($now < $last6am) {
+            $last6am->modify('-1 day');
+        }
+
+        return $last6am->format('YmdHis');
+    }
+
+    function getLast2HourInterval() {
+        $now = new DateTime(); // current time
+
+        // Get the current hour and floor to nearest multiple of 2
+        $hour = (int)$now->format('H');
+        $roundedHour = $hour - ($hour % 2);
+
+        // Set hours, reset minutes and seconds
+        $now->setTime($roundedHour, 0, 0);
+
+        return $now->format('YmdHis');
+    }
+
+    function parseQueueSpeed($speedStr) {
+        // Split upload/download
+        list($uploadStr, $downloadStr) = explode('/', strtolower(trim($speedStr)));
+
+        // Helper closure to convert string to bits
+        $toBits = function($val) {
+            if (preg_match('/^([\d\.]+)([kmg]?bps)$/', $val, $matches)) {
+                $num = (float)$matches[1];
+                $unit = $matches[2];
+
+                switch ($unit) {
+                    case 'bps':
+                        return (int)$num;
+                    case 'kbps':
+                        return (int)($num * 1000);
+                    case 'mbps':
+                        return (int)($num * 1000 * 1000);
+                    case 'gbps':
+                        return (int)($num * 1000 * 1000 * 1000);
+                    default:
+                        return 0;
+                }
+            }
+            return 0;
+        };
+
+        return [
+            'upload' => $toBits($uploadStr),
+            'download' => $toBits($downloadStr)
+        ];
     }
 
     function getRouterIPAddress($router_id, $database = null){

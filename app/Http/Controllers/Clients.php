@@ -13,7 +13,12 @@ use Illuminate\Support\Facades\DB;
 // use PHPUnit\TextUI\XmlConfiguration\CodeCoverage\Report\Php;
 use App\Models\router_table;
 use App\Models\client_table;
+use App\Models\five_minute_stats;
+use App\Models\one_day_stats;
+use App\Models\one_minute_stats;
 use App\Models\sms_table;
+use App\Models\thirty_minute_stats;
+use App\Models\two_hour_stats;
 use DateInterval;
 use DateTime;
 use Exception;
@@ -5695,31 +5700,23 @@ $export_text .= "
             }
         }
 
-        // go for those that are active and activate them also
+        // go for those that are TO BE ACTIVE BY EXPIRATION DATE AND ACTIVATE THEM
         $client_list = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `next_expiration_date` >= ? AND `payments_status` = '1' AND `deleted` = '0' AND router_name = ?",[date("YmdHis"), $router_id]);
         foreach($client_list as $key => $client){
+            // THESE ARE 
             if($client->assignment == "static"){
-                if($client->client_status == "1"){
-                    array_push($active_static, array(
-                        "network" => $client->client_network,
-                        "gateway" => $client->client_default_gw
-                    ));
-                }else{
-                    array_push($inactive_static, array(
-                        "network" => $client->client_network,
-                        "gateway" => $client->client_default_gw
-                    ));
-                }
+                array_push($active_static, array(
+                    "network" => $client->client_network,
+                    "gateway" => $client->client_default_gw
+                ));
             }else{
-                if($client->client_status == "1"){
-                    array_push($active_pppoe, array(
-                        "secret" => $client->client_secret
-                    ));
-                }else{
-                    array_push($inactive_pppoe, array(
-                        "secret" => $client->client_secret
-                    ));
-                }
+                array_push($active_pppoe, array(
+                    "secret" => $client->client_secret
+                ));
+            }
+            if($client->client_status != "1"){
+                // UPDATE THE STATUS OF THE CLIENT
+                DB::connection("mysql2")->update("UPDATE client_tables SET client_status = '1' WHERE client_id = '".$client->client_id."'");
             }
         }
 
@@ -5733,13 +5730,290 @@ $export_text .= "
     }
 
     function upload_client_stats(Request $req){
-        $filePath = public_path('/usage/client_usages/mikrotik_cloud-22-stats.json');
+        // $filePath = public_path('/usage/client_usages/mikrotik_cloud-22-stats.json');
+        if(empty($req->input("account")) || empty($req->input("router_id"))){
+            return response()->json(["success" => false, "message" => "You lack all parameters!"]);
+        }
+
+        $filePath = public_path('/usage/client_usages/'.$req->input("account").'-'.$req->input("router_id").'-stats.json');
         if (file_exists($filePath)){
-            // $filePath = public_path('usage/clientStats.json');
             $fileContent = file_get_contents($filePath);
-            return response()->json(["success" => true, "message" => "Stats uploaded successfully", "content" => $fileContent, "req" => $req->all()]);
+            if ($this->isJson($fileContent)) {
+                // change db
+                $change_db = new login();
+                $change_db->change_db($req->input("account"));
+
+                // client stats
+                $client_stats = json_decode($fileContent, true);
+                $static_clients = $client_stats['static'];
+                $pppoe_clients = $client_stats['pppoe'];
+
+                // loop through the static clients and update the database
+                foreach ($static_clients as $key => $client) {
+                    $converted_speed = $this->parseQueueSpeed($client['rate']);
+
+                    // insert the one minute interval
+                    $one_minute_stats = new one_minute_stats();
+                    $one_minute_stats->upload = $converted_speed['upload']*1;
+                    $one_minute_stats->download = $converted_speed['download']*1;
+                    $one_minute_stats->account = $client['account'];
+                    $one_minute_stats->date = date("YmdHis");
+                    $one_minute_stats->save();
+
+                    // insert the usage of the client
+                    // check if any record of todays usage has been captured
+                    $check_usage = DB::connection("mysql2")->select("SELECT * FROM client_usage_stats WHERE account = '".$client['account']."' AND date LIKE '".date("Ymd")."%'");
+                    if(count($check_usage) > 0){
+                        // update
+                        $cumulative_download = $check_usage[0]->download*1;
+                        $cumulative_upload = $check_usage[0]->upload*1;
+                        $previous_upload = $check_usage[0]->previous_upload*1;
+                        $previous_download = $check_usage[0]->previous_download*1;
+                        
+                        $upload_add = 0;
+                        if($client['upload']*1 > $previous_upload){
+                            // reset
+                            $upload_add = $client['upload']*1 - $previous_upload;
+                        }elseif($client['upload']*1 < $previous_upload){
+                            // reset
+                            $upload_add = $client['upload']*1;
+                        }
+
+
+                        $download_add = 0;
+                        if($client['download']*1 > $previous_download){
+                            // reset
+                            $download_add = $client['download']*1 - $previous_download;
+                        }elseif($client['download']*1 < $previous_download){
+                            // reset
+                            $download_add = $client['download']*1;
+                        }
+
+                        DB::connection("mysql2")->table('client_usage_stats')
+                        ->where('usage_id', $check_usage[0]->usage_id)
+                        ->update([
+                            'upload' => $cumulative_upload + $upload_add,
+                            'download' => $cumulative_download + $download_add,
+                            'previous_upload' => $client['upload']*1,
+                            'previous_download' => $client['download']*1,
+                            'date' => date("YmdHis")
+                        ]);
+                    }else{
+                        // insert
+                        DB::connection("mysql2")->table('client_usage_stats')
+                        ->insert([
+                            'upload' => $client['upload']*1,
+                            'download' => $client['download']*1,
+                            'previous_upload' => $client['upload']*1,
+                            'previous_download' => $client['download']*1,
+                            'account' => $client['account'],
+                            'date' => date("YmdHis")
+                        ]);
+                    }
+
+                    // process 5 minutes.
+                    $this->processFiveMinutes($client['account']);
+                    // process 30 minutes
+                    $this->processThirtyMinutes($client['account']);
+                    // process 2 hours.
+                    $this->processTwoHours($client['account']);
+                    // process one day
+                    $this->processFullDay($client['account']);
+                }
+
+                // loop through the pppoe clients and update the database
+                foreach ($pppoe_clients as $key => $client) {
+                    // $converted_speed = $this->parseQueueSpeed($client['rate']);
+
+                    // insert the one minute interval
+                    $one_minute_stats = new one_minute_stats();
+                    $one_minute_stats->upload = $client['upload_speed']*1;
+                    $one_minute_stats->download = $client['download_speed']*1;
+                    $one_minute_stats->account = $client['account'];
+                    $one_minute_stats->date = date("YmdHis");
+                    $one_minute_stats->save();
+
+                    // insert the usage of the client
+                    // check if any record of todays usage has been captured
+                    $check_usage = DB::connection("mysql2")->select("SELECT * FROM client_usage_stats WHERE account = '".$client['account']."' AND date LIKE '".date("Ymd")."%'");
+                    if(count($check_usage) > 0){
+                        // update
+                        $cumulative_download = $check_usage[0]->download;
+                        $cumulative_upload = $check_usage[0]->upload;
+                        $previous_upload = $check_usage[0]->previous_upload;
+                        $previous_download = $check_usage[0]->previous_download;
+                        
+                        $upload_add = 0;
+                        if($client['upload']*1 > $previous_upload){
+                            // reset
+                            $upload_add = $client['upload']*1 - $previous_upload;
+                        }elseif($client['upload']*1 < $previous_upload){
+                            // reset
+                            $upload_add = $client['upload']*1;
+                        }
+
+
+                        $download_add = 0;
+                        if($client['download']*1 > $previous_download){
+                            // reset
+                            $download_add = $client['download']*1 - $previous_download;
+                        }elseif($client['download']*1 < $previous_download){
+                            // reset
+                            $download_add = $client['download']*1;
+                        }
+
+                        DB::connection("mysql2")->table('client_usage_stats')
+                        ->where('usage_id', $check_usage[0]->usage_id)
+                        ->update([
+                            'upload' => $cumulative_upload + $upload_add,
+                            'download' => $cumulative_download + $download_add,
+                            'previous_upload' => $client['upload']*1,
+                            'previous_download' => $client['download']*1,
+                            'date' => date("YmdHis")
+                        ]);
+                    }else{
+                        // insert
+                        DB::connection("mysql2")->table('client_usage_stats')
+                        ->insert([
+                            'upload' => $client['upload']*1,
+                            'download' => $client['download']*1,
+                            'previous_upload' => $client['upload']*1,
+                            'previous_download' => $client['download']*1,
+                            'account' => $client['account'],
+                            'date' => date("YmdHis")
+                        ]);
+                    }
+
+                    // process 5 minutes.
+                    $this->processFiveMinutes($client['account']);
+                    // process 30 minutes
+                    $this->processThirtyMinutes($client['account']);
+                    // process 2 hours.
+                    $this->processTwoHours($client['account']);
+                    // process one day
+                    $this->processFullDay($client['account']);
+                }
+
+                // update the router last seen time
+                DB::connection("mysql2")->update("UPDATE remote_routers SET last_seen = ? WHERE router_id = ?",[date("YmdHis"), $req->input("router_id")]);
+
+                // delete the file
+                unlink($filePath);
+                $last_five_minute = $this->getLast5MinuteInterval();
+                $last_thirty_minute = $this->getLast30MinuteInterval();
+                return response()->json(["success" => true, "message" => "Data Uploaded successfully!", "last_five_minute" => $last_thirty_minute, "now" => date("YmdHis")]);
+            }
+        }
+        return response()->json(["success" => false, "message" => "An error has occured!"]);
+    }
+
+    function processFiveMinutes($client_account){
+        // last 5 minutes
+        $last_five_minute = $this->getLast5MinuteInterval();
+
+        // check if the one minute records are 5 in number and get their averages
+        $one_minute_records = DB::connection("mysql2")->select("SELECT * FROM one_minute_stats WHERE account = '$client_account' AND `date` >= '".$last_five_minute."' ORDER BY stat_id DESC");
+        if(count($one_minute_records) >= 5){
+            $total_upload = 0;
+            $total_download = 0;
+            foreach($one_minute_records as $key => $record){
+                $total_upload += $record->upload;
+                $total_download += $record->download;
+            }
+                
+            // insert the avarage upload and download to the two_hour_stats table
+            $five_minute_stats = new five_minute_stats();
+            $five_minute_stats->upload = $total_upload / count($one_minute_records);
+            $five_minute_stats->download = $total_download / count($one_minute_records);
+            $five_minute_stats->account = $client_account;
+            $five_minute_stats->date = date("YmdHis");
+            $five_minute_stats->save();
+                
+            // delete the one minute record
+            DB::connection("mysql2")->delete("DELETE FROM one_minute_stats WHERE `date` < '".$last_five_minute."'");
         }
     }
+
+    function processThirtyMinutes($client_account){
+        // last thirty minute interval
+        $last_thirty_minute = $this->getLast30MinuteInterval();
+
+        // check if the five minute records are 6 in number and get their averages
+        $five_minute_records = DB::connection("mysql2")->select("SELECT * FROM five_minute_stats WHERE account = '$client_account' AND `date` >= '".$last_thirty_minute."' ORDER BY stat_id DESC");
+        if(count($five_minute_records) >= 6){
+            $total_upload = 0;
+            $total_download = 0;
+            foreach($five_minute_records as $key => $record){
+                $total_upload += $record->upload;
+                $total_download += $record->download;
+            }
+                
+            // delete the five minute record if the date is more than two weeks
+            DB::connection("mysql2")->delete("DELETE FROM five_minute_stats WHERE `date` < '".date("YmdHis", strtotime("-7 days"))."'");
+                
+            // insert the avarage upload and download to the two_hour_stats table
+            $thirty_minute_stats = new thirty_minute_stats();
+            $thirty_minute_stats->upload = $total_upload / count($five_minute_records);
+            $thirty_minute_stats->download = $total_download / count($five_minute_records);
+            $thirty_minute_stats->account = $client_account;
+            $thirty_minute_stats->date = date("YmdHis");
+            $thirty_minute_stats->save();
+        }
+    }
+
+    function processTwoHours($client_account){
+        // last_two_hour
+        $last_two_hour = $this->getLast2HourInterval();
+        // check if the thirty minute records are 4 in number and get their averages
+        $thirty_minute_records = DB::connection("mysql2")->select("SELECT * FROM thirty_minute_stats WHERE account = '$client_account' AND `date` > '".$last_two_hour."' ORDER BY stat_id DESC");
+        if(count($thirty_minute_records) >= 4){
+            $total_upload = 0;
+            $total_download = 0;
+            foreach($thirty_minute_records as $key => $record){
+                $total_upload += $record->upload;
+                $total_download += $record->download;
+            }
+
+            // delete the thirty minute record if the date is more than two months
+            DB::connection("mysql2")->delete("DELETE FROM thirty_minute_stats WHERE `date` < '".date("YmdHis", strtotime("-30 days"))."'");
+
+            // insert the avarage upload and download to the two_hour_stats table
+            $two_hour_stats = new two_hour_stats();
+            $two_hour_stats->upload = $total_upload / count($thirty_minute_records);
+            $two_hour_stats->download = $total_download / count($thirty_minute_records);
+            $two_hour_stats->account = $client_account;
+            $two_hour_stats->date = date("YmdHis");
+            $two_hour_stats->save();
+        }
+    }
+
+    function processFullDay($client_account){
+        $last_one_date = $this->getLast6AM();
+        // check if the two hour records are 12 in number and get their averages
+        $two_hour_records = DB::connection("mysql2")->select("SELECT * FROM two_hour_stats WHERE account = '$client_account' AND `date` > '".$last_one_date."' ORDER BY stat_id DESC");
+        if(count($two_hour_records) >= 12){
+            $total_upload = 0;
+            $total_download = 0;
+            foreach($two_hour_records as $key => $record){
+                $total_upload += $record->upload;
+                $total_download += $record->download;
+            }
+            // delete the two hour record if the date is more than two months
+            DB::connection("mysql2")->delete("DELETE FROM two_hour_stats WHERE `date` < '".date("YmdHis", strtotime("-2 months"))."'");
+
+            // insert the avarage upload and download to the one_day_stats table
+            $one_day_stats = new one_day_stats();
+            $one_day_stats->upload = $total_upload / count($two_hour_records);
+            $one_day_stats->download = $total_download / count($two_hour_records);
+            $one_day_stats->account = $client_account;
+            $one_day_stats->date = date("YmdHis");
+            $one_day_stats->save();
+
+            // delete the two hour record if the date is more than one year
+            DB::connection("mysql2")->delete("DELETE FROM one_day_stats WHERE `date` < '".date("YmdHis", strtotime("-365 days"))."'");
+        }
+    }
+
 
     function getMyGlobalConfig(Request $req){
         $router_ip_address = $req->input("ip_address");
