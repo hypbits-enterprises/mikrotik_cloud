@@ -115,7 +115,7 @@
                                         </div>
                                         <div class="row">
                                             <div class="col-md-4 form-group">
-                                                <label for="client_name" class="form-control-label">Client`s Fullname</label>
+                                                <label for="client_name" class="form-control-label">Client`s Fullname <span class="text-danger">*</span> </label>
                                                 <input type="text" name="client_name" id="client_name"
                                                     class="form-control rounded-lg p-1"
                                                     placeholder="Client`s Fullname .." required
@@ -123,7 +123,7 @@
                                             </div>
                                             <div class="col-md-4">
                                                 <label for="client_address" class="form-control-label">Client`s
-                                                    Address</label>
+                                                    Address <span class="text-danger">*</span> </label>
                                                 <input type="text" name="client_address" id="client_address"
                                                     class="form-control rounded-lg p-1"
                                                     placeholder="eg. Kiambu or Mombasa" required
@@ -131,7 +131,7 @@
                                             </div>
                                             <div class="col-md-4">
                                                 <label for="location_coordinates" class="form-control-label">Location
-                                                    Co-ordinates</label>
+                                                    Co-ordinates </label>
                                                 <input type="text" name="location_coordinates" id="location_coordinates"
                                                     class="form-control rounded-lg p-1"
                                                     onkeypress="return isNumber(event)"
@@ -143,7 +143,7 @@
                                         <div class="row">
                                             <div class="col-md-3 form-group">
                                                 <label for="client_phone" class="form-control-label">Client`s Phone
-                                                    number</label>
+                                                    number <span class="text-danger">*</span> </label>
                                                 <input type="number" name="client_phone" id="client_phone"
                                                     class="form-control rounded-lg p-1"
                                                     placeholder="Client valid phone number" required
@@ -151,7 +151,7 @@
                                             </div>
                                             <div class="col-md-3">
                                                 <label for="client_acc_number" class="form-control-label">Client`s
-                                                    Account Number {<span
+                                                    Account Number <span class="text-danger">*</span> {<span
                                                         class="primary">{{ $client_accounts[0] ?? '' }}</span>}
                                                     <span class="text-danger"
                                                         id="error_acc_no">{{ session('account_number_present') ? 'Account number in use!' : '' }}</span></label>
@@ -162,14 +162,14 @@
                                             </div>
                                             <div class="col-md-3">
                                                 <label for="client_monthly_pay" class="form-control-label">Client`s
-                                                    Monthly Payment</label>
+                                                    Monthly Payment <span class="text-danger">*</span> </label>
                                                 <input type="number" name="client_monthly_pay" id="client_monthly_pay"
                                                     class="form-control rounded-lg p-1"
                                                     placeholder="Client`s Monthly Payment" required
                                                     value="{{ session('client_monthly_pay') ? session('client_monthly_pay') : '' }}">
                                             </div>
                                             <div class="col-md-3">
-                                                <label for="minimum_payment" class="form-control-label">Client`s Minimum Payment</label>
+                                                <label for="minimum_payment" class="form-control-label">Client`s Minimum Payment <span class="text-danger">*</span> </label>
                                                 <select name="minimum_payment" id="minimum_payment" class="form-control" required>
                                                     <option hidden>Select Minimum Payment </option>
                                                     <option {{session('minimum_payment') ? (session('minimum_payment') == '25' ? 'selected' : '') : ''}} value="25">25%</option>
@@ -184,7 +184,7 @@
                                         <div class="row">
                                             <div class="col-md-3 form-group">
                                                 <label for="client_network" id="errorMsg" class="form-control-label">Client`s
-                                                    Network {<span class="primary">{{ count($last_client_details) > 0 ? ucwords(strtolower($last_client_details[0]->client_network)) : "" }}</span>}</label>
+                                                    Network <span class="text-danger">*</span> {<span class="primary">{{ count($last_client_details) > 0 ? ucwords(strtolower($last_client_details[0]->client_network)) : "" }}</span>}</label>
                                                 <input type="text" name="client_network" id="client_network"
                                                     class="form-control rounded-lg p-1" placeholder="ex 10.10.30.0"
                                                     required
@@ -192,14 +192,14 @@
                                             </div>
                                             <div class="col-md-3">
                                                 <label for="client_gw"  id="errorMsg1" class="form-control-label">Client`s
-                                                    Gateway {<span class="primary">{{ count($last_client_details) > 0 ? ucwords(strtolower($last_client_details[0]->client_default_gw)) : "" }}</span>}</label>
+                                                    Gateway <span class="text-danger">*</span> {<span class="primary">{{ count($last_client_details) > 0 ? ucwords(strtolower($last_client_details[0]->client_default_gw)) : "" }}</span>}</label>
                                                 <input type="text" name="client_gw" id="client_gw"
                                                     class="form-control rounded-lg p-1" placeholder="ex 10.10.30.1/24"
                                                     required
                                                     value="{{ session('client_gw') ? session('client_gw') : '' }}">
                                             </div>
                                             <div class="col-md-3">
-                                                <label for="upload_speed" class="form-control-label">Upload</label>
+                                                <label for="upload_speed" class="form-control-label">Upload <span class="text-danger">*</span> </label>
                                                 <input class="form-control" type="number" name="upload_speed"
                                                     id="upload_speed" placeholder="128" required
                                                     value="{{ session('upload_speed') }}">
@@ -216,7 +216,7 @@
                                             </div>
                                             <div class="col-md-3">
                                                 <label for="download_speed"
-                                                    class="form-control-label">Download</label>
+                                                    class="form-control-label">Download <span class="text-danger">*</span> </label>
                                                 <input class="form-control" type="number" name="download_speed"
                                                     id="download_speed" placeholder="128" required
                                                     value="{{ session('download_speed') }}">
@@ -235,13 +235,13 @@
                                         <div class="row my-1">
                                             <div class="col-md-4 form-group">
                                                 <label for="expiration_date" class="form-control-label">Expiration
-                                                    Date</label>
+                                                    Date <span class="text-danger">*</span> </label>
                                                 <input type="date" name="expiration_date" id="expiration_date"
                                                     class="form-control" placeholder="Customer Expiration Date" min="{{date("Y-m-d",strtotime("-1 Day"))}}"
                                                     value="{{ session('expiration_date') ? session('expiration_date') : '' }}">
                                             </div>
                                             <div class="col-md-4 form-group">
-                                                <label for="router_name" class="form-control-label">Router Name
+                                                <label for="router_name" class="form-control-label">Router Name <span class="text-danger">*</span> 
                                                     {{ session('router_name') ? '{' . session('router_name') . '}' : '' }}<span
                                                         class="invisible" id="interface_load"><i
                                                             class="fas ft-rotate-cw fa-spin"></i></span></label>
@@ -251,7 +251,7 @@
                                             </div>
                                             <div class="col-md-4">
                                                 <label for="client_address" class="form-control-label">Router
-                                                    Interface
+                                                    Interface <span class="text-danger">*</span> 
                                                     {{ session('interface_name') ? '{' . session('interface_name') . '}' : '' }}
                                                     :</label>
                                                 <p class="text-secondary" id="interface_holder">The router interfaces

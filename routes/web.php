@@ -102,6 +102,10 @@ Route::get("/router/{routerid}", [Clients::class, "getRouterInterfaces"])->middl
 Route::get("/routerProfile/{routerid}", [Clients::class, "getRouterProfile"])->middleware(["validated", "checkAccount"]);
 // get the clients information interface
 Route::get("/Clients/View/{clientid}", [Clients::class, "getClientInformation"])->name("client.viewinformation")->middleware(["validated", "checkAccount"]);
+// check the client status in the router
+Route::get("/Client/Check-Online/{client_account}", [Clients::class, "checkOnline"])->name("check-online")->middleware(["validated", "checkAccount"]);
+
+
 // incase the user enters an invalid username
 Route::get('/Clients/View', function () {
     return redirect('Clients');
@@ -159,6 +163,9 @@ Route::get("/activate/{userid}/{db_name}/{subdirectory}", [Clients::class, "acti
 Route::get("/router_clients/{acc_name}/{r_name}", [Clients::class, "getRouterClientInfo"]);
 Route::get("/my_global_config", [Clients::class, "getMyGlobalConfig"]);
 Route::get("/upload_client_stats", [Clients::class, "upload_client_stats"]);
+// Generate reports for data usage and bandwidth
+Route::get("/Client/UsageReport", [Clients::class, "generateUsageReports"])->name("generateUsageReports")->middleware(["validated", "checkAccount"]);
+Route::get("/Client/UsageReport/Data", [Clients::class, "generateDataReports"])->name("generateDataReports")->middleware(["validated", "checkAccount"]);
 
 // deactivate and activate the user api
 // Route::get("/deactivate_user/{userid}",[Clients::class,"deactivate2"]);

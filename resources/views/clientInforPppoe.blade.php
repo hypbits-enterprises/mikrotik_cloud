@@ -27,54 +27,65 @@
         .dt-search {
             display: none;
         }
+        .ct-chart {
+            display: flex; /* chart + legend side by side */
+        }
+        .ct-legend {
+            position: relative;
+            margin-right: 15px;
+            width: 100px;   /* adjust as needed */
+        }
+
+        .ct-legend li {
+            display: block; /* stack items vertically */
+            margin-bottom: 8px;
+        }
+        /*the container must be positioned relative:*/
+        .autocomplete {
+            position: relative;
+            display: inline-block;
+            width: 100%
+        }
+        
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #d4d4d4;
+            border-bottom: none;
+            border-top: none;
+            z-index: 99;
+            /*position the autocomplete items to be the same width as the container:*/
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 250; /* Set the maximum height */
+            overflow-y: auto; /* Enable vertical scrolling */
+        }
+
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #fff;
+            border-bottom: 1px solid #d4d4d4;
+        }
+
+        /*when hovering an item:*/
+        .autocomplete-items div:hover {
+            background-color: #e9e9e9;
+        }
+
+        /*when navigating through the items using the arrow keys:*/
+        .autocomplete-active {
+            background-color: DodgerBlue !important;
+            color: #ffffff;
+        }
+        .hide:{
+            display: none;
+        }
     </style>
-    <!-- END Custom CSS-->
+    {{-- script --}}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
-
-<style>
-    /*the container must be positioned relative:*/
-    .autocomplete {
-        position: relative;
-        display: inline-block;
-        width: 100%
-    }
-    
-    .autocomplete-items {
-        position: absolute;
-        border: 1px solid #d4d4d4;
-        border-bottom: none;
-        border-top: none;
-        z-index: 99;
-        /*position the autocomplete items to be the same width as the container:*/
-        top: 100%;
-        left: 0;
-        right: 0;
-        max-height: 250; /* Set the maximum height */
-        overflow-y: auto; /* Enable vertical scrolling */
-    }
-
-    .autocomplete-items div {
-        padding: 10px;
-        cursor: pointer;
-        background-color: #fff;
-        border-bottom: 1px solid #d4d4d4;
-    }
-
-    /*when hovering an item:*/
-    .autocomplete-items div:hover {
-        background-color: #e9e9e9;
-    }
-
-    /*when navigating through the items using the arrow keys:*/
-    .autocomplete-active {
-        background-color: DodgerBlue !important;
-        color: #ffffff;
-    }
-    .hide:{
-        display: none;
-    }
-
-</style>
 <body class="vertical-layout vertical-menu 2-columns  menu-expanded fixed-navbar" data-open="click"
     data-menu="vertical-menu" data-color="bg-chartbg" data-col="2-columns">
     
@@ -113,7 +124,39 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 id="view_clients_inform" class="card-title">View <span class="text-secondary">{{ ucwords(strtolower($clients_data[0]->client_name)) }} - {{ (($clients_data[0]->client_account)) }}</span></h4>
+                                <h4 id="view_clients_inform" class="card-title"><i class="ft-settings"></i> <span class="text-secondary">{{ ucwords(strtolower($clients_data[0]->client_name)) }}</span> Settings</h4>
+                                <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                                <div class="heading-elements">
+                                    <ul class="list-inline mb-0">
+                                        <li>
+                                            @php
+                                                $btnText = "<i class=\"ft-plus\"></i> Client Settings";
+                                                $otherClasses = "";
+                                                $btnLink = "#";
+                                                $otherAttributes = "data-action=\"collapse\"";
+                                            @endphp
+                                            <x-button-link :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" btnType="primary" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-content collapse">
+                                <div class="card-body">
+                                    @if ($errors->any())
+                                        <h6 style="color: orangered">Errors</h6>
+                                        <ul class="text-danger" style="color: orangered">
+                                            @foreach ($errors->all() as $item)
+                                                <li>{{ $item }}</li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                    <x-client.dash :clientRefferal="$client_refferal" :lastClientDetails="$last_client_details" :routerData="$router_data" :expireDate="$expire_date" :registrationDate="$registration_date" :readonly="$readonly" :clientData="$clients_data"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 id="view_clients_inform" class="card-title"><i class="ft-eye"></i> View <span class="text-secondary">{{ ucwords(strtolower($clients_data[0]->client_name)) }} - {{ (($clients_data[0]->client_account)) }}</span> @if ($clients_data[0]->client_status == 1) <div class='badge badge-success'>Activated</div> @else <div class='badge badge-danger'>De-Activated</div> @endif</h4>
                                 <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
                                 <div class="heading-elements">
                                     <ul class="list-inline mb-0">
@@ -134,7 +177,7 @@
                                             @endforeach
                                         </ul>
                                     @endif
-                                    </ul>
+                                    
                                     {{-- @php
                                         $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                         $otherClasses = "";
@@ -249,6 +292,9 @@
                                             <li class="nav-item" role="presentation">
                                                 <a class="nav-link " id="tab3-tab" data-toggle="tab" href="#tab3" role="tab"><i class="ft-file mr-1"></i> Invoices</a>
                                             </li>
+                                            <li class="nav-item" role="presentation">
+                                                <a class="nav-link " id="tab4-tab" data-toggle="tab" href="#tab4" role="tab"><i class="ft-activity mr-1"></i> Usage Statistics</a>
+                                            </li>
                                         </ul>
                                     </div>
                                     <div class="mx-auto my-2 {{$clients_data[0]->validated == 1 ? "d-none" : ""}}">
@@ -264,16 +310,8 @@
                                     </div>
                                     <div class="tab-content" id="myTabsContent">
                                         <div class="tab-pane fade show active" id="tab1" role="tabpanel">
-                                            <x-client.dash :clientRefferal="$client_refferal" :lastClientDetails="$last_client_details" :routerData="$router_data" :expireDate="$expire_date" :registrationDate="$registration_date" :readonly="$readonly" :clientData="$clients_data"/>
-                                            <p><strong>Note: </strong><br> - Some fields can`t be left blank the default
-                                                configuration is surounded with the {curly braces} you may select that if you
-                                                dont want to change anything</small><br>
-                                                - The upload and download speed might not work because of the fast track in
-                                                firewall filter. <br>
-                                                - Fill all the fields to update the client. <br>
-                                                - When the "Allow router change" is not checked the changes will only be made in
-                                                the database
-                                            </p>
+                                            <x-client.summary-usage-stats :dailyStats="$daily_stats" :bandwidthStats="$bandwidth_stats" :monthlyStats="$monthly_stats" :clientStatus="$client_status" />
+                                            <hr class="w-75">
                                             <form class="form-group" action="/updateClients" method="POST">
                                                 @csrf
                                                 <input type="hidden" name="clients_id"
@@ -290,7 +328,7 @@
                                                 </div>
                                                 <div class="row">
                                                     <div class="col-md-4 form-group">
-                                                        <label for="client_name" class="form-control-label">Clients Fullname {
+                                                        <label for="client_name" class="form-control-label">Clients Fullname <span class="text-danger">*</span> {
                                                             <span
                                                                 class="primary">{{ $clients_data[0]->client_name }}</span>
                                                             }</label>
@@ -300,7 +338,7 @@
                                                             value="{{ old('client_name') }}">
                                                     </div>
                                                     <div class="col-md-4">
-                                                        <label for="client_address" class="form-control-label">Clients Address
+                                                        <label for="client_address" class="form-control-label">Clients Address <span class="text-danger">*</span> 
                                                             { <span
                                                                 class="primary">{{ $clients_data[0]->client_address }}</span>
                                                             }</label>
@@ -334,7 +372,7 @@
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label for="client_account_number" class="form-control-label">Clients
-                                                            Account Number { <span
+                                                            Account Number <span class="text-danger">*</span> { <span
                                                                 class="primary">{{ $clients_data[0]->client_account }}</span>
                                                             }</label>
                                                         <input type="text" name="client_account_number"
@@ -344,7 +382,7 @@
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label for="client_monthly_pay" class="form-control-label">Clients
-                                                            Monthly Payment { <span
+                                                            Monthly Payment <span class="text-danger">*</span> { <span
                                                                 class="primary">{{ $clients_data[0]->monthly_payment }}</span>
                                                             }</label>
                                                         <input type="number" name="client_monthly_pay" id="client_monthly_pay"
@@ -360,14 +398,14 @@
                                                             <p class="danger">{{ session('network_error') }}</p>
                                                         @endif
                                                         <label  id="errorMsg" for="client_secret_username" class="form-control-label">Clients Username
-                                                            { <span class="primary" id="secret_username"></span> }</label>
+                                                            <span class="text-danger">*</span> { <span class="primary" id="secret_username"></span> }</label>
                                                         <input type="text" name="client_secret_username" id="client_secret_username"
                                                             class="form-control rounded-lg p-1" placeholder="ex 10.10.30.0"
                                                             required value="{{ old('client_secret_username') }}">
                                                     </div>
                                                     <div class="col-md-6">
                                                         <span class="d-none" id="secret_holder"></span>
-                                                        <label  id="errorMsg1" for="client_secret_password" class="form-control-label">Clients Secret Password {<span class="primary" id="addresses"></span>}</label>
+                                                        <label  id="errorMsg1" for="client_secret_password" class="form-control-label">Clients Secret Password <span class="text-danger">*</span> {<span class="primary" id="addresses"></span>}</label>
                                                             @php
                                                                 $btnText = "<i class=\"fas fa-eye\"></i>";
                                                                 $otherClasses = "w-25";
@@ -382,7 +420,7 @@
                                                 </div>
                                                 <div class="row my-1">
                                                     <div class="col-md-6 form-group">
-                                                        <label for="router_name" class="form-control-label">Router Name: {
+                                                        <label for="router_name" class="form-control-label">Router Name: <span class="text-danger">*</span> {
                                                             <span class="primary bolder" id="router_named">Hilary Dev</span> }
                                                             <span class="invisible" id="interface_load"><i
                                                                     class="fas ft-rotate-cw fa-spin"></i></span></label>
@@ -392,7 +430,7 @@
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label for="client_address" class="form-control-label">Router
-                                                            Profile: { <span class="primary bolder"
+                                                            Profile: <span class="text-danger">*</span> { <span class="primary bolder"
                                                                 id="router_profiles"></span> } </label>
                                                         <p class="text-secondary" id="profile_holder">The router secret profiles
                                                             will appear here If the router is selected.If this message is still
@@ -436,6 +474,9 @@
                                             $client_n_invoice['invoice_id'] =$invoice_id;
                                         @endphp
                                         <x-Client.client-tab-3 :invoices="$invoices" :clientData="$client_n_invoice" :readOnlyFinance="$readonly_finance" :readonly="$readonly"/>
+
+                                        {{-- TAB 4 TO SHOW CLIENT USAGE STATISTICS --}}
+                                        <x-Client.client-usage-stats :clientsData="$clients_data" :readonly="$readonly"/>
                                     </div>
                                 </div>
                             </div>
@@ -473,7 +514,6 @@
                                             @endforeach
                                         </ul>
                                     @endif
-                                    </ul>
                                     {{-- @php
                                         $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                         $otherClasses = "";
@@ -611,7 +651,6 @@
                                                 @endforeach
                                             </ul>
                                         @endif
-                                        </ul>
                                         @if (session('success'))
                                             <p class="success">{{ session('success') }}</p>
                                         @endif
@@ -768,6 +807,7 @@
         }
     </script>
     <script src="/theme-assets/js/core/viewclientpppoe.js" type="text/javascript"></script>
+    <script src="/theme-assets/js/core/client_usage_report.js" type="text/javascript"></script>
     <script src="/theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
     <script src="/theme-assets/js/core/app-lite.js" type="text/javascript"></script>
     <script>
@@ -981,6 +1021,35 @@
                 freeze_window.classList.remove("d-none");
             }
         }
+
+        function checkOnline() {
+            // check after two minutes if the client is online
+            var datapass = "/Client/Check-Online/"+cObj("client_account_number").value;
+            sendDataGet("GET", datapass, cObj("status_holder"), cObj("client_status_loader"), function () {
+                var response = (cObj("status_holder").innerText);
+                if (hasJsonStructure(response)) {
+                    var result = JSON.parse(response);
+                    console.log(result);
+
+                    if (result.status == "online") {
+                        cObj("offline_status").classList.add("d-none");
+                        cObj("online_status").classList.remove("d-none");
+                        cObj("offline_last_seen").classList.add("d-none");
+                        cObj("online_last_seen").classList.remove("d-none");
+                        cObj("offline_last_seen").innerHTML = "Last seen: "+result.last_seen
+                    }else{
+                        cObj("offline_status").classList.remove("d-none");
+                        cObj("online_status").classList.add("d-none");
+                        cObj("offline_last_seen").classList.remove("d-none");
+                        cObj("online_last_seen").classList.add("d-none");
+                        cObj("offline_last_seen").innerHTML = "Last seen: "+result.last_seen
+                    }
+                }
+            });
+        }
+
+        // CHECK TO SEE IF THE CLIENT IS STILL ONLINE
+        setInterval(checkOnline, 120000);
     </script>
 </body>
 

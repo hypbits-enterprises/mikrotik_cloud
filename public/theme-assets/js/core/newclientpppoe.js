@@ -3,7 +3,7 @@ function cObj(id) {
     return document.getElementById(id);
 }
 // Send date with post request
-function sendDataPost1(method, file, datapassing, object1, object2) {
+function sendDataPost1(method, file, datapassing, object1, object2, callback = null) {
     //make the loading window show
     object2.classList.remove("invisible");
     let xml = new XMLHttpRequest();
@@ -11,6 +11,11 @@ function sendDataPost1(method, file, datapassing, object1, object2) {
         if (this.readyState == 4 && this.status == 200) {
             object1.innerHTML = this.responseText;
             object2.classList.add("invisible");
+
+            // ✅ Run the callback after updating DOM
+            if (typeof callback === "function") {
+                callback();
+            }
         } else if (this.status == 500) {
             object2.classList.add("invisible");
             object1.innerHTML = "<p class='red_notice'>Cannot establish connection to server.<br>Try reloading your page</p>";
@@ -25,7 +30,7 @@ function sendDataPost1(method, file, datapassing, object1, object2) {
     xml.send(datapassing);
 }
 // Send data with get
-function sendDataGet(method, file, object1, object2) {
+function sendDataGet(method, file, object1, object2, callback = null) {
     //make the loading window show
     object2.classList.remove("invisible");
     let xml = new XMLHttpRequest();
@@ -33,6 +38,11 @@ function sendDataGet(method, file, object1, object2) {
         if (this.readyState == 4 && this.status == 200) {
             object1.innerHTML = this.responseText;
             object2.classList.add("invisible");
+
+            // ✅ Run the callback after updating DOM
+            if (typeof callback === "function") {
+                callback();
+            }
         } else if (this.status == 500) {
             object2.classList.add("invisible");
             // cObj("loadings").classList.add("invisible");

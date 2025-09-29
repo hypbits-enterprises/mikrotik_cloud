@@ -998,7 +998,7 @@
                 <div class="row">
                     <div class="col-md-7">
                         <strong>Initiate Payment:</strong> 
-                        @if (date("Ymd") < 20251030)
+                        @if (date("Ymd") < 20250920)
                             <span class="badge bg-info text-center fa-beat-fade">New</span>
                         @endif <br><p>Use STK push to make it easier for the client to pay!</p>
                     </div>

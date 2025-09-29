@@ -1,6 +1,6 @@
 
 // Send data with get
-function sendDataGet(method, file, object1, object2) {
+function sendDataGet(method, file, object1, object2, callback = null) {
     //make the loading window show
     object2.classList.remove("invisible");
     let xml = new XMLHttpRequest();
@@ -8,6 +8,11 @@ function sendDataGet(method, file, object1, object2) {
         if (this.readyState == 4 && this.status == 200) {
             object1.innerHTML = this.responseText;
             object2.classList.add("invisible");
+
+            // ✅ Run the callback after updating DOM
+            if (typeof callback === "function") {
+                callback();
+            }
         } else if (this.status == 500) {
             object2.classList.add("invisible");
             // cObj("loadings").classList.add("invisible");

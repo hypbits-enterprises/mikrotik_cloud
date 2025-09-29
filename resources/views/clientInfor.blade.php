@@ -22,57 +22,56 @@
         .dt-search {
             display: none;
         }
+        .showBlock{
+        display: block;
+        overflow-y: scroll;
+        }
+        /*the container must be positioned relative:*/
+        .autocomplete {
+            position: relative;
+            display: inline-block;
+            width: 100%
+        }
+        
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #d4d4d4;
+            border-bottom: none;
+            border-top: none;
+            z-index: 99;
+            /*position the autocomplete items to be the same width as the container:*/
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 250; /* Set the maximum height */
+            overflow-y: auto; /* Enable vertical scrolling */
+        }
+
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #fff;
+            border-bottom: 1px solid #d4d4d4;
+        }
+
+        /*when hovering an item:*/
+        .autocomplete-items div:hover {
+            background-color: #e9e9e9;
+        }
+
+        /*when navigating through the items using the arrow keys:*/
+        .autocomplete-active {
+            background-color: DodgerBlue !important;
+            color: #ffffff;
+        }
+        .hide:{
+            display: none;
+        }
+
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- END Custom CSS-->
 </head>
-<style>
-    .showBlock{
-      display: block;
-      overflow-y: scroll;
-    }
-    /*the container must be positioned relative:*/
-    .autocomplete {
-        position: relative;
-        display: inline-block;
-        width: 100%
-    }
-    
-    .autocomplete-items {
-        position: absolute;
-        border: 1px solid #d4d4d4;
-        border-bottom: none;
-        border-top: none;
-        z-index: 99;
-        /*position the autocomplete items to be the same width as the container:*/
-        top: 100%;
-        left: 0;
-        right: 0;
-        max-height: 250; /* Set the maximum height */
-        overflow-y: auto; /* Enable vertical scrolling */
-    }
-
-    .autocomplete-items div {
-        padding: 10px;
-        cursor: pointer;
-        background-color: #fff;
-        border-bottom: 1px solid #d4d4d4;
-    }
-
-    /*when hovering an item:*/
-    .autocomplete-items div:hover {
-        background-color: #e9e9e9;
-    }
-
-    /*when navigating through the items using the arrow keys:*/
-    .autocomplete-active {
-        background-color: DodgerBlue !important;
-        color: #ffffff;
-    }
-    .hide:{
-        display: none;
-    }
-
-</style>
 <body class="vertical-layout vertical-menu 2-columns  menu-expanded fixed-navbar" data-open="click"
     data-menu="vertical-menu" data-color="bg-chartbg" data-col="2-columns">
 
@@ -112,7 +111,39 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 id="view_clients_inform" class="card-title">View <span class="text-secondary">{{ ucwords(strtolower($clients_data[0]->client_name)) }}</span> - <span>{{$clients_data[0]->client_account}}</span></h4>
+                                <h4 id="view_clients_inform" class="card-title"><i class="ft-settings"></i> <span class="text-secondary">{{ ucwords(strtolower($clients_data[0]->client_name)) }}</span> Settings</h4>
+                                <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                                <div class="heading-elements">
+                                    <ul class="list-inline mb-0">
+                                        <li>
+                                            @php
+                                                $btnText = "<i class=\"ft-plus\"></i> Client Settings";
+                                                $otherClasses = "";
+                                                $btnLink = "#";
+                                                $otherAttributes = "data-action=\"collapse\"";
+                                            @endphp
+                                            <x-button-link :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" btnType="primary" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-content collapse">
+                                <div class="card-body">
+                                    @if ($errors->any())
+                                        <h6 style="color: orangered">Errors</h6>
+                                        <ul class="text-danger" style="color: orangered">
+                                            @foreach ($errors->all() as $item)
+                                                <li>{{ $item }}</li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                    <x-client.dash :clientRefferal="$client_refferal" :lastClientDetails="$last_client_details" :routerData="$router_data" :expireDate="$expire_date" :registrationDate="$registration_date" :readonly="$readonly" :clientData="$clients_data"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 id="view_clients_inform" class="card-title"><i class="ft-eye"></i> View <span class="text-secondary">{{ ucwords(strtolower($clients_data[0]->client_name)) }}</span> - <span>{{$clients_data[0]->client_account}}</span> @if ($clients_data[0]->client_status == 1) <div class='badge badge-success'>Activated</div> @else <div class='badge badge-danger'>De-Activated</div> @endif</h4>
                                 <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
                                 <div class="heading-elements">
                                     <ul class="list-inline mb-0">
@@ -133,7 +164,6 @@
                                             @endforeach
                                         </ul>
                                     @endif
-                                    </ul>
                                     {{-- @php
                                         $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                         $otherClasses = "ml-0";
@@ -247,6 +277,9 @@
                                             <li class="nav-item" role="presentation">
                                                 <a class="nav-link " id="tab3-tab" data-toggle="tab" href="#tab3" role="tab"><i class="ft-file mr-1"></i> Invoices</a>
                                             </li>
+                                            <li class="nav-item" role="presentation">
+                                                <a class="nav-link " id="tab4-tab" data-toggle="tab" href="#tab4" role="tab"><i class="ft-activity mr-1"></i> Usage Statistics</a>
+                                            </li>
                                         </ul>
                                     </div>
                                     <div class="mx-auto my-2 {{$clients_data[0]->validated == 1 ? "d-none" : ""}}">
@@ -262,16 +295,7 @@
                                     </div>
                                     <div class="tab-content" id="myTabsContent">
                                         <div class="tab-pane fade show active" id="tab1" role="tabpanel">
-                                            <x-client.dash :clientRefferal="$client_refferal" :lastClientDetails="$last_client_details" :routerData="$router_data" :expireDate="$expire_date" :registrationDate="$registration_date" :readonly="$readonly" :clientData="$clients_data"/>
-                                            <p><strong>Note: </strong><br> - Some fields can`t be left blank the default
-                                                configuration is surounded with the {curly braces} you may select that if you
-                                                dont want to change anything</small><br>
-                                                - The upload and download speed might not work because of the fast track in
-                                                firewall filter. <br>
-                                                - Fill all the fields to update the client. <br>
-                                                - When the "Allow router change" is not checked the changes will only be made in
-                                                the database
-                                            </p>
+                                            <x-client.summary-usage-stats :dailyStats="$daily_stats" :bandwidthStats="$bandwidth_stats" :monthlyStats="$monthly_stats" :clientStatus="$client_status" />
                                             <form class="form-group" action="/updateClients" method="POST">
                                                 @csrf
                                                 <input type="hidden" name="clients_id"
@@ -288,7 +312,7 @@
                                                 </div>
                                                 <div class="row">
                                                     <div class="col-md-4 form-group">
-                                                        <label for="client_name" class="form-control-label">Clients Fullname {
+                                                        <label for="client_name" class="form-control-label">Clients Fullname <span class="text-danger">*</span> {
                                                             <span
                                                                 class="primary">{{ $clients_data[0]->client_name }}</span>
                                                             }</label>
@@ -298,7 +322,7 @@
                                                             value="{{ old('client_name') }}">
                                                     </div>
                                                     <div class="col-md-4">
-                                                        <label for="client_address" class="form-control-label">Clients Address
+                                                        <label for="client_address" class="form-control-label">Clients Address <span class="text-danger">*</span>
                                                             { <span
                                                                 class="primary">{{ $clients_data[0]->client_address }}</span>
                                                             }</label>
@@ -308,7 +332,7 @@
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label for="location_coordinates" class="form-control-label">Location
-                                                            co-ordinates { <span
+                                                            co-ordinates{ <span
                                                                 class="primary">{{ $clients_data[0]->location_coordinates ?? '' }}</span>
                                                             }</label>
                                                         <input type="text" name="location_coordinates"
@@ -322,7 +346,7 @@
                                                 <div class="row">
                                                     <div class="col-md-4 form-group d-none">
                                                         <label for="client_phone" class="form-control-label">Clients Phone
-                                                            number { <span
+                                                            number <span class="text-danger">*</span>{ <span
                                                                 class="primary">{{ $clients_data[0]->clients_contacts }}</span>
                                                             }</label>
                                                         <input type="number" name="client_phone" id="client_phone"
@@ -332,7 +356,7 @@
                                                     </div>
                                                     <div class="col-md-4 d-none">
                                                         <label for="client_account_number" class="form-control-label">Clients
-                                                            Account Number { <span
+                                                            Account Number <span class="text-danger">*</span>{ <span
                                                                 class="primary">{{ $clients_data[0]->client_account }}</span>
                                                             }</label>
                                                         <input type="text" name="client_account_number"
@@ -357,14 +381,14 @@
                                                         @if (session('network_error'))
                                                             <p class="danger">{{ session('network_error') }}</p>
                                                         @endif
-                                                        <label  id="errorMsg" for="client_network" class="form-control-label">Clients Network
+                                                        <label  id="errorMsg" for="client_network" class="form-control-label">Clients Network <span class="text-danger">*</span>
                                                             { <span class="primary" id="networks"></span> }</label>
                                                         <input type="text" name="client_network" id="client_network"
                                                             class="form-control rounded-lg p-1" placeholder="ex 10.10.30.0"
                                                             required value="{{ old('client_network') }}">
                                                     </div>
                                                     <div class="col-md-3">
-                                                        <label  id="errorMsg1" for="client_gw" class="form-control-label">Clients Gateway {
+                                                        <label  id="errorMsg1" for="client_gw" class="form-control-label">Clients Gateway <span class="text-danger">*</span>{
                                                             <span class="primary" id="addresses"></span> } </label>
                                                         <input type="text" name="client_gw" id="client_gw"
                                                             class="form-control rounded-lg p-1" placeholder="ex 10.10.30.1/24"
@@ -372,7 +396,7 @@
                                                     </div>
                                                     <div class="col-md-6 row">
                                                         <div class="col-md-6">
-                                                            <label for="upload_speed" class="form-control-label">Upload { <span
+                                                            <label for="upload_speed" class="form-control-label">Upload <span class="text-danger">*</span>{ <span
                                                                     class="primary">{{ $clients_data[0]->max_upload_download }}</span>
                                                                 }</label>
                                                             <input class="form-control" type="number" name="upload_speed"
@@ -387,7 +411,7 @@
                                                             </select>
                                                         </div>
                                                         <div class="col-md-6">
-                                                            <label for="download_speeds" class="form-control-label">Download
+                                                            <label for="download_speeds" class="form-control-label">Download <span class="text-danger">*</span>
                                                             </label>
                                                             <input class="form-control" type="number" name="download_speed" id="download_speeds" placeholder="128" required>
                                                             <select class="form-control" name="unit2" id="unit2" required
@@ -402,7 +426,7 @@
                                                 </div>
                                                 <div class="row my-1">
                                                     <div class="col-md-6 form-group">
-                                                        <label for="router_name" class="form-control-label">Router Name: {
+                                                        <label for="router_name" class="form-control-label">Router Name: <span class="text-danger">*</span> {
                                                             <span class="primary bolder" id="router_named">Hilary Dev</span> }
                                                             <span class="invisible" id="interface_load"><i
                                                                     class="fas ft-rotate-cw fa-spin"></i></span></label>
@@ -412,7 +436,7 @@
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label for="client_address" class="form-control-label">Router
-                                                            Interface: { <span class="primary bolder"
+                                                            Interface: <span class="text-danger">*</span> { <span class="primary bolder"
                                                                 id="router_interfaced"></span> } </label>
                                                         <p class="text-secondary" id="interface_holder">The router interfaces
                                                             will appear here If the router is selected.If this message is still
@@ -452,6 +476,9 @@
                                             $client_n_invoice['invoice_id'] =$invoice_id;
                                         @endphp
                                         <x-Client.client-tab-3 :invoices="$invoices" :clientData="$client_n_invoice" :readOnlyFinance="$readonly_finance" :readonly="$readonly"/>
+
+                                        {{-- TAB 4 TO SHOW CLIENT USAGE STATISTICS --}}
+                                        <x-Client.client-usage-stats :clientsData="$clients_data" :readonly="$readonly"/>
                                     </div>
                                 </div>
                             </div>
@@ -489,7 +516,6 @@
                                             @endforeach
                                         </ul>
                                     @endif
-                                    </ul>
                                     {{-- @php
                                         $btnText = "<i class=\"fas fa-arrow-left\"></i> Back to list";
                                         $otherClasses = "";
@@ -628,7 +654,7 @@
                                                 @endforeach
                                             </ul>
                                         @endif
-                                        </ul>
+                                        
                                         @if (session('success'))
                                             <p class="success">{{ session('success') }}</p>
                                         @endif
@@ -785,6 +811,7 @@
     <script src="/theme-assets/js/core/datatables.js"></script>
     <script src="/theme-assets/js/core/datatables.min.js"></script>
     <script src="/theme-assets/js/core/viewclients.js" type="text/javascript"></script>
+    <script src="/theme-assets/js/core/client_usage_report.js" type="text/javascript"></script>
     <script src="/theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
     <script src="/theme-assets/js/core/app-lite.js" type="text/javascript"></script>
     <script>
@@ -999,6 +1026,35 @@
                 freeze_window.classList.remove("d-none");
             }
         }
+
+        function checkOnline() {
+            // check after two minutes if the client is online
+            var datapass = "/Client/Check-Online/"+cObj("client_account_number").value;
+            sendDataGet("GET", datapass, cObj("status_holder"), cObj("client_status_loader"), function () {
+                var response = (cObj("status_holder").innerText);
+                if (hasJsonStructure(response)) {
+                    var result = JSON.parse(response);
+                    console.log(result);
+
+                    if (result.status == "online") {
+                        cObj("offline_status").classList.add("d-none");
+                        cObj("online_status").classList.remove("d-none");
+                        cObj("offline_last_seen").classList.add("d-none");
+                        cObj("online_last_seen").classList.remove("d-none");
+                        cObj("offline_last_seen").innerHTML = "Last seen: "+result.last_seen
+                    }else{
+                        cObj("offline_status").classList.remove("d-none");
+                        cObj("online_status").classList.add("d-none");
+                        cObj("offline_last_seen").classList.remove("d-none");
+                        cObj("online_last_seen").classList.add("d-none");
+                        cObj("offline_last_seen").innerHTML = "Last seen: "+result.last_seen
+                    }
+                }
+            });
+        }
+
+        // CHECK TO SEE IF THE CLIENT IS STILL ONLINE
+        setInterval(checkOnline, 120000);
     </script>
 </body>
 

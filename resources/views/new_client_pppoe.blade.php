@@ -116,7 +116,7 @@
                                             <div class="col-lg-4 form-group">
                                                 <input type="hidden" name="quick_register" value="yes">
                                                 <label for="client_name" class="form-control-label">Clients
-                                                    Fullname</label>
+                                                    Fullname <span class="text-danger">*</span> </label>
                                                 <input type="text" name="client_name" id="client_name"
                                                     class="form-control rounded-lg p-1"
                                                     placeholder="Clients Fullname .." required
@@ -124,7 +124,7 @@
                                             </div>
                                             <div class="col-lg-4">
                                                 <label for="client_address" class="form-control-label">Clients
-                                                    Address</label>
+                                                    Address <span class="text-danger">*</span> </label>
                                                 <input type="text" name="client_address" id="client_address"
                                                     class="form-control rounded-lg p-1"
                                                     placeholder="eg. Kiambu or Mombasa" required
@@ -144,7 +144,7 @@
                                         <div class="row">
                                             <div class="col-lg-3 form-group">
                                                 <label for="client_phone" class="form-control-label">Clients Phone
-                                                    number</label>
+                                                    number <span class="text-danger">*</span> </label>
                                                 <input type="number" name="client_phone" id="client_phone"
                                                     class="form-control rounded-lg p-1"
                                                     placeholder="Client valid phone number" required
@@ -152,7 +152,7 @@
                                             </div>
                                             <div class="col-lg-3">
                                                 <label for="client_acc_number" class="form-control-label">Clients
-                                                    Account Number {<span
+                                                    Account Number <span class="text-danger">*</span> {<span
                                                         class="primary">{{ $client_accounts[0] ?? '' }}</span>}
                                                     <span class="text-danger"
                                                         id="error_acc_no">{{ session('account_number_present') ? 'Account number in use!' : '' }}</span></label>
@@ -163,14 +163,14 @@
                                             </div>
                                             <div class="col-lg-3">
                                                 <label for="client_monthly_pay" class="form-control-label">Clients
-                                                    Monthly Payment</label>
+                                                    Monthly Payment <span class="text-danger">*</span> </label>
                                                 <input type="number" name="client_monthly_pay" id="client_monthly_pay"
                                                     class="form-control rounded-lg p-1"
                                                     placeholder="Client Monthly Payment" required
                                                     value="{{ session('client_monthly_pay') ? session('client_monthly_pay') : '' }}">
                                             </div>
                                             <div class="col-lg-3">
-                                                <label for="minimum_payment" class="form-control-label">Client`s Minimum Payment</label>
+                                                <label for="minimum_payment" class="form-control-label">Client`s Minimum Payment <span class="text-danger">*</span> </label>
                                                 <select name="minimum_payment" id="minimum_payment" class="form-control" required>
                                                     <option hidden>Select Minimum Payment </option>
                                                     <option {{session('minimum_payment') ? (session('minimum_payment') == '25' ? 'selected' : '') : ''}} value="25">25%</option>
@@ -185,7 +185,7 @@
                                         <div class="row">
                                             <div class="col-lg-4 form-group">
                                                 <label for="client_secret_username" id="errorMsg" class="form-control-label">Clients Secret
-                                                    Username</label>
+                                                    Username <span class="text-danger">*</span> </label>
                                                 <input type="text" name="client_secret_username" id="client_secret_username"
                                                     class="form-control rounded-lg p-1" placeholder="ex esmond"
                                                     required readonly
@@ -196,7 +196,7 @@
                                             @endphp
                                             <div class="col-lg-4">
                                                 <label for="client_secret_password"  id="errorMsg1" class="form-control-label">Clients Secret
-                                                    Password <span class="badge bg-success">Suggested</span>{ {{$random}} }</label>
+                                                    Password <span class="text-danger">*</span> <span class="badge bg-success">Suggested</span>{ {{$random}} }</label>
                                                 <input type="password" name="client_secret_password" id="client_secret_password"
                                                     class="form-control rounded-lg p-1" placeholder="Secret Password"
                                                     required
@@ -204,7 +204,7 @@
                                             </div>
                                             <div class="col-lg-4">
                                                 <label for="repeat_secret_password"  id="errorMsg1" class="form-control-label">Repeat Secret
-                                                    Password</label>
+                                                    Password <span class="text-danger">*</span> </label>
                                                 <input type="password" name="repeat_secret_password" id="repeat_secret_password"
                                                     class="form-control rounded-lg p-1" placeholder="Secret Password"
                                                     required
@@ -220,7 +220,7 @@
                                                     value="{{ session('expiration_date') ? session('expiration_date') : '' }}">
                                             </div> --}}
                                             <div class="col-lg-6 form-group">
-                                                <label for="router_name" class="form-control-label">Router Name
+                                                <label for="router_name" class="form-control-label">Router Name <span class="text-danger">*</span> 
                                                     {{ session('router_name') ? '{' . session('router_name') . '}' : '' }}<span
                                                         class="invisible" id="interface_load"><i
                                                             class="fas ft-rotate-cw fa-spin"></i></span></label>
@@ -229,7 +229,7 @@
                                                         routers present in your database.</span></p>
                                             </div>
                                             <div class="col-lg-6">
-                                                <label for="pppoe_profile" class="form-control-label">PPPoE Profile
+                                                <label for="pppoe_profile" class="form-control-label">PPPoE Profile <span class="text-danger">*</span> 
                                                     {{ session('interface_name') ? '{' . session('interface_name') . '}' : '' }}
                                                     :</label>
                                                 <p class="text-secondary" id="interface_holder">The PPPoE Profiles

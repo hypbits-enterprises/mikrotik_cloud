@@ -24,6 +24,39 @@ class Controller extends BaseController
         $ppp_secrets = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
         return $ppp_secrets;
     }
+    
+    // convert bits
+    function convertBits($bits) {
+        // Convert bits to bytes
+        $bytes = $bits / 8;
+
+        // Helper to format with or without decimals
+        $formatValue = function($value) {
+            return ($value == floor($value)) ? number_format($value, 0) : number_format($value, 2);
+        };
+
+        if ($bytes < 1024) {
+            return $formatValue($bytes) . " B";
+        }
+
+        $kb = $bytes / 1024;
+        if ($kb < 1024) {
+            return $formatValue($kb) . " KB";
+        }
+
+        $mb = $kb / 1024;
+        if ($mb < 1024) {
+            return $formatValue($mb) . " MB";
+        }
+
+        $gb = $mb / 1024;
+        if ($gb < 1024) {
+            return $formatValue($gb) . " GB";
+        }
+
+        $tb = $gb / 1024;
+        return $formatValue($tb) . " TB";
+    }
 
     function getLast5MinuteInterval() {
         $now = new DateTime(); // current time

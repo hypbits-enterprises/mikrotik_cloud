@@ -23,6 +23,7 @@ use DateInterval;
 use DateTime;
 use Exception;
 use Illuminate\Routing\Route;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use mysqli;
 
@@ -1339,18 +1340,25 @@ $export_text .= "
         return $router_name;
     }
 
-    function addDays($date, $days)
+    function addDays($date, $days, $format = "YmdHis")
     {
         $date = date_create($date);
         date_add($date, date_interval_create_from_date_string($days . " day"));
-        return date_format($date, "YmdHis");
+        return date_format($date, $format);
     }
 
-    function addMonths($date, $months)
+    function addWeek($date, $days, $format = "YmdHis")
+    {
+        $date = date_create($date);
+        date_add($date, date_interval_create_from_date_string($days . " week"));
+        return date_format($date, $format);
+    }
+
+    function addMonths($date, $months, $format = "YmdHis")
     {
         $date = date_create($date);
         date_add($date, date_interval_create_from_date_string($months . " Month"));
-        return date_format($date, "YmdHis");
+        return date_format($date, $format);
     }
     function addYear($date, $years)
     {
@@ -3372,10 +3380,64 @@ $export_text .= "
             $invoices = DB::connection("mysql2")->select("SELECT * FROM invoices WHERE client_id = ? ORDER BY invoice_number DESC", [$clientid]);
             // return $client_refferal;
 
+            // GENERATE CLIENTS MONTHLY
+            $start_date = date("Ymd", strtotime("-1 Month"))."000000";
+            $end_date = date("Ymd")."235959";
+            $usage_stats_monthly = DB::connection("mysql2")->select("SELECT (SUM(download)+SUM(upload)) AS 'usage' FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date >= '$start_date' AND date <= '$end_date'");
+            $start_date = date("YmdHis", strtotime("-2 month"))."235959";
+            $end_date = date("YmdHis", strtotime("-1 month"))."000000";
+            $usage_stats_last_monthly = DB::connection("mysql2")->select("SELECT SUM(download)+SUM(upload) AS 'usage' FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date >= '$start_date' AND date <= '$end_date'");
+            $this_month_usage = count($usage_stats_monthly) > 0 ? $usage_stats_monthly[0]->usage : 0;
+            $last_month_usage = count($usage_stats_last_monthly) > 0 ? $usage_stats_last_monthly[0]->usage : 0;
+            $difference = ($this_month_usage > 0 && $last_month_usage > 0) ? ($this_month_usage > $last_month_usage ? round(((($this_month_usage-$last_month_usage) / $this_month_usage) * 100), 1) : round(((($last_month_usage-$this_month_usage) / $this_month_usage) * 100),1)) : 0;
+            $monthly_stats = array(
+                "this_month_usage" => $this->convertBits($this_month_usage),
+                "last_month_usage" => $this->convertBits($last_month_usage),
+                "increase" => $this_month_usage > $last_month_usage,
+                "percentage" => (($this_month_usage > 0 && $last_month_usage == 0) ? 100 : $difference)
+            );
+
+            // GENERATE CLIENTS MONTHLY
+            $today = date("Ymd");
+            $usage_stats_daily = DB::connection("mysql2")->select("SELECT (SUM(download)+SUM(upload)) AS 'usage' FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date LIKE '$today%'");
+            $yesterday = date("Ymd", strtotime("-1 day"));
+            $usage_stats_yesterday = DB::connection("mysql2")->select("SELECT SUM(download)+SUM(upload) AS 'usage' FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date LIKE '$yesterday%'");
+
+            $todays_usage = count($usage_stats_daily) > 0 ? $usage_stats_daily[0]->usage : 0;
+            $yesterday_usage = count($usage_stats_yesterday) > 0 ? $usage_stats_yesterday[0]->usage : 0;
+            $difference = ($todays_usage > 0 && $yesterday_usage > 0) ? ($todays_usage > $yesterday_usage ? round(((($todays_usage-$yesterday_usage) / $todays_usage) * 100), 1) : round(((($yesterday_usage-$todays_usage) / $todays_usage) * 100),1)) : 0;
+            $daily_stats = array(
+                "todays_usage" => $this->convertBits($todays_usage),
+                "yesterday_usage" => $this->convertBits($yesterday_usage),
+                "increase" => $todays_usage > $yesterday_usage,
+                "percentage" => (($todays_usage > 0 && $yesterday_usage == 0) ? 100 : $difference)
+            );
+
+            $last_one_week = date("YmdHis",strtotime("-1 weeks"));
+            $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage' FROM five_minute_stats WHERE account = '".$clients_data[0]->client_account."' AND date > '".$last_one_week."';");
+            $this_week_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
+            $two_week_ago = date("YmdHis", strtotime("-2 weeks"));
+            $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage' FROM five_minute_stats WHERE account = '".$clients_data[0]->client_account."' AND date > '".$two_week_ago."' AND date <= '".$last_one_week."';");
+            $last_week_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
+            $difference = ($this_week_band > 0 && $last_week_band > 0) ? ($this_week_band > $last_week_band ? round((($this_week_band - $last_week_band) / $this_week_band) * 100, 1) : round((($last_week_band - $this_week_band) / $this_week_band) * 100, 1)) : 0;
+            $bandwidth_stats_data = array(
+                "this_week_band" => $this->convertBits($this_week_band),
+                "last_week_band" => $this->convertBits($last_week_band),
+                "increase" => $this_week_band > $last_week_band,
+                "percentage" => (($this_week_band > 0 && $last_week_band == 0) ? 100 : $difference),
+            );
+
+            // online status
+            $client_status = array(
+                "last_seen" => $clients_data[0]->last_seen,
+                "status" => date("YmdHis", strtotime("-2 minutes")) < $clients_data[0]->last_seen ? "online" : "offline"
+            );
+
+
             if ($assignment == "static") {
-                return view("clientInfor", ["last_client_details" => $last_client_details, "invoices" => $invoices, "invoice_id" => $code ,"pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
+                return view("clientInfor", ["client_status" => $client_status, "bandwidth_stats" => $bandwidth_stats_data, "daily_stats" => $daily_stats, "monthly_stats" => $monthly_stats, "last_client_details" => $last_client_details, "invoices" => $invoices, "invoice_id" => $code ,"pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
             } elseif ($assignment == "pppoe") {
-                return view("clientInforPppoe", ["last_client_details" => $last_client_details, "invoices" => $invoices, "invoice_id" => $code ,"pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
+                return view("clientInforPppoe", ["client_status" => $client_status, "bandwidth_stats" => $bandwidth_stats_data, "daily_stats" => $daily_stats, "monthly_stats" => $monthly_stats, "last_client_details" => $last_client_details, "invoices" => $invoices, "invoice_id" => $code ,"pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
             } else {
                 session()->flash("error_clients", "Invalid Assignment!!");
                 return redirect("/Clients");
@@ -3385,6 +3447,29 @@ $export_text .= "
             return redirect("/Clients");
         }
     }
+
+    function checkOnline($client_account){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+        $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_account` = '$client_account'");
+        if (count($clients_data) > 0) {
+            // online status
+            $client_status = array(
+                "last_seen" => $clients_data[0]->last_seen != null ? date("dS M Y @ H:i:s A", strtotime($clients_data[0]->last_seen)) : "Never Active",
+                "status" => date("YmdHis", strtotime("-2 minutes")) < $clients_data[0]->last_seen ? "online" : "offline"
+            );
+        }else{
+            // online status
+            $client_status = array(
+                "last_seen" => "Never Active",
+                "status" => "offline"
+            );
+        }
+
+        return $client_status;
+    }
+
     // get refferal
     function getRefferal($client_account)
     {
@@ -5798,6 +5883,14 @@ $export_text .= "
                             'previous_download' => $client['download']*1,
                             'date' => date("YmdHis")
                         ]);
+
+                        // UPDATE THE LAST SEEN ONLINE STATUS
+                        $checkonline = $download_add+$upload_add;
+                        if ($checkonline > 0) {
+                            // update the last seen time as this minute.
+                            $now = date("YmdHis");
+                            DB::connection("mysql2")->update("UPDATE client_tables SET last_seen = ? WHERE client_account = ?",[$now, $client['account']]);
+                        }
                     }else{
                         // insert
                         DB::connection("mysql2")->table('client_usage_stats')
@@ -5871,6 +5964,14 @@ $export_text .= "
                             'previous_download' => $client['download']*1,
                             'date' => date("YmdHis")
                         ]);
+
+                        // UPDATE THE LAST SEEN ONLINE STATUS
+                        $checkonline = $download_add+$upload_add;
+                        if ($checkonline > 0) {
+                            // update the last seen time as this minute.
+                            $now = date("YmdHis");
+                            DB::connection("mysql2")->update("UPDATE client_tables SET last_seen = ? WHERE client_account = ?",[$now, $client['account']]);
+                        }
                     }else{
                         // insert
                         DB::connection("mysql2")->table('client_usage_stats')
@@ -6758,5 +6859,299 @@ $export_text .= "
         $update = DB::connection("mysql2")->update("UPDATE client_tables SET comment = ? WHERE client_id = ?", [$comments, $clients_id]);
         session()->flash("success", "Comment has been updated successfully!");
         return redirect(url()->previous());
+    }
+
+    function generateUsageReports(Request $req){
+        $report_type = strtolower($req->input("report_type"));
+        $client_account = $req->input("client_account");
+        $next_date = $req->input("next_date");
+
+        if ($report_type == "daily") {
+            $days = [];
+            for ($index=0; $index < 7; $index++) { 
+                array_push($days, date("Ymd", strtotime("-$index days")));
+            }
+            
+            $hours = [0,2,4,6,8,10,12,14,16,18,20,22];
+
+            // get the student usages per 5 minutes
+            $all_data = [];
+            foreach ($days as $key => $day) {
+                $new_data = [];
+                $new_data['day'] = $day;
+                $new_data['y'] = date("D dS M Y",strtotime($day));
+                $new_data['selected'] = ($key == 0 && empty($next_date)) ? true : $next_date == $day;
+                $new_data['report'] = [];
+                if (($key == 0 && empty($next_date)) || $next_date == $day) {
+                    foreach ($hours as $index => $hour) {
+                        if ($hour < 22) {
+                            $hour = $hour >= 10 ? $hour : "0".$hour;
+                            $start_date_param = $day.$hour."0000";
+                            $end_date_param = $day.($hours[$index+1] >= 10 ? $hours[$index+1] : "0".$hours[$index+1]) ."5959";
+                            $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `five_minute_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                            $hour_data = array(
+                                "hour" => $start_date_param,
+                                "ends" => $end_date_param,
+                                "x" => date("H:i", strtotime($start_date_param)),
+                                "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
+                                "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                            );
+                            array_push($new_data['report'], $hour_data);
+                        }else{
+                            $hour = $hour >= 10 ? $hour : "0".$hour;
+                            $start_date_param = $day.$hour."0000";
+                            $end_date_param = $day."235959";
+                            $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `five_minute_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                            $hour_data = array(
+                                "hour" => $start_date_param,
+                                "x" => date("H:i", strtotime($start_date_param)),
+                                "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
+                                "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                            );
+                            array_push($new_data['report'], $hour_data);
+                        }
+                    }
+                }
+
+                // all data
+                array_push($all_data, $new_data);
+            }
+            return $all_data;
+        }elseif ($report_type == "weekly") {
+            $days = [];
+            for ($index=1; $index <= 4; $index++) {
+                array_push($days, date("Ymd", strtotime("-".($index*7)." days")));
+            }
+            
+            $all_data = [];
+            foreach ($days as $key => $week) {
+                $week_data = [];
+                $week_data['day'] = $week;
+                $week_data['y'] = date("D dS M Y",strtotime($week))." - ". date("D dS M Y",strtotime($this->addDays($week, 7)));
+                $week_data['selected'] = ($key == 0 && empty($next_date)) ? true : $next_date == $week;
+                $week_data['report'] = [];
+                $date = $week;
+                if ($key == 0 && empty($next_date) || $next_date == $week) {
+                    for ($indexes=0; $indexes <= 7; $indexes++) {
+                        $start_date_param = $this->addDays($date, $indexes, "Ymd")."000000";
+                        $end_date_param = $this->addDays($date, $indexes, "Ymd")."235959";
+                        $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                        $hour_data = array(
+                            "day" => $start_date_param,
+                            "x" => date("dS M", strtotime($start_date_param)),
+                            "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
+                            "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                        );
+                        array_push($week_data['report'], $hour_data);
+                    }
+                }
+                array_push($all_data, $week_data);
+            }
+            return $all_data;
+        }elseif($report_type == "monthly"){
+            $days = [];
+            for ($index=1; $index <= 2; $index++) {
+                array_push($days, date("Ymd", strtotime("-".($index)." Month")));
+            }
+            
+            $all_data = [];
+            foreach ($days as $key => $month) {
+
+                $month_data = [];
+                $month_data['day'] = $month;
+                $month_data['y'] = date("M dS Y",strtotime($month))." - ". date("M dS Y",strtotime($this->addDays($month, date("t", strtotime($month))-1)));
+                $month_data['selected'] = ($key == 0 && empty($next_date)) ? true : $next_date == $month;
+                $month_data['report'] = [];
+                $date = $month;
+                if ($key == 0 && empty($next_date) || $next_date == $month) {
+                    // get month days
+                    $date_counter = DateTime::createFromFormat("Ymd", $month);
+                    $days_count = round($date_counter->format("t")/2);
+                    // return $days_count;
+
+                    // loop through the days
+                    for ($indexes=0; $indexes < $days_count; $indexes++) {
+                        $start_date_param = $this->addDays($date, ($indexes*2), "Ymd")."000000";
+                        $end_date_param = $this->addDays($date, ($indexes+1)*2, "Ymd")."235959";
+                        $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                        $hour_data = array(
+                            "day" => $start_date_param,
+                            "x" => date("dS M", strtotime($start_date_param)) . " - " . date("dS M", strtotime($end_date_param)),
+                            "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
+                            "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                        );
+                        array_push($month_data['report'], $hour_data);
+                    }
+                }
+                array_push($all_data, $month_data);
+            }
+            return $all_data;
+        }elseif($report_type == "yearly"){
+            $days = [];
+            for ($index=11; $index >= 0; $index--) { 
+                array_push($days, date("Ym", strtotime("-".$index." Month"))."01");
+            }
+            
+            $all_data = [];
+            foreach ($days as $key => $month) {
+                $month_data = [];
+                $month_data['day'] = $month;
+                $month_data['y'] = date("D dS M Y",strtotime($month));
+                $month_data['selected'] = ($key == 0 && empty($next_date)) ? true : $next_date == $month;
+                $month_data['report'] = [];
+                $date = $month;
+            
+                // get month days
+                $date_counter = DateTime::createFromFormat("Ymd", $month);
+                $days_count = floor($date_counter->format("t")/4);
+                $full_month = $date_counter->format("t");
+                for ($indexes=0; $indexes < 4; $indexes++) {
+                    $start_date_param = $this->addDays($date, ($indexes*$days_count)+($indexes == 0 ? 0:1), "Ymd")."000000";
+                    $end_date_param = $this->addDays($date, ($indexes == 3 ? $full_month : ($indexes+1)*$days_count), "Ymd").($indexes == 3 ? "000000" : "235959");
+                    $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                    $hour_data = array(
+                        "day" => $start_date_param,
+                        "x" => date("dS M", strtotime($start_date_param))." - ".date("dS M", strtotime($end_date_param)),
+                        "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
+                        "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                    );
+                    array_push($month_data['report'], $hour_data);
+                }
+                array_push($all_data, $month_data);
+            }
+            return $all_data;
+        }
+    }
+
+    function generateDataReports(Request $req){
+        $report_type = strtolower($req->input("report_type"));
+        $client_account = $req->input("client_account");
+        $next_date = $req->input("next_date") ?? 0;
+
+        if ($report_type == "weekly"){
+            $weeks = [];
+            $start = $next_date > 3 ? $next_date - 2 : 0;
+            $end = $next_date > 3 ? ($next_date + 10) - 2 : 10;
+            for ($index=$start; $index < $end; $index++) {
+                $new_data = [];
+                $new_data['day'] = $index;
+                $new_data['y'] = $index == 0 ? "This Week" : "Last $index Week ";
+                $new_data['selected'] = $next_date == $index;
+                $new_data['report'] = [];
+                
+                if ($next_date == $index) {
+                    for ($ind=6; $ind >= 0; $ind--) {
+                        // start date end date
+                        $start_date = date("Ymd", strtotime("-".($index*7 + $ind)." days"))."000000";
+                        $end_date = date("Ymd", strtotime("-".($index*7 + $ind)." days"))."235959";
+
+                        // go through the start and enddate to get the cumulative usage of data
+                        $data_used = DB::connection("mysql2")->select("SELECT SUM(upload) AS upload, SUM(download) AS download FROM `client_usage_stats` WHERE account = ? AND date >= ? AND date <= ?", [$client_account, $start_date, $end_date]);
+                        $day_data = array(
+                            "start" => $start_date,
+                            "ends" => $end_date,
+                            "x" => date("D dS M", strtotime($start_date)),
+                            "upload" => count($data_used) > 0 ? ($data_used[0]->upload*1 ?? 0) : 0,
+                            "download" => count($data_used) > 0 ? ($data_used[0]->download*1 ?? 0) : 0
+                        );
+
+                        // HOUR DATA
+                        array_push($new_data['report'], $day_data);
+                    }
+                }
+                // push weekly data
+                array_push($weeks, $new_data);
+            }
+
+            return $weeks;
+        }elseif ($report_type == "monthly"){
+            // MONTHLY
+            $months = [];
+            $start = $next_date > 3 ? $next_date - 2 : 0;
+            $end = $next_date > 3 ? ($next_date + 12) - 2 : 12;
+            for ($index=$start; $index < $end; $index++) {
+                $new_data = [];
+                $new_data['day'] = $index;
+                $new_data['y'] = $index == 0 ? "This Month" : date("M Y", strtotime("-".$index." Month"));
+                $new_data['selected'] = $next_date == $index;
+                $new_data['report'] = [];
+                
+                // next date
+                if($next_date == $index){
+                    // get the days a month has
+                    $date_counter = DateTime::createFromFormat("Ymd", date("Ymd", strtotime("-".$index." Month")));
+                    $days_count = $date_counter->format("t");
+                    // loop through the days
+                    // $start_date = date("Ym", strtotime("-".$index." Month"))."01";
+                    for ($ind=0; $ind < $days_count; $ind++) {
+                        // start date end date
+                        $start_date = $this->addDays((date("Ym", strtotime("-".$index." Month"))."01"), $ind, "Ymd")."000000";
+                        $end_date = $this->addDays((date("Ym", strtotime("-".$index." Month"))."01"), $ind, "Ymd")."235959";
+                        
+                        // get data used
+                        $data_used = DB::connection("mysql2")->select("SELECT SUM(upload) AS upload, SUM(download) AS download FROM `client_usage_stats` WHERE account = ? AND date >= ? AND date <= ?", [$client_account, $start_date, $end_date]);
+                        $day_data = array(
+                            "start" => $start_date,
+                            "ends" => $end_date,
+                            "x" => date("dS M", strtotime($start_date)),
+                            "upload" => count($data_used) > 0 ? ($data_used[0]->upload*1 ?? 0) : 0,
+                            "download" => count($data_used) > 0 ? ($data_used[0]->download*1 ?? 0) : 0
+                        );
+                        // HOUR DATA
+                        array_push($new_data['report'], $day_data);
+                    }
+                }
+                // monthly data
+                array_push($months, $new_data);
+            }
+
+            // new months
+            return $months;
+        }elseif ($report_type == "yearly"){
+            // YEARLY
+            $years = [];
+            $start = $next_date > 3 ? $next_date - 2 : 0;
+            $end = $next_date > 3 ? ($next_date + 5) - 2 : 5;
+            for ($index=$start; $index < $end; $index++) {
+                $new_data = [];
+                $new_data['day'] = $index;
+                $new_data['y'] = $index == 0 ? "This Year" : date("Y", strtotime("-".$index." Year"));
+                $new_data['selected'] = $next_date == $index;
+                $new_data['report'] = [];
+                
+
+                if($next_date == $index){
+                    for ($ind=11; $ind >= 0; $ind--) {
+                        // start date end date
+                        // get the days a month has
+                        $start_date = $this->addMonths(date("Ymd", strtotime("-".$index." Year")), -$ind, "Ym")."01000000";
+
+                        // GET THE MONTH DAYS
+                        $date_counter = DateTime::createFromFormat("Ymd", substr($start_date,0,8));
+                        $days_count = $date_counter->format("t");
+                        
+                        // GET END DATE
+                        $end_date = $this->addMonths(date("Ymd", strtotime("-".$index." Year")), -$ind, "Ym")."$days_count"."235959";
+
+                        $data_used = DB::connection("mysql2")->select("SELECT SUM(upload) AS upload, SUM(download) AS download FROM `client_usage_stats` WHERE account = ? AND date >= ? AND date <= ?", [$client_account, $start_date, $end_date]);
+                        $day_data = array(
+                            "start" => $start_date,
+                            "ends" => $end_date,
+                            "x" => date("M Y", strtotime($start_date)),
+                            "upload" => count($data_used) > 0 ? ($data_used[0]->upload*1 ?? 0) : 0,
+                            "download" => count($data_used) > 0 ? ($data_used[0]->download*1 ?? 0) : 0
+                        );
+                        // HOUR DATA
+                        array_push($new_data['report'], $day_data);
+                    }
+                }
+
+                array_push($years, $new_data);
+            }
+
+            // return years
+            return $years;
+        }
+        return [];
     }
 }
