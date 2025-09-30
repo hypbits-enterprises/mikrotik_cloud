@@ -780,7 +780,76 @@ $export_text .= "
                 "y" => $value['total_clients']
             );
         }
-        return view('myclients', ["total_added_last_week" => $total_added_last_week, "added_last_week" => $plot_data, "inactive_clients" => $inactive_clients, "active_clients" => $active_clients, "frozen_count" => $frozen_count, "client_count" => $client_count, "frozen_clients" => $frozen_clients, 'client_data' => $client_data, "router_infor" => $router_data]);
+
+        // GENERATE CLIENTS MONTHLY
+        $start_date = date("Ymd", strtotime("-1 Month"))."000000";
+        $end_date = date("Ymd")."235959";
+        $usage_stats_monthly = DB::connection("mysql2")->select("SELECT (SUM(download)+SUM(upload)) AS 'usage' FROM `client_usage_stats` WHERE date >= '$start_date' AND date <= '$end_date'");
+        $start_date = date("YmdHis", strtotime("-2 month"))."235959";
+        $end_date = date("YmdHis", strtotime("-1 month"))."000000";
+        $usage_stats_last_monthly = DB::connection("mysql2")->select("SELECT SUM(download)+SUM(upload) AS 'usage' FROM `client_usage_stats` WHERE date >= '$start_date' AND date <= '$end_date'");
+        $this_month_usage = count($usage_stats_monthly) > 0 ? $usage_stats_monthly[0]->usage : 0;
+        $last_month_usage = count($usage_stats_last_monthly) > 0 ? $usage_stats_last_monthly[0]->usage : 0;
+        $difference = ($this_month_usage > 0 && $last_month_usage > 0) ? ($this_month_usage > $last_month_usage ? round(((($this_month_usage-$last_month_usage) / $this_month_usage) * 100), 1) : round(((($last_month_usage-$this_month_usage) / $this_month_usage) * 100),1)) : 0;
+        $monthly_stats = array(
+            "this_month_usage" => $this->convertBits($this_month_usage),
+            "last_month_usage" => $this->convertBits($last_month_usage),
+            "increase" => $this_month_usage > $last_month_usage,
+            "percentage" => (($this_month_usage > 0 && $last_month_usage == 0) ? 100 : $difference)
+        );
+
+        // GENERATE CLIENTS DAILY
+        $today = date("Ymd");
+        $usage_stats_daily = DB::connection("mysql2")->select("SELECT (SUM(download)+SUM(upload)) AS 'usage' FROM `client_usage_stats` WHERE date LIKE '$today%'");
+        $yesterday = date("Ymd", strtotime("-1 day"));
+        $usage_stats_yesterday = DB::connection("mysql2")->select("SELECT SUM(download)+SUM(upload) AS 'usage' FROM `client_usage_stats` WHERE date LIKE '$yesterday%'");
+
+        $todays_usage = count($usage_stats_daily) > 0 ? $usage_stats_daily[0]->usage : 0;
+        $yesterday_usage = count($usage_stats_yesterday) > 0 ? $usage_stats_yesterday[0]->usage : 0;
+        $difference = ($todays_usage > 0 && $yesterday_usage > 0) ? ($todays_usage > $yesterday_usage ? round(((($todays_usage-$yesterday_usage) / $todays_usage) * 100), 1) : round(((($yesterday_usage-$todays_usage) / $todays_usage) * 100),1)) : 0;
+        $daily_stats = array(
+            "todays_usage" => $this->convertBits($todays_usage),
+            "yesterday_usage" => $this->convertBits($yesterday_usage),
+            "increase" => $todays_usage > $yesterday_usage,
+            "percentage" => (($todays_usage > 0 && $yesterday_usage == 0) ? 100 : $difference)
+        );
+
+        $last_one_week = date("YmdHis",strtotime("-1 weeks"));
+        $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage' FROM five_minute_stats WHERE date > '".$last_one_week."';");
+        $this_week_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
+        $two_week_ago = date("YmdHis", strtotime("-2 weeks"));
+        $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage' FROM five_minute_stats WHERE date > '".$two_week_ago."' AND date <= '".$last_one_week."';");
+        $last_week_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
+        $difference = ($this_week_band > 0 && $last_week_band > 0) ? ($this_week_band > $last_week_band ? round((($this_week_band - $last_week_band) / $this_week_band) * 100, 1) : round((($last_week_band - $this_week_band) / $this_week_band) * 100, 1)) : 0;
+        $bandwidth_stats_data = array(
+            "this_week_band" => $this->convertBits($this_week_band),
+            "last_week_band" => $this->convertBits($last_week_band),
+            "increase" => $this_week_band > $last_week_band,
+            "percentage" => (($this_week_band > 0 && $last_week_band == 0) ? 100 : $difference),
+        );
+
+        // online status
+        $client_status = array(
+            "online" => 0,
+            "offline" => 0,
+            "never_online" => 0,
+        );
+        $all_clients = DB::connection("mysql2")->select("SELECT last_seen, client_name, client_account, client_status FROM client_tables WHERE deleted = '0'");
+        foreach ($all_clients as $key => $client) {
+            if ($client->last_seen == null || strlen($client->last_seen) == 0) {
+                $client_status['never_online'] += 1;
+            } else {
+                if ($client->client_status == "1") {
+                    if (date("YmdHis", strtotime($client->last_seen)) >= date("YmdHis", strtotime("-2 minutes"))) {
+                        $client_status['online'] += 1;
+                    } else {
+                        $client_status['offline'] += 1;
+                    }
+                }
+            }
+        }
+        // return $client_status;
+        return view('myclients', ["client_status" => $client_status, "bandwidth_stats_data" => $bandwidth_stats_data, "daily_stats" => $daily_stats, "monthly_stats" => $monthly_stats, "total_added_last_week" => $total_added_last_week, "added_last_week" => $plot_data, "inactive_clients" => $inactive_clients, "active_clients" => $active_clients, "frozen_count" => $frozen_count, "client_count" => $client_count, "frozen_clients" => $frozen_clients, 'client_data' => $client_data, "router_infor" => $router_data]);
     }
 
     function searchClients(Request $req){
@@ -3397,7 +3466,7 @@ $export_text .= "
                 "percentage" => (($this_month_usage > 0 && $last_month_usage == 0) ? 100 : $difference)
             );
 
-            // GENERATE CLIENTS MONTHLY
+            // GENERATE CLIENTS DAILY
             $today = date("Ymd");
             $usage_stats_daily = DB::connection("mysql2")->select("SELECT (SUM(download)+SUM(upload)) AS 'usage' FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date LIKE '$today%'");
             $yesterday = date("Ymd", strtotime("-1 day"));

@@ -192,8 +192,9 @@ function plotGraph(client_data) {
                 font: {
                     size: 14
                 },
-                backgroundColor: backgroundColor,
-                borderColor:'rgb(55, 61, 125)'
+                backgroundColor: 'rgba(55, 61, 125,0.3)',
+                borderColor:'rgb(55, 61, 125)',
+                fill: true
             }],
             hoverOffset: 4
         },

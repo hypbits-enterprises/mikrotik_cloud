@@ -167,7 +167,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Client Summary</h4>
+                                <h4 class="card-title">Client Stats</h4>
                                 <a class="heading-elements-toggle">
                                     <i class="la la-ellipsis-v font-medium-3"></i>
                                 </a>
@@ -175,7 +175,7 @@
                                     <ul class="list-inline mb-0">
                                         <li>
                                             @php
-                                                $btnText = "<i class=\"ft-plus\"></i> View Client Summary";
+                                                $btnText = "<i class=\"ft-plus\"></i> View Client Stats";
                                                 $otherClasses = "";
                                                 $btnLink = "#";
                                                 $otherAttributes = "data-action=\"collapse\"";
@@ -213,6 +213,8 @@
                                             </canvas>
                                         </div>
                                     </div>
+                                    <hr>
+                                    <x-Client.all-clients-usage-stats :clientStatus="$client_status" :monthlyStats="$monthly_stats" :dailyStats="$daily_stats" :bandwidthStats="$bandwidth_stats_data"/>
                                 </div>
                             </div>
                         </div>
