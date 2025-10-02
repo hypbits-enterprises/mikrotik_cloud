@@ -674,6 +674,81 @@ $export_text .= "
         return view("new_client_pppoe", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username]);
     }
 
+    function getClientsDatatable(Request $request){
+        // return $request->input();
+        $order_by = !empty($request->input('order.0.column')) ? $request->input('order.0.column') : 0;
+        $order_dir = !empty($request->input('order.0.dir')) ? $request->input('order.0.dir') : 'desc';
+        $order_string = "ORDER BY ".($request->input('columns.'.$order_by.'.data') == "rownum" ? "client_tables.client_id" : "client_tables.".$request->input('columns.'.$order_by.'.data')).' '.$order_dir;
+        // return $order_string;
+        $start  = $request->input('start');
+        $length = $request->input('length');
+        $accepted_columns = ["client_id","validated","client_name","client_network","client_status","clients_contacts","client_address","monthly_payment","next_expiration_date","router_name","wallet_amount","client_account","reffered_by","comment","location_coordinates","assignment","client_default_gw"];
+        $str = "";
+        foreach ($request->all() as $key => $value) {
+            if (in_array($key, $accepted_columns) && (!empty($value) || $value == "0")) {
+                if($key == "client_name" || $key == "client_account" || $key == "clients_contacts" || $key == "client_address" || $key == "reffered_by" || $key == "comment" || $key == "location_coordinates"){
+                    $str.= " AND client_tables.$key LIKE '%$value%' ";
+                }else{
+                    $str.= " AND client_tables.$key = '$value' ";
+                }
+            }
+        }
+        // return $str;
+
+        if(!empty($request->input("search.value"))){
+            $search = $request->input("search.value");
+            $str.= " AND (client_tables.client_name LIKE '%$search%' OR client_tables.client_account LIKE '%$search%' OR client_tables.clients_contacts LIKE '%$search%' OR client_tables.client_address LIKE '%$search%' OR client_tables.comment LIKE '%$search%' OR remote_routers.router_name LIKE '%$search%') ";
+        }
+
+        // get the total clients count
+        $client_count = DB::connection("mysql2")->select("SELECT COUNT(*) AS total_clients FROM `client_tables` LEFT JOIN `remote_routers` ON remote_routers.router_id = client_tables.router_name WHERE client_tables.deleted = '0' $str;");
+        $total_clients = count($client_count) > 0 ? $client_count[0]->total_clients : 0;
+        
+        // here we get the clients information from the database
+        $client_data = DB::connection("mysql2")->select("SELECT client_tables.last_seen, client_tables.client_id,client_tables.validated,client_tables.client_name,client_tables.client_network,client_tables.client_status,client_tables.clients_contacts,client_tables.client_address,client_tables.monthly_payment,client_tables.next_expiration_date,client_tables.payments_status,client_tables.router_name,client_tables.wallet_amount,client_tables.client_account,client_tables.reffered_by,client_tables.comment,client_tables.location_coordinates,client_tables.assignment,client_tables.client_default_gw,
+        (SELECT report_title FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'latest_issue', 
+        (SELECT report_description FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'report_description',
+        (SELECT problem FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'problem', 
+        (SELECT solution FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'solution', 
+        (SELECT diagnosis FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'diagnosis',
+        (SELECT report_date FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'date_reported',
+        (SELECT report_code FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'ticket_number',
+        (SELECT `status` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'report_status',
+        (SELECT `report_id` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'report_id',
+        (SELECT (SELECT admin_tables.admin_fullname FROM ".session("database_name").".client_reports LEFT JOIN mikrotik_cloud_manager.admin_tables ON admin_tables.admin_id = client_reports.admin_reporter WHERE client_reports.report_id = CR.report_id LIMIT 1) AS admin_fullname FROM `client_reports` AS CR WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'opened_by',
+        (SELECT (SELECT admin_tables.admin_fullname FROM ".session("database_name").".client_reports LEFT JOIN mikrotik_cloud_manager.admin_tables ON admin_tables.admin_id = client_reports.closed_by WHERE client_reports.report_id = CR.report_id LIMIT 1) AS admin_fullname FROM `client_reports` AS CR WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'closed_by',
+        (SELECT `admin_attender` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'admin_attender',
+        remote_routers.router_name
+         FROM `client_tables`
+         LEFT JOIN `remote_routers` ON remote_routers.router_id = client_tables.router_name
+         WHERE client_tables.deleted = '0' $str $order_string LIMIT $start, $length;");
+        // return $client_data; 
+
+        $data = [];
+        foreach ($client_data as $i => $client) {
+            $online = date("YmdHis", strtotime("-2 minutes")) < $client->last_seen;
+            $data[] = [
+                "rownum"      => '<input type="checkbox" class="actions_id" id="actions_id_'.$client->client_account.'"><input type="hidden" id="actions_value_'.$client->client_account.'" value="'.$client->client_account.'">'.($start + $i + 1),
+                "client_name"   => ($client->assignment == "static" ? '<span class="badge text-light" style="background: rgb(141, 110, 99);" data-toggle="tooltip" title="" data-original-title="Static Assigned">S</span>':'<span class="badge text-light" style="background: rgb(119, 105, 183);" data-toggle="tooltip" title="" data-original-title="PPPoE Assigned">P</span>').' <a href="/Clients/View/'.$client->client_id.'" class="text-secondary" data-toggle="tooltip" title="View this client!">'.(ucwords(strtolower($client->client_name))).'</a> <span class="badge badge-'.($client->client_status == "1" ? "success" : "danger").'"> </span>'.("<br><small>".$client->comment."</small>"),
+                "client_account"     => ($client->client_account).($online ? " <small class='badge bg-success text-dark'>Online</small>" : " <small class='badge bg-danger text-dark'>Offline</small>")."<br><small>".($client->clients_contacts ?? '{No contact}')."</small>",
+                "client_address"    => ($client->client_address).($client->location_coordinates ? '<small class="d-none d-md-block"><a class="text-danger" href="https://www.google.com/maps/place/'.$client->location_coordinates.'" target="_blank"><u>Locate Client</u> </a></small>' : ''),
+                "next_expiration_date"    => (date("D d M Y @ H:i:s", strtotime($client->next_expiration_date))),
+                "client_default_gw"  => "<small>".($client->assignment == "static" ? ("<span class='badge bg-success text-dark'><b>GW : </b>".$client->client_default_gw."</span> <br><span class='badge bg-success text-dark'><b>NW : </b>". $client->client_network."</span><br>") : "")." <span class='badge bg-primary'><b>Router: </b>".($client->router_name ?? '{No queues router}')."</span>"."</small>",
+                "actions"     => //'<a href="/Clients/View/'.$client->client_id.'" class="btn btn-primary btn-sm" data-toggle="tooltip" title="View this client!"><i class="ft-eye"></i></a>'
+                                '<a href="/Clients/View/'.$client->client_id.'" class="btn btn-sm btn-primary text-bolder " data-toggle="tooltip" title="" style="padding: 3px; background-color: rgb(105, 103, 206); transition: background-color 0.3s;" id="" data-original-title="View this transaction"><span class="d-inline-block border border-white w-100 text-center" style="border-radius: 2px; padding: 5px; background-color: rgba(0, 0, 0, 0); color: rgb(255, 255, 255); border-color: rgb(255, 255, 255); transition: color 0.3s, background-color 0.3s, border-color 0.3s;"><i class="ft-eye"></i></span></a>'
+            ];
+        }
+
+         $json_data = [
+            "draw"            => intval($request->input('draw')),
+            "recordsTotal"    => $total_clients,
+            "recordsFiltered" => count($client_data),
+            "data"            => $data
+        ];
+
+        return response()->json($json_data);
+    }
+
     //here we get the clients information from the database
     function getClientData()
     {
@@ -696,7 +771,7 @@ $export_text .= "
         (SELECT (SELECT admin_tables.admin_fullname FROM ".session("database_name").".client_reports LEFT JOIN mikrotik_cloud_manager.admin_tables ON admin_tables.admin_id = client_reports.closed_by WHERE client_reports.report_id = CR.report_id LIMIT 1) AS admin_fullname FROM `client_reports` AS CR WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'closed_by',
         (SELECT `admin_attender` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'admin_attender'
          FROM `client_tables`
-         WHERE `deleted` = '0' ORDER BY `client_id` DESC LIMIT 100;");
+         WHERE `deleted` = '0' ORDER BY `client_id` DESC LIMIT 50;");
         //  return $client_data;
          
         // router data
@@ -737,7 +812,7 @@ $export_text .= "
         
         for ($index = 0; $index < count($client_data); $index++) {
             $client_data[$index]->reffered_by = str_replace("'", "\"", $client_data[$index]->reffered_by);
-            $latest_issue = DB::connection("mysql2")->select("SELECT * FROM `client_reports` WHERE client_id = ? ORDER BY report_date DESC LIMIT 1;", [$client_data[$index]->client_id]);
+            // $latest_issue = DB::connection("mysql2")->select("SELECT * FROM `client_reports` WHERE client_id = ? ORDER BY report_date DESC LIMIT 1;", [$client_data[$index]->client_id]);
             $client_data[$index]->date_reported = $client_data[$index]->date_reported != null ? date("D dS M Y H:iA", strtotime($client_data[$index]->date_reported)) : $client_data[$index]->date_reported;
         }
         $total_added_last_week = 0;
@@ -848,6 +923,7 @@ $export_text .= "
                 }
             }
         }
+        // return $client_data;
         // return $client_status;
         return view('myclients', ["client_status" => $client_status, "bandwidth_stats_data" => $bandwidth_stats_data, "daily_stats" => $daily_stats, "monthly_stats" => $monthly_stats, "total_added_last_week" => $total_added_last_week, "added_last_week" => $plot_data, "inactive_clients" => $inactive_clients, "active_clients" => $active_clients, "frozen_count" => $frozen_count, "client_count" => $client_count, "frozen_clients" => $frozen_clients, 'client_data' => $client_data, "router_infor" => $router_data]);
     }
@@ -6069,9 +6145,7 @@ $export_text .= "
 
                 // delete the file
                 unlink($filePath);
-                $last_five_minute = $this->getLast5MinuteInterval();
-                $last_thirty_minute = $this->getLast30MinuteInterval();
-                return response()->json(["success" => true, "message" => "Data Uploaded successfully!", "last_five_minute" => $last_thirty_minute, "now" => date("YmdHis")]);
+                return response()->json(["success" => true, "message" => "Data Uploaded successfully!"]);
             }
         }
         return response()->json(["success" => false, "message" => "An error has occured!"]);
@@ -6080,10 +6154,14 @@ $export_text .= "
     function processFiveMinutes($client_account){
         // last 5 minutes
         $last_five_minute = $this->getLast5MinuteInterval();
+        $difference = $this->dateDiffSingleUnit($last_five_minute, date("YmdHis"), "minutes");
+        if($difference < 4.01){
+            return;
+        }
 
         // check if the one minute records are 5 in number and get their averages
         $one_minute_records = DB::connection("mysql2")->select("SELECT * FROM one_minute_stats WHERE account = '$client_account' AND `date` >= '".$last_five_minute."' ORDER BY stat_id DESC");
-        if(count($one_minute_records) >= 5){
+        if(count($one_minute_records) >= 0){
             $total_upload = 0;
             $total_download = 0;
             foreach($one_minute_records as $key => $record){
@@ -6107,10 +6185,14 @@ $export_text .= "
     function processThirtyMinutes($client_account){
         // last thirty minute interval
         $last_thirty_minute = $this->getLast30MinuteInterval();
+        $difference = $this->dateDiffSingleUnit($last_thirty_minute, date("YmdHis"), "minutes");
+        if($difference < 29){
+            return;
+        }
 
         // check if the five minute records are 6 in number and get their averages
         $five_minute_records = DB::connection("mysql2")->select("SELECT * FROM five_minute_stats WHERE account = '$client_account' AND `date` >= '".$last_thirty_minute."' ORDER BY stat_id DESC");
-        if(count($five_minute_records) >= 6){
+        if(count($five_minute_records) >= 0){
             $total_upload = 0;
             $total_download = 0;
             foreach($five_minute_records as $key => $record){
@@ -6134,9 +6216,14 @@ $export_text .= "
     function processTwoHours($client_account){
         // last_two_hour
         $last_two_hour = $this->getLast2HourInterval();
+        $difference = $this->dateDiffSingleUnit($last_two_hour, date("YmdHis"), "hours");
+        if($difference < 1.98){
+            return;
+        }
+
         // check if the thirty minute records are 4 in number and get their averages
         $thirty_minute_records = DB::connection("mysql2")->select("SELECT * FROM thirty_minute_stats WHERE account = '$client_account' AND `date` > '".$last_two_hour."' ORDER BY stat_id DESC");
-        if(count($thirty_minute_records) >= 4){
+        if(count($thirty_minute_records) >= 0){
             $total_upload = 0;
             $total_download = 0;
             foreach($thirty_minute_records as $key => $record){
@@ -6159,9 +6246,14 @@ $export_text .= "
 
     function processFullDay($client_account){
         $last_one_date = $this->getLast6AM();
+        $difference = $this->dateDiffSingleUnit($last_one_date, date("YmdHis"), "days");
+        if($difference < 0.9990){//the last minute
+            return;
+        }
+
         // check if the two hour records are 12 in number and get their averages
         $two_hour_records = DB::connection("mysql2")->select("SELECT * FROM two_hour_stats WHERE account = '$client_account' AND `date` > '".$last_one_date."' ORDER BY stat_id DESC");
-        if(count($two_hour_records) >= 12){
+        if(count($two_hour_records) >= 0){
             $total_upload = 0;
             $total_download = 0;
             foreach($two_hour_records as $key => $record){

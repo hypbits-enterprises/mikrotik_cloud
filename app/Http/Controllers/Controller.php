@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use DateTime;
+use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -82,6 +83,36 @@ class Controller extends BaseController
         $now->setTime((int)$now->format('H'), $roundedMinutes, 0);
 
         return $now->format('YmdHis');
+    }
+
+    function dateDiffSingleUnit($date1, $date2, $unit = "minutes") {
+        $d1 = new DateTime($date1);
+        $d2 = new DateTime($date2);
+
+        // Absolute difference in seconds
+        $diffInSeconds = abs($d1->getTimestamp() - $d2->getTimestamp());
+
+        // Conversion factors
+        $conversions = [
+            "seconds" => 1,
+            "minutes" => 60,
+            "hours"   => 3600,
+            "days"    => 86400,
+            "weeks"   => 604800,
+            "months"  => 2629800, // Approx (30.44 days)
+            "years"   => 31557600 // Approx (365.25 days)
+        ];
+
+        if (!array_key_exists($unit, $conversions)) {
+            throw new Exception("Invalid unit provided. Use seconds, minutes, hours, days, weeks, months, years.");
+        }
+
+        $round = 2;
+        if ($unit == "days" || $unit == "months" || $unit == "years") {
+            $round = 4; // more precision for larger units
+        }
+
+        return round($diffInSeconds / $conversions[$unit], $round); // round to 2 decimals
     }
 
     function getLast6AM() {

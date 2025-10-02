@@ -125,7 +125,7 @@
                                     <p>- List of clients who are frozen!</p>
                                 </div>
                                 <div class="card-body">
-                                    <table id="myTable" class="table datatable dataTable-table">
+                                    <table id="myTable" class="table table-striped table-bordered sourced-data dataTable">
                                         <thead>
                                             <tr>
                                                 <th>#</th>
@@ -437,7 +437,7 @@
                                                     <select name="select_router" id="select_router"
                                                         class="form-control" required>
                                                         <option value="" hidden>Select a Router</option>
-                                                        <option value="all" >All</option>
+                                                        <option value="" >All</option>
                                                     @for ($i = 0; $i < count($router_infor); $i++)
                                                         <option value="{{$router_infor[$i]->router_id}}" >{{$router_infor[$i]->router_name}}</option>
                                                         {{-- {{"<option value=".$router_infor[$i]->router_id." >".$router_infor[$i]->router_id."</option>"}} --}}
@@ -450,12 +450,11 @@
                                             <div class="col-md-3">
                                                 <select name="client_status" id="client_status" class="form-control">
                                                     <option value="" hidden>Select Status</option>
-                                                    <option value="2">All</option>
-                                                    <option value="0">In-Active</option>
-                                                    <option value="1">Active</option>
-                                                    <option value="3">Reffered</option>
-                                                    <option value="4">Static Assigned</option>
-                                                    <option value="5">PPPoE Assigned</option>
+                                                    <option value="">All</option>
+                                                    <option value="inactive">In-Active</option>
+                                                    <option value="active">Active</option>
+                                                    <option value="static">Static Assigned</option>
+                                                    <option value="pppoe">PPPoE Assigned</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -540,75 +539,37 @@
                                         </div>
                                     </div>
                                     <div class="table-responsive" id="transDataReciever">
-                                        <div class="container text-center my-2">
+                                        <div class="container text-center my-2" id="loading_clients_data">
                                             <img class=" mx-auto fa-beat-fade"  width="100" alt="Your Logo Appear Here"
                                                 src="{{session("organization_logo") != null ? session("organization_logo") :'/theme-assets/images/logoplaceholder.svg'}}" />
                                         </div>
-                                        {{-- <table class="table"> --}}
-                                            {{-- <thead>
+                                        <table class="table table-striped table-bordered zero-configuration dataTable d-none" id="clients_table">
+                                            <thead>
                                                 <tr>
-                                                    <th>#</th>
-                                                    <th>Full Names</th>
-                                                    <th>Account Number</th>
-                                                    <th>Location</th>
+                                                    <th><span>#</span></th>
+                                                    <th><span>Full Names</span></th>
+                                                    <th><span>Account Number</span></th>
+                                                    <th><span>Location</span></th>
+                                                    <th><span>Due Date</span></th>
+                                                    <th><span>Network &amp; Gateway</span></th>
                                                     <th>Action</th>
                                                 </tr>
-                                            </thead> --}}
-                                            {{-- <tbody>
+                                            </thead>
+                                            <tbody>
                                                 <tr>
-                                                    <th scope="row">1</th>
-                                                    <td>Mark Otto <span class="badge badge-success"> </span></td>
-                                                    <td>0743551250</td>
-                                                    <td>Kigajo corner 3</td>
-                                                    <td><a href="#" class="btn btn-sm btn-primary text-bolder" data-toggle="tooltip" title="View this User"><i class="ft-eye"></i></a> <a href="#" class="btn btn-sm btn-secondary text-bolder" data-toggle="tooltip" title="Edit this User"><i class="ft-edit"></i></a>  <a href="#" class="btn btn-sm btn-warning text-bolder"  data-toggle="tooltip" title="Disable this User"><i class="ft-alert-octagon"></i></a></td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">2</th>
-                                                    <td>Jacob Thornton <span class="badge badge-danger"> </span></td>
-                                                    <td>0743551223</td>
-                                                    <td>Ruiru Bypass</td>
-                                                    <td><a href="#" class="btn btn-sm btn-primary text-bolder" data-toggle="tooltip" title="View this User"><i class="ft-eye"></i></a> <a href="#" class="btn btn-sm btn-secondary text-bolder" data-toggle="tooltip" title="Edit this User"><i class="ft-edit"></i></a>  <a href="#" class="btn btn-sm btn-warning text-bolder"  data-toggle="tooltip" title="Disable this User"><i class="ft-alert-octagon"></i></a></td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">3</th>
-                                                    <td>Larry the Bird <span class="badge badge-success"> </span></td>
-                                                    <td>0713620727</td>
-                                                    <td>Kijabe</td>
-                                                    <td><a href="#" class="btn btn-sm btn-primary text-bolder" data-toggle="tooltip" title="View this User"><i class="ft-eye"></i></a> <a href="#" class="btn btn-sm btn-secondary text-bolder" data-toggle="tooltip" title="Edit this User"><i class="ft-edit"></i></a> <a href="#" class="btn btn-sm btn-warning text-bolder"  data-toggle="tooltip" title="Disable this User"><i class="ft-alert-octagon"></i></a> </td>
+                                                    <th scope="row"><input type="checkbox" class="actions_id" id="actions_id_HYP016"><input type="hidden" id="actions_value_HYP016" value="HYP016"> 1 </th>
+                                                    <td><span class="badge text-light" style="background: rgb(119, 105, 183);" data-toggle="tooltip" title="" data-original-title="PPPoE Assigned">P</span> <a href="/Clients/View/586" class="text-secondary"><span class="" data-toggle="tooltip" title="" data-original-title="Verified">James Kato</span> <span class="badge badge-success"> </span></a><br><small class="text-gray d-none d-xl-block"></small></td>
+                                                    <td data-html="true" data-toggle="tooltip" title="" data-original-title="No Issues Yet!">HYP016 </td>
+                                                    <td>Kitale Kenya<br><small class="d-none d-md-block"></small></td>
+                                                    <td>Sun 26 Oct 2025 @ 20:19:00</td>
+                                                    <td><small>null; null; </small> <small class="text-gray d-xl-block">{No queues router}</small></td>
+                                                    <td><a href="/Clients/View/586" class="btn btn-primary btn-sm " style="padding: 3px;" id="" data-toggle="tooltip" title="" data-original-title="View this client!"><span class="d-inline-block border border-white w-100 text-center" style="border-radius: 2px; padding: 5px;"><i class="ft-eye"></i></span></a>
+                                                        <a href="/deactivate/586" class="btn btn-danger btn-sm " style="padding: 3px;" id="" data-toggle="tooltip" title="" data-original-title="Disable this client!"><span class="d-inline-block border border-white w-100 text-center" style="border-radius: 2px; padding: 5px;"><i class="ft-x"></i></span></a>
+                                                    </td>
                                                 </tr>
                                             </tbody>
-                                        </table> --}}
+                                        </table>
                                     </div>
-                                    <nav aria-label="Page navigation example" id="tablefooter">
-                                        <ul class="pagination" id="datatable_paginate">
-                                            <li class="page-item"  id="tofirstNav">
-                                                <a class="page-link" href="#" aria-label="Fisrt">
-                                                    <span aria-hidden="true">&laquo; &laquo;</span>
-                                                    <span class="sr-only">First</span>
-                                                </a>
-                                            </li>
-                                            <li class="page-item" id="toprevNac">
-                                                <a class="page-link" href="#" aria-label="Previous">
-                                                    <span aria-hidden="true">&laquo;</span>
-                                                    <span class="sr-only">Previous</span>
-                                                </a>
-                                            </li>
-                                            <li class="page-item"><button disabled class="page-link" id="pagenumNav">Page: 1</button></li>
-                                            <li class="page-item">
-                                                <a class="page-link" href="#" aria-label="Next" id="tonextNav">
-                                                    <span aria-hidden="true">&raquo;</span>
-                                                    <span class="sr-only">Next</span>
-                                                </a>
-                                            </li>
-                                            <li class="page-item">
-                                                <a class="page-link" href="#" aria-label="Last Page"  id="tolastNav">
-                                                    <span aria-hidden="true">&raquo;&raquo;</span>
-                                                    <span class="sr-only">Next</span>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                        <p class="card-text text-xxs">Showing from <span class="text-primary" id="startNo">1</span> to <span class="text-secondary"  id="finishNo">10</span> records of <span  id="tot_records">56</span></p>
-                                    </nav>
                                 </div>
                             </div>
                         </div>
