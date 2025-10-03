@@ -697,7 +697,7 @@ $export_text .= "
 
         if(!empty($request->input("search.value"))){
             $search = $request->input("search.value");
-            $str.= " AND (client_tables.client_name LIKE '%$search%' OR client_tables.client_account LIKE '%$search%' OR client_tables.clients_contacts LIKE '%$search%' OR client_tables.client_address LIKE '%$search%' OR client_tables.comment LIKE '%$search%' OR remote_routers.router_name LIKE '%$search%') ";
+            $str.= " AND (client_tables.client_name LIKE '%$search%' OR client_tables.client_account LIKE '%$search%' OR client_tables.clients_contacts LIKE '%$search%' OR client_tables.client_address LIKE '%$search%' OR client_tables.comment LIKE '%$search%' OR remote_routers.router_name LIKE '%$search%' OR client_tables.client_network LIKE '%$search%' OR client_tables.client_default_gw LIKE '%$search%') ";
         }
 
         // get the total clients count
@@ -728,14 +728,14 @@ $export_text .= "
         foreach ($client_data as $i => $client) {
             $online = date("YmdHis", strtotime("-2 minutes")) < $client->last_seen;
             $data[] = [
-                "rownum"      => '<input type="checkbox" class="actions_id" id="actions_id_'.$client->client_account.'"><input type="hidden" id="actions_value_'.$client->client_account.'" value="'.$client->client_account.'">'.($start + $i + 1),
+                "rownum"      => '<input type="checkbox" class="actions_id" id="actions_id_'.$client->client_account.'"><input type="hidden" id="actions_value_'.$client->client_account.'" value="'.$client->client_account.'"> '.($start + $i + 1),
                 "client_name"   => ($client->assignment == "static" ? '<span class="badge text-light" style="background: rgb(141, 110, 99);" data-toggle="tooltip" title="" data-original-title="Static Assigned">S</span>':'<span class="badge text-light" style="background: rgb(119, 105, 183);" data-toggle="tooltip" title="" data-original-title="PPPoE Assigned">P</span>').' <a href="/Clients/View/'.$client->client_id.'" class="text-secondary" data-toggle="tooltip" title="View this client!">'.(ucwords(strtolower($client->client_name))).'</a> <span class="badge badge-'.($client->client_status == "1" ? "success" : "danger").'"> </span>'.("<br><small>".$client->comment."</small>"),
-                "client_account"     => ($client->client_account).($online ? " <small class='badge bg-success text-dark'>Online</small>" : " <small class='badge bg-danger text-dark'>Offline</small>")."<br><small>".($client->clients_contacts ?? '{No contact}')."</small>",
-                "client_address"    => ($client->client_address).($client->location_coordinates ? '<small class="d-none d-md-block"><a class="text-danger" href="https://www.google.com/maps/place/'.$client->location_coordinates.'" target="_blank"><u>Locate Client</u> </a></small>' : ''),
+                "client_account"     => ($client->client_account).($online ? " <span class='badge bg-success fa-beat-fade' style='font-size:7px;'>Online</span>" : " <small class='badge bg-danger' style='font-size:7px;'>Offline</small>")."<br><small>".($client->clients_contacts ?? '{No contact}')."</small>",
+                "client_address"    => ucwords(strtolower($client->client_address)).($client->location_coordinates ? '<small class="d-none d-md-block"><a class="text-danger" href="https://www.google.com/maps/place/'.$client->location_coordinates.'" target="_blank"><u>Locate Client</u> </a></small>' : ''),
                 "next_expiration_date"    => (date("D d M Y @ H:i:s", strtotime($client->next_expiration_date))),
                 "client_default_gw"  => "<small>".($client->assignment == "static" ? ("<span class='badge bg-success text-dark'><b>GW : </b>".$client->client_default_gw."</span> <br><span class='badge bg-success text-dark'><b>NW : </b>". $client->client_network."</span><br>") : "")." <span class='badge bg-primary'><b>Router: </b>".($client->router_name ?? '{No queues router}')."</span>"."</small>",
                 "actions"     => //'<a href="/Clients/View/'.$client->client_id.'" class="btn btn-primary btn-sm" data-toggle="tooltip" title="View this client!"><i class="ft-eye"></i></a>'
-                                '<a href="/Clients/View/'.$client->client_id.'" class="btn btn-sm btn-primary text-bolder " data-toggle="tooltip" title="" style="padding: 3px; background-color: rgb(105, 103, 206); transition: background-color 0.3s;" id="" data-original-title="View this transaction"><span class="d-inline-block border border-white w-100 text-center" style="border-radius: 2px; padding: 5px; background-color: rgba(0, 0, 0, 0); color: rgb(255, 255, 255); border-color: rgb(255, 255, 255); transition: color 0.3s, background-color 0.3s, border-color 0.3s;"><i class="ft-eye"></i></span></a>'
+                                '<a href="/Clients/View/'.$client->client_id.'" class="btn btn-sm btn-primary text-bolder " data-toggle="tooltip" title="" style="padding: 3px; background-color: rgb(105, 103, 206); transition: background-color 0.3s;" id="" data-original-title="View this client"><span class="d-inline-block border border-white w-100 text-center" style="border-radius: 2px; padding: 5px; background-color: rgba(0, 0, 0, 0); color: rgb(255, 255, 255); border-color: rgb(255, 255, 255); transition: color 0.3s, background-color 0.3s, border-color 0.3s;"><i class="ft-eye"></i></span></a>'
             ];
         }
 
@@ -7049,7 +7049,11 @@ $export_text .= "
                             $hour = $hour >= 10 ? $hour : "0".$hour;
                             $start_date_param = $day.$hour."0000";
                             $end_date_param = $day.($hours[$index+1] >= 10 ? $hours[$index+1] : "0".$hours[$index+1]) ."5959";
-                            $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `five_minute_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                            if(!empty($client_account)){
+                                $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `five_minute_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                            }else{
+                                $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `five_minute_stats` WHERE date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                            }
                             $hour_data = array(
                                 "hour" => $start_date_param,
                                 "ends" => $end_date_param,
@@ -7062,7 +7066,11 @@ $export_text .= "
                             $hour = $hour >= 10 ? $hour : "0".$hour;
                             $start_date_param = $day.$hour."0000";
                             $end_date_param = $day."235959";
-                            $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `five_minute_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                            if(!empty($client_account)){
+                                $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `five_minute_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                            }else{
+                                $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `five_minute_stats` WHERE date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                            }
                             $hour_data = array(
                                 "hour" => $start_date_param,
                                 "x" => date("H:i", strtotime($start_date_param)),
@@ -7096,7 +7104,11 @@ $export_text .= "
                     for ($indexes=0; $indexes <= 7; $indexes++) {
                         $start_date_param = $this->addDays($date, $indexes, "Ymd")."000000";
                         $end_date_param = $this->addDays($date, $indexes, "Ymd")."235959";
-                        $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                        if(!empty($client_account)){
+                            $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                        }else{
+                            $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                        }
                         $hour_data = array(
                             "day" => $start_date_param,
                             "x" => date("dS M", strtotime($start_date_param)),
@@ -7134,7 +7146,11 @@ $export_text .= "
                     for ($indexes=0; $indexes < $days_count; $indexes++) {
                         $start_date_param = $this->addDays($date, ($indexes*2), "Ymd")."000000";
                         $end_date_param = $this->addDays($date, ($indexes+1)*2, "Ymd")."235959";
-                        $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                        if(!empty($client_account)){
+                            $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                        }else{
+                            $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                        }
                         $hour_data = array(
                             "day" => $start_date_param,
                             "x" => date("dS M", strtotime($start_date_param)) . " - " . date("dS M", strtotime($end_date_param)),
@@ -7169,7 +7185,11 @@ $export_text .= "
                 for ($indexes=0; $indexes < 4; $indexes++) {
                     $start_date_param = $this->addDays($date, ($indexes*$days_count)+($indexes == 0 ? 0:1), "Ymd")."000000";
                     $end_date_param = $this->addDays($date, ($indexes == 3 ? $full_month : ($indexes+1)*$days_count), "Ymd").($indexes == 3 ? "000000" : "235959");
-                    $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                    if(!empty($client_account)){
+                        $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                    }else{
+                        $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                    }
                     $hour_data = array(
                         "day" => $start_date_param,
                         "x" => date("dS M", strtotime($start_date_param))." - ".date("dS M", strtotime($end_date_param)),
@@ -7207,7 +7227,11 @@ $export_text .= "
                         $end_date = date("Ymd", strtotime("-".($index*7 + $ind)." days"))."235959";
 
                         // go through the start and enddate to get the cumulative usage of data
-                        $data_used = DB::connection("mysql2")->select("SELECT SUM(upload) AS upload, SUM(download) AS download FROM `client_usage_stats` WHERE account = ? AND date >= ? AND date <= ?", [$client_account, $start_date, $end_date]);
+                        if(!empty($client_account)){
+                            $data_used = DB::connection("mysql2")->select("SELECT SUM(upload) AS upload, SUM(download) AS download FROM `client_usage_stats` WHERE account = ? AND date >= ? AND date <= ?", [$client_account, $start_date, $end_date]);
+                        }else{
+                            $data_used = DB::connection("mysql2")->select("SELECT SUM(upload) AS upload, SUM(download) AS download FROM `client_usage_stats` WHERE date >= ? AND date <= ?", [$start_date, $end_date]);
+                        }
                         $day_data = array(
                             "start" => $start_date,
                             "ends" => $end_date,
@@ -7250,7 +7274,11 @@ $export_text .= "
                         $end_date = $this->addDays((date("Ym", strtotime("-".$index." Month"))."01"), $ind, "Ymd")."235959";
                         
                         // get data used
-                        $data_used = DB::connection("mysql2")->select("SELECT SUM(upload) AS upload, SUM(download) AS download FROM `client_usage_stats` WHERE account = ? AND date >= ? AND date <= ?", [$client_account, $start_date, $end_date]);
+                        if(!empty($client_account)){
+                            $data_used = DB::connection("mysql2")->select("SELECT SUM(upload) AS upload, SUM(download) AS download FROM `client_usage_stats` WHERE account = ? AND date >= ? AND date <= ?", [$client_account, $start_date, $end_date]);
+                        }else{
+                            $data_used = DB::connection("mysql2")->select("SELECT SUM(upload) AS upload, SUM(download) AS download FROM `client_usage_stats` WHERE date >= ? AND date <= ?", [$start_date, $end_date]);
+                        }
                         $day_data = array(
                             "start" => $start_date,
                             "ends" => $end_date,

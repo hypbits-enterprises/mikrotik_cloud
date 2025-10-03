@@ -13,7 +13,7 @@ function stopInterval(id) {
     clearInterval(id);
 }
 
-async function sendDataGet(method, url, object1 = null, object2 = null) {
+async function sendDataGetAsync(method, url, object1 = null, object2 = null) {
     if (object2) object2.classList.remove("invisible");
 
     try {
@@ -108,9 +108,28 @@ window.onload = function () {
         table.ajax.reload();
     });
 
+    // ✅ Reinitialize tooltips after table redraw
+    table.on('draw.dt', function () {
+        $('[data-toggle="tooltip"]').tooltip();
+        checkedUnchecked();
+    });
+
     // plot graph
     plotGraph(added_last_week);
-    checkedUnchecked();
+}
+
+function checkBlank(object_id) {
+    if (cObj(object_id).value.trim().length > 0) {
+        cObj(object_id).classList.add("border");
+        cObj(object_id).classList.add("border-secondary");
+        cObj(object_id).classList.remove("border-danger");
+        return 0;
+    }else{
+        cObj(object_id).classList.add("border");
+        cObj(object_id).classList.add("border-danger");
+        cObj(object_id).classList.remove("border-secondary");
+        return 1;
+    }
 }
 
 var myChart;
@@ -726,7 +745,7 @@ function highlightNeedleInHaystack(haystack, needle) {
 }
 
 async function searchClients(keyword){
-    var client_list = await sendDataGet("GET", "/Clients/search?keyword=" + keyword, cObj("clients_search_loader"), cObj("clients_search_loader"));
+    var client_list = await sendDataGetAsync("GET", "/Clients/search?keyword=" + keyword, cObj("clients_search_loader"), cObj("clients_search_loader"));
     let data = [];
     data[0] = [];
     data[1] = [];
@@ -744,4 +763,27 @@ async function searchClients(keyword){
         data[5].push(element.client_network_address);
     }
     return data;
+}
+// Send data with get
+function sendDataGet(method, file, object1, object2, callback = null) {
+    //make the loading window show
+    object2.classList.remove("invisible");
+    let xml = new XMLHttpRequest();
+    xml.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            object1.innerHTML = this.responseText;
+            object2.classList.add("invisible");
+
+            // ✅ Run the callback after updating DOM
+            if (typeof callback === "function") {
+                callback();
+            }
+        } else if (this.status == 500) {
+            object2.classList.add("invisible");
+            // cObj("loadings").classList.add("invisible");
+            object1.innerHTML = "<p class='red_notice'>Cannot establish connection to server.<br>Try reloading your page</p>";
+        }
+    };
+    xml.open(method, file, true);
+    xml.send();
 }

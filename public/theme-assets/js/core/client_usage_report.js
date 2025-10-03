@@ -1,14 +1,53 @@
 
 let reportChart; // global variable
-cObj("client_usage_report_btn").onclick = function () {
-    var err = checkBlank("report_type");
-    cObj("report_error_holder").innerHTML = "";
-    if (err == 0) {
-        fetchGraphData();
-    }else{
-        cObj("report_error_holder").innerHTML = "<p class='text-danger'>Please fill all fields covered with a red border!</p>";
+$(document).ready(function () {
+    // code here
+    cObj("client_usage_report_btn").onclick = function () {
+        var err = checkBlank("report_type");
+        cObj("report_error_holder").innerHTML = "";
+        if (err == 0) {
+            fetchGraphData();
+        }else{
+            cObj("report_error_holder").innerHTML = "<p class='text-danger'>Please fill all fields covered with a red border!</p>";
+        }
     }
-}
+    cObj("select_the_next_date").onchange = function () {
+        var select = cObj("select_the_next_date").options;
+        var selected = 0;
+        for (let id = select.length-1; id > 0 ; id--) {
+            const element = select[id];
+            selected = element.selected ? id : selected;
+        }
+
+        if (selected > 0) {
+            // fetch_graph
+            fetchGraphData(this.value);
+        }
+    }
+
+    cObj("report_type").onchange = function () {
+        var select = cObj("select_the_next_date").options;
+        var selected = 0;
+        for (let id = select.length-1; id > 0 ; id--) {
+            const element = select[id];
+            selected = element.selected ? id : selected;
+        }
+
+        if (selected > 0) {
+            // fetch graph
+            fetchGraphData();
+        }
+    }
+
+    cObj("report_on").onchange = function () {
+        cObj("report_type").options[0].selected = true;
+        if (this.value == "data") {
+            cObj("report_type").options[1].hidden = true;
+        }else{
+            cObj("report_type").options[1].hidden = false;
+        }
+    }
+});
 
 function nextDate() {
     var select = cObj("select_the_next_date");
@@ -56,19 +95,6 @@ function prevDate() {
     }
 }
 
-cObj("select_the_next_date").onchange = function () {
-    var select = cObj("select_the_next_date").options;
-    var selected = 0;
-    for (let id = select.length-1; id > 0 ; id--) {
-        const element = select[id];
-        selected = element.selected ? id : selected;
-    }
-
-    if (selected > 0) {
-        // fetch_graph
-        fetchGraphData(this.value);
-    }
-}
 
 function fetchGraphData(next_date = null) {
     if (cObj("report_on").value == "bandwidth" && cObj("report_type").value == "Yearly") {
@@ -83,7 +109,13 @@ function fetchGraphData(next_date = null) {
         var datapass = next_date != null ? "&next_date="+next_date : "";
 
         if (cObj("report_on").value == "bandwidth") {
-            sendDataGet("GET", "/Client/UsageReport?report_type="+cObj("report_type").value+"&client_account="+cObj("client_account_number").value+datapass, cObj("report_error_holder"), cObj("client_report_loader"), function () {
+            var urls = "";
+            if(cObj("isTabElem") != undefined){
+                urls = "/Client/UsageReport?report_type="+cObj("report_type").value+datapass;
+            }else{
+                urls = "/Client/UsageReport?report_type="+cObj("report_type").value+"&client_account="+cObj("client_account_number").value+datapass;
+            }
+            sendDataGet("GET", urls, cObj("report_error_holder"), cObj("client_report_loader"), function () {
                 cObj("client_usage_report_btn").disabled = false;
                 cObj("client_usage_report_btn").classList.remove("disabled");
                 console.log("We are here");
@@ -115,7 +147,13 @@ function fetchGraphData(next_date = null) {
                 }
             });
         }else{
-            sendDataGet("GET", "/Client/UsageReport/Data?report_type="+cObj("report_type").value+"&client_account="+cObj("client_account_number").value+datapass, cObj("report_error_holder"), cObj("client_report_loader"), function () {
+            var urls = "";
+            if(cObj("isTabElem") != undefined){
+                urls = "/Client/UsageReport/Data?report_type="+cObj("report_type").value+datapass;
+            }else{
+                urls = "/Client/UsageReport/Data?report_type="+cObj("report_type").value+"&client_account="+cObj("client_account_number").value+datapass;
+            }
+            sendDataGet("GET", urls, cObj("report_error_holder"), cObj("client_report_loader"), function () {
                 cObj("client_usage_report_btn").disabled = false;
                 cObj("client_usage_report_btn").classList.remove("disabled");
 
@@ -145,25 +183,15 @@ function fetchGraphData(next_date = null) {
             });
         }
 }
-
-cObj("report_type").onchange = function () {
-    var select = cObj("select_the_next_date").options;
-    var selected = 0;
-    for (let id = select.length-1; id > 0 ; id--) {
-        const element = select[id];
-        selected = element.selected ? id : selected;
-    }
-
-    if (selected > 0) {
-        // fetch graph
-        fetchGraphData();
-    }
-}
-
 function createChart(report_data) {
     var label = [];
     var upload = [];
     var download = [];
+
+    // check if is tab or not
+    if(cObj("isTabElem") != undefined){
+        var clients_data = null;
+    }
 
     report_data = JSON.parse(report_data);
     for (let index = 0; index < report_data.length; index++) {
@@ -244,7 +272,7 @@ function createChart(report_data) {
             },
             title: {
                 display: true,
-                text: cObj("report_on").value == "bandwidth" ? '"'+clients_data[0].client_name+'" Bandwidth Usage Statistics' : "\""+clients_data[0].client_name+"\" Data Usage Statistics",
+                text: cObj("report_on").value == "bandwidth" ? '"'+(clients_data != null ? clients_data[0].client_name : "All Clients")+'" Bandwidth Usage Statistics' : "\""+(clients_data != null ? clients_data[0].client_name : "All Clients")+"\" Data Usage Statistics",
                 font: {
                     family: 'Comfortaa, sans-serif',
                     size: 16,
@@ -322,13 +350,4 @@ function normalizeBytesToUnit(values) {
     values: converted,
     unit: units[unitIndex]
   };
-}
-
-cObj("report_on").onchange = function () {
-    cObj("report_type").options[0].selected = true;
-    if (this.value == "data") {
-        cObj("report_type").options[1].hidden = true;
-    }else{
-        cObj("report_type").options[1].hidden = false;
-    }
 }

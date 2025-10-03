@@ -215,6 +215,10 @@
                                     </div>
                                     <hr>
                                     <x-Client.all-clients-usage-stats :clientStatus="$client_status" :monthlyStats="$monthly_stats" :dailyStats="$daily_stats" :bandwidthStats="$bandwidth_stats_data"/>
+                                    
+                                    <hr>
+                                    {{-- retrive all clients stats --}}
+                                    <x-Client.client-usage-stats :clientsData="$client_data[0]" isTab="false" :readonly="$readonly"/>
                                 </div>
                             </div>
                         </div>
@@ -601,6 +605,7 @@
     <!-- BEGIN CHAMELEON  JS-->
     <script src="theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
     <script src="theme-assets/js/core/app-lite.js" type="text/javascript"></script>
+    <script src="/theme-assets/js/core/client_usage_report.js" type="text/javascript"></script>
     <!-- END CHAMELEON  JS-->
     <script>
         var data = @json($client_data);

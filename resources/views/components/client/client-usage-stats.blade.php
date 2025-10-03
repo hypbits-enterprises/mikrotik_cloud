@@ -1,5 +1,8 @@
-<div class="tab-pane fade" id="tab4" role="tabpanel">
+<div {!!$isTab == "true" ? "class='tab-pane fade' id='tab4' role='tabpanel'" : "class='container'"!!} >
     <h6 class="text-center">Client Usage Statistics</h6>
+    @if($isTab == "false")
+        <input type="hidden" name="isTabElem" id="isTabElem" value="true">
+    @endif
     <hr>
     <div class="container mx-auto">
         <div class="row">

@@ -13,11 +13,13 @@ class ClientUsageStats extends Component
      */
     public $clients_data;
     public $readonly;
-    public function __construct($clientsData, $readonly)
+    public $isTab = "true";
+    public function __construct($clientsData, $readonly, $isTab = "true")
     {
         //
         $this->clients_data = $clientsData;
         $this->readonly = $readonly;
+        $this->isTab = $isTab;
     }
 
     /**

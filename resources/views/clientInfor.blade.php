@@ -478,7 +478,7 @@
                                         <x-Client.client-tab-3 :invoices="$invoices" :clientData="$client_n_invoice" :readOnlyFinance="$readonly_finance" :readonly="$readonly"/>
 
                                         {{-- TAB 4 TO SHOW CLIENT USAGE STATISTICS --}}
-                                        <x-Client.client-usage-stats :clientsData="$clients_data" :readonly="$readonly"/>
+                                        <x-Client.client-usage-stats :clientsData="$clients_data" isTab="true" :readonly="$readonly"/>
                                     </div>
                                 </div>
                             </div>
