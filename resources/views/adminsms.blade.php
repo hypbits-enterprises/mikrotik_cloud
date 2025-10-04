@@ -99,20 +99,25 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">SMS Table</h4>
+                                <h4 class="card-title">SMS Statistics</h4>
                                 <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
                                 <div class="heading-elements">
                                     <ul class="list-inline mb-0">
-                                        <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
-                                        <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li>
-                                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                                        @php
+                                            $btnText = "<i class='ft-plus'></i> Show Statistics";
+                                            $otherClasses = "";
+                                            $btnLink = "/Transactions/Statistics";
+                                            $otherAttributes = "data-action='collapse'";
+                                        @endphp
+                                        <x-button-link btnType="secondary" btnSize="sm" toolTip="SMS Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        {{-- <li><a data-action="expand"><i class="ft-maximize"></i></a></li> --}}
                                         <!-- <li><a data-action="close"><i class="ft-x"></i></a></li> -->
                                     </ul>
                                 </div>
                             </div>
-                            <div class="card-content collapse show">
+                            <div class="card-content collapse">
                                 <div class="card-body">
-                                    <div class="container border border-secondary rounded shadow-sm w-100 m-0 my-2 p-1">
+                                    <div class="border border-secondary rounded shadow-sm w-100 m-0 my-2 p-1">
                                         <h5 class="card-title">SMS Statistics</h5>
                                         <div class="row">
                                             <div class="col-lg-6">
@@ -132,7 +137,47 @@
                                                 <p>Sms Balance: <span></span>: <span id="show_sms_balance">0 SMS</span><small class="text-primary d-none" id="show_sms_loader"> Loading...</small></p>
                                             </div>
                                         </div>
+                                        <x-sms.statistics :monthlyStats="$monthlyStats" :weeklyStats="$weeklyStats" :dailyStats="$dailyStats"/>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title">SMS Table</h4>
+                                <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                                <div class="heading-elements">
+                                    <ul class="list-inline mb-0">
+                                        <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                                        <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li>
+                                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
+                                        <!-- <li><a data-action="close"><i class="ft-x"></i></a></li> -->
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-content collapse show">
+                                <div class="card-body">
+                                    {{-- <div class="container border border-secondary rounded shadow-sm w-100 m-0 my-2 p-1">
+                                        <h5 class="card-title">SMS Statistics</h5>
+                                        <div class="row">
+                                            <div class="col-lg-6">
+                                                <span>Sms sent today: <span class="text-primary">{{$sms_count}}</span></span><br>
+                                                <span>Sms Sent Last week: <span class="text-primary">{{$last_week}}</span></span><br>
+                                                <span>Total SMS Sent: <span class="text-primary">{{$total_sms}}</span></span><br>
+                                            </div>
+                                            <div class="col-md-6">
+                                                @php
+                                                    $btnText = "<i class=\"ft-eye\"></i> Show Balance";
+                                                    $otherClasses = "";
+                                                    $btn_id = "show_sms_balance_btn";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" /> --}}
+                                                {{-- <button type="button" id="show_sms_balance_btn" class="btn btn-primary btn-sm">Show Balance</button> --}}
+                                                {{-- <p>Sms Balance: <span></span>: <span id="show_sms_balance">0 SMS</span><small class="text-primary d-none" id="show_sms_loader"> Loading...</small></p>
+                                            </div>
+                                        </div>
+                                    </div> --}}
                                     @if(session('success_sms'))
                                         <p class='text-success'>{{session('success_sms')}}</p>
                                     @endif
@@ -414,6 +459,7 @@
     <!-- BEGIN CHAMELEON  JS-->
     <script src="/theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
     <script src="/theme-assets/js/core/app-lite.js" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- END CHAMELEON  JS-->
 
     {{-- the sms javascript --}}
@@ -425,6 +471,7 @@
         var client_named = @json($clients_name ?? '');
         var client_contacts = @json($clients_phone ?? '');
         var client_account = @json($clients_acc ?? '');
+        var weekly_sms_data = @json($week_stats ?? '');
         var readonly = @json($readonly ?? '');
     </script>
     <script>

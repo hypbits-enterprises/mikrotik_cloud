@@ -101,6 +101,30 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
+                                <h4 class="card-title">Transaction Statistics</h4>
+                                <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                                <div class="heading-elements">
+                                    <ul class="list-inline mb-0">
+                                        @php
+                                            $btnText = "<i class='ft-plus'></i> Show Statistics";
+                                            $otherClasses = "";
+                                            $btnLink = "/Transactions/Statistics";
+                                            $otherAttributes = "data-action='collapse'";
+                                        @endphp
+                                        <x-button-link btnType="secondary" btnSize="sm" toolTip="Transaction`s Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        {{-- <li><a data-action="expand"><i class="ft-maximize"></i></a></li> --}}
+                                        <!-- <li><a data-action="close"><i class="ft-x"></i></a></li> -->
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-content collapse">
+                                <div class="card-body">
+                                    <x-transaction.statistics :monthlyStats="$monthlyStats" :weeklyStats="$weeklyStats" :dailyStats="$dailStats"></x-transaction.statistics>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
                                 <h4 class="card-title">Transaction Table</h4>
                                 <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
                                 <div class="heading-elements">
@@ -220,7 +244,7 @@
                                             <div class="col-md-2">
                                                 @php
                                                     $btnText = "<i class=\"ft-eye\"></i> Show Totals";
-                                                    $otherClasses = "";
+                                                    $otherClasses = "d-none";
                                                     $btn_id = "show_totals";
                                                     $btnSize="sm";
                                                     $type = "button";
@@ -354,6 +378,7 @@
     <!-- BEGIN CHAMELEON  JS-->
     <script src="theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
     <script src="theme-assets/js/core/app-lite.js" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- END CHAMELEON  JS-->
     <!-- BEGIN PAGE LEVEL JS-->
     {{--  --}}
@@ -371,6 +396,7 @@
         var client_contacts = @json($clients_phone ?? '');
         var client_account = @json($clients_acc ?? '');
         var readonly = @json($readonly ?? '');
+        var collection_stats = @json($collections ?? '');
     </script>
 
     <script>

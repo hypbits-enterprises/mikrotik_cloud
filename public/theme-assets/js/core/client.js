@@ -116,6 +116,9 @@ window.onload = function () {
 
     // plot graph
     plotGraph(added_last_week);
+
+    // usage reports
+    cObj("client_usage_report_btn").click();
 }
 
 function checkBlank(object_id) {
@@ -231,16 +234,27 @@ function plotGraph(client_data) {
                     display: true,
                     text: title,
                     font: {
-                        size: 14
-                    }
+                        family: 'Comfortaa, sans-serif',
+                        size: 14,
+                        weight: 'bold',
+                        style: 'normal'
+                    },
                 },
                 legend: {
                     display: true,
                     position: 'bottom',
                     font: {
-                        size: 14
+                        family: 'Comfortaa, sans-serif',
+                        size: 14,
+                        weight: 'bold',
+                        style: 'normal'
                     }
-                }
+                },
+                tooltip: {
+                    enabled: true,
+                    titleFont: { family: 'Comfortaa, sans-serif', size: 14, weight: 'bold' },
+                    bodyFont: { family: 'Comfortaa, sans-serif', size: 12 }
+                },
             }
         }
     });

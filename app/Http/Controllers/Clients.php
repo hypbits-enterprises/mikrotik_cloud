@@ -3306,9 +3306,8 @@ $export_text .= "
         $curl_data = curl_exec($curl_handle);
         curl_close($curl_handle);
         $interfaces = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
-
-
-        if (count($interfaces) > 0) {
+        
+        if (!empty($interfaces)) {
             $data_to_display = "<select name='interface_name' class='form-control' id='interface_name' required ><option value='' hidden>Select an Interface</option>";
             for ($index = 0; $index < count($interfaces); $index++) {
                 if($interfaces[$index]['type'] == "ether" || $interfaces[$index]['type'] == "bridge"){
@@ -5980,6 +5979,13 @@ $export_text .= "
 
                 // loop through the static clients and update the database
                 foreach ($static_clients as $key => $client) {
+                    // check if client is present
+                    $check_client = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE client_account = '".$client['account']."' AND deleted = '0'");
+                    if(count($check_client) == 0){
+                        continue;
+                    }
+
+                    // convert speed 
                     $converted_speed = $this->parseQueueSpeed($client['rate']);
 
                     // insert the one minute interval
@@ -6031,7 +6037,8 @@ $export_text .= "
 
                         // UPDATE THE LAST SEEN ONLINE STATUS
                         $checkonline = $download_add+$upload_add;
-                        if ($checkonline > 0) {
+                        // they have moved more than 8kbps in the last one minute
+                        if ($checkonline > 8000) {
                             // update the last seen time as this minute.
                             $now = date("YmdHis");
                             DB::connection("mysql2")->update("UPDATE client_tables SET last_seen = ? WHERE client_account = ?",[$now, $client['account']]);
@@ -6061,19 +6068,27 @@ $export_text .= "
 
                 // loop through the pppoe clients and update the database
                 foreach ($pppoe_clients as $key => $client) {
+                    // check if client is present
+                    $client['account'] = trim($client['account']);
+                    $check_client = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE client_secret = '".$client['account']."' AND deleted = '0'");
+                    if(count($check_client) == 0){
+                        continue;
+                    }
+                    $check_client = $check_client[0];
                     // $converted_speed = $this->parseQueueSpeed($client['rate']);
 
                     // insert the one minute interval
                     $one_minute_stats = new one_minute_stats();
                     $one_minute_stats->upload = $client['upload_speed']*1;
                     $one_minute_stats->download = $client['download_speed']*1;
-                    $one_minute_stats->account = $client['account'];
+                    $one_minute_stats->account = $check_client->client_account;
                     $one_minute_stats->date = date("YmdHis");
                     $one_minute_stats->save();
 
                     // insert the usage of the client
                     // check if any record of todays usage has been captured
-                    $check_usage = DB::connection("mysql2")->select("SELECT * FROM client_usage_stats WHERE account = '".$client['account']."' AND date LIKE '".date("Ymd")."%'");
+                    // return "SELECT * FROM client_usage_stats WHERE account = '".$check_client->client_account."' AND date LIKE '".date("Ymd")."%'";
+                    $check_usage = DB::connection("mysql2")->select("SELECT * FROM client_usage_stats WHERE account = '".$check_client->client_account."' AND date LIKE '".date("Ymd")."%'");
                     if(count($check_usage) > 0){
                         // update
                         $cumulative_download = $check_usage[0]->download;
@@ -6111,11 +6126,11 @@ $export_text .= "
                         ]);
 
                         // UPDATE THE LAST SEEN ONLINE STATUS
-                        $checkonline = $download_add+$upload_add;
+                        $checkonline = ($download_add*1)+($upload_add*1);
                         if ($checkonline > 0) {
                             // update the last seen time as this minute.
                             $now = date("YmdHis");
-                            DB::connection("mysql2")->update("UPDATE client_tables SET last_seen = ? WHERE client_account = ?",[$now, $client['account']]);
+                            DB::connection("mysql2")->update("UPDATE client_tables SET last_seen = ? WHERE client_account = ?",[$now, $check_client->client_account]);
                         }
                     }else{
                         // insert
@@ -6125,19 +6140,19 @@ $export_text .= "
                             'download' => $client['download']*1,
                             'previous_upload' => $client['upload']*1,
                             'previous_download' => $client['download']*1,
-                            'account' => $client['account'],
+                            'account' => $check_client->client_account,
                             'date' => date("YmdHis")
                         ]);
                     }
 
                     // process 5 minutes.
-                    $this->processFiveMinutes($client['account']);
+                    $this->processFiveMinutes($check_client->client_account);
                     // process 30 minutes
-                    $this->processThirtyMinutes($client['account']);
+                    $this->processThirtyMinutes($check_client->client_account);
                     // process 2 hours.
-                    $this->processTwoHours($client['account']);
+                    $this->processTwoHours($check_client->client_account);
                     // process one day
-                    $this->processFullDay($client['account']);
+                    $this->processFullDay($check_client->client_account);
                 }
 
                 // update the router last seen time
@@ -6300,6 +6315,7 @@ $export_text .= "
         $user = $sstp_value->username;
         $pass = $sstp_value->password;
         $port = $sstp_value->port;
+        // return $sstp_value;
 
         // check if the router is actively connected
         $API = new routeros_api();

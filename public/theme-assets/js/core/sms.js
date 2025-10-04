@@ -79,6 +79,7 @@ window.onload = function() {
         var counted = rows.length / 50;
         pagecountTransaction = Math.ceil(counted);
 
+        plotGraph(weekly_sms_data);
     } else {
         cObj("transDataReciever").innerHTML = "<p class='sm-text text-danger text-bold text-center'><span style='font-size:40px;'><i class='ft-alert-triangle'></i></span> <br>Ooops! No results found!</p>";
         cObj("tablefooter").classList.add("invisible");
@@ -92,6 +93,114 @@ function checkedUnchecked() {
         const element = actions_id[index];
         element.addEventListener("change",addChecked);
     }
+}
+var myChart;
+function plotGraph(client_data) {
+    if (myChart != null) {
+        myChart.destroy();
+    }
+    var data = [client_data];
+    console.log(data);
+    var show_x_axis = true;
+    var show_y_axis = true;
+    
+    var ctx = cObj("sms_graph_plot");
+    var type = "line" //line, pie, bar, doughnut, polarArea, radar;
+    var backgroundColor = ['rgb(48, 182, 215)'];
+    if (type == "pie") {
+        backgroundColor = [];
+        for (let index = 0; index < data[0].length; index++) {
+            const element = data[0][index];
+            var rand_red = generateRandomNumber(100,255);
+            var rand_green = generateRandomNumber(100,255);
+            var rand_blue = generateRandomNumber(100,255);
+            var rand_color = 'rgb('+rand_red+', '+rand_green+', '+rand_blue+')';
+            backgroundColor.push(rand_color);
+        }
+    }
+
+    // get the labels
+    var labels = [];
+    var chart_data = [];
+    for (let index = 0; index < data[0].length; index++) {
+        const element = data[0][index];
+        labels.push(element.day);
+        chart_data.push(element.Total);
+    }
+
+    var title = "SMS Sent in the last 7 days";
+    myChart = new Chart(ctx, {
+        type: type,
+        data: {
+            labels:labels,
+            datasets: [{
+                tension: 0.4,
+                label: 'SMS Sent',
+                data: chart_data,
+                borderWidth: 1,
+                font: {
+                    size: 14
+                },
+                backgroundColor: 'rgba(55, 61, 125,0.3)',
+                borderColor:'rgb(55, 61, 125)',
+                fill: true
+            }],
+            hoverOffset: 4
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks:{
+                        stepSize: 1
+                    },
+                    grid:{
+                        display:true,
+                        drawOnChartArea:true,
+                        drawTicks:true
+                    },
+                    display:show_y_axis
+                },
+                x:{
+                    grid:{
+                        display:true,
+                        drawOnChartArea:true,
+                        drawTicks:true
+                    },
+                    display:show_x_axis
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: title,
+                    font: {
+                        family: 'Comfortaa, sans-serif',
+                        size: 14,
+                        weight: 'bold',
+                        style: 'normal'
+                    },
+                },
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    font: {
+                        family: 'Comfortaa, sans-serif',
+                        size: 14,
+                        weight: 'bold',
+                        style: 'normal'
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    titleFont: { family: 'Comfortaa, sans-serif', size: 14, weight: 'bold' },
+                    bodyFont: { family: 'Comfortaa, sans-serif', size: 12 }
+                },
+            }
+        }
+    });
 }
 
 function addChecked() {

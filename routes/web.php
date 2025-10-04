@@ -35,7 +35,7 @@ Route::get("/", function () {
     return redirect('/Hypbits');
 });
 // Route::view("/Dashboard","index");
-Route::get("/Dashboard", [Transaction::class, "getDashboard"])->middleware(["validated", "checkAccount"]);
+Route::get("/Dashboard", [Transaction::class, "getDashboard"])->middleware(["checkAccount", "validated"]);
 // Route::view("/Clients","myclients");
 // Route::view("/Transactions","mytransactions");
 // Route::view("/Routers","myRouter");
@@ -71,23 +71,23 @@ Route::post("/Client/Update/MinimumPay", [Clients::class, "updateMinPay"])->name
 Route::post("addClientPppoe", [Clients::class, 'processClientPPPoE'])->name("clients.addppoe");
 Route::post("/Quick-Register/New-PPPoE-Client", [Clients::class, 'processQuickRegisterNewClientPPPoE'])->name("quick_register.new_pppoe_client");
 // the clients controller route
-Route::get("/Clients", [Clients::class, 'getClientData'])->name("myclients")->middleware(["validated", "checkAccount"]);
-Route::get("Clients/search", [Clients::class, 'searchClients'])->name("search_clients")->middleware(["validated", "checkAccount"]);
-Route::get("Clients/datatable", [Clients::class, 'getClientsDatatable'])->name("clients_datatable")->middleware(["validated", "checkAccount"]);
+Route::get("/Clients", [Clients::class, 'getClientData'])->name("myclients")->middleware(["checkAccount", "validated"]);
+Route::get("Clients/search", [Clients::class, 'searchClients'])->name("search_clients")->middleware(["checkAccount", "validated"]);
+Route::get("Clients/datatable", [Clients::class, 'getClientsDatatable'])->name("clients_datatable")->middleware(["checkAccount", "validated"]);
 // get the router information for the new client
-Route::get("/Clients/NewStatic", [Clients::class, "getRouterDataClients"])->middleware(["validated", "checkAccount"]);
-Route::get("/Clients/NewPPPoE", [Clients::class, "getRouterDatappoe"])->name("newclient.pppoe")->middleware(["validated", "checkAccount"]);
-Route::view("/Quick-Register", "quickregister")->middleware(["validated", "checkAccount"]);
+Route::get("/Clients/NewStatic", [Clients::class, "getRouterDataClients"])->middleware(["checkAccount", "validated"]);
+Route::get("/Clients/NewPPPoE", [Clients::class, "getRouterDatappoe"])->name("newclient.pppoe")->middleware(["checkAccount", "validated"]);
+Route::view("/Quick-Register", "quickregister")->middleware(["checkAccount", "validated"]);
 Route::post("/Quick-Register/Validate_User", [Clients::class, "validate_user"])->name("validate_user");
-Route::get("/Quick-Register/New-Static", [Clients::class, "newStaticClient"])->middleware(["validated", "checkAccount"]);
-Route::get("/Quick-Register/New-PPPoE", [Clients::class, "newPPPOEClient"])->middleware(["validated", "checkAccount"]);
-Route::get("/Client-Reports", [Clients::class, "client_issues"])->name("client_issues")->middleware(["validated", "checkAccount"]);
-Route::get("/Client-Reports/New", [Clients::class, "newReports"])->name("newReports")->middleware(["validated", "checkAccount"]);
-Route::get("/Client-Reports/View/{client_id}", [Clients::class, "viewReports"])->name("viewReports")->middleware(["validated", "checkAccount"]);
+Route::get("/Quick-Register/New-Static", [Clients::class, "newStaticClient"])->middleware(["checkAccount", "validated"]);
+Route::get("/Quick-Register/New-PPPoE", [Clients::class, "newPPPOEClient"])->middleware(["checkAccount", "validated"]);
+Route::get("/Client-Reports", [Clients::class, "client_issues"])->name("client_issues")->middleware(["checkAccount", "validated"]);
+Route::get("/Client-Reports/New", [Clients::class, "newReports"])->name("newReports")->middleware(["checkAccount", "validated"]);
+Route::get("/Client-Reports/View/{client_id}", [Clients::class, "viewReports"])->name("viewReports")->middleware(["checkAccount", "validated"]);
 Route::post("/Client-Reports/Save-Report", [Clients::class, "saveReports"])->name("saveReports");
 Route::post("/Client-Reports/Update-Report", [Clients::class, "updateReports"])->name("updateReports");
 Route::post("/Client-Reports/Change-Status", [Clients::class, "changeReportStatus"])->name("changeReportStatus");
-Route::get("/Client-Reports/Delete-Report/{report_id}", [Clients::class, "deleteReport"])->name("deleteReport")->middleware(["validated", "checkAccount"]);
+Route::get("/Client-Reports/Delete-Report/{report_id}", [Clients::class, "deleteReport"])->name("deleteReport")->middleware(["checkAccount", "validated"]);
 Route::post("/update_client_comment", [Clients::class, "update_client_comment"])->name("update_client_comment");
 
 // NEW INVOICES
@@ -98,22 +98,22 @@ Route::get("/Delete-Invoice/{invoice_id}", [Clients::class, "delete_invoice"])->
 Route::get("/Invoice/Print/{invoice_id}", [Clients::class, "print_invoice"])->name("print_invoice");
 Route::post("/Update-Invoice", [Clients::class, "update_invoice"])->name("update_invoice");
 // get the router interface
-Route::get("/router/{routerid}", [Clients::class, "getRouterInterfaces"])->middleware(["validated", "checkAccount"]);
+Route::get("/router/{routerid}", [Clients::class, "getRouterInterfaces"])->middleware(["checkAccount", "validated"]);
 // get the router profile
-Route::get("/routerProfile/{routerid}", [Clients::class, "getRouterProfile"])->middleware(["validated", "checkAccount"]);
+Route::get("/routerProfile/{routerid}", [Clients::class, "getRouterProfile"])->middleware(["checkAccount", "validated"]);
 // get the clients information interface
-Route::get("/Clients/View/{clientid}", [Clients::class, "getClientInformation"])->name("client.viewinformation")->middleware(["validated", "checkAccount"]);
+Route::get("/Clients/View/{clientid}", [Clients::class, "getClientInformation"])->name("client.viewinformation")->middleware(["checkAccount", "validated"]);
 // check the client status in the router
-Route::get("/Client/Check-Online/{client_account}", [Clients::class, "checkOnline"])->name("check-online")->middleware(["validated", "checkAccount"]);
+Route::get("/Client/Check-Online/{client_account}", [Clients::class, "checkOnline"])->name("check-online")->middleware(["checkAccount", "validated"]);
 
 
 // incase the user enters an invalid username
 Route::get('/Clients/View', function () {
     return redirect('Clients');
-})->middleware(["validated", "checkAccount"]);
+})->middleware(["checkAccount", "validated"]);
 Route::post("/Client/Convert", [Clients::class, "convertClient"])->name("convertClient");
 // get the refferer details
-Route::get("/get_refferal/{client_account}", [Clients::class, "getRefferal"])->middleware(["validated", "checkAccount"]);
+Route::get("/get_refferal/{client_account}", [Clients::class, "getRefferal"])->middleware(["checkAccount", "validated"]);
 // save the refferer data
 Route::post("/set_refferal", [Clients::class, "setRefferal"]);
 // update clients
@@ -123,13 +123,13 @@ Route::post("/changeExpDate", [Clients::class, 'updateExpDate']);
 // freeze dates set
 Route::post("/set_freeze", [Clients::class, 'set_freeze_date']);
 // deactivate freeze
-Route::get("/Client/deactivate_freeze/{client_id}", [Clients::class, "deactivatefreeze"])->middleware(["validated", "checkAccount"]);
+Route::get("/Client/deactivate_freeze/{client_id}", [Clients::class, "deactivatefreeze"])->middleware(["checkAccount", "validated"]);
 // activate freeze
-Route::get("/Client/activate_freeze/{client_id}", [Clients::class, "activatefreeze"])->middleware(["validated", "checkAccount"]);
+Route::get("/Client/activate_freeze/{client_id}", [Clients::class, "activatefreeze"])->middleware(["checkAccount", "validated"]);
 // client syncs
-Route::get("/ClientSync", [Clients::class, "syncclient"])->middleware(["validated", "checkAccount"]);
+Route::get("/ClientSync", [Clients::class, "syncclient"])->middleware(["checkAccount", "validated"]);
 // sync transactions
-Route::get("/TransactionSync", [Clients::class, "synctrans"])->middleware(["validated", "checkAccount"]);
+Route::get("/TransactionSync", [Clients::class, "synctrans"])->middleware(["checkAccount", "validated"]);
 // change wallet balance
 Route::post("/changeWallet", [Clients::class, "changeWalletBal"]);
 // change the clients phone number
@@ -137,15 +137,15 @@ Route::post("/change_client_phone", [Clients::class, "change_phone_number"]);
 // cchange monthly payments
 Route::post("/change_client_monthly_payment", [Clients::class, "change_client_monthly_payment"]);
 //export my clients
-Route::get("/Clients/Export", [export_client::class, "exportClients"])->middleware(["validated", "checkAccount"]);
+Route::get("/Clients/Export", [export_client::class, "exportClients"])->middleware(["checkAccount", "validated"]);
 // get detailed router information in order to export
-Route::get("/Clients/Export/View/{router_id}", [export_client::class, "router_client_information"])->middleware(["validated", "checkAccount"]);
+Route::get("/Clients/Export/View/{router_id}", [export_client::class, "router_client_information"])->middleware(["checkAccount", "validated"]);
 // sync client information
-Route::get("/Client/epxsync/{client_id}", [export_client::class, "sync_client_router"])->middleware(["validated", "checkAccount"]);
+Route::get("/Client/epxsync/{client_id}", [export_client::class, "sync_client_router"])->middleware(["checkAccount", "validated"]);
 // export all from the router
-Route::get("/Clients/ExportAll/{router_id}", [export_client::class, "exportall"])->middleware(["validated", "checkAccount"]);
+Route::get("/Clients/ExportAll/{router_id}", [export_client::class, "exportall"])->middleware(["checkAccount", "validated"]);
 // delete user
-Route::get("/delete_user/{user_id}", [Clients::class, 'delete_user'])->middleware(["validated", "checkAccount"]);
+Route::get("/delete_user/{user_id}", [Clients::class, 'delete_user'])->middleware(["checkAccount", "validated"]);
 
 // add router
 Route::post("addRouter", [Clients::class, 'addRouter']);
@@ -165,8 +165,8 @@ Route::get("/router_clients/{acc_name}/{r_name}", [Clients::class, "getRouterCli
 Route::get("/my_global_config", [Clients::class, "getMyGlobalConfig"]);
 Route::get("/upload_client_stats", [Clients::class, "upload_client_stats"]);
 // Generate reports for data usage and bandwidth
-Route::get("/Client/UsageReport", [Clients::class, "generateUsageReports"])->name("generateUsageReports")->middleware(["validated", "checkAccount"]);
-Route::get("/Client/UsageReport/Data", [Clients::class, "generateDataReports"])->name("generateDataReports")->middleware(["validated", "checkAccount"]);
+Route::get("/Client/UsageReport", [Clients::class, "generateUsageReports"])->name("generateUsageReports")->middleware(["checkAccount", "validated"]);
+Route::get("/Client/UsageReport/Data", [Clients::class, "generateDataReports"])->name("generateDataReports")->middleware(["checkAccount", "validated"]);
 
 // deactivate and activate the user api
 // Route::get("/deactivate_user/{userid}",[Clients::class,"deactivate2"]);
@@ -180,10 +180,10 @@ Route::get("/activatePayment/{userid}", [Clients::class, "actPay"]);
 
 
 //TRANSACTIONS SECTION
-Route::get("/Transactions", [Transaction::class, "getTransactions"])->middleware(["validated", "checkAccount"]);
-Route::get("/Transactions/View/{trans_id}", [Transaction::class, "transDetails"])->middleware(["validated", "checkAccount"]);
-Route::get("/Assign/Transaction/{trans_id}/Client/{client_id}", [Transaction::class, "assignTransaction"])->middleware(["validated", "checkAccount"]);
-Route::get("/confirmTransfer/{user_id}/{transaction_id}", [Transaction::class, "confirmTransfer"])->middleware(["validated", "checkAccount"]);
+Route::get("/Transactions", [Transaction::class, "getTransactions"])->middleware(["checkAccount", "validated"]);
+Route::get("/Transactions/View/{trans_id}", [Transaction::class, "transDetails"])->middleware(["checkAccount", "validated"]);
+Route::get("/Assign/Transaction/{trans_id}/Client/{client_id}", [Transaction::class, "assignTransaction"])->middleware(["checkAccount", "validated"]);
+Route::get("/confirmTransfer/{user_id}/{transaction_id}", [Transaction::class, "confirmTransfer"])->middleware(["checkAccount", "validated"]);
 Route::post("/Transact", [Transaction::class, "mpesaTransactions"]);
 Route::post("/Validate", [Transaction::class, "verify_client_transaction"]);
 Route::get("/Print-Reciept/{receipt_id}", [Transaction::class, "print_receipt"])->name("print_receipt");
@@ -195,33 +195,33 @@ Route::get("/Router/Reboot/{routerid}", [Router_Cloud::class, "reboot"]);
 
 // cloud router
 Route::post("/new_cloud_router", [Router_Cloud::class, "save_cloud_router"])->name("newCloudRouter");
-Route::get("/Router/View/{router_id}", [Router_Cloud::class, "view_router_details"])->name("view_router_cloud")->middleware(["validated", "checkAccount"]);
-Route::get("/Router/Connect/{router_id}", [Router_Cloud::class, "connect_router"])->name("connect_router")->middleware(["validated", "checkAccount"]);
+Route::get("/Router/View/{router_id}", [Router_Cloud::class, "view_router_details"])->name("view_router_cloud")->middleware(["checkAccount", "validated"]);
+Route::get("/Router/Connect/{router_id}", [Router_Cloud::class, "connect_router"])->name("connect_router")->middleware(["checkAccount", "validated"]);
 Route::post("/updateRouter", [Router_Cloud::class, "updateRouter"])->name("update_router");
 Route::get("/Routers/Delete/{routerid}", [Router_Cloud::class, "deleteRouter"]);
 
 // get the routers information
-Route::get("/Routers", [Router_Cloud::class, 'getRouterData'])->name("my_routers")->middleware(["validated", "checkAccount"]);
+Route::get("/Routers", [Router_Cloud::class, 'getRouterData'])->name("my_routers")->middleware(["checkAccount", "validated"]);
 
 // Sms section
-Route::get("/sms", [Sms::class, "getSms"])->middleware(["validated", "checkAccount"]);
-Route::get("/sms/View/{smsid}", [Sms::class, "getSMSData"])->middleware(["validated", "checkAccount"]);
-Route::get("/sms/delete/{smsid}", [Sms::class, "delete"])->middleware(["validated", "checkAccount"]);
-Route::get("/sms/compose", [Sms::class, "compose"])->middleware(["validated", "checkAccount"]);
+Route::get("/sms", [Sms::class, "getSms"])->middleware(["checkAccount", "validated"]);
+Route::get("/sms/View/{smsid}", [Sms::class, "getSMSData"])->middleware(["checkAccount", "validated"]);
+Route::get("/sms/delete/{smsid}", [Sms::class, "delete"])->middleware(["checkAccount", "validated"]);
+Route::get("/sms/compose", [Sms::class, "compose"])->middleware(["checkAccount", "validated"]);
 Route::post("/sendsms", [Sms::class, "sendsms"]);
-Route::get("/sms/system_sms", [Sms::class, "customsms"])->middleware(["validated", "checkAccount"]);
+Route::get("/sms/system_sms", [Sms::class, "customsms"])->middleware(["checkAccount", "validated"]);
 Route::post("/save_sms_content", [Sms::class, "save_sms_content"]);
-Route::get("/sms_balance", [Sms::class, "sms_balance"])->middleware(["validated", "checkAccount"]);
-Route::get("/sms/resend/{sms_id}", [Sms::class, "resend_sms"])->middleware(["validated", "checkAccount"]);
+Route::get("/sms_balance", [Sms::class, "sms_balance"])->middleware(["checkAccount", "validated"]);
+Route::get("/sms/resend/{sms_id}", [Sms::class, "resend_sms"])->middleware(["checkAccount", "validated"]);
 Route::post("/sendsms_routers", [Sms::class, "sendsms_routers"]);
 
 // accounts and profile
-Route::get("/Accounts", [admin::class, "getAdmin"])->middleware(["validated", "checkAccount"]);
+Route::get("/Accounts", [admin::class, "getAdmin"])->middleware(["checkAccount", "validated"]);
 Route::post("/changePasswordAdmin", [admin::class, "updatePassword"]);
-Route::get("/Accounts/add", [admin::class, "addAdmin"])->middleware(["validated", "checkAccount"]);
+Route::get("/Accounts/add", [admin::class, "addAdmin"])->middleware(["checkAccount", "validated"]);
 Route::get("/Accounts/delete/{admin_id}", [admin::class, "delete_admin"])->name("delete_admin");
 Route::post("/addAdministrator", [admin::class, "addAdministrator"]);
-Route::get("/Admin/View/{admin_id}", [admin::class, "viewAdmin"])->middleware(["validated", "checkAccount"]);
+Route::get("/Admin/View/{admin_id}", [admin::class, "viewAdmin"])->middleware(["checkAccount", "validated"]);
 Route::post("/updateAdministrator", [admin::class, "updateAdmin"]);
 Route::post("/update_dp", [admin::class, "upload_dp"]);
 Route::post("/update_company_dp", [admin::class, "update_company_dp"]);
@@ -289,7 +289,7 @@ Route::get("/delete_package/{package_id}", [billsms_manager::class, "deletePacka
 Route::get("/getpackages", [billsms_manager::class, "showPackages"]);
 
 // create a new link to set up the router
-Route::view("/Clients/NewRouterSetup", "RouterSetup")->middleware(["validated", "checkAccount"]);
+Route::view("/Clients/NewRouterSetup", "RouterSetup")->middleware(["checkAccount", "validated"]);
 Route::post("/connect_router", [Router::class, "test_router"]);
 Route::post("/remove_interface_bridge", [Router::class, "remove_interface_bridge"]);
 Route::get("/getbridge", [Router::class, "process_interfaces"]);
@@ -317,30 +317,30 @@ Route::post("/get_supply_method", [Router::class, "get_supply_method"]);
 Route::post("/wireless_settings", [Router::class, "wireless_settings"]);
 
 // statistics
-Route::get("/Client-Statistics", [Clients::class, 'getClients_Statistics'])->middleware(["validated", "checkAccount"]);
+Route::get("/Client-Statistics", [Clients::class, 'getClients_Statistics'])->middleware(["checkAccount", "validated"]);
 Route::post("/Client-due-demographics", [Clients::class, 'clientsDemographics']);
-Route::get("/Transactions/Statistics", [Transaction::class, 'transactionStatistics'])->middleware(["validated", "checkAccount"]);
+Route::get("/Transactions/Statistics", [Transaction::class, 'transactionStatistics'])->middleware(["checkAccount", "validated"]);
 
 // router logs
 Route::get("/Router/writeLogs/{router_id}", [Router::class, "writeRouterLogs"]);
 Route::get("/Router/Logs/{router_id}", [Router::class, "readLogs"]);
 
 // reports
-Route::get("/Clients/generateReports", [Clients::class, "generateReports"])->middleware(["validated", "checkAccount"]);
-Route::get("/Transaction/generateReports", [Transaction::class, "generateReports"])->middleware(["validated", "checkAccount"]);
-Route::get("/SMS/generateReports", [Sms::class, "generateReports"])->middleware(["validated", "checkAccount"]);
+Route::get("/Clients/generateReports", [Clients::class, "generateReports"])->middleware(["checkAccount", "validated"]);
+Route::get("/Transaction/generateReports", [Transaction::class, "generateReports"])->middleware(["checkAccount", "validated"]);
+Route::get("/SMS/generateReports", [Sms::class, "generateReports"])->middleware(["checkAccount", "validated"]);
 
 // expenses
-Route::get("/Expenses", [Expenses::class, "getExpenses"])->middleware(["validated", "checkAccount"]);
+Route::get("/Expenses", [Expenses::class, "getExpenses"])->middleware(["checkAccount", "validated"]);
 Route::post("/Expense/Category/Add", [Expenses::class, "addExpenseCategory"]);
 Route::get("/Expense/Delete/{expense_index}", [Expenses::class, "deleteExpense"]);
 Route::post("/Expense/Add", [Expenses::class, "addExpense"]);
 Route::post("/Expense/Update", [Expenses::class, "updateExpense"]);
-Route::get("/Expense/View/{expense_id}", [Expenses::class, "viewExpense"])->middleware(["validated", "checkAccount"]);
-Route::get("/Expense/DeleteRecords/{expense_id}", [Expenses::class, "deleteExpenseRecords"])->middleware(["validated", "checkAccount"]);
-Route::get("/Expenses/Generate/Reports", [Expenses::class, "generateReports"])->middleware(["validated", "checkAccount"]);
-Route::get("/Expense/Statistics", [Expenses::class, "expenseStatistics"])->middleware(["validated", "checkAccount"]);
-Route::get("/Expenses/Generate/FinStats", [Expenses::class, "financeStats"])->middleware(["validated", "checkAccount"]);
+Route::get("/Expense/View/{expense_id}", [Expenses::class, "viewExpense"])->middleware(["checkAccount", "validated"]);
+Route::get("/Expense/DeleteRecords/{expense_id}", [Expenses::class, "deleteExpenseRecords"])->middleware(["checkAccount", "validated"]);
+Route::get("/Expenses/Generate/Reports", [Expenses::class, "generateReports"])->middleware(["checkAccount", "validated"]);
+Route::get("/Expense/Statistics", [Expenses::class, "expenseStatistics"])->middleware(["checkAccount", "validated"]);
+Route::get("/Expenses/Generate/FinStats", [Expenses::class, "financeStats"])->middleware(["checkAccount", "validated"]);
 
 // delete users
 Route::post("/delete_clients", [Clients::class, "deleteClients"]);
@@ -351,18 +351,18 @@ Route::get("/admin/deactivate/{admin_id}", [admin::class, "deactivateAdmin"]);
 Route::post("/Delete_bulk_sms", [Sms::class, "Delete_bulk_sms"]);
 Route::post("/Resend_bulk_sms", [Sms::class, "Resend_bulk_sms"]);
 
-Route::get("/SharedTables", [SharedTables::class, "openSharedTables"])->middleware(["validated", "checkAccount"]);
+Route::get("/SharedTables", [SharedTables::class, "openSharedTables"])->middleware(["checkAccount", "validated"]);
 Route::view("/CreateShareTables", "createTable");
 Route::post("/SaveTable", [SharedTables::class, "SaveTable"]);
-Route::get("SharedTables/View/{table_id}/Name/{table_name}", [SharedTables::class, "getTable"])->middleware(["validated", "checkAccount"]);
-Route::get("SharedTables/Edit/{table_id}/Name/{table_name}", [SharedTables::class, "editTable"])->middleware(["validated", "checkAccount"]);
+Route::get("SharedTables/View/{table_id}/Name/{table_name}", [SharedTables::class, "getTable"])->middleware(["checkAccount", "validated"]);
+Route::get("SharedTables/Edit/{table_id}/Name/{table_name}", [SharedTables::class, "editTable"])->middleware(["checkAccount", "validated"]);
 Route::post("/UpdateTableCreated", [SharedTables::class, "UpdateTableCreated"]);
-Route::get("/SharedTables/addRecord/{table_id}/Name/{table_name}", [SharedTables::class, "addRecords"])->middleware(["validated", "checkAccount"]);
+Route::get("/SharedTables/addRecord/{table_id}/Name/{table_name}", [SharedTables::class, "addRecords"])->middleware(["checkAccount", "validated"]);
 Route::post("/SharedTables/AddRecords", [SharedTables::class, "saveRecord"]);
-Route::get("/SharedTables/Edit/{table_id}/Name/{table_name}/Record/{record_no}", [SharedTables::class, "editRecord"])->middleware(["validated", "checkAccount"]);
+Route::get("/SharedTables/Edit/{table_id}/Name/{table_name}/Record/{record_no}", [SharedTables::class, "editRecord"])->middleware(["checkAccount", "validated"]);
 Route::post("/SharedTables/UpdateRecords", [SharedTables::class, "UpdateRecords"]);
-Route::get("/SharedTables/Delete/{table_id}/Name/{table_name}", [SharedTables::class, "deleteTable"])->middleware(["validated", "checkAccount"]);
-Route::get("/SharedTables/Delete/{table_id}/Name/{link_table_name}/Record/{rows_id}", [SharedTables::class, "deleteRecord"])->middleware(["validated", "checkAccount"]);
+Route::get("/SharedTables/Delete/{table_id}/Name/{table_name}", [SharedTables::class, "deleteTable"])->middleware(["checkAccount", "validated"]);
+Route::get("/SharedTables/Delete/{table_id}/Name/{link_table_name}/Record/{rows_id}", [SharedTables::class, "deleteRecord"])->middleware(["checkAccount", "validated"]);
 
 
 // MPESA URL REGISTRATION

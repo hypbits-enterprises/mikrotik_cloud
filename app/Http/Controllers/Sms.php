@@ -85,7 +85,65 @@ class Sms extends Controller
             array_push($clients_acc,$clients_data[$index]->client_account);
             array_push($clients_phone,$clients_data[$index]->clients_contacts);
         }
-        return view("adminsms",["sms_data" =>$sms_data,"client_names" => $client_names, "dates" => $dates, "sms_count" => $sms_count, "last_week" => $sms_week,"total_sms" => $totalsms,"clients_name" => $clients_name,"clients_acc" => $clients_acc,"clients_phone" => $clients_phone]);
+        
+        // DAILY STATS
+        $today = date("Ymd")."000000";
+        $yesterday = date("Ymd", strtotime("-1 days"))."000000";
+        $sms_stats = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `sms_tables` WHERE `deleted`= '0' AND `date_sent` >= '$today'");
+        $sms_stats_yesterday = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `sms_tables` WHERE `deleted`= '0' AND `date_sent` >= '$yesterday' AND `date_sent` < '$today'");
+        $isIncrease = ($sms_stats[0]->Total >= $sms_stats_yesterday[0]->Total) ? true : false;
+        $percentage = ($sms_stats_yesterday[0]->Total == 0) ? 100 : (($sms_stats[0]->Total - $sms_stats_yesterday[0]->Total)/$sms_stats_yesterday[0]->Total) * 100;
+        $dailyStatToday = array(
+            "today" => $sms_stats[0]->Total,
+            "yesterday" => $sms_stats_yesterday[0]->Total,
+            "isIncrease" => $isIncrease,
+            "percentage" => round($percentage,2)
+        );
+
+        // weekly stats
+        $last_week = date("YmdHis", strtotime("-7 days"));
+        $last_twoweek = date("YmdHis", strtotime("-14 days"));
+        $sms_stats_week = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `sms_tables` WHERE `deleted`= '0' AND `date_sent` >= '$last_week'");
+        $sms_stats_twoweek = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `sms_tables` WHERE `deleted`= '0' AND `date_sent` >= '$last_twoweek' AND `date_sent` < '$last_week'");
+        $isIncrease = ($sms_stats_week[0]->Total >= $sms_stats_twoweek[0]->Total) ? true : false;
+        $percentage = ($sms_stats_twoweek[0]->Total == 0) ? 100 : (($sms_stats_week[0]->Total - $sms_stats_twoweek[0]->Total)/$sms_stats_twoweek[0]->Total) * 100;
+        $weeklyStat = array(
+            "this_week" => $sms_stats_week[0]->Total,
+            "last_week" => $sms_stats_twoweek[0]->Total,
+            "isIncrease" => $isIncrease,
+            "percentage" => round($percentage,2)
+        );
+
+        // monthly stats
+        $last_month = date("YmdHis", strtotime("-1 months"));
+        $last_twomonth = date("YmdHis", strtotime("-2 months"));
+        $sms_stats_month = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `sms_tables` WHERE `deleted`= '0' AND `date_sent` >= '$last_month'");
+        $sms_stats_twomonth = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `sms_tables` WHERE `deleted`= '0' AND `date_sent` >= '$last_twomonth' AND `date_sent` < '$last_month'");
+        $isIncrease = ($sms_stats_month[0]->Total >= $sms_stats_twomonth[0]->Total) ? true : false;
+        $percentage = ($sms_stats_twomonth[0]->Total == 0) ? 100 : (($sms_stats_month[0]->Total - $sms_stats_twomonth[0]->Total)/$sms_stats_twomonth[0]->Total) * 100;
+        $monthlyStat = array(
+            "this_month" => $sms_stats_month[0]->Total,
+            "last_month" => $sms_stats_twomonth[0]->Total,
+            "isIncrease" => $isIncrease,
+            "percentage" => round($percentage,2)
+        );
+
+        // one week stats
+        $last_week = date("Ymd", strtotime("-7 days"))."000000";
+        $week_stats = [];
+        for ($i=6; $i >= 0; $i--) { 
+            $day = date("Ymd", strtotime("-".$i." days"))."000000";
+            $end = date("Ymd", strtotime("-".$i." days"))."235959";
+            $sms_stats_day = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `sms_tables` WHERE `deleted`= '0' AND `date_sent` >= '$day' AND `date_sent` <= '$end'");
+            $obj = new stdClass();
+            $obj->day = date("D dS M", strtotime("-$i days"));
+            $obj->Total = $sms_stats_day[0]->Total;
+            array_push($week_stats,$obj);
+        }
+
+        // return the view with the stats
+        // return $week_stats;
+        return view("adminsms",["week_stats" => $week_stats, "dailyStats" => $dailyStatToday, "monthlyStats" => $monthlyStat, "weeklyStats" => $weeklyStat, "sms_data" =>$sms_data,"client_names" => $client_names, "dates" => $dates, "sms_count" => $sms_count, "last_week" => $sms_week,"total_sms" => $totalsms,"clients_name" => $clients_name,"clients_acc" => $clients_acc,"clients_phone" => $clients_phone]);
     }
 
     function sms_balance(){

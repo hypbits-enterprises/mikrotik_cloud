@@ -308,6 +308,7 @@ class Transaction extends Controller
             $dates = date("dS-M-Y  h:i:sa", $d);
             array_push($dates_infor,$dates);
         }
+
         // return $dates_infor;
         $todayDate = date("YmdHis");
         $weekAgo = date("YmdHis",strtotime("-7 days"));
@@ -317,6 +318,48 @@ class Transaction extends Controller
         $week = DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` BETWEEN '$weekAgo' AND '$todayDate';");
         $twoWeek = DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` BETWEEN '$twoWeeksAgo' AND '$todayDate';");
         $months = DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` BETWEEN '$amonthAgo' AND '$todayDate';");
+
+        // STATISTICS
+        $today = date("Ymd")."000000";
+        $yesterday = date("Ymd", strtotime("-1 day"))."000000";
+        $dailyStatToday = DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` >= '$today'");
+        $dailyStatYesterday = DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` BETWEEN '$yesterday' AND '$today'");
+        $isIncrease = $dailyStatToday[0]->Total > $dailyStatYesterday[0]->Total ? true : false;
+        $percentage = $isIncrease ? ($dailyStatToday[0]->Total - $dailyStatYesterday[0]->Total) / ($dailyStatYesterday[0]->Total == 0 ? 1 : $dailyStatYesterday[0]->Total) * 100 : ($dailyStatYesterday[0]->Total - $dailyStatToday[0]->Total) / ($dailyStatYesterday[0]->Total == 0 ? 1 : $dailyStatYesterday[0]->Total) * 100;
+        $dailStats = array(
+            "isIncrease" => $isIncrease,
+            "percentage" => round($percentage,2),
+            "today" => $dailyStatToday[0]->Total ?? 0,
+            "yesterday" => $dailyStatYesterday[0]->Total ?? 0
+        );
+
+        // last one month
+        $last_one_month = date("Ymd", strtotime("-1 month"))."000000";
+        $last_two_months = date("Ymd", strtotime("-2 months"))."000000";
+        $last_month_stats= DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` BETWEEN '$last_one_month' AND '".date("YmdHis")."'");
+        $last_twomonth_stats= DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` BETWEEN '$last_two_months' AND '".$last_one_month."'");
+        $isIncrease = $last_month_stats[0]->Total > $last_twomonth_stats[0]->Total ? true : false;
+        $percentage = $isIncrease ? ($last_month_stats[0]->Total - $last_twomonth_stats[0]->Total) / ($last_twomonth_stats[0]->Total == 0 ? 1 : $last_twomonth_stats[0]->Total) * 100 : ($last_twomonth_stats[0]->Total - $last_month_stats[0]->Total) / ($last_twomonth_stats[0]->Total == 0 ? 1 : $last_twomonth_stats[0]->Total) * 100;
+        $monthlyStats = array(
+            "isIncrease" => $isIncrease,
+            "percentage" => round($percentage,2),
+            "this_month" => $last_month_stats[0]->Total ?? 0,
+            "last_month" => $last_twomonth_stats[0]->Total ?? 0
+        );
+        
+        // last one week
+        $last_one_week = date("Ymd", strtotime("-1 week"))."000000";
+        $last_two_weeks = date("Ymd", strtotime("-2 weeks"))."000000";
+        $last_week_stats= DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` BETWEEN '$last_one_week' AND '".date("YmdHis")."'");
+        $last_twoweek_stats= DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` BETWEEN '$last_two_weeks' AND '".$last_one_week."'");
+        $isIncrease = $last_week_stats[0]->Total > $last_twoweek_stats[0]->Total ? true : false;
+        $percentage = $isIncrease ? ($last_week_stats[0]->Total - $last_twoweek_stats[0]->Total) / ($last_twoweek_stats[0]->Total == 0 ? 1 : $last_twoweek_stats[0]->Total) * 100 : ($last_twoweek_stats[0]->Total - $last_week_stats[0]->Total) / ($last_twoweek_stats[0]->Total == 0 ? 1 : $last_twoweek_stats[0]->Total) * 100;
+        $weeklyStats = array(
+            "isIncrease" => $isIncrease,
+            "percentage" => round($percentage,2),
+            "this_week" => $last_week_stats[0]->Total ?? 0,
+            "last_week" => $last_twoweek_stats[0]->Total ?? 0
+        );
 
         // get the clients name username and phonenumber
         $clients_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' ORDER BY `client_id` DESC");
@@ -328,7 +371,21 @@ class Transaction extends Controller
             array_push($clients_acc,$clients_data[$index]->client_account);
             array_push($clients_phone,$clients_data[$index]->clients_contacts);
         }
-        return view("mytransactions",["transaction_data" => $transaction_data, "today" => $sums,"week" => $week,"month" => $months,"twoweeks" => $twoWeek ,"account_name" => $account_names,"trans_dates" => $dates_infor,"clients_name" => $clients_name,"clients_acc" => $clients_acc,"clients_phone" => $clients_phone]);
+        // return [$dailStats, $weeklyStats, $monthlyStats];
+        $last_one_week = date("Ymd", strtotime("-1 week"))."000000";
+        $collections = [];
+        for ($i=6; $i >= 0; $i--) { 
+            $day = date("Ymd", strtotime("-".$i." days"))."000000";
+            $end = date("Ymd", strtotime("-".$i." days"))."235959";
+            $collection = DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` BETWEEN '$day' AND '".$end."'");
+            $collection_data = array(
+                "date" => date("D dS M", strtotime("-".$i." days")),
+                "amount" => $collection[0]->Total ?? 0
+            );
+            array_push($collections,$collection_data);
+        }
+        // return $collections;
+        return view("mytransactions",["collections" => $collections, "dailStats" => $dailStats, "weeklyStats" => $weeklyStats, "monthlyStats" => $monthlyStats, "transaction_data" => $transaction_data, "today" => $sums,"week" => $week,"month" => $months,"twoweeks" => $twoWeek ,"account_name" => $account_names,"trans_dates" => $dates_infor,"clients_name" => $clients_name,"clients_acc" => $clients_acc,"clients_phone" => $clients_phone]);
     }
     function transDetails($trans_id){
         // change db
@@ -1419,6 +1476,7 @@ class Transaction extends Controller
         date_add($date,date_interval_create_from_date_string($months." Month"));
         return date_format($date,"YmdHis");
     }
+
     function addYear($date,$years){
         $date = date_create($date);
         date_add($date,date_interval_create_from_date_string($years." Year"));
