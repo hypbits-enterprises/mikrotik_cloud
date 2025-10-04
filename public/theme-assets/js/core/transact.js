@@ -67,7 +67,7 @@ window.onload = function() {
 
         setTimeout(() => {
             plotGraph(collection_stats);
-        }, 2000);
+        }, 1000);
 
     } else {
         cObj("transDataReciever").innerHTML = "<p class='sm-text text-danger text-bold text-center'><span style='font-size:40px;'><i class='ft-alert-triangle'></i></span> <br>Ooops! No transactions records found!</p>";
@@ -135,14 +135,14 @@ function plotGraph(client_data) {
         chart_data.push(element.amount);
     }
 
-    var title = "Collections received in the last 7 days";
+    var title = "Payments received in the last 7 days";
     myChart = new Chart(ctx, {
         type: type,
         data: {
             labels:labels,
             datasets: [{
                 tension: 0.4,
-                label: 'Collections in Kes',
+                label: 'Payments in Kes',
                 data: chart_data,
                 borderWidth: 1,
                 font: {

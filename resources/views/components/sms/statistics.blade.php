@@ -8,7 +8,7 @@
                         <h4 class="mb-0">{{number_format($dailyStats['today'])." SMS"}}</h4>
                     </div>
                     <div class="icon icon-md icon-shape bg-primary text-white shadow pt-1 px-1 text-center rounded">
-                        <h5 class="text-white"><i class="ft-bar-chart"></i></h5>
+                        <h5 class="text-white"><i class="ft-calendar"></i></h5>
                     </div>
                 </div>
             </div>
@@ -27,7 +27,7 @@
                         <h4 class="mb-0">{{number_format($weeklyStats['this_week'])." SMS"}}</h4>
                     </div>
                     <div class="icon icon-md icon-shape bg-primary text-white shadow pt-1 px-1 text-center rounded">
-                        <h5 class="text-white"><i class="ft-calendar"></i></h5>
+                        <h5 class="text-white"><i class="ft-clock"></i></h5>
                     </div>
                 </div>
             </div>
@@ -46,7 +46,7 @@
                         <h4 class="mb-0">{{($monthlyStats['this_month'])." SMS"}}</h4>
                     </div>
                     <div class="icon icon-md icon-shape bg-primary text-white shadow pt-1 px-1 text-center rounded">
-                        <h4 class="text-white"><i class="ft-activity"></i></h4>
+                        <h4 class="text-white"><i class="ft-bar-chart-2"></i></h4>
                     </div>
                 </div>
             </div>

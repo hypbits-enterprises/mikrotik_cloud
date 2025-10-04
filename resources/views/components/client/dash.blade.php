@@ -36,7 +36,7 @@
                     </div>
                     <div class="modal-body">
                         <form class="container" method="POST" action="/Client/Convert">
-                            @csrf;
+                            @csrf
                             <div class="form-group">
                                 @if (session('network_error'))
                                     <p class="danger">{{ session('network_error') }}</p>

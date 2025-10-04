@@ -134,11 +134,17 @@ class Sms extends Controller
         for ($i=6; $i >= 0; $i--) { 
             $day = date("Ymd", strtotime("-".$i." days"))."000000";
             $end = date("Ymd", strtotime("-".$i." days"))."235959";
-            $sms_stats_day = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `sms_tables` WHERE `deleted`= '0' AND `date_sent` >= '$day' AND `date_sent` <= '$end'");
+            $smsStatEveryDay = DB::connection("mysql2")->select("SELECT COUNT(*) AS `Total` FROM `sms_tables` WHERE `date_sent` >= '$day' AND `date_sent` < '$end'");
             $obj = new stdClass();
             $obj->day = date("D dS M", strtotime("-$i days"));
-            $obj->Total = $sms_stats_day[0]->Total;
-            array_push($week_stats,$obj);
+            $obj->Total = $smsStatEveryDay[0]->Total;
+            $obj->sql = "SELECT COUNT(*) AS `Total` FROM `sms_tables` WHERE `date_sent` >= '$day' AND `date_sent` <= '$end'";
+            $data = array(
+                "day" => date("D dS M", strtotime("-$i days")),
+                "Total" => $smsStatEveryDay[0]->Total,
+                "sql" => "SELECT COUNT(*) AS `Total` FROM `sms_tables` WHERE `date_sent` >= '$day' AND `date_sent` <= '$end'"
+            );
+            array_push($week_stats,$data);
         }
 
         // return the view with the stats

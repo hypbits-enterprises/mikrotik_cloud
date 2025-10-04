@@ -109,7 +109,7 @@
                                             $btnLink = "/Transactions/Statistics";
                                             $otherAttributes = "data-action='collapse'";
                                         @endphp
-                                        <x-button-link btnType="secondary" btnSize="sm" toolTip="SMS Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        <x-button-link btnType="primary" btnSize="sm" toolTip="SMS Statistics" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
                                         {{-- <li><a data-action="expand"><i class="ft-maximize"></i></a></li> --}}
                                         <!-- <li><a data-action="close"><i class="ft-x"></i></a></li> -->
                                     </ul>
