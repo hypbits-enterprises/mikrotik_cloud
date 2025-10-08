@@ -1,1 +1,42 @@
-{"username":"hillary","password":"2000Hilary","ip_address":"192.168.86.1","port" : "1982"}
+[
+    {
+        "option": "My Clients",
+        "view": false,
+        "readonly": false
+    },
+    {
+        "option": "Transactions",
+        "view": false,
+        "readonly": false
+    },
+    {
+        "option": "Expenses",
+        "view": false,
+        "readonly": false
+    },
+    {
+        "option": "My Routers",
+        "view": false,
+        "readonly": false
+    },
+    {
+        "option": "SMS",
+        "view": false,
+        "readonly": false
+    },
+    {
+        "option": "Account and Profile",
+        "view": false,
+        "readonly": false
+    },
+    {
+        "option": "Clients Issues",
+        "view": false,
+        "readonly": false
+    },
+    {
+        "option": "Quick Register",
+        "view": true,
+        "readonly": false
+    }
+]

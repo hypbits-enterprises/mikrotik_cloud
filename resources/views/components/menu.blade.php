@@ -240,9 +240,9 @@
     </div>
     <div class="main-menu-content">
         <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
-            <li class="{{$active == "dashboard" ? "active" : ""}}"><a href="/Dashboard"><i class="ft-home"></i><span class="menu-title" data-i18n="">Dashboard</span></a>
+            <li class="{{$active == "dashboard" ? "active" : ""}}"><a href="/Dashboard"><i class="ft-home"></i><span class="menu-title" data-i18n="">Dashboard {{showOption($priviledges,"Quick Register")}}</span></a>
             </li>
-            <li class="{{((showOption($priviledges,"My Clients") == "d-none" && showOption($priviledges,"Clients Issues") == "d-none") || (showOption($priviledges,"My Clients") == "disabled d-none" && showOption($priviledges,"Clients Issues") == "disabled d-none")) ? "d-none" : ""}} nav-item has-sub {{$active == "myclients" || $active == "client_issues" || $active == "quick_register" ? "active open" : ""}}"><a href="#"><i class="ft-users"></i><span class="menu-title" data-i18n="">Clients</span></a>
+            <li class="{{((showOption($priviledges,"My Clients") == "d-none" && showOption($priviledges,"Clients Issues") == "d-none" && showOption($priviledges,"Quick Register") == "d-none") || (showOption($priviledges,"My Clients") == "disabled d-none" && showOption($priviledges,"Clients Issues") == "disabled d-none") && showOption($priviledges,"Quick Register") == "disabled d-none") ? "d-none" : ""}} nav-item has-sub {{$active == "myclients" || $active == "client_issues" || $active == "quick_register" ? "active open" : ""}}"><a href="#"><i class="ft-users"></i><span class="menu-title" data-i18n="">Clients</span></a>
                 <ul class="menu-content" style="">
                     <li class="{{showOption($priviledges,"My Clients")}} {{$active == "myclients" ? "active" : ""}} nav-item"><a href="/Clients"><span><i class="ft-user"></i> My Clients</span></a></li>
                     <li class="{{showOption($priviledges,"Quick Register")}} {{$active == "quick_register" ? "active" : ""}} nav-item"><a href="/Quick-Register"><i class="ft-cloud-lightning"></i> Quick Register</a></li>
