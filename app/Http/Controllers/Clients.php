@@ -7410,8 +7410,6 @@ $export_text .= "
             // clients selected
             // return $router_data_migrate;
 
-            // return $router_data_migrate;
-
             // check if there are any ommited profiles or interfaces
             if (count($ommited_profile) > 0 || count($ommited_interfaces) > 0) {
                 $ommited_text = "";
