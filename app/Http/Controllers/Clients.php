@@ -7407,6 +7407,9 @@ $export_text .= "
                     "previous_router" => $clients_selected[$index]->client_router_id
                 ));
             }
+            // clients selected
+            // return $router_data_migrate;
+
             // return $router_data_migrate;
 
             // check if there are any ommited profiles or interfaces
@@ -7426,17 +7429,19 @@ $export_text .= "
                     }
                     $ommited_text.="</ul>";
                 }
-                // session()->flash("error", $ommited_text);
-                // return redirect(url()->previous());
+                session()->flash("error", $ommited_text);
+                return redirect(url()->previous());
             }
 
             // start with the add script
+            $include_migrate_to = false;//does the migrate router have clients that are to be retained
             foreach($router_data_migrate as $keys => $rdata){
                 $add_file_location = public_path("scripts/add_".session("database_name")."_".$rdata['client_router_id'].".rsc");
                 if (!File::exists(public_path('scripts'))) {
                     File::makeDirectory(public_path('scripts'), 0755, true);
                 }
                 if($rdata['client_router_id'] == $migrate_to_router){
+                    $include_migrate_to = true;
                     // Create and write to file add the file option to delete the script
                     $add_script .= "/file remove [find name=\"add_".session("database_name")."_".$rdata['client_router_id'].".rsc\"]\n";
                     // $add_script .= "/system/script/remove [find name=\"import_".$rdata['client_router_id']."\"]\n";
@@ -7448,6 +7453,27 @@ $export_text .= "
                     $salutation_script .= ":put \"Migration done successfully\"";
                     File::put($add_file_location, $rdata['delete_script'].$salutation_script);
                 }
+            }
+
+            // not migrated
+            if(!$include_migrate_to){
+                $add_file_location = public_path("scripts/add_".session("database_name")."_".$router_data[0]->router_id.".rsc");
+                if (!File::exists(public_path('scripts'))) {
+                    File::makeDirectory(public_path('scripts'), 0755, true);
+                }
+                // Create and write to file add the file option to delete the script
+                $add_script .= "/file remove [find name=\"add_".session("database_name")."_".$router_data[0]->router_id.".rsc\"]\n";
+                // $add_script .= "/system/script/remove [find name=\"import_".$router_data[0]->router_id."\"]\n";
+                $add_script .= ":put \"File deleted successfully\"\n";
+                $add_script .= "/tool fetch url=\"".env("APP_URL", "https://billing.hypbits.com")."/delete_file_migrate?filename="."add_".session("database_name")."_".$router_data[0]->router_id.".rsc\""." mode=http keep-result=no\n";
+                File::put($add_file_location, $add_script);
+
+                array_push($router_data_migrate, array(
+                    "router_name" => $router_data[0]->router_name,
+                    "client_router_id" => $router_data[0]->router_id,
+                    "link" => env("APP_URL", "https://billing.hypbits.com")."/scripts/add_".session("database_name")."_".$router_data[0]->router_id.".rsc",
+                    "delete_script" => $add_script
+                ));
             }
 
             // update the clients to the respective router

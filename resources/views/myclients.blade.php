@@ -420,12 +420,6 @@
                                                                         }
                                                                     @endphp
                                                                 </select>
-                                                                <label for="file_action" class="form-control-label mt-1"><b>Action:</b></label>
-                                                                <select required name="file_action" id="file_action" class="form-control">
-                                                                    <option value="" hidden>Select an option</option>
-                                                                    <option selected value="download">Download the file</option>
-                                                                    <option value="run">Run from the system</option>
-                                                                </select>
                                                                 <div class="row w-100">
                                                                     <div class="col-md-6">
                                                                         @php
