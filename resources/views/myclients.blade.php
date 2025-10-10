@@ -237,6 +237,48 @@
                             </div>
                             <div class="card-header">
                                 <p>- Manage Clients Further!</p>
+                                @if (session()->has("error"))
+                                    <h6 style="color: orangered">{!!session("error")!!}</h6>
+                                @endif
+                                @if (session()->has("router_data_migrate"))
+                                    <form class="container mb-1" action="/reverse_migration" method="post">
+                                        @csrf
+                                        <input type="hidden" name="reverse_data" value="{{json_encode(session("reverse_list"))}}">
+                                        @php
+                                            $btnText = "<i class=\"fas fa-undo\"></i> Undo";
+                                            $otherClasses = "mt-1";
+                                            $btn_id = "reverse_migration";
+                                        @endphp
+                                        <x-button :btnText="$btnText" btnType="success" type="submit" toolTip="Reverse Migration" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                        @php
+                                            $btnText = "<i class=\"fas fa-check\"></i> Done";
+                                            $otherClasses = "mt-1";
+                                            $btnLink = "/Clients";
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button-link :otherAttributes="$otherAttributes" toolTip="Click when done with the migration!" :btnText="$btnText" :btnLink="$btnLink" btnType="primary" btnSize="sm" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                    </form>
+                                    <div class="container border border-primary rounded p-1">
+                                        <h6 class="text-dark text-center">Copy the following commands to the respective routers</h6>
+                                        <b>Note</b>
+                                        <ul>
+                                            <li>Do not reload the page until you are done, you`ll lose the commands</li>
+                                            <li>Copy the command and paste it to the respective router!</li>
+                                        </ul>
+                                        <table class="table table-striped table-bordered zero-configuration dataTable no-footer">
+                                            <tr><th>No.</th><th>Router</th><th>Command</th><th>Action</th></tr>
+                                            @php
+                                                $index = 1;
+                                            @endphp
+                                            @foreach (session("router_data_migrate") as $router)
+                                                <tr><td>{{$index}}</td><td>{{$router['router_name']}}</td><td><code id="command_code_{{$router['client_router_id']}}">/tool fetch url={{$router['link']}} mode=http keep-result=yes dst-path={{"add_".session("database_name")."_".$router['client_router_id']}}.rsc;<br>delay 1;<br>/import file-name={{"add_".session("database_name")."_".$router['client_router_id']}}.rsc;<br>/beep</code></td><td><button class="btn btn-sm btn-primary copy_command_btn" id="copy_command_btn_{{$router['client_router_id']}}" data-toggle="tooltip" title="Copy Command"><i class="fa fa-copy"></i> Copy</button></td></tr>
+                                                @php
+                                                    $index++;
+                                                @endphp
+                                            @endforeach
+                                        </table>
+                                    </div>
+                                @endif
                                 {{-- <span class='badge badge-warning text-dark'>Reffered</span> --}}
                                 @php
                                     $btnText = "<i class=\"ft-bar-chart-2\"></i> Client`s Statistics";
@@ -264,7 +306,7 @@
                             <div class="card-content collapse show">
                                 <div class="card-body">
                                     <div class="container">
-                                        {{-- UPDATE EXPIRATION DATE --}}
+                                        {{-- EXPORT CLIENTS DATA --}}
                                         <div class="modal fade text-left hide" id="export_client_data" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4" style="padding-right: 17px;" aria-modal="true">
                                             <div class="modal-dialog modal-dialog-centered" role="document">
                                                 <div class="modal-content">
@@ -329,6 +371,76 @@
                                                                             $btnText = "<i class=\"fas fa-x\"></i> Cancel";
                                                                             $otherClasses = "w-100 my-1 ".($export_data == "disabled" ? "d-none" : "");
                                                                             $btn_id = "close_export_client_data_2";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="secondary" type="button" :disabled="$export_data" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                        {{-- <button class="btn btn-outline-secondary btn-sm w-100 my-1" type="button" id="close_export_client_data_2">Cancel</button> --}}
+                                                                    </div>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{-- EXPORT CLIENTS DATA --}}
+                                        <div class="modal fade text-left hide" id="migrate_clients_window" tabindex="-1" role="dialog" aria-labelledby="myModalLabel5" style="padding-right: 17px;" aria-modal="true">
+                                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-info white">
+                                                    <h4 class="modal-title white" id="myModalLabel5"><i class="fa fa-file-export"></i> Migrate Client`s data</h4>
+                                                    <button id="close_migrate_clients_window" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">×</span>
+                                                    </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="container">
+                                                            <h6 class="text-center" ><u>Migrate Client`s data</u></h6>
+                                                            <div class="container p-0 mb-1">
+                                                                <ul>
+                                                                    <li>Migrating will move the selected clients to the desired router.</li>
+                                                                    <li>The clients will be deleted from the routers they currently connected to.</li>
+                                                                    <li>Ensure there is stable connection in the router before you begin this process.</li>
+                                                                </ul>
+                                                            </div>
+                                                            <hr>
+                                                            <p id="clients_migrate_counter" class="border border-secondary rounded p-1 m-1">
+                                                                <b>Note:</b> <span id="migrate_clients_counts" class="text-info">0 Client(s) Selected</span>
+                                                            </p>
+                                                            <form action="/migrate_client_data" target="_blank" method="post" class="form-control-group">
+                                                                @csrf
+                                                                <input type="hidden" name="migrate_client_list" id="migrate_client_list">
+                                                                <label for="migrate_to_router" class="form-control-label"><b>Migrate To:</b></label>
+                                                                <select required name="migrate_to_router" id="migrate_to_router" class="form-control">
+                                                                    <option value="" hidden>Select a router</option>
+                                                                    @php
+                                                                        for ($index=0; $index < count($router_infor); $index++) { 
+                                                                            echo "<option value=".$router_infor[$index]->router_id.">".$router_infor[$index]->router_name."</option>";
+                                                                        }
+                                                                    @endphp
+                                                                </select>
+                                                                <label for="file_action" class="form-control-label mt-1"><b>Action:</b></label>
+                                                                <select required name="file_action" id="file_action" class="form-control">
+                                                                    <option value="" hidden>Select an option</option>
+                                                                    <option selected value="download">Download the file</option>
+                                                                    <option value="run">Run from the system</option>
+                                                                </select>
+                                                                <div class="row w-100">
+                                                                    <div class="col-md-6">
+                                                                        @php
+                                                                            $btnText = "<i class=\"fas fa-file-export\"></i> Migrate";
+                                                                            $otherClasses = "w-100 my-1 ".($export_data == "disabled" ? "d-none" : "");
+                                                                            $btn_id = "migrate_client_data_btn";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="info" type="submit" :disabled="$export_data" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                        {{-- <button type="submit" class="btn btn-outline-info btn-sm w-100 my-1" {{$export_data == "disabled" ? "d-none" : ""}}><i class="fas fa-download"></i> Download</button> --}}
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        @php
+                                                                            $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                                            $otherClasses = "w-100 my-1 ".($export_data == "disabled" ? "d-none" : "");
+                                                                            $btn_id = "close_migrate_clients_window_2";
                                                                         @endphp
                                                                         <x-button :btnText="$btnText" btnType="secondary" type="button" :disabled="$export_data" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                                                                         {{-- <button class="btn btn-outline-secondary btn-sm w-100 my-1" type="button" id="close_export_client_data_2">Cancel</button> --}}
@@ -495,7 +607,7 @@
                                                 <input type="hidden" name="hold_user_id_data" id="hold_user_id_data">
                                                 @php
                                                     $btnText = "<i class=\"ft-trash\"></i> Delete";
-                                                    $otherClasses = "";
+                                                    $otherClasses = "btn-block";
                                                     $btn_id = "delete_clients_id";
                                                     $otherAttributes = "";
                                                 @endphp
@@ -528,13 +640,23 @@
                                                 <input type="hidden" name="hold_user_id_data" id="hold_user_id_data_2">
                                                 @php
                                                     $btnText = "<i class=\"fa-solid fa-paper-plane\"></i> Send SMS";
-                                                    $otherClasses = "mt-1";
+                                                    $otherClasses = "btn-block mt-1";
                                                     $btn_id = "";
                                                     $otherAttributes = "";
                                                 @endphp
                                                 <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" :readOnly="$readonly" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                                                 {{-- <button class="btn btn-sm btn-outline-info" {{$readonly}} type="submit"><i class="fa-solid fa-paper-plane"></i> Send SMS</button> --}}
                                             </form>
+                                            <div class="col-md-3 border-right border-secondary">
+                                                @php
+                                                    $btnText = "<i class=\"fa fa-file-export\"></i> Migrate Clients";
+                                                    $otherClasses = "btn-block mt-1 ".($export_data == "disabled" ? "d-none" : "");
+                                                    $btn_id = "export_selected_clients_data_btn";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" :readOnly="$readonly" btnType="info" type="button" :disabled="$export_data" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                {{-- <button class="btn btn-sm btn-outline-info {{$export_data == "disabled" ? "d-none" : ""}}" {{$readonly}} {{$export_data}} type="button" id="export_selected_clients_data_btn"><i class="fa fa-file-export"></i> Export Data</button> --}}
+                                            </div>
                                             <div class="col-md-12 card-content">
                                                 <h6 class="text-center"><u>Clients Selected</u></h6>
                                                 <input type="hidden" id="clients_list_selected">

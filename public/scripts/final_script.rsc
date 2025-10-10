@@ -39,6 +39,7 @@
     :put "Create the file"
     /file print file="client_list.txt"
 }
+:delay 1;
 /tool fetch url=$apiUrl mode=http keep-result=yes dst-path=client_list.txt
 
 # read file contents (string)
@@ -59,6 +60,7 @@ if ([:len $subStr] > 0) do= {
         :local netStart [:find $obj "\"network\":\""]
         :local netEnd [:find $obj "\",\"gateway\"" $netStart]
         :local network [:pick $obj ($netStart + 11) $netEnd]
+        :put "Network = $network";
 
         #GATEWAY
         :local gwStart [:find $obj "\"gateway\":\""]
@@ -120,7 +122,7 @@ if ([:len $subStr] > 0) do= {
 
         # take prefix up to the last dot (10.10.70.)
         :local prefix [:pick $network 0 ($thirdDot + 1)]
-               
+        
         :local regex ("^" . $prefix . "[0-9]+/24")
         :put $regex;
 
@@ -182,7 +184,7 @@ if ([:len $subStr] > 0) do= {
 #:put $subStr;
 
 if ([:len $subStr] > 0) do= {
-:local objects [:toarray ($subStr)]
+    :local objects [:toarray ($subStr)]
     :set objects [:toarray [:pick $subStr 0 [:len $subStr]]]
     #:put $objects;
     

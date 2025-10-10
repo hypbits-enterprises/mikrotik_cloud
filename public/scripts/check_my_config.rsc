@@ -25,7 +25,7 @@
         /file print file="global_config.txt"
     }
     
-    /tool fetch url=$apiUrl mode=https keep-result=yes dst-path=global_config.txt
+    /tool fetch url=$apiUrl mode=http keep-result=yes dst-path=global_config.txt
     :local globalConfig [/file get global_config.txt contents]
     
     :put $globalConfig;
@@ -77,4 +77,3 @@
         /file remove $f1
     }
 }
-

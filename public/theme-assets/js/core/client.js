@@ -457,6 +457,7 @@ function addSelectedClients() {
 
     var clients_selected_count = cObj("hold_user_id_data").value;
     clients_selected_count = JSON.parse(clients_selected_count);
+    console.log(clients_selected_count);
     cObj("client_select_counts").innerText = clients_selected_count.length+" Client(s) Selected";
 
     // display all the clients that have been selected
@@ -620,6 +621,33 @@ cObj("close_export_client_data_2").onclick = function () {
     cObj("export_client_data").classList.add("hide");
     cObj("export_client_data").classList.remove("show");
     cObj("export_client_data").classList.remove("showBlock");
+}
+
+// migrate client data
+cObj("export_selected_clients_data_btn").onclick = function () {
+    cObj("migrate_clients_window").classList.remove("hide");
+    cObj("migrate_clients_window").classList.add("show");
+    cObj("migrate_clients_window").classList.add("showBlock");
+
+    // check if any client is selected
+    var hold_user_id_data = cObj("hold_user_id_data").value;
+    if (hasJsonStructure(hold_user_id_data)) {
+        hold_user_id_data = JSON.parse(hold_user_id_data);
+        cObj("migrate_clients_counts").innerText = hold_user_id_data.length+" Client(s) Selected";
+        cObj("migrate_client_list").value = cObj("hold_user_id_data").value;
+    }
+}
+
+cObj("close_migrate_clients_window").onclick = function () {
+    cObj("migrate_clients_window").classList.add("hide");
+    cObj("migrate_clients_window").classList.remove("show");
+    cObj("migrate_clients_window").classList.remove("showBlock");
+}
+
+cObj("close_migrate_clients_window_2").onclick = function () {
+    cObj("migrate_clients_window").classList.add("hide");
+    cObj("migrate_clients_window").classList.remove("show");
+    cObj("migrate_clients_window").classList.remove("showBlock");
 }
 
 // initiate autocomplete for the search input
@@ -800,4 +828,25 @@ function sendDataGet(method, file, object1, object2, callback = null) {
     };
     xml.open(method, file, true);
     xml.send();
+}
+
+var copy_command_btn = document.getElementsByClassName("copy_command_btn");
+for (let index = 0; index < copy_command_btn.length; index++) {
+    const element = copy_command_btn[index];
+    element.addEventListener("click", function () {
+        copyText(cObj("command_code_"+this.id.substr(17)).innerText);
+        this.innerHTML = "<i class='fas fa-check'></i> Copied!";
+        setTimeout(() => {
+            this.innerHTML = "<i class='fa fa-copy'></i> Copy";
+        }, 3000);
+    });
+}
+function copyText(text) {
+  navigator.clipboard.writeText(text)
+    .then(() => {
+      console.log("Copied to clipboard!");
+    })
+    .catch(err => {
+      console.error("Failed to copy: ", err);
+    });
 }

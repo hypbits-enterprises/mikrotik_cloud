@@ -21,15 +21,27 @@
 :put "....Downloading Config II...."
 :delay 2
 
-# set the script source
-:local scriptSource [/file get hbsScript.rsc contents]
+#add the script if not exists
+# :put "hbs script downloaded";
+:local hbsScript [/system script find where name="hbsScript"];
+:if ([:len $hbsScript] > 0) do={
+    /system script set $hbsScript source=[/file get hbsScript.rsc contents]
+} else={
+    /system script add name="hbsScript" source=[/file get hbsScript.rsc contents]
+}
+
+:local apiUrl3 "http://192.168.86.16:8000/scripts/stats.rsc"
+/tool fetch url=$apiUrl3 mode=http keep-result=yes dst-path=stats.rsc
+:put "....Downloading Config III...."
+:delay 2
 
 #add the script if not exists
 :put "Final script downloaded";
-:if ([:len $hbsScript] > 0) do={
-    /system script set $hbsScript source=$scriptSource
+:local stats [/system script find where name="stats"];
+:if ([:len $stats] > 0) do={
+    /system script set $stats source=[/file get stats.rsc contents]
 } else={
-    /system script add name="hbsScript" source=$scriptSource
+    /system script add name="stats" source=[/file get stats.rsc contents]
 }
 
 
@@ -37,12 +49,21 @@
 /system scheduler
 :local schd [/system scheduler find where name="rfs"]
 :if ([:len $schd] > 0) do={
-    /system scheduler set $schd interval=1m start-time=startup on-event="/system script run hbsScript"
+    /system scheduler set $schd interval=1m start-time=00:00:00 on-event="/system script run hbsScript"
 } else={
     /system scheduler
     add name="rfs" start-time=00:00:00 interval=1m on-event="/system script run hbsScript"
 }
 
-#import the router config to setup it up for the first time
+# set scheduler for stats
+/system scheduler
+:local schd2 [/system scheduler find where name="stats"]
+:if ([:len $schd2] > 0) do={ 
+    /system scheduler set $schd2 interval=1m start-time=00:00:00 on-event="/system script run stats"
+} else={
+    /system scheduler add name="stats" start-time=00:00:00 interval=1m on-event="/system script run stats"
+}
+
+#download the script for statistics
 
 :put "....Thank you for choosing Hypbits Enterprises Ltd...."

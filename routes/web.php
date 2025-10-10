@@ -167,6 +167,9 @@ Route::get("/upload_client_stats", [Clients::class, "upload_client_stats"]);
 // Generate reports for data usage and bandwidth
 Route::get("/Client/UsageReport", [Clients::class, "generateUsageReports"])->name("generateUsageReports")->middleware(["checkAccount", "validated"]);
 Route::get("/Client/UsageReport/Data", [Clients::class, "generateDataReports"])->name("generateDataReports")->middleware(["checkAccount", "validated"]);
+Route::post("/migrate_client_data", [Clients::class, "migrate_client_data"])->name("migrate_client_data")->middleware(["checkAccount", "validated"]);
+Route::post("/reverse_migration", [Clients::class, "reverse_migration"])->name("reverse_migration")->middleware(["checkAccount", "validated"]);
+Route::get("/delete_file_migrate", [Clients::class, "delete_file_migrate"])->name("delete_file_migrate");
 
 // deactivate and activate the user api
 // Route::get("/deactivate_user/{userid}",[Clients::class,"deactivate2"]);

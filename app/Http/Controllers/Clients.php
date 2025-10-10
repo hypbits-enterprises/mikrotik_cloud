@@ -24,6 +24,7 @@ use DateTime;
 use Exception;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use mysqli;
 
@@ -7218,6 +7219,245 @@ $export_text .= "
             }
             return $all_data;
         }
+    }
+
+    function reverse_migration(Request $request){
+        $reverse_data = $request->input("reverse_data");
+        if ($this->isJson($reverse_data)) {
+            $reverse_data = json_decode($reverse_data, true);
+            foreach ($reverse_data as $reverse) {
+                DB::connection("mysql2")->update("UPDATE client_tables SET router_name = ? WHERE client_account = ?",[$reverse['previous_router'], $reverse['client_account']]);
+            }
+        }
+        session()->flash("success", "Data has been reversed successfully!");
+        return redirect(url()->previous());
+    }
+
+    function delete_file_migrate(Request $req){
+        // filename
+        $filename = $req->input("filename");
+
+        // delete the file
+        $file_location = public_path("scripts/".$filename);
+        if(!empty($filename) && File::exists($file_location)){
+            unlink($file_location);
+        }
+        return response()->json(["success" => true, "message" => "$filename deleted successfully!"]);
+    }
+
+    function migrate_client_data(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+        $migrate_to_router = $req->input("migrate_to_router");
+        $migrate_client_list = $req->input("migrate_client_list");
+        if(empty($migrate_client_list)){
+            return "Client account number is required!";
+        }
+
+        // return request
+        $client_accounts = "";
+        if($this->isJson($migrate_client_list)){
+            foreach (json_decode($migrate_client_list) as $key => $value) {
+                $client_accounts .= "'".$value."',";
+            }
+            $client_accounts = rtrim($client_accounts, ",");
+        }
+
+        // get the client details
+        $clients_selected = DB::connection("mysql2")->select("SELECT client_tables.*, remote_routers.*, client_tables.router_name AS client_router_id FROM client_tables LEFT JOIN remote_routers ON remote_routers.router_id = client_tables.router_name WHERE client_account IN ($client_accounts)");
+
+        // create the script to delete the client in the existing router
+        // along side this create script to add the client to the other router
+        $delete_script = "";
+        $add_script = "";
+        $interfaces = [];
+        $pppoe_profile = [];
+        foreach ($clients_selected as $key => $client) {
+            if($client->assignment == "static"){
+                $delete = "/ip address remove [find network=\"".$client->client_network."\"]\n";
+                $delete .= "/queue simple remove [find target~\"".$client->client_network."\"];\n";
+                $delete_script .= $delete;
+
+                // script to add interface and queue but it should check if the interface or queue already exists
+                // check ip address
+                $add_script .= "if ([/ip address find network=\"".$client->client_network."\"] = \"\") do={\n";
+                $add_script .= "   /ip address add address=\"".$client->client_default_gw."\" network=\"".$client->client_network."\" disabled=\"".($client->client_status == "0" ? "yes" : "no")."\" interface=\"".$client->client_interface."\" comment=\"".ucwords(strtolower($client->client_name))." (".$client->client_address." - ".$client->location_coordinates.") - ".$client->client_account."\"\n";
+                $add_script .= "}\n";
+                // check queue
+                $add_script .= ":if ([/queue simple find target~\"".$client->client_network."\"] = \"\") do={\n";
+                $add_script .= "   /queue simple add name=\"".ucwords(strtolower($client->client_name))." (".$client->client_address." - ".$client->location_coordinates.") - ".$client->client_account."\" target=\"".$client->client_network."/".(explode("/",$client->client_default_gw)[1])."\" max-limit=\"".$client->max_upload_download."\" comment=\"".ucwords(strtolower($client->client_name))." (".$client->client_address." - ".$client->location_coordinates.") - ".$client->client_account."\"\n";
+                // $add_script .= "   /queue simple add name=\"".ucwords(strtolower($client->client_name))." - ".$client->client_account."\" target=".$client->client_network." max-limit=".$client->download_speed."/".$client->upload_speed." comment=\"".ucwords(strtolower($client->client_name))." - ".$client->client_account."\"\n";
+                $add_script .= "}\n";
+                if(!in_array($client->client_interface, $interfaces)){
+                    array_push($interfaces, $client->client_interface);
+                }
+                $clients_selected[$key]->delete_script = $delete;
+            }elseif ($client->assignment == "pppoe") {
+                $delete = "/ppp secret remove [find name=\"".$client->client_secret."\"]\n";
+                $delete_script .= $delete;
+                $add_script .= ":if ([/ppp secret find name=\"".$client->client_secret."\"] = \"\") do={\n";
+                $add_script .= "   /ppp secret add name=\"".$client->client_secret."\" password=\"".$client->client_secret_password."\" disabled=\"".($client->client_status == "0" ? "yes" : "no")."\" service=\"pppoe\" profile=\"".$client->client_profile."\" comment=\"".ucwords(strtolower($client->client_name))." (".$client->client_address." - ".$client->location_coordinates.") - ".$client->client_account."\"";
+                $add_script .= "}\n";
+                if(!in_array($client->client_profile, $pppoe_profile)){
+                    array_push($pppoe_profile, $client->client_profile);
+                }
+                $clients_selected[$key]->delete_script = $delete;
+            }
+        }
+        
+        // check if the router has the interfaces and the pppoe profiles
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'", [$migrate_to_router]);
+        if (count($router_data) == 0) {
+            $error = "Router selected does not exist!";
+            session()->flash("network_presence", $error);
+            return redirect(url()->previous());
+        }
+
+        // get the sstp credentails they are also the api usernames
+        $sstp_username = $router_data[0]->sstp_username;
+        $sstp_password = $router_data[0]->sstp_password;
+        $api_port = $router_data[0]->api_port;
+
+        // connect to the router and set the sstp client
+        $sstp_value = $this->getSSTPAddress();
+        if ($sstp_value == null) {
+            $error = "The SSTP server is not set, Contact your administrator!";
+            session()->flash("network_presence", $error);
+            return redirect(url()->previous());
+        }
+
+        // connect to the router and set the sstp client
+        $server_ip_address = $sstp_value->ip_address;
+        $user = $sstp_value->username;
+        $pass = $sstp_value->password;
+        $port = $sstp_value->port;
+
+        // check if the router is actively connected
+        $client_router_ip = $this->checkActive($server_ip_address, $user, $pass, $port, $sstp_username);
+        // return $client_router_ip;
+        
+        // connect to the router and add the ip address and queues to the interface
+        $API = new routeros_api();
+        $API->debug = false;
+        if ($API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port)){
+            // get the interfaces and the pppoe profiles
+            $router_profile = $API->comm("/ppp/profile/print");
+            $API->disconnect();
+            sleep(1);
+
+            $API->connect($client_router_ip, $sstp_username, $sstp_password, $api_port);
+            $router_interfaces = $API->comm("/interface/print");
+            $API->disconnect();
+
+            // check and see if all interfaces are ommited and secrets as well
+            $ommited_profile = [];
+            foreach ($pppoe_profile as $profile) {
+                $present = false;
+                foreach ($router_profile as $rp) {
+                    if($profile == $rp['name']){
+                        $present = true;
+                    }
+                }
+
+                if(!$present){
+                    array_push($ommited_profile, $profile);
+                }
+            }
+
+            // ommited interfaces
+            $ommited_interfaces = [];
+            foreach ($interfaces as $interface) {
+                $present = false;
+                foreach ($router_interfaces as $rInterface) {
+                    if ($interface == $rInterface['name']) {
+                        $present = true;
+                    }
+                }
+
+                if(!$present){
+                    array_push($ommited_interfaces, $interface);
+                }
+            }
+
+            // collect the delete script
+            $router_data_migrate = [];
+            $reverse_list = [];
+            for ($index=0; $index < count($clients_selected); $index++) { 
+                $present = false;
+                foreach ($router_data_migrate as $keys => $r_data) {
+                    if ($r_data['client_router_id'] == $clients_selected[$index]->client_router_id) {
+                        $present = true;
+                        $router_data_migrate[$keys]['delete_script'].="".$clients_selected[$index]->delete_script;
+                        break;
+                    }
+                }
+
+                if(!$present){
+                    $data = array(
+                        "router_name" => $clients_selected[$index]->router_name,
+                        "client_router_id" => $clients_selected[$index]->client_router_id,
+                        "link" => env("APP_URL", "https://billing.hypbits.com")."/scripts/add_".session("database_name")."_".$clients_selected[$index]->client_router_id.".rsc",
+                        "delete_script" => $clients_selected[$index]->delete_script
+                    );
+                    array_push($router_data_migrate, $data);
+                }
+                array_push($reverse_list, array(
+                    "client_account" => $clients_selected[$index]->client_account,
+                    "previous_router" => $clients_selected[$index]->client_router_id
+                ));
+            }
+            // return $router_data_migrate;
+
+            // check if there are any ommited profiles or interfaces
+            if (count($ommited_profile) > 0 || count($ommited_interfaces) > 0) {
+                $ommited_text = "";
+                if(count($ommited_profile) > 0){
+                    $ommited_text.= "The following profiles are missing, add them in your router \"".$router_data[0]->router_name."\" as they are and try again:<ul>";
+                    foreach($ommited_profile as $text){
+                        $ommited_text.= "<li>".$text."</li>";
+                    }
+                    $ommited_text.="</ul>";
+                }
+                if(count($ommited_interfaces) > 0){
+                    $ommited_text.= "The following interfaces are missing, add them in your router \"".$router_data[0]->router_name."\" as they are and try again:<ul>";
+                    foreach($ommited_interfaces as $text){
+                        $ommited_text.= "<li>".$text."</li>";
+                    }
+                    $ommited_text.="</ul>";
+                }
+                // session()->flash("error", $ommited_text);
+                // return redirect(url()->previous());
+            }
+
+            // start with the add script
+            foreach($router_data_migrate as $keys => $rdata){
+                $add_file_location = public_path("scripts/add_".session("database_name")."_".$rdata['client_router_id'].".rsc");
+                if (!File::exists(public_path('scripts'))) {
+                    File::makeDirectory(public_path('scripts'), 0755, true);
+                }
+                if($rdata['client_router_id'] == $migrate_to_router){
+                    // Create and write to file add the file option to delete the script
+                    $add_script .= "/file remove [find name=\"add_".session("database_name")."_".$rdata['client_router_id'].".rsc\"]\n";
+                    // $add_script .= "/system/script/remove [find name=\"import_".$rdata['client_router_id']."\"]\n";
+                    $add_script .= ":put \"File deleted successfully\"\n";
+                    $add_script .= "/tool fetch url=\"".env("APP_URL", "https://billing.hypbits.com")."/delete_file_migrate?filename="."add_".session("database_name")."_".$rdata['client_router_id'].".rsc\""." mode=http keep-result=no\n";
+                    File::put($add_file_location, $rdata['delete_script'].$add_script);
+                }else{
+                    $salutation_script = "/tool fetch url=\"".env("APP_URL", "https://billing.hypbits.com")."/delete_file_migrate?filename="."add_".session("database_name")."_".$rdata['client_router_id'].".rsc\""." mode=http keep-result=no\n";
+                    $salutation_script .= ":put \"Migration done successfully\"";
+                    File::put($add_file_location, $rdata['delete_script'].$salutation_script);
+                }
+            }
+
+            // update the clients to the respective router
+            $update = DB::connection("mysql2")->update("UPDATE client_tables SET router_name = '$migrate_to_router' WHERE client_account IN ($client_accounts)");
+            session()->flash("reverse_list", $reverse_list);
+            session()->flash("router_data_migrate", $router_data_migrate);
+            return redirect(url()->previous());
+        }
+        session()->flash("error", "Can`t connect to your router to check if interfaces and profiles are present!");
+        return redirect(url()->previous());
     }
 
     function generateDataReports(Request $req){
