@@ -50,19 +50,19 @@
 /system scheduler
 :local schd [/system scheduler find where name="rfs"]
 :if ([:len $schd] > 0) do={
-    /system scheduler set $schd interval=1m disabled="no" start-time=00:00:00 on-event="/system script run hbsScript"
+    /system scheduler set $schd interval=1m start-time=00:00:00 on-event="/system script run hbsScript"
 } else={
     /system scheduler
-    add name="rfs" start-time=00:00:00 disabled="no" interval=1m on-event="/system script run hbsScript"
+    add name="rfs" start-time=00:00:00 interval=1m on-event="/system script run hbsScript"
 }
 
 # set scheduler for stats
 /system scheduler
 :local schd2 [/system scheduler find where name="stats"]
 :if ([:len $schd2] > 0) do={ 
-    /system scheduler set $schd2 interval=1m disabled="no" start-time=00:00:00 on-event="/system script run stats"
+    /system scheduler set $schd2 interval=1m start-time=00:00:00 on-event="/system script run stats"
 } else={
-    /system scheduler add name="stats" disabled="no" start-time=00:00:00 interval=1m on-event="/system script run stats"
+    /system scheduler add name="stats" start-time=00:00:00 interval=1m on-event="/system script run stats"
 }
 
 #download the script for statistics
