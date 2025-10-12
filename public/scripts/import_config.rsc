@@ -2,10 +2,10 @@
 :put "....Preparing your configuration...."
 :put "....Downloading...."
 
-:local domain "http://192.168.86.16:8000"
+:local domain "https://test_billing.hypbits.com"
 
 :local apiUrl "$domain/scripts/check_my_config.rsc"
-/tool fetch url=$apiUrl mode=http keep-result=yes dst-path=checkconfig.rsc
+/tool fetch url=$apiUrl mode=https keep-result=yes dst-path=checkconfig.rsc
 :put "....Downloading Config I...."
 :delay 2;
 
@@ -18,7 +18,7 @@
 }
 
 :local apiUrl2 "$domain/scripts/final_script.rsc"
-/tool fetch url=$apiUrl2 mode=http keep-result=yes dst-path=hbsScript.rsc
+/tool fetch url=$apiUrl2 mode=https keep-result=yes dst-path=hbsScript.rsc
 :put "....Downloading Config II...."
 :delay 2
 
@@ -32,7 +32,7 @@
 }
 
 :local apiUrl3 "$domain/scripts/stats.rsc"
-/tool fetch url=$apiUrl3 mode=http keep-result=yes dst-path=stats.rsc
+/tool fetch url=$apiUrl3 mode=https keep-result=yes dst-path=stats.rsc
 :put "....Downloading Config III...."
 :delay 2
 

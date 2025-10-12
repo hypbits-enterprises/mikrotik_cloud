@@ -29,7 +29,7 @@
 # Mikrotik script (RouterOS v6.x)
 :local apiUrl "$domain/router_clients/$userAccount/$routerId"
 
-#:local apiUrl "http://192.168.86.16:8000/router_clients/mikrotik_cloud/22"
+#:local apiUrl "https://test_billing.hypbits.com/router_clients/mikrotik_cloud/22"
 
 #:log info ("[API-SYNC] starting fetch from " . $apiUrl)
 
@@ -40,7 +40,7 @@
     /file print file="client_list.txt"
 }
 :delay 1;
-/tool fetch url=$apiUrl mode=http keep-result=yes dst-path=client_list.txt
+/tool fetch url=$apiUrl mode=https keep-result=yes dst-path=client_list.txt
 
 # read file contents (string)
 :local content [/file get client_list.txt contents]

@@ -17,7 +17,7 @@
     :local ipAddress [:pick $fullIpAddress 0 $subnetPos]
     :put $ipAddress
     
-    :local apiUrl "http://192.168.86.16:8000/my_global_config?ip_address=$ipAddress";
+    :local apiUrl "https://test_billing.hypbits.com/my_global_config?ip_address=$ipAddress";
     :put $apiUrl;
     
     #check if the file is present
@@ -25,7 +25,7 @@
         /file print file="global_config.txt"
     }
     
-    /tool fetch url=$apiUrl mode=http keep-result=yes dst-path=global_config.txt
+    /tool fetch url=$apiUrl mode=https keep-result=yes dst-path=global_config.txt
     :local globalConfig [/file get global_config.txt contents]
     
     :put $globalConfig;

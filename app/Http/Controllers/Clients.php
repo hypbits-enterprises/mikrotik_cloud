@@ -6365,11 +6365,13 @@ $export_text .= "
                 // change db
                 $change_db = new login();
                 $change_db->change_db($org_db);
+                DB::purge('mysql2');
+                DB::reconnect('mysql2');
 
                 // check if the username and password is present
                 $check = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `sstp_username` = ? AND `sstp_password` = ?",[$secret_username, $secret_password]);
                 if(count($check) > 0){
-                    return response()->json(["success" => true, "domain" => "http://192.168.86.16:8000", "router_id" => $check[0]->router_id, "account" => $org->organization_database]);
+                    return response()->json(["success" => true, "domain" => env("APP_URL", "https://billing.hypbits.com"), "router_id" => $check[0]->router_id, "account" => $org->organization_database]);
                 }
             }
             
