@@ -14,7 +14,7 @@
             </div>
             <hr class="dark horizontal my-0">
             <div class="card-footer" style="padding: 2px">
-                <small class="ml-1 mb-0 text-sm"><span class="{{$dailyStats['isIncrease'] ? "text-success" : "text-danger"}} text-bold">{{$dailyStats['percentage']!=0 ? ($dailyStats['percentage'] ? "+" : "-") : ""}}{{$dailyStats['percentage']}}% </span>{{$dailyStats['percentage']!=0 ? "than last week" : ""}}</small>
+                <small class="ml-1 mb-0 text-sm"><span class="{{$dailyStats['isIncrease'] ? "text-success" : "text-danger"}} text-bold">{{$dailyStats['percentage']}} </span>{{$dailyStats['percentage']!=0 ? "than yesterday" : ""}}</small>
             </div>
         </div>
     </div>
@@ -33,7 +33,7 @@
             </div>
             <hr class="dark horizontal my-0">
             <div class="card-footer" style="padding: 2px">
-                <small class="ml-1 mb-0 text-sm"><span class="{{$weeklyStats['isIncrease'] ? "text-success" : "text-danger"}} text-bold">{{$weeklyStats['percentage']!=0 ? ($weeklyStats['percentage'] ? "+" : "-") : ""}}{{$weeklyStats['percentage']}}% </span>{{$weeklyStats['percentage']!=0 ? "than yesterday" : ""}}</small>
+                <small class="ml-1 mb-0 text-sm"><span class="{{$weeklyStats['isIncrease'] ? "text-success" : "text-danger"}} text-bold">{{$weeklyStats['percentage']}} </span>{{$weeklyStats['percentage']!=0 ? "than last week" : ""}}</small>
             </div>
         </div>
     </div>
@@ -52,7 +52,7 @@
             </div>
             <hr class="dark horizontal my-0">
             <div class="card-footer" style="padding: 2px">
-                <small class="ml-1 mb-0 text-sm"><span class="{{$monthlyStats['isIncrease'] ? "text-success" : "text-danger"}} text-bold">{{$monthlyStats['percentage']!=0 ? ($monthlyStats['percentage'] ? "+" : "-") : ""}}{{$monthlyStats['percentage']}}% </span>{{$monthlyStats['percentage']!=0 ? "than last month" : ""}}</small>
+                <small class="ml-1 mb-0 text-sm"><span class="{{$monthlyStats['isIncrease'] ? "text-success" : "text-danger"}} text-bold">{{$monthlyStats['percentage']}} </span>{{$monthlyStats['percentage']!=0 ? "than last month" : ""}}</small>
             </div>
         </div>
     </div>

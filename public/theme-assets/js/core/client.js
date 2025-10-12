@@ -80,8 +80,8 @@ window.onload = function () {
         },
         order: [[0, 'desc']],
         dom: '<"bottom"l>t<"bottom"ip>', // hide search, put length menu bottom-left
-        pageLength: 50,  // default rows per page
-        lengthMenu: [10, 25, 50, 100], // available options
+        pageLength: 20,  // default rows per page
+        lengthMenu: [5, 10, 20, 50, 100], // available options
         columns: [
             { data: 'rownum' },
             { data: 'client_name' },

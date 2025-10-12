@@ -92,12 +92,12 @@ class Sms extends Controller
         $sms_stats = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `sms_tables` WHERE `deleted`= '0' AND `date_sent` >= '$today'");
         $sms_stats_yesterday = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `sms_tables` WHERE `deleted`= '0' AND `date_sent` >= '$yesterday' AND `date_sent` < '$today'");
         $isIncrease = ($sms_stats[0]->Total >= $sms_stats_yesterday[0]->Total) ? true : false;
-        $percentage = ($sms_stats_yesterday[0]->Total == 0) ? 100 : (($sms_stats[0]->Total - $sms_stats_yesterday[0]->Total)/$sms_stats_yesterday[0]->Total) * 100;
+        $percentage = ($sms_stats_yesterday[0]->Total == 0) ? 100 : ($sms_stats[0]->Total >= $sms_stats_yesterday[0]->Total ? (($sms_stats[0]->Total - $sms_stats_yesterday[0]->Total)/$sms_stats[0]->Total) * 100 : (($sms_stats_yesterday[0]->Total - $sms_stats[0]->Total)/$sms_stats_yesterday[0]->Total) * 100);
         $dailyStatToday = array(
             "today" => $sms_stats[0]->Total,
             "yesterday" => $sms_stats_yesterday[0]->Total,
             "isIncrease" => $isIncrease,
-            "percentage" => round($percentage,2)
+            "percentage" => round($percentage,2).($isIncrease ? "% more " : "% less ")
         );
 
         // weekly stats
@@ -106,12 +106,12 @@ class Sms extends Controller
         $sms_stats_week = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `sms_tables` WHERE `deleted`= '0' AND `date_sent` >= '$last_week'");
         $sms_stats_twoweek = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `sms_tables` WHERE `deleted`= '0' AND `date_sent` >= '$last_twoweek' AND `date_sent` < '$last_week'");
         $isIncrease = ($sms_stats_week[0]->Total >= $sms_stats_twoweek[0]->Total) ? true : false;
-        $percentage = ($sms_stats_twoweek[0]->Total == 0) ? 100 : (($sms_stats_week[0]->Total - $sms_stats_twoweek[0]->Total)/$sms_stats_twoweek[0]->Total) * 100;
+        $percentage = ($sms_stats_twoweek[0]->Total == 0) ? 100 : ($sms_stats_week[0]->Total >= $sms_stats_twoweek[0]->Total ? (($sms_stats_week[0]->Total - $sms_stats_twoweek[0]->Total)/$sms_stats_week[0]->Total) * 100 : (($sms_stats_twoweek[0]->Total - $sms_stats_week[0]->Total)/$sms_stats_twoweek[0]->Total) * 100);
         $weeklyStat = array(
             "this_week" => $sms_stats_week[0]->Total,
             "last_week" => $sms_stats_twoweek[0]->Total,
             "isIncrease" => $isIncrease,
-            "percentage" => round($percentage,2)
+            "percentage" => round($percentage,2).($isIncrease ? "% more " : "% less ")
         );
 
         // monthly stats
@@ -120,12 +120,12 @@ class Sms extends Controller
         $sms_stats_month = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `sms_tables` WHERE `deleted`= '0' AND `date_sent` >= '$last_month'");
         $sms_stats_twomonth = DB::connection("mysql2")->select("SELECT COUNT(*) AS 'Total' FROM `sms_tables` WHERE `deleted`= '0' AND `date_sent` >= '$last_twomonth' AND `date_sent` < '$last_month'");
         $isIncrease = ($sms_stats_month[0]->Total >= $sms_stats_twomonth[0]->Total) ? true : false;
-        $percentage = ($sms_stats_twomonth[0]->Total == 0) ? 100 : (($sms_stats_month[0]->Total - $sms_stats_twomonth[0]->Total)/$sms_stats_twomonth[0]->Total) * 100;
+        $percentage = ($sms_stats_twomonth[0]->Total == 0) ? 100 : ($sms_stats_month[0]->Total >= $sms_stats_twomonth[0]->Total ? (($sms_stats_month[0]->Total - $sms_stats_twomonth[0]->Total)/$sms_stats_month[0]->Total) * 100 : (($sms_stats_twomonth[0]->Total - $sms_stats_month[0]->Total)/$sms_stats_twomonth[0]->Total) * 100);
         $monthlyStat = array(
             "this_month" => $sms_stats_month[0]->Total,
             "last_month" => $sms_stats_twomonth[0]->Total,
             "isIncrease" => $isIncrease,
-            "percentage" => round($percentage,2)
+            "percentage" => round($percentage,2).($isIncrease ? "% more " : "% less ")
         );
 
         // one week stats
@@ -148,7 +148,7 @@ class Sms extends Controller
         }
 
         // return the view with the stats
-        // return $week_stats;
+        // return $dailyStatToday;
         return view("adminsms",["week_stats" => $week_stats, "dailyStats" => $dailyStatToday, "monthlyStats" => $monthlyStat, "weeklyStats" => $weeklyStat, "sms_data" =>$sms_data,"client_names" => $client_names, "dates" => $dates, "sms_count" => $sms_count, "last_week" => $sms_week,"total_sms" => $totalsms,"clients_name" => $clients_name,"clients_acc" => $clients_acc,"clients_phone" => $clients_phone]);
     }
 

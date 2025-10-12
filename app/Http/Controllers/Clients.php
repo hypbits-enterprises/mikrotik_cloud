@@ -704,6 +704,8 @@ $export_text .= "
         // get the total clients count
         $client_count = DB::connection("mysql2")->select("SELECT COUNT(*) AS total_clients FROM `client_tables` LEFT JOIN `remote_routers` ON remote_routers.router_id = client_tables.router_name WHERE client_tables.deleted = '0' $str;");
         $total_clients = count($client_count) > 0 ? $client_count[0]->total_clients : 0;
+        $all_clients = DB::connection("mysql2")->select("SELECT COUNT(*) AS total_clients FROM `client_tables`");
+        $all_clients = count($all_clients) > 0 ? $all_clients[0]->total_clients : 0;
         
         // here we get the clients information from the database
         $client_data = DB::connection("mysql2")->select("SELECT client_tables.last_seen, client_tables.client_id,client_tables.validated,client_tables.client_name,client_tables.client_network,client_tables.client_status,client_tables.clients_contacts,client_tables.client_address,client_tables.monthly_payment,client_tables.next_expiration_date,client_tables.payments_status,client_tables.router_name,client_tables.wallet_amount,client_tables.client_account,client_tables.reffered_by,client_tables.comment,client_tables.location_coordinates,client_tables.assignment,client_tables.client_default_gw,
@@ -742,8 +744,8 @@ $export_text .= "
 
          $json_data = [
             "draw"            => intval($request->input('draw')),
-            "recordsTotal"    => $total_clients,
-            "recordsFiltered" => count($client_data),
+            "recordsTotal"    => $all_clients,
+            "recordsFiltered" => $total_clients,
             "data"            => $data
         ];
 
@@ -867,11 +869,12 @@ $export_text .= "
         $this_month_usage = count($usage_stats_monthly) > 0 ? $usage_stats_monthly[0]->usage : 0;
         $last_month_usage = count($usage_stats_last_monthly) > 0 ? $usage_stats_last_monthly[0]->usage : 0;
         $difference = ($this_month_usage > 0 && $last_month_usage > 0) ? ($this_month_usage > $last_month_usage ? round(((($this_month_usage-$last_month_usage) / $this_month_usage) * 100), 1) : round(((($last_month_usage-$this_month_usage) / $this_month_usage) * 100),1)) : 0;
+        $isIncrease = $this_month_usage > $last_month_usage;
         $monthly_stats = array(
             "this_month_usage" => $this->convertBits($this_month_usage),
             "last_month_usage" => $this->convertBits($last_month_usage),
-            "increase" => $this_month_usage > $last_month_usage,
-            "percentage" => (($this_month_usage > 0 && $last_month_usage == 0) ? 100 : $difference)
+            "increase" => $isIncrease,
+            "percentage" => (($this_month_usage > 0 && $last_month_usage == 0) ? 100 : $difference).($isIncrease ? "% more " : "% less ")
         );
 
         // GENERATE CLIENTS DAILY
@@ -883,11 +886,12 @@ $export_text .= "
         $todays_usage = count($usage_stats_daily) > 0 ? $usage_stats_daily[0]->usage : 0;
         $yesterday_usage = count($usage_stats_yesterday) > 0 ? $usage_stats_yesterday[0]->usage : 0;
         $difference = ($todays_usage > 0 && $yesterday_usage > 0) ? ($todays_usage > $yesterday_usage ? round(((($todays_usage-$yesterday_usage) / $todays_usage) * 100), 1) : round(((($yesterday_usage-$todays_usage) / $todays_usage) * 100),1)) : 0;
+        $isIncrease = $todays_usage > $yesterday_usage;
         $daily_stats = array(
             "todays_usage" => $this->convertBits($todays_usage),
             "yesterday_usage" => $this->convertBits($yesterday_usage),
-            "increase" => $todays_usage > $yesterday_usage,
-            "percentage" => (($todays_usage > 0 && $yesterday_usage == 0) ? 100 : $difference)
+            "increase" => $isIncrease,
+            "percentage" => (($todays_usage > 0 && $yesterday_usage == 0) ? 100 : $difference).($isIncrease ? "% more " : "% less ")
         );
 
         $last_one_week = date("YmdHis",strtotime("-1 weeks"));
@@ -897,11 +901,12 @@ $export_text .= "
         $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage' FROM five_minute_stats WHERE date > '".$two_week_ago."' AND date <= '".$last_one_week."';");
         $last_week_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
         $difference = ($this_week_band > 0 && $last_week_band > 0) ? ($this_week_band > $last_week_band ? round((($this_week_band - $last_week_band) / $this_week_band) * 100, 1) : round((($last_week_band - $this_week_band) / $this_week_band) * 100, 1)) : 0;
+        $isIncrease = $this_week_band > $last_week_band;
         $bandwidth_stats_data = array(
             "this_week_band" => $this->convertBits($this_week_band),
             "last_week_band" => $this->convertBits($last_week_band),
-            "increase" => $this_week_band > $last_week_band,
-            "percentage" => (($this_week_band > 0 && $last_week_band == 0) ? 100 : $difference),
+            "increase" => $isIncrease,
+            "percentage" => (($this_week_band > 0 && $last_week_band == 0) ? 100 : $difference).($isIncrease ? "% more " : "% less ")
         );
 
         // online status

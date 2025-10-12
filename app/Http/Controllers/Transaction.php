@@ -325,10 +325,10 @@ class Transaction extends Controller
         $dailyStatToday = DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` >= '$today'");
         $dailyStatYesterday = DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` BETWEEN '$yesterday' AND '$today'");
         $isIncrease = $dailyStatToday[0]->Total > $dailyStatYesterday[0]->Total ? true : false;
-        $percentage = $isIncrease ? ($dailyStatToday[0]->Total - $dailyStatYesterday[0]->Total) / ($dailyStatYesterday[0]->Total == 0 ? 1 : $dailyStatYesterday[0]->Total) * 100 : ($dailyStatYesterday[0]->Total - $dailyStatToday[0]->Total) / ($dailyStatYesterday[0]->Total == 0 ? 1 : $dailyStatYesterday[0]->Total) * 100;
+        $percentage = $isIncrease ? ($dailyStatToday[0]->Total - $dailyStatYesterday[0]->Total) / ($dailyStatToday[0]->Total == 0 ? 1 : $dailyStatToday[0]->Total) * 100 : ($dailyStatYesterday[0]->Total - $dailyStatToday[0]->Total) / ($dailyStatYesterday[0]->Total == 0 ? 1 : $dailyStatYesterday[0]->Total) * 100;
         $dailStats = array(
             "isIncrease" => $isIncrease,
-            "percentage" => round($percentage,2),
+            "percentage" => round($percentage,2).($isIncrease ? "% more " : "% less "),
             "today" => $dailyStatToday[0]->Total ?? 0,
             "yesterday" => $dailyStatYesterday[0]->Total ?? 0
         );
@@ -339,10 +339,10 @@ class Transaction extends Controller
         $last_month_stats= DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` BETWEEN '$last_one_month' AND '".date("YmdHis")."'");
         $last_twomonth_stats= DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` BETWEEN '$last_two_months' AND '".$last_one_month."'");
         $isIncrease = $last_month_stats[0]->Total > $last_twomonth_stats[0]->Total ? true : false;
-        $percentage = $isIncrease ? ($last_month_stats[0]->Total - $last_twomonth_stats[0]->Total) / ($last_twomonth_stats[0]->Total == 0 ? 1 : $last_twomonth_stats[0]->Total) * 100 : ($last_twomonth_stats[0]->Total - $last_month_stats[0]->Total) / ($last_twomonth_stats[0]->Total == 0 ? 1 : $last_twomonth_stats[0]->Total) * 100;
+        $percentage = $isIncrease ? ($last_month_stats[0]->Total - $last_twomonth_stats[0]->Total) / ($last_month_stats[0]->Total == 0 ? 1 : $last_month_stats[0]->Total) * 100 : ($last_twomonth_stats[0]->Total - $last_month_stats[0]->Total) / ($last_twomonth_stats[0]->Total == 0 ? 1 : $last_twomonth_stats[0]->Total) * 100;
         $monthlyStats = array(
             "isIncrease" => $isIncrease,
-            "percentage" => round($percentage,2),
+            "percentage" => round($percentage,2).($isIncrease ? "% more " : "% less "),
             "this_month" => $last_month_stats[0]->Total ?? 0,
             "last_month" => $last_twomonth_stats[0]->Total ?? 0
         );
@@ -353,10 +353,10 @@ class Transaction extends Controller
         $last_week_stats= DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` BETWEEN '$last_one_week' AND '".date("YmdHis")."'");
         $last_twoweek_stats= DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` BETWEEN '$last_two_weeks' AND '".$last_one_week."'");
         $isIncrease = $last_week_stats[0]->Total > $last_twoweek_stats[0]->Total ? true : false;
-        $percentage = $isIncrease ? ($last_week_stats[0]->Total - $last_twoweek_stats[0]->Total) / ($last_twoweek_stats[0]->Total == 0 ? 1 : $last_twoweek_stats[0]->Total) * 100 : ($last_twoweek_stats[0]->Total - $last_week_stats[0]->Total) / ($last_twoweek_stats[0]->Total == 0 ? 1 : $last_twoweek_stats[0]->Total) * 100;
+        $percentage = $isIncrease ? ($last_week_stats[0]->Total - $last_twoweek_stats[0]->Total) / ($last_week_stats[0]->Total == 0 ? 1 : $last_week_stats[0]->Total) * 100 : ($last_twoweek_stats[0]->Total - $last_week_stats[0]->Total) / ($last_twoweek_stats[0]->Total == 0 ? 1 : $last_twoweek_stats[0]->Total) * 100;
         $weeklyStats = array(
             "isIncrease" => $isIncrease,
-            "percentage" => round($percentage,2),
+            "percentage" => round($percentage,2).($isIncrease ? "% more " : "% less "),
             "this_week" => $last_week_stats[0]->Total ?? 0,
             "last_week" => $last_twoweek_stats[0]->Total ?? 0
         );
@@ -374,7 +374,7 @@ class Transaction extends Controller
         // return [$dailStats, $weeklyStats, $monthlyStats];
         $last_one_week = date("Ymd", strtotime("-1 week"))."000000";
         $collections = [];
-        for ($i=6; $i >= 0; $i--) { 
+        for ($i=6; $i >= 0; $i--) {
             $day = date("Ymd", strtotime("-".$i." days"))."000000";
             $end = date("Ymd", strtotime("-".$i." days"))."235959";
             $collection = DB::connection("mysql2")->select("SELECT sum(`transacion_amount`) AS 'Total' FROM `transaction_tables` WHERE `deleted`= '0' AND `transaction_date` BETWEEN '$day' AND '".$end."'");

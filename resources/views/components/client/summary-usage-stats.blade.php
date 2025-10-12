@@ -14,7 +14,7 @@
             </div>
             <hr class="dark horizontal my-0">
             <div class="card-footer" style="padding: 2px">
-                <small class="ml-1 mb-0 text-sm"><span class="{{$monthly_stats['increase'] ? "text-success" : "text-danger"}} text-bold">{{$monthly_stats['percentage']!=0 ? ($monthly_stats['percentage'] ? "+" : "-") : ""}}{{$monthly_stats['percentage']}}% </span>{{$daily_stats['percentage']!=0 ? "than last month" : ""}}</small>
+                <small class="ml-1 mb-0 text-sm"><span class="{{$monthly_stats['increase'] ? "text-success" : "text-danger"}} text-bold">{{$monthly_stats['percentage']}} </span>{{$daily_stats['percentage']!=0 ? "than last month" : ""}}</small>
             </div>
         </div>
     </div>
@@ -33,7 +33,7 @@
             </div>
             <hr class="dark horizontal my-0">
             <div class="card-footer" style="padding: 2px">
-                <small class="ml-1 mb-0 text-sm"><span class="{{$daily_stats['increase'] ? "text-success" : "text-danger"}} text-bold">{{$daily_stats['percentage']!=0 ? ($daily_stats['percentage'] ? "+" : "-") : ""}}{{$daily_stats['percentage']}}% </span>{{$daily_stats['percentage']!=0 ? "than yesterday" : ""}}</small>
+                <small class="ml-1 mb-0 text-sm"><span class="{{$daily_stats['increase'] ? "text-success" : "text-danger"}} text-bold">{{$daily_stats['percentage']}} </span>{{$daily_stats['percentage']!=0 ? "than yesterday" : ""}}</small>
             </div>
         </div>
     </div>
@@ -52,7 +52,7 @@
             </div>
             <hr class="dark horizontal my-0">
             <div class="card-footer" style="padding: 2px">
-                <small class="ml-1 mb-0 text-sm"><span class="{{$bandwidth_stats['increase'] ? "text-success" : "text-danger"}} text-bold">{{$bandwidth_stats['percentage']!=0 ? ($bandwidth_stats['percentage'] ? "+" : "-") : ""}}{{$bandwidth_stats['percentage']}}% </span>{{$bandwidth_stats['percentage']!=0 ? "than last week" : ""}}</small>
+                <small class="ml-1 mb-0 text-sm"><span class="{{$bandwidth_stats['increase'] ? "text-success" : "text-danger"}} text-bold">{{$bandwidth_stats['percentage']}} </span>{{$bandwidth_stats['percentage']!=0 ? "than last week" : ""}}</small>
             </div>
         </div>
     </div>
