@@ -313,37 +313,33 @@ function createChart(report_data) {
     });
 
 }
-
 function normalizeBytesToUnit(values) {
   if (!Array.isArray(values) || values.length === 0) return [];
 
-  const units = ["KB", "MB", "GB", "TB"]; // start at KB
+  const units = ["KB", "MB", "GB", "TB"]; // baseline is KB
   let unitIndex = 0;
 
   // Step 1: convert bits → bytes
   const valuesInBytes = values.map(v => v / 8);
 
   // Step 2: find smallest non-zero candidate
-  let minVal = valuesInBytes.filter(v => v > 0 && v >= 10);
-  if (minVal.length === 0) {
-    minVal = valuesInBytes.filter(v => v > 0);
-  }
+  let minVal = valuesInBytes.filter(v => v > 0);
   if (minVal.length === 0) {
     // all are zero
     return { values: values.map(() => 0), unit: "KB" };
   }
   minVal = Math.min(...minVal);
 
-  // Step 3: determine best unit (baseline KB = divide by 1000 once)
-  minVal = minVal / 1024; 
-  while (minVal >= 1024 && unitIndex < units.length - 1) {
-    minVal /= 1024;
+  // Step 3: determine the best unit (start at KB = divide by 1024 once)
+  let minInKB = minVal / 1024;
+  while (minInKB >= 1024 && unitIndex < units.length - 1) {
+    minInKB /= 1024;
     unitIndex++;
   }
 
-  // Step 4: normalize all values
+  // Step 4: normalize all values to that unit
   const converted = valuesInBytes.map(v =>
-    Math.ceil(v / Math.pow(1024, unitIndex + 1)) // +1 since baseline is KB
+    parseFloat((v / Math.pow(1024, unitIndex + 1)).toFixed(2)) // +1 since baseline = KB
   );
 
   return {

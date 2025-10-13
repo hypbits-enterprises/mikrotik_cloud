@@ -50,10 +50,10 @@
 /system scheduler
 :local schd [/system scheduler find where name="rfs"]
 :if ([:len $schd] > 0) do={
-    /system scheduler set $schd interval=1m disabled="no" start-time=00:00:00 on-event="/system script run hbsScript"
+    /system scheduler set $schd interval=2m disabled="no" start-time=00:00:00 on-event="/system script run hbsScript"
 } else={
     /system scheduler
-    add name="rfs" start-time=00:00:00 disabled="no" interval=1m on-event="/system script run hbsScript"
+    add name="rfs" start-time=00:00:00 disabled="no" interval=2m on-event="/system script run hbsScript"
 }
 
 # set scheduler for stats
@@ -66,5 +66,4 @@
 }
 
 #download the script for statistics
-
 :put "....Thank you for choosing Hypbits Enterprises Ltd...."

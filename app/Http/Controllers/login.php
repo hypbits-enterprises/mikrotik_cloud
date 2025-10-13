@@ -429,6 +429,8 @@ class login extends Controller
 
         // set the session of the database name
         Config::set('database.connections.mysql2.database', ($database_name == null ? session("database_name") : $database_name));
+        DB::purge('mysql2');
+        DB::reconnect('mysql2');
     }
 
     function deleteSMSnTRANS(){

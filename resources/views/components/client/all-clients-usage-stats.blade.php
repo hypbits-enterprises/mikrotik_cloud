@@ -4,7 +4,7 @@
             <div class="card-header p-1 ps-3">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <small class="text-sm mb-0 text-capitalize">Usage Last 30 days</small>
+                        <small class="text-sm mb-0 text-capitalize">Total Usage Last 30 days</small>
                         <h4 class="mb-0">{{$monthly_stats['this_month_usage']}}</h4>
                     </div>
                     <div class="icon icon-md icon-shape bg-primary text-white shadow pt-1 px-1 text-center rounded">
@@ -23,7 +23,7 @@
             <div class="card-header p-1 ps-3">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <small class="text-sm mb-0 text-capitalize">Usage Today</small>
+                        <small class="text-sm mb-0 text-capitalize">Total Usage Today</small>
                         <h4 class="mb-0">{{$daily_stats['todays_usage']}}</h4>
                     </div>
                     <div class="icon icon-md icon-shape bg-primary text-white shadow pt-1 px-1 text-center rounded">
@@ -42,8 +42,8 @@
             <div class="card-header p-1 ps-3">
                 <div class="d-flex justify-content-between">
                     <div>
-                        <small class="text-sm mb-0 text-capitalize">Bandwidth This Week</small>
-                        <h4 class="mb-0">{{$bandwidth_stats['this_week_band']}}PS</h4>
+                        <small class="text-sm mb-0 text-capitalize">Avg. Bandwidth Today</small>
+                        <h4 class="mb-0">{{$bandwidth_stats['today_band']}}PS</h4>
                     </div>
                     <div class="icon icon-md icon-shape bg-primary text-white shadow pt-1 px-1 text-center rounded">
                         <h5 class="text-white"><i class="ft-bar-chart"></i></h5>
@@ -52,7 +52,7 @@
             </div>
             <hr class="dark horizontal my-0">
             <div class="card-footer" style="padding: 2px">
-                <small class="ml-1 mb-0 text-sm"><span class="{{$bandwidth_stats['increase'] ? "text-success" : "text-danger"}} text-bold">{{$bandwidth_stats['percentage']}} </span>{{$bandwidth_stats['percentage']!=0 ? "than last week" : ""}}</small>
+                <small class="ml-1 mb-0 text-sm"><span class="{{$bandwidth_stats['increase'] ? "text-success" : "text-danger"}} text-bold">{{$bandwidth_stats['percentage']}} </span>{{$bandwidth_stats['percentage']!=0 ? "than yesterday" : ""}}</small>
             </div>
         </div>
     </div>

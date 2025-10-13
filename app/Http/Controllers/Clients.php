@@ -685,6 +685,7 @@ $export_text .= "
         $length = $request->input('length');
         $accepted_columns = ["client_id","validated","client_name","client_network","client_status","clients_contacts","client_address","monthly_payment","next_expiration_date","router_name","wallet_amount","client_account","reffered_by","comment","location_coordinates","assignment","client_default_gw"];
         $str = "";
+        $str_router_filter = "";
         foreach ($request->all() as $key => $value) {
             if (in_array($key, $accepted_columns) && (!empty($value) || $value == "0")) {
                 if($key == "client_name" || $key == "client_account" || $key == "clients_contacts" || $key == "client_address" || $key == "reffered_by" || $key == "comment" || $key == "location_coordinates"){
@@ -692,6 +693,10 @@ $export_text .= "
                 }else{
                     $str.= " AND client_tables.$key = '$value' ";
                 }
+            }
+
+            if($key == "router_name" && !empty($value)){
+                $str_router_filter .= "WHERE client_tables.$key = '$value'";
             }
         }
         // return $str;
@@ -704,7 +709,7 @@ $export_text .= "
         // get the total clients count
         $client_count = DB::connection("mysql2")->select("SELECT COUNT(*) AS total_clients FROM `client_tables` LEFT JOIN `remote_routers` ON remote_routers.router_id = client_tables.router_name WHERE client_tables.deleted = '0' $str;");
         $total_clients = count($client_count) > 0 ? $client_count[0]->total_clients : 0;
-        $all_clients = DB::connection("mysql2")->select("SELECT COUNT(*) AS total_clients FROM `client_tables`");
+        $all_clients = DB::connection("mysql2")->select("SELECT COUNT(*) AS total_clients FROM `client_tables` $str_router_filter");
         $all_clients = count($all_clients) > 0 ? $all_clients[0]->total_clients : 0;
         
         // here we get the clients information from the database
@@ -774,7 +779,7 @@ $export_text .= "
         (SELECT (SELECT admin_tables.admin_fullname FROM ".session("database_name").".client_reports LEFT JOIN mikrotik_cloud_manager.admin_tables ON admin_tables.admin_id = client_reports.closed_by WHERE client_reports.report_id = CR.report_id LIMIT 1) AS admin_fullname FROM `client_reports` AS CR WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'closed_by',
         (SELECT `admin_attender` FROM `client_reports` WHERE client_id = client_tables.client_id ORDER BY report_date DESC LIMIT 1) AS 'admin_attender'
          FROM `client_tables`
-         WHERE `deleted` = '0' ORDER BY `client_id` DESC LIMIT 50;");
+         WHERE `deleted` = '0' ORDER BY `client_id` DESC LIMIT 20;");
         //  return $client_data;
          
         // router data
@@ -894,19 +899,19 @@ $export_text .= "
             "percentage" => (($todays_usage > 0 && $yesterday_usage == 0) ? 100 : $difference).($isIncrease ? "% more " : "% less ")
         );
 
-        $last_one_week = date("YmdHis",strtotime("-1 weeks"));
-        $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage' FROM five_minute_stats WHERE date > '".$last_one_week."';");
-        $this_week_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
-        $two_week_ago = date("YmdHis", strtotime("-2 weeks"));
-        $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage' FROM five_minute_stats WHERE date > '".$two_week_ago."' AND date <= '".$last_one_week."';");
-        $last_week_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
-        $difference = ($this_week_band > 0 && $last_week_band > 0) ? ($this_week_band > $last_week_band ? round((($this_week_band - $last_week_band) / $this_week_band) * 100, 1) : round((($last_week_band - $this_week_band) / $this_week_band) * 100, 1)) : 0;
-        $isIncrease = $this_week_band > $last_week_band;
+        $last_one_week = date("YmdHis",strtotime("-1 days"));
+        $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download) AS 'usage' FROM five_minute_stats WHERE date > '".$last_one_week."';");
+        $today_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
+        $two_week_ago = date("YmdHis", strtotime("-2 days"));
+        $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download) AS 'usage' FROM five_minute_stats WHERE date > '".$two_week_ago."' AND date <= '".$last_one_week."';");
+        $two_day_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
+        $difference = ($today_band > 0 && $two_day_band > 0) ? ($today_band > $two_day_band ? round((($today_band - $two_day_band) / $today_band) * 100, 1) : round((($two_day_band - $today_band) / $today_band) * 100, 1)) : 0;
+        $isIncrease = $today_band > $two_day_band;
         $bandwidth_stats_data = array(
-            "this_week_band" => $this->convertBits($this_week_band),
-            "last_week_band" => $this->convertBits($last_week_band),
+            "today_band" => $this->convertBits($today_band),
+            "two_day_band" => $this->convertBits($two_day_band),
             "increase" => $isIncrease,
-            "percentage" => (($this_week_band > 0 && $last_week_band == 0) ? 100 : $difference).($isIncrease ? "% more " : "% less ")
+            "percentage" => (($today_band > 0 && $two_day_band == 0) ? 100 : $difference).($isIncrease ? "% more " : "% less ")
         );
 
         // online status
@@ -929,8 +934,7 @@ $export_text .= "
                 }
             }
         }
-        // return $client_data;
-        // return $client_status;
+        // return $bandwidth_stats_data;
         return view('myclients', ["client_status" => $client_status, "bandwidth_stats_data" => $bandwidth_stats_data, "daily_stats" => $daily_stats, "monthly_stats" => $monthly_stats, "total_added_last_week" => $total_added_last_week, "added_last_week" => $plot_data, "inactive_clients" => $inactive_clients, "active_clients" => $active_clients, "frozen_count" => $frozen_count, "client_count" => $client_count, "frozen_clients" => $frozen_clients, 'client_data' => $client_data, "router_infor" => $router_data]);
     }
 
@@ -3540,11 +3544,12 @@ $export_text .= "
             $this_month_usage = count($usage_stats_monthly) > 0 ? $usage_stats_monthly[0]->usage : 0;
             $last_month_usage = count($usage_stats_last_monthly) > 0 ? $usage_stats_last_monthly[0]->usage : 0;
             $difference = ($this_month_usage > 0 && $last_month_usage > 0) ? ($this_month_usage > $last_month_usage ? round(((($this_month_usage-$last_month_usage) / $this_month_usage) * 100), 1) : round(((($last_month_usage-$this_month_usage) / $this_month_usage) * 100),1)) : 0;
+            $isIncrease = $this_month_usage > $last_month_usage;
             $monthly_stats = array(
                 "this_month_usage" => $this->convertBits($this_month_usage),
                 "last_month_usage" => $this->convertBits($last_month_usage),
-                "increase" => $this_month_usage > $last_month_usage,
-                "percentage" => (($this_month_usage > 0 && $last_month_usage == 0) ? 100 : $difference)
+                "increase" => $isIncrease,
+                "percentage" => (($this_month_usage > 0 && $last_month_usage == 0) ? 100 : $difference).($isIncrease ? "% more " : "% less ")
             );
 
             // GENERATE CLIENTS DAILY
@@ -3556,25 +3561,27 @@ $export_text .= "
             $todays_usage = count($usage_stats_daily) > 0 ? $usage_stats_daily[0]->usage : 0;
             $yesterday_usage = count($usage_stats_yesterday) > 0 ? $usage_stats_yesterday[0]->usage : 0;
             $difference = ($todays_usage > 0 && $yesterday_usage > 0) ? ($todays_usage > $yesterday_usage ? round(((($todays_usage-$yesterday_usage) / $todays_usage) * 100), 1) : round(((($yesterday_usage-$todays_usage) / $todays_usage) * 100),1)) : 0;
+            $isIncrease = $todays_usage > $yesterday_usage;
             $daily_stats = array(
                 "todays_usage" => $this->convertBits($todays_usage),
                 "yesterday_usage" => $this->convertBits($yesterday_usage),
-                "increase" => $todays_usage > $yesterday_usage,
-                "percentage" => (($todays_usage > 0 && $yesterday_usage == 0) ? 100 : $difference)
+                "increase" => $isIncrease,
+                "percentage" => (($todays_usage > 0 && $yesterday_usage == 0) ? 100 : $difference).($isIncrease ? "% more " : "% less ")
             );
 
-            $last_one_week = date("YmdHis",strtotime("-1 weeks"));
+            $last_one_week = date("YmdHis",strtotime("-1 days"));
             $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage' FROM five_minute_stats WHERE account = '".$clients_data[0]->client_account."' AND date > '".$last_one_week."';");
-            $this_week_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
-            $two_week_ago = date("YmdHis", strtotime("-2 weeks"));
+            $today_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
+            $two_week_ago = date("YmdHis", strtotime("-2 days"));
             $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage' FROM five_minute_stats WHERE account = '".$clients_data[0]->client_account."' AND date > '".$two_week_ago."' AND date <= '".$last_one_week."';");
-            $last_week_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
-            $difference = ($this_week_band > 0 && $last_week_band > 0) ? ($this_week_band > $last_week_band ? round((($this_week_band - $last_week_band) / $this_week_band) * 100, 1) : round((($last_week_band - $this_week_band) / $this_week_band) * 100, 1)) : 0;
+            $two_day_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
+            $difference = ($today_band > 0 && $two_day_band > 0) ? ($today_band > $two_day_band ? round((($today_band - $two_day_band) / $today_band) * 100, 1) : round((($two_day_band - $today_band) / $today_band) * 100, 1)) : 0;
+            $isIncrease = $today_band > $two_day_band;
             $bandwidth_stats_data = array(
-                "this_week_band" => $this->convertBits($this_week_band),
-                "last_week_band" => $this->convertBits($last_week_band),
-                "increase" => $this_week_band > $last_week_band,
-                "percentage" => (($this_week_band > 0 && $last_week_band == 0) ? 100 : $difference),
+                "today_band" => $this->convertBits($today_band),
+                "two_day_band" => $this->convertBits($two_day_band),
+                "increase" => $isIncrease,
+                "percentage" => (($today_band > 0 && $two_day_band == 0) ? 100 : $difference).($isIncrease ? "% more " : "% less "),
             );
 
             // online status
@@ -5992,15 +5999,7 @@ $export_text .= "
                     }
 
                     // convert speed 
-                    $converted_speed = $this->parseQueueSpeed($client['rate']);
-
-                    // insert the one minute interval
-                    $one_minute_stats = new one_minute_stats();
-                    $one_minute_stats->upload = $converted_speed['upload']*1;
-                    $one_minute_stats->download = $converted_speed['download']*1;
-                    $one_minute_stats->account = $client['account'];
-                    $one_minute_stats->date = date("YmdHis");
-                    $one_minute_stats->save();
+                    // $converted_speed = $this->parseQueueSpeed($client['rate']);
 
                     // insert the usage of the client
                     // check if any record of todays usage has been captured
@@ -6040,6 +6039,20 @@ $export_text .= "
                             'previous_download' => $client['download']*1,
                             'date' => date("YmdHis")
                         ]);
+
+                        // calculate the period speed by dividing the usage in that period by the period in seconds
+                        $time_difference = $this->dateDiffSingleUnit(date("YmdHis"), date("YmdHis", strtotime($check_usage[0]->date)),"seconds");
+                        $upload_rate = ($upload_add > 0) ? round($upload_add/$time_difference, 2) : 0;
+                        $download_rate = ($download_add > 0) ? round($download_add/$time_difference, 2) : 0;
+                        // return [$upload_rate,$download_rate, $upload_add, $download_add, $time_difference];
+
+                        // insert the one minute interval
+                        $one_minute_stats = new one_minute_stats();
+                        $one_minute_stats->upload = $upload_rate*1;
+                        $one_minute_stats->download = $download_rate*1;
+                        $one_minute_stats->account = $client['account'];
+                        $one_minute_stats->date = date("YmdHis");
+                        $one_minute_stats->save();
 
                         // UPDATE THE LAST SEEN ONLINE STATUS
                         $checkonline = $download_add+$upload_add;
@@ -6081,16 +6094,6 @@ $export_text .= "
                         continue;
                     }
                     $check_client = $check_client[0];
-                    // $converted_speed = $this->parseQueueSpeed($client['rate']);
-
-                    // insert the one minute interval
-                    $one_minute_stats = new one_minute_stats();
-                    $one_minute_stats->upload = $client['upload_speed']*1;
-                    $one_minute_stats->download = $client['download_speed']*1;
-                    $one_minute_stats->account = $check_client->client_account;
-                    $one_minute_stats->date = date("YmdHis");
-                    $one_minute_stats->save();
-
                     // insert the usage of the client
                     // check if any record of todays usage has been captured
                     // return "SELECT * FROM client_usage_stats WHERE account = '".$check_client->client_account."' AND date LIKE '".date("Ymd")."%'";
@@ -6130,6 +6133,20 @@ $export_text .= "
                             'previous_download' => $client['download']*1,
                             'date' => date("YmdHis")
                         ]);
+
+                        // calculate the period speed by dividing the usage in that period by the period in seconds
+                        $time_difference = $this->dateDiffSingleUnit(date("YmdHis"), date("YmdHis", strtotime($check_usage[0]->date)),"seconds");
+                        $upload_rate = ($upload_add > 0) ? round($upload_add/$time_difference, 2) : 0;
+                        $download_rate = ($download_add > 0) ? round($download_add/$time_difference, 2) : 0;
+                        // return [$upload_rate,$download_rate, $upload_add, $download_add, $time_difference];
+
+                        // insert the one minute interval
+                        $one_minute_stats = new one_minute_stats();
+                        $one_minute_stats->upload = $upload_rate*1;
+                        $one_minute_stats->download = $download_rate*1;
+                        $one_minute_stats->account = $client['account'];
+                        $one_minute_stats->date = date("YmdHis");
+                        $one_minute_stats->save();
 
                         // UPDATE THE LAST SEEN ONLINE STATUS
                         $checkonline = ($download_add*1)+($upload_add*1);
@@ -6365,8 +6382,6 @@ $export_text .= "
                 // change db
                 $change_db = new login();
                 $change_db->change_db($org_db);
-                DB::purge('mysql2');
-                DB::reconnect('mysql2');
 
                 // check if the username and password is present
                 $check = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `sstp_username` = ? AND `sstp_password` = ?",[$secret_username, $secret_password]);
@@ -7082,8 +7097,8 @@ $export_text .= "
                                 "hour" => $start_date_param,
                                 "ends" => $end_date_param,
                                 "x" => date("H:i", strtotime($start_date_param)),
-                                "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
-                                "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                                "download" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
+                                "upload" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
                             );
                             array_push($new_data['report'], $hour_data);
                         }else{
@@ -7098,8 +7113,8 @@ $export_text .= "
                             $hour_data = array(
                                 "hour" => $start_date_param,
                                 "x" => date("H:i", strtotime($start_date_param)),
-                                "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
-                                "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                                "download" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
+                                "upload" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
                             );
                             array_push($new_data['report'], $hour_data);
                         }
@@ -7136,8 +7151,8 @@ $export_text .= "
                         $hour_data = array(
                             "day" => $start_date_param,
                             "x" => date("dS M", strtotime($start_date_param)),
-                            "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
-                            "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                            "download" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
+                            "upload" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
                         );
                         array_push($week_data['report'], $hour_data);
                     }
@@ -7178,8 +7193,8 @@ $export_text .= "
                         $hour_data = array(
                             "day" => $start_date_param,
                             "x" => date("dS M", strtotime($start_date_param)) . " - " . date("dS M", strtotime($end_date_param)),
-                            "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
-                            "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                            "download" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
+                            "upload" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
                         );
                         array_push($month_data['report'], $hour_data);
                     }
@@ -7217,8 +7232,8 @@ $export_text .= "
                     $hour_data = array(
                         "day" => $start_date_param,
                         "x" => date("dS M", strtotime($start_date_param))." - ".date("dS M", strtotime($end_date_param)),
-                        "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
-                        "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                        "download" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
+                        "upload" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
                     );
                     array_push($month_data['report'], $hour_data);
                 }
@@ -7523,8 +7538,8 @@ $export_text .= "
                             "start" => $start_date,
                             "ends" => $end_date,
                             "x" => date("D dS M", strtotime($start_date)),
-                            "upload" => count($data_used) > 0 ? ($data_used[0]->upload*1 ?? 0) : 0,
-                            "download" => count($data_used) > 0 ? ($data_used[0]->download*1 ?? 0) : 0
+                            "download" => count($data_used) > 0 ? ($data_used[0]->upload*1 ?? 0) : 0,
+                            "upload" => count($data_used) > 0 ? ($data_used[0]->download*1 ?? 0) : 0
                         );
 
                         // HOUR DATA
@@ -7570,8 +7585,8 @@ $export_text .= "
                             "start" => $start_date,
                             "ends" => $end_date,
                             "x" => date("dS M", strtotime($start_date)),
-                            "upload" => count($data_used) > 0 ? ($data_used[0]->upload*1 ?? 0) : 0,
-                            "download" => count($data_used) > 0 ? ($data_used[0]->download*1 ?? 0) : 0
+                            "download" => count($data_used) > 0 ? ($data_used[0]->upload*1 ?? 0) : 0,
+                            "upload" => count($data_used) > 0 ? ($data_used[0]->download*1 ?? 0) : 0
                         );
                         // HOUR DATA
                         array_push($new_data['report'], $day_data);
@@ -7614,8 +7629,8 @@ $export_text .= "
                             "start" => $start_date,
                             "ends" => $end_date,
                             "x" => date("M Y", strtotime($start_date)),
-                            "upload" => count($data_used) > 0 ? ($data_used[0]->upload*1 ?? 0) : 0,
-                            "download" => count($data_used) > 0 ? ($data_used[0]->download*1 ?? 0) : 0
+                            "download" => count($data_used) > 0 ? ($data_used[0]->upload*1 ?? 0) : 0,
+                            "upload" => count($data_used) > 0 ? ($data_used[0]->download*1 ?? 0) : 0
                         );
                         // HOUR DATA
                         array_push($new_data['report'], $day_data);

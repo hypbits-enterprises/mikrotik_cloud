@@ -1,0 +1,47 @@
+{
+    "static": [
+        {
+            "type": "static",
+            "account": "HYP002",
+            "download": 800000000,
+            "upload": 800000000
+        },
+        {
+            "type": "static",
+            "account": "SF003",
+            "download": 800000000,
+            "upload": 800000000
+        },
+        {
+            "type": "static",
+            "account": "SF004",
+            "download": 800000000,
+            "upload": 800000000
+        },
+        {
+            "type": "static",
+            "account": "SFA005",
+            "download": 800000000,
+            "upload": 800000000
+        },
+        {
+            "type": "static",
+            "account": "HYP001",
+            "download": 800000000,
+            "upload": 800000000
+        },
+        {
+            "type": "static",
+            "account": "SFA005",
+            "download": 800000000,
+            "upload": 800000000
+        },
+        {
+            "type": "static",
+            "account": "SF004",
+            "download": 800000000,
+            "upload": 800000000
+        }
+    ],
+    "pppoe": []
+}

@@ -8,7 +8,15 @@
 
 #COLLECT THE TRAFFIC USAGE ON PPPOE AND QUEUES
 :put "Start from here"
+# Store the current logging state
+:local loggingState [/system logging find where topics~"info"]
+
+# Disable interface logging to avoid log flooding
+/system logging disable [find topics~"info"]
+
+#get the pppoe stats
 :local pppoeStats [/interface find where name~"pppoe-" disabled=no]
+
 #:put [:pick $pppoeStats 1];
 
 :local pppoeJson "[";
@@ -42,8 +50,27 @@
     #:put [/queue simple get $queue]
     :local queueName [/queue simple get $queue name]
     :local accStart [:find $queueName ") -"]
-    :if ([:len $accStart] > 0) do={
-        :local accNo [:pick $queueName ($accStart+4) [:len $queueName]]
+    :local search ") -"
+
+    :local startPos 0;
+
+    :set $startPos [find $queueName ") -"];
+    # :put ($startPos." outside");
+    :local positionCounter 0;
+
+    :while ([:find $queueName $search] > 0) do={
+        :set $startPos [:find $queueName $search];
+        # :put $queueName;
+        :set $queueName [:pick $queueName ($startPos+4) [:len $queueName]]
+        # :put $queueName;
+        :set $positionCounter ($positionCounter+$startPos)
+        # :put $positionCounter
+    }
+    :local accNo $queueName;
+
+    
+    :if ([:len $accNo] > 0 [:len $accNo] <= 8) do={
+        # :local accNo [:pick $queueName ($accStart+4) [:len $queueName]]
         #:put ($accNo."\n")
         :local bytes [/queue simple get $queue bytes]
         :local recieveStart [:find $bytes "/"]
@@ -73,7 +100,7 @@ if ([/file find where name=$filePath]) do={
 :put "File created successfully!"
 
 #upload the json file to the server for processing
-:local serverAddr "ftp://mikrotik:mikrotik@192.168.86.16/$filePath";
+:local serverAddr "ftp://hbsftpuser:2000Hilary@159.65.81.51/$filePath";
 /tool fetch upload=yes url=$serverAddr src-path=$filePath
 :delay 1
 #delete the file
@@ -83,7 +110,7 @@ if ([/file find where name=$filePath]) do={
 }
 
 #run the request to process its usage
-/tool fetch url="$domain/upload_client_stats?account=$userAccount&router_id=$routerId" mode=http keep-result=yes dst-path=upload_response.txt
+/tool fetch url="$domain/upload_client_stats?account=$userAccount&router_id=$routerId" mode=https keep-result=yes dst-path=upload_response.txt
 :delay 1
 :local file [/file find name="upload_response.txt"]
 :if ([:len $file] > 0) do={
@@ -91,4 +118,8 @@ if ([/file find where name=$filePath]) do={
     /file remove $file;
 }
 
-#:put "Files uploaded successfully!"
+# Restore logging state silently
+:foreach logEntry in=$loggingState do={
+    /system logging set $logEntry disabled=no
+}
+:put "Files uploaded successfully!"

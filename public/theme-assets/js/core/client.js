@@ -346,8 +346,8 @@ function getNames() {
 
         // set the value for the second data holder
         cObj("hold_user_id_data_2").value = cObj("hold_user_id_data").value;
-
-        if (hold_user_id_data.length == student_data.length) {
+        var actions_id = document.getElementsByClassName("actions_id");
+        if (hold_user_id_data.length == actions_id.length) {
             cObj("select_all_clients").indeterminate = false;
             cObj("select_all_clients").checked = true;
         }else{
@@ -377,18 +377,14 @@ function showLessFunc() {
 cObj("select_all_clients").onchange = function () {
     if (this.checked) {
         var new_data = [];
-        for (let inds = 0; inds < student_data.length; inds++) {
-            const elems = student_data[inds];
-            new_data.push(elems['client_account']);
-        }
-    
-        cObj("hold_user_id_data").value = JSON.stringify(new_data);
         // uncheck 
         var actions_id = document.getElementsByClassName("actions_id");
         for (let index = 0; index < actions_id.length; index++) {
             const element = actions_id[index];
             element.checked = true;
+            new_data.push(element.id.substring(11));
         }
+        cObj("hold_user_id_data").value = JSON.stringify(new_data);
     
     }else{
         cObj("hold_user_id_data").value = "[]";

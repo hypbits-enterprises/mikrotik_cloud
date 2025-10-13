@@ -676,7 +676,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr>
+                                                {{-- <tr>
                                                     <th scope="row"><input type="checkbox" class="actions_id" id="actions_id_HYP016"><input type="hidden" id="actions_value_HYP016" value="HYP016"> 1 </th>
                                                     <td><span class="badge text-light" style="background: rgb(119, 105, 183);" data-toggle="tooltip" title="" data-original-title="PPPoE Assigned">P</span> <a href="/Clients/View/586" class="text-secondary"><span class="" data-toggle="tooltip" title="" data-original-title="Verified">James Kato</span> <span class="badge badge-success"> </span></a><br><small class="text-gray d-none d-xl-block"></small></td>
                                                     <td data-html="true" data-toggle="tooltip" title="" data-original-title="No Issues Yet!">HYP016 </td>
@@ -686,7 +686,7 @@
                                                     <td><a href="/Clients/View/586" class="btn btn-primary btn-sm " style="padding: 3px;" id="" data-toggle="tooltip" title="" data-original-title="View this client!"><span class="d-inline-block border border-white w-100 text-center" style="border-radius: 2px; padding: 5px;"><i class="ft-eye"></i></span></a>
                                                         <a href="/deactivate/586" class="btn btn-danger btn-sm " style="padding: 3px;" id="" data-toggle="tooltip" title="" data-original-title="Disable this client!"><span class="d-inline-block border border-white w-100 text-center" style="border-radius: 2px; padding: 5px;"><i class="ft-x"></i></span></a>
                                                     </td>
-                                                </tr>
+                                                </tr> --}}
                                             </tbody>
                                         </table>
                                     </div>
