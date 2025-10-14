@@ -33,7 +33,7 @@
     :local stat [/interface monitor-traffic $interface once as-value];
     :local upload [:pick $stat 7]
     :local download [:pick $stat 11]
-    :set pppoeJson ($pppoeJson."{\"type\":\"pppoe\", \"account\": \"$name\", \"download\":$recieved, \"upload\":$transfered,\"upload_speed\":\"$upload\", \"download_speed\": \"$download\"},")
+    :set pppoeJson ($pppoeJson."{\"type\":\"pppoe\", \"account\": \"$name\", \"download\":$transfered, \"upload\":$recieved,\"upload_speed\":\"$upload\", \"download_speed\": \"$download\"},")
 }
 
 :if ([:len $pppoeStats] > 0) do={
@@ -74,11 +74,11 @@
         #:put ($accNo."\n")
         :local bytes [/queue simple get $queue bytes]
         :local recieveStart [:find $bytes "/"]
-        :local recieved [:pick $bytes 0 ($recieveStart)]
-        :local transfered [:pick $bytes ($recieveStart+1) [:len $bytes]]
+        :local upload [:pick $bytes 0 ($recieveStart)]
+        :local download [:pick $bytes ($recieveStart+1) [:len $bytes]]
         
         :local rates [/queue simple get $queue rate]
-        :set staticJson ($staticJson."{\"type\":\"static\", \"account\": \"$accNo\", \"download\":$recieved, \"upload\":$transfered, \"rate\":\"$rates\"},")
+        :set staticJson ($staticJson."{\"type\":\"static\", \"account\": \"$accNo\", \"download\":$download, \"upload\":$upload, \"rate\":\"$rates\"},")
     }
 }
 

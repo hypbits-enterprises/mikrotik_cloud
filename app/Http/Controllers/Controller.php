@@ -27,9 +27,13 @@ class Controller extends BaseController
     }
     
     // convert bits
-    function convertBits($bits) {
+    function convertBits($bits, $type = "data") {
         // Convert bits to bytes
-        $bytes = $bits / 8;
+        if($type == "data"){
+            $bytes = $bits / 8;
+        }else{
+            $bytes = $bits;
+        }
 
         // Helper to format with or without decimals
         $formatValue = function($value) {
@@ -37,26 +41,26 @@ class Controller extends BaseController
         };
 
         if ($bytes < 1024) {
-            return $formatValue($bytes) . " B";
+            return $formatValue($bytes) . ($type == "data" ? " B" : " b");
         }
 
         $kb = $bytes / 1024;
         if ($kb < 1024) {
-            return $formatValue($kb) . " KB";
+            return $formatValue($kb) . ($type == "data" ? " KB" : " Kb");
         }
 
         $mb = $kb / 1024;
         if ($mb < 1024) {
-            return $formatValue($mb) . " MB";
+            return $formatValue($mb) . ($type == "data" ? " MB" : " Mb");
         }
 
         $gb = $mb / 1024;
         if ($gb < 1024) {
-            return $formatValue($gb) . " GB";
+            return $formatValue($gb) . ($type == "data" ? " GB" : " Gb");
         }
 
         $tb = $gb / 1024;
-        return $formatValue($tb) . " TB";
+        return $formatValue($tb) . ($type == "data" ? " TB" : " Tb");
     }
 
     function getLast5MinuteInterval() {

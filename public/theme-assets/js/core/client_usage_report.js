@@ -205,8 +205,8 @@ function createChart(report_data) {
             }
         }
     }
-    upload = normalizeBytesToUnit(upload);
-    download = normalizeBytesToUnit(download);
+    upload = cObj("report_on").value == "bandwidth" ? normalizeBitsToUnit(upload) : normalizeBytesToUnit(upload);
+    download = cObj("report_on").value == "bandwidth" ? normalizeBitsToUnit(download) : normalizeBytesToUnit(download);
     // console.log(upload);
     // console.log(download);
     // destroy if chart already exists
@@ -340,6 +340,37 @@ function normalizeBytesToUnit(values) {
   // Step 4: normalize all values to that unit
   const converted = valuesInBytes.map(v =>
     parseFloat((v / Math.pow(1024, unitIndex + 1)).toFixed(2)) // +1 since baseline = KB
+  );
+
+  return {
+    values: converted,
+    unit: units[unitIndex]
+  };
+}
+function normalizeBitsToUnit(values) {
+  if (!Array.isArray(values) || values.length === 0) return [];
+
+  const units = ["Kb", "Mb", "Gb", "Tb"]; // baseline is Kb (kilobits)
+  let unitIndex = 0;
+
+  // Step 1: find smallest non-zero candidate
+  let minVal = values.filter(v => v > 0);
+  if (minVal.length === 0) {
+    // all are zero
+    return { values: values.map(() => 0), unit: "Kb" };
+  }
+  minVal = Math.min(...minVal);
+
+  // Step 2: determine the best unit (start at Kb = divide by 1024 once)
+  let minInKb = minVal / 1024;
+  while (minInKb >= 1024 && unitIndex < units.length - 1) {
+    minInKb /= 1024;
+    unitIndex++;
+  }
+
+  // Step 3: normalize all values to that unit
+  const converted = values.map(v =>
+    parseFloat((v / Math.pow(1024, unitIndex + 1)).toFixed(2)) // +1 since baseline = Kb
   );
 
   return {

@@ -23,6 +23,10 @@ function sendDataGet(method, file, object1, object2, callback = null) {
     xml.send();
 }
 
+cObj("tab4-tab").onclick = function () {
+    cObj("client_usage_report_btn").click();
+}
+
 function stopInterval(id) {
     clearInterval(id);
 }

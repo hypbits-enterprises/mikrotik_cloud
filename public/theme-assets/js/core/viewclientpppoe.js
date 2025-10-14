@@ -42,6 +42,10 @@ function cObj(id) {
     return document.getElementById(id);
 }
 
+cObj("tab4-tab").onclick = function () {
+    cObj("client_usage_report_btn").click();
+}
+
 var rowsColStudents = [];
 var rowsNCols_original = [];
 var pagecountTransaction = 0; //this are the number of pages for transaction

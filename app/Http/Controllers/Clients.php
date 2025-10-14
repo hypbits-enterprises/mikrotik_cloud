@@ -867,26 +867,30 @@ $export_text .= "
         // GENERATE CLIENTS MONTHLY
         $start_date = date("Ymd", strtotime("-1 Month"))."000000";
         $end_date = date("Ymd")."235959";
-        $usage_stats_monthly = DB::connection("mysql2")->select("SELECT (SUM(download)+SUM(upload)) AS 'usage' FROM `client_usage_stats` WHERE date >= '$start_date' AND date <= '$end_date'");
+        $usage_stats_monthly = DB::connection("mysql2")->select("SELECT (SUM(download)+SUM(upload)) AS 'usage', SUM(download) AS download, SUM(upload) AS upload FROM `client_usage_stats` WHERE date >= '$start_date' AND date <= '$end_date'");
         $start_date = date("YmdHis", strtotime("-2 month"))."235959";
         $end_date = date("YmdHis", strtotime("-1 month"))."000000";
-        $usage_stats_last_monthly = DB::connection("mysql2")->select("SELECT SUM(download)+SUM(upload) AS 'usage' FROM `client_usage_stats` WHERE date >= '$start_date' AND date <= '$end_date'");
+        $usage_stats_last_month = DB::connection("mysql2")->select("SELECT SUM(download)+SUM(upload) AS 'usage', SUM(download) AS download, SUM(upload) AS upload FROM `client_usage_stats` WHERE date >= '$start_date' AND date <= '$end_date'");
         $this_month_usage = count($usage_stats_monthly) > 0 ? $usage_stats_monthly[0]->usage : 0;
-        $last_month_usage = count($usage_stats_last_monthly) > 0 ? $usage_stats_last_monthly[0]->usage : 0;
+        $last_month_usage = count($usage_stats_last_month) > 0 ? $usage_stats_last_month[0]->usage : 0;
         $difference = ($this_month_usage > 0 && $last_month_usage > 0) ? ($this_month_usage > $last_month_usage ? round(((($this_month_usage-$last_month_usage) / $this_month_usage) * 100), 1) : round(((($last_month_usage-$this_month_usage) / $this_month_usage) * 100),1)) : 0;
         $isIncrease = $this_month_usage > $last_month_usage;
         $monthly_stats = array(
             "this_month_usage" => $this->convertBits($this_month_usage),
             "last_month_usage" => $this->convertBits($last_month_usage),
+            "upload" => $this->convertBits($usage_stats_monthly[0]->upload),
+            "download" => $this->convertBits($usage_stats_monthly[0]->download),
+            "upload_prev" => $this->convertBits($usage_stats_last_month[0]->upload),
+            "download_prev" => $this->convertBits($usage_stats_last_month[0]->download),
             "increase" => $isIncrease,
             "percentage" => (($this_month_usage > 0 && $last_month_usage == 0) ? 100 : $difference).($isIncrease ? "% more " : "% less ")
         );
 
         // GENERATE CLIENTS DAILY
         $today = date("Ymd");
-        $usage_stats_daily = DB::connection("mysql2")->select("SELECT (SUM(download)+SUM(upload)) AS 'usage' FROM `client_usage_stats` WHERE date LIKE '$today%'");
+        $usage_stats_daily = DB::connection("mysql2")->select("SELECT (SUM(download)+SUM(upload)) AS 'usage', SUM(download) AS download, SUM(upload) AS upload FROM `client_usage_stats` WHERE date LIKE '$today%'");
         $yesterday = date("Ymd", strtotime("-1 day"));
-        $usage_stats_yesterday = DB::connection("mysql2")->select("SELECT SUM(download)+SUM(upload) AS 'usage' FROM `client_usage_stats` WHERE date LIKE '$yesterday%'");
+        $usage_stats_yesterday = DB::connection("mysql2")->select("SELECT SUM(download)+SUM(upload) AS 'usage', SUM(download) AS download, SUM(upload) AS upload FROM `client_usage_stats` WHERE date LIKE '$yesterday%'");
 
         $todays_usage = count($usage_stats_daily) > 0 ? $usage_stats_daily[0]->usage : 0;
         $yesterday_usage = count($usage_stats_yesterday) > 0 ? $usage_stats_yesterday[0]->usage : 0;
@@ -895,21 +899,29 @@ $export_text .= "
         $daily_stats = array(
             "todays_usage" => $this->convertBits($todays_usage),
             "yesterday_usage" => $this->convertBits($yesterday_usage),
+            "upload" => $this->convertBits($usage_stats_daily[0]->upload),
+            "download" => $this->convertBits($usage_stats_daily[0]->download),
+            "upload_prev" => $this->convertBits($usage_stats_yesterday[0]->upload),
+            "download_prev" => $this->convertBits($usage_stats_yesterday[0]->download),
             "increase" => $isIncrease,
             "percentage" => (($todays_usage > 0 && $yesterday_usage == 0) ? 100 : $difference).($isIncrease ? "% more " : "% less ")
         );
 
-        $last_one_week = date("YmdHis",strtotime("-1 days"));
-        $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download) AS 'usage' FROM five_minute_stats WHERE date > '".$last_one_week."';");
+        $today = date("Ymd")."000000";
+        $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download) AS 'usage', AVG(download) AS download, AVG(upload) AS upload FROM five_minute_stats WHERE date > '".$today."';");
         $today_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
-        $two_week_ago = date("YmdHis", strtotime("-2 days"));
-        $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download) AS 'usage' FROM five_minute_stats WHERE date > '".$two_week_ago."' AND date <= '".$last_one_week."';");
-        $two_day_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
+        $yesterday = date("Ymd", strtotime("-1 days"))."000000";
+        $bandwidth_stats_yesterday = DB::connection("mysql2")->select("SELECT AVG(download) AS 'usage', AVG(download) AS download, AVG(upload) AS upload FROM five_minute_stats WHERE date > '".$yesterday."' AND date <= '".$today."';");
+        $two_day_band = count($bandwidth_stats_yesterday) > 0 ? $bandwidth_stats_yesterday[0]->usage : 0;
         $difference = ($today_band > 0 && $two_day_band > 0) ? ($today_band > $two_day_band ? round((($today_band - $two_day_band) / $today_band) * 100, 1) : round((($two_day_band - $today_band) / $today_band) * 100, 1)) : 0;
         $isIncrease = $today_band > $two_day_band;
         $bandwidth_stats_data = array(
-            "today_band" => $this->convertBits($today_band),
-            "two_day_band" => $this->convertBits($two_day_band),
+            "today_band" => $this->convertBits($today_band, "bandwidth"),
+            "two_day_band" => $this->convertBits($two_day_band, "bandwidth"),
+            "upload" => $this->convertBits($bandwidth_stats[0]->upload, "bandwidth"),
+            "download" => $this->convertBits($bandwidth_stats[0]->download, "bandwidth"),
+            "upload_prev" => $this->convertBits($bandwidth_stats_yesterday[0]->upload, "bandwidth"),
+            "download_prev" => $this->convertBits($bandwidth_stats_yesterday[0]->download, "bandwidth"),
             "increase" => $isIncrease,
             "percentage" => (($today_band > 0 && $two_day_band == 0) ? 100 : $difference).($isIncrease ? "% more " : "% less ")
         );
@@ -934,7 +946,7 @@ $export_text .= "
                 }
             }
         }
-        // return $bandwidth_stats_data;
+        // return $daily_stats;
         return view('myclients', ["client_status" => $client_status, "bandwidth_stats_data" => $bandwidth_stats_data, "daily_stats" => $daily_stats, "monthly_stats" => $monthly_stats, "total_added_last_week" => $total_added_last_week, "added_last_week" => $plot_data, "inactive_clients" => $inactive_clients, "active_clients" => $active_clients, "frozen_count" => $frozen_count, "client_count" => $client_count, "frozen_clients" => $frozen_clients, 'client_data' => $client_data, "router_infor" => $router_data]);
     }
 
@@ -1493,6 +1505,13 @@ $export_text .= "
         $router_data = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted` = '0' AND `router_id` = ?", [$router_id]);
         $router_name = count($router_data) > 0 ? $router_data[0]->router_name : "Null";
         return $router_name;
+    }
+
+    function addMinutes($date, $days, $format = "YmdHis")
+    {
+        $date = date_create($date);
+        date_add($date, date_interval_create_from_date_string($days . " minutes"));
+        return date_format($date, $format);
     }
 
     function addDays($date, $days, $format = "YmdHis")
@@ -3537,10 +3556,10 @@ $export_text .= "
             // GENERATE CLIENTS MONTHLY
             $start_date = date("Ymd", strtotime("-1 Month"))."000000";
             $end_date = date("Ymd")."235959";
-            $usage_stats_monthly = DB::connection("mysql2")->select("SELECT (SUM(download)+SUM(upload)) AS 'usage' FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date >= '$start_date' AND date <= '$end_date'");
+            $usage_stats_monthly = DB::connection("mysql2")->select("SELECT (SUM(download)+SUM(upload)) AS 'usage', SUM(download) AS download, SUM(upload) AS upload FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date >= '$start_date' AND date <= '$end_date'");
             $start_date = date("YmdHis", strtotime("-2 month"))."235959";
             $end_date = date("YmdHis", strtotime("-1 month"))."000000";
-            $usage_stats_last_monthly = DB::connection("mysql2")->select("SELECT SUM(download)+SUM(upload) AS 'usage' FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date >= '$start_date' AND date <= '$end_date'");
+            $usage_stats_last_monthly = DB::connection("mysql2")->select("SELECT SUM(download)+SUM(upload) AS 'usage', SUM(download) AS download, SUM(upload) AS upload FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date >= '$start_date' AND date <= '$end_date'");
             $this_month_usage = count($usage_stats_monthly) > 0 ? $usage_stats_monthly[0]->usage : 0;
             $last_month_usage = count($usage_stats_last_monthly) > 0 ? $usage_stats_last_monthly[0]->usage : 0;
             $difference = ($this_month_usage > 0 && $last_month_usage > 0) ? ($this_month_usage > $last_month_usage ? round(((($this_month_usage-$last_month_usage) / $this_month_usage) * 100), 1) : round(((($last_month_usage-$this_month_usage) / $this_month_usage) * 100),1)) : 0;
@@ -3548,15 +3567,19 @@ $export_text .= "
             $monthly_stats = array(
                 "this_month_usage" => $this->convertBits($this_month_usage),
                 "last_month_usage" => $this->convertBits($last_month_usage),
+                "upload" => $this->convertBits($usage_stats_monthly[0]->upload),
+                "download" => $this->convertBits($usage_stats_monthly[0]->download),
+                "upload_prev" => $this->convertBits($usage_stats_last_monthly[0]->upload),
+                "download_prev" => $this->convertBits($usage_stats_last_monthly[0]->download),
                 "increase" => $isIncrease,
                 "percentage" => (($this_month_usage > 0 && $last_month_usage == 0) ? 100 : $difference).($isIncrease ? "% more " : "% less ")
             );
 
             // GENERATE CLIENTS DAILY
             $today = date("Ymd");
-            $usage_stats_daily = DB::connection("mysql2")->select("SELECT (SUM(download)+SUM(upload)) AS 'usage' FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date LIKE '$today%'");
+            $usage_stats_daily = DB::connection("mysql2")->select("SELECT (SUM(download)+SUM(upload)) AS 'usage', SUM(download) AS download, SUM(upload) AS upload FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date LIKE '$today%'");
             $yesterday = date("Ymd", strtotime("-1 day"));
-            $usage_stats_yesterday = DB::connection("mysql2")->select("SELECT SUM(download)+SUM(upload) AS 'usage' FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date LIKE '$yesterday%'");
+            $usage_stats_yesterday = DB::connection("mysql2")->select("SELECT SUM(download)+SUM(upload) AS 'usage', SUM(download) AS download, SUM(upload) AS upload FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date LIKE '$yesterday%'");
 
             $todays_usage = count($usage_stats_daily) > 0 ? $usage_stats_daily[0]->usage : 0;
             $yesterday_usage = count($usage_stats_yesterday) > 0 ? $usage_stats_yesterday[0]->usage : 0;
@@ -3565,21 +3588,29 @@ $export_text .= "
             $daily_stats = array(
                 "todays_usage" => $this->convertBits($todays_usage),
                 "yesterday_usage" => $this->convertBits($yesterday_usage),
+                "upload" => $this->convertBits($usage_stats_daily[0]->upload),
+                "download" => $this->convertBits($usage_stats_daily[0]->download),
+                "upload_prev" => $this->convertBits($usage_stats_yesterday[0]->upload),
+                "download_prev" => $this->convertBits($usage_stats_yesterday[0]->download),
                 "increase" => $isIncrease,
                 "percentage" => (($todays_usage > 0 && $yesterday_usage == 0) ? 100 : $difference).($isIncrease ? "% more " : "% less ")
             );
 
-            $last_one_week = date("YmdHis",strtotime("-1 days"));
-            $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage' FROM five_minute_stats WHERE account = '".$clients_data[0]->client_account."' AND date > '".$last_one_week."';");
+            $today = date("Ymd")."000000";
+            $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage', AVG(download) AS download, AVG(upload) AS upload FROM five_minute_stats WHERE account = '".$clients_data[0]->client_account."' AND date > '".$today."';");
             $today_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
-            $two_week_ago = date("YmdHis", strtotime("-2 days"));
-            $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage' FROM five_minute_stats WHERE account = '".$clients_data[0]->client_account."' AND date > '".$two_week_ago."' AND date <= '".$last_one_week."';");
-            $two_day_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
+            $yesterday = date("Ymd")."000000";
+            $bandwidth_stats_yesterday = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage', AVG(download) AS download, AVG(upload) AS upload FROM five_minute_stats WHERE account = '".$clients_data[0]->client_account."' AND date > '".$yesterday."' AND date <= '".$yesterday."';");
+            $two_day_band = count($bandwidth_stats_yesterday) > 0 ? $bandwidth_stats_yesterday[0]->usage : 0;
             $difference = ($today_band > 0 && $two_day_band > 0) ? ($today_band > $two_day_band ? round((($today_band - $two_day_band) / $today_band) * 100, 1) : round((($two_day_band - $today_band) / $today_band) * 100, 1)) : 0;
             $isIncrease = $today_band > $two_day_band;
             $bandwidth_stats_data = array(
-                "today_band" => $this->convertBits($today_band),
-                "two_day_band" => $this->convertBits($two_day_band),
+                "today_band" => $this->convertBits($today_band, "bandwidth"),
+                "two_day_band" => $this->convertBits($two_day_band, "bandwidth"),
+                "upload" => $this->convertBits($bandwidth_stats[0]->upload, "bandwidth"),
+                "download" => $this->convertBits($bandwidth_stats[0]->download, "bandwidth"),
+                "upload_prev" => $this->convertBits($bandwidth_stats_yesterday[0]->upload, "bandwidth"),
+                "download_prev" => $this->convertBits($bandwidth_stats_yesterday[0]->download, "bandwidth"),
                 "increase" => $isIncrease,
                 "percentage" => (($today_band > 0 && $two_day_band == 0) ? 100 : $difference).($isIncrease ? "% more " : "% less "),
             );
@@ -5921,12 +5952,16 @@ $export_text .= "
                 if($response['user_status'] == "activated"){
                     array_push($active_static, array(
                         "network" => $client->client_network,
-                        "gateway" => $client->client_default_gw
+                        "gateway" => $client->client_default_gw,
+                        "account" => $client->client_account,
+                        "speed" => $client->max_upload_download
                     ));
                 }else{
                     array_push($inactive_static, array(
                         "network" => $client->client_network,
-                        "gateway" => $client->client_default_gw
+                        "gateway" => $client->client_default_gw,
+                        "account" => $client->client_account,
+                        "speed" => $client->max_upload_download
                     ));
                 }
             }else{
@@ -5949,7 +5984,9 @@ $export_text .= "
             if($client->assignment == "static"){
                 array_push($active_static, array(
                     "network" => $client->client_network,
-                    "gateway" => $client->client_default_gw
+                    "gateway" => $client->client_default_gw,
+                    "account" => $client->client_account,
+                    "speed" => $client->max_upload_download
                 ));
             }else{
                 array_push($active_pppoe, array(
@@ -7072,7 +7109,13 @@ $export_text .= "
                 array_push($days, date("Ymd", strtotime("-$index days")));
             }
             
-            $hours = [0,2,4,6,8,10,12,14,16,18,20,22];
+            $minutes_array = [];
+            $date = date("Ymd")."000000";
+            for ($index=0; $index < (96); $index++) {
+                array_push($minutes_array, [$date, $this->addMinutes($date,15)]);
+                $date = $this->addMinutes($date,15);
+            }
+            // return $minutes_array;
 
             // get the student usages per 5 minutes
             $all_data = [];
@@ -7083,41 +7126,22 @@ $export_text .= "
                 $new_data['selected'] = ($key == 0 && empty($next_date)) ? true : $next_date == $day;
                 $new_data['report'] = [];
                 if (($key == 0 && empty($next_date)) || $next_date == $day) {
-                    foreach ($hours as $index => $hour) {
-                        if ($hour < 22) {
-                            $hour = $hour >= 10 ? $hour : "0".$hour;
-                            $start_date_param = $day.$hour."0000";
-                            $end_date_param = $day.($hours[$index+1] >= 10 ? $hours[$index+1] : "0".$hours[$index+1]) ."5959";
-                            if(!empty($client_account)){
-                                $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `five_minute_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
-                            }else{
-                                $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `five_minute_stats` WHERE date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
-                            }
-                            $hour_data = array(
-                                "hour" => $start_date_param,
-                                "ends" => $end_date_param,
-                                "x" => date("H:i", strtotime($start_date_param)),
-                                "download" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
-                                "upload" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
-                            );
-                            array_push($new_data['report'], $hour_data);
+                    foreach ($minutes_array as $index => $minute) {
+                        $start_date_param = $minute[0];
+                        $end_date_param = $minute[1];
+                        if(!empty($client_account)){
+                            $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `five_minute_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
                         }else{
-                            $hour = $hour >= 10 ? $hour : "0".$hour;
-                            $start_date_param = $day.$hour."0000";
-                            $end_date_param = $day."235959";
-                            if(!empty($client_account)){
-                                $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `five_minute_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
-                            }else{
-                                $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `five_minute_stats` WHERE date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
-                            }
-                            $hour_data = array(
-                                "hour" => $start_date_param,
-                                "x" => date("H:i", strtotime($start_date_param)),
-                                "download" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
-                                "upload" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
-                            );
-                            array_push($new_data['report'], $hour_data);
+                            $day_data = DB::connection("mysql2")->select("SELECT SUM(upload) AS upload, SUM(download) AS download FROM (SELECT AVG(upload) AS upload, AVG(download) AS download, account FROM five_minute_stats WHERE `date` >= '".$start_date_param."' AND `date` <= '".$end_date_param."' GROUP BY account) AS average;");
                         }
+                        $hour_data = array(
+                            "hour" => $start_date_param,
+                            "ends" => $end_date_param,
+                            "x" => date("H:i", strtotime($start_date_param)),
+                            "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
+                            "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                        );
+                        array_push($new_data['report'], $hour_data);
                     }
                 }
 
@@ -7146,13 +7170,13 @@ $export_text .= "
                         if(!empty($client_account)){
                             $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
                         }else{
-                            $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                            $day_data = DB::connection("mysql2")->select("SELECT SUM(upload) AS upload, SUM(download) AS download FROM (SELECT AVG(upload) AS upload, AVG(download) AS download, account FROM two_hour_stats WHERE `date` >= '".$start_date_param."' AND `date` <= '".$end_date_param."' GROUP BY account) AS average;");
                         }
                         $hour_data = array(
                             "day" => $start_date_param,
                             "x" => date("dS M", strtotime($start_date_param)),
-                            "download" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
-                            "upload" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                            "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
+                            "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
                         );
                         array_push($week_data['report'], $hour_data);
                     }
@@ -7188,13 +7212,13 @@ $export_text .= "
                         if(!empty($client_account)){
                             $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
                         }else{
-                            $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                            $day_data = DB::connection("mysql2")->select("SELECT SUM(upload) AS upload, SUM(download) AS download FROM (SELECT AVG(upload) AS upload, AVG(download) AS download, account FROM two_hour_stats WHERE `date` >= '".$start_date_param."' AND `date` <= '".$end_date_param."' GROUP BY account) AS average;");
                         }
                         $hour_data = array(
                             "day" => $start_date_param,
                             "x" => date("dS M", strtotime($start_date_param)) . " - " . date("dS M", strtotime($end_date_param)),
-                            "download" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
-                            "upload" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                            "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
+                            "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
                         );
                         array_push($month_data['report'], $hour_data);
                     }
@@ -7227,13 +7251,13 @@ $export_text .= "
                     if(!empty($client_account)){
                         $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE account = '".$client_account."' AND date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
                     }else{
-                        $day_data = DB::connection("mysql2")->select("SELECT AVG(upload) AS upload, AVG(download) AS download FROM `two_hour_stats` WHERE date >= '".$start_date_param."' AND date <= '".$end_date_param."'");
+                        $day_data = DB::connection("mysql2")->select("SELECT SUM(upload) AS upload, SUM(download) AS download FROM (SELECT AVG(upload) AS upload, AVG(download) AS download, account FROM two_hour_stats WHERE `date` >= '".$start_date_param."' AND `date` <= '".$end_date_param."' GROUP BY account) AS average;");
                     }
                     $hour_data = array(
                         "day" => $start_date_param,
                         "x" => date("dS M", strtotime($start_date_param))." - ".date("dS M", strtotime($end_date_param)),
-                        "download" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
-                        "upload" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                        "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
+                        "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
                     );
                     array_push($month_data['report'], $hour_data);
                 }
@@ -7538,8 +7562,8 @@ $export_text .= "
                             "start" => $start_date,
                             "ends" => $end_date,
                             "x" => date("D dS M", strtotime($start_date)),
-                            "download" => count($data_used) > 0 ? ($data_used[0]->upload*1 ?? 0) : 0,
-                            "upload" => count($data_used) > 0 ? ($data_used[0]->download*1 ?? 0) : 0
+                            "upload" => count($data_used) > 0 ? ($data_used[0]->upload*1 ?? 0) : 0,
+                            "download" => count($data_used) > 0 ? ($data_used[0]->download*1 ?? 0) : 0
                         );
 
                         // HOUR DATA
@@ -7585,8 +7609,8 @@ $export_text .= "
                             "start" => $start_date,
                             "ends" => $end_date,
                             "x" => date("dS M", strtotime($start_date)),
-                            "download" => count($data_used) > 0 ? ($data_used[0]->upload*1 ?? 0) : 0,
-                            "upload" => count($data_used) > 0 ? ($data_used[0]->download*1 ?? 0) : 0
+                            "upload" => count($data_used) > 0 ? ($data_used[0]->upload*1 ?? 0) : 0,
+                            "download" => count($data_used) > 0 ? ($data_used[0]->download*1 ?? 0) : 0
                         );
                         // HOUR DATA
                         array_push($new_data['report'], $day_data);
@@ -7629,8 +7653,8 @@ $export_text .= "
                             "start" => $start_date,
                             "ends" => $end_date,
                             "x" => date("M Y", strtotime($start_date)),
-                            "download" => count($data_used) > 0 ? ($data_used[0]->upload*1 ?? 0) : 0,
-                            "upload" => count($data_used) > 0 ? ($data_used[0]->download*1 ?? 0) : 0
+                            "upload" => count($data_used) > 0 ? ($data_used[0]->upload*1 ?? 0) : 0,
+                            "download" => count($data_used) > 0 ? ($data_used[0]->download*1 ?? 0) : 0
                         );
                         // HOUR DATA
                         array_push($new_data['report'], $day_data);

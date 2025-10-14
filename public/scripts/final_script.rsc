@@ -17,7 +17,7 @@
         #:log info ("[SCRIPT] Running " . $targetScript)
         /system script run $targetScript
     }
-    :delay 0.5    
+    :delay 0.5
     :if ([:typeof $domain] = "nothing" || [:typeof $routerId] = "nothing" || [:typeof $userAccount] = "nothing") do={
         :put "No value";
         # Enable logging back
@@ -64,8 +64,58 @@ if ([:len $subStr] > 0) do= {
 
         #GATEWAY
         :local gwStart [:find $obj "\"gateway\":\""]
-        :local gateway [:pick $obj ($gwStart + 11) [:len $obj]]
+        :local gwEnd [:find $obj "\",\"account\":\""]
+        :local gateway [:pick $obj ($gwStart + 11) $gwEnd]
         :put "Gateway = $gateway";
+
+        #ACCOUNT
+        :local accStart [:find $obj "\"account\":"]
+        :local accEnd [:find $obj "\"speed\":"]
+        :local account [:pick $obj ($accStart+11) ($accEnd-2)]
+        :put "Account = $account"
+        
+        #SPEED
+        :local speedStart [:find $obj "\"speed\":\""]
+        :local speed [:pick $obj ($speedStart+9) ([:len $obj]-1)]
+        :local speedStart [:find $speed "\\"]
+        :set $speed ([:pick $speed 0 $speedStart].[:pick $speed ($speedStart+1) [:len $speed]])
+        :put "Speed : $speed";
+
+        #check if the queue is more than 1
+        :local queues [/queue/simple/find where name~"$account\$"]
+        :put $queues
+        :local selectedQueue
+        :foreach queue in=$queues do={
+            #find the queue thats active
+            :put $queue
+            :local queueData [/queue/simple/get $queue]
+            :local uploadSpeed ($queueData->"bytes")
+            :set $uploadSpeed [:pick $uploadSpeed 0 [:find $uploadSpeed "/"]]
+            #:put $uploadSpeed;
+            #:put $queueData
+            :if (($queueData->"max-limit") = $speed $uploadSpeed > 0) do={
+                :set $selectedQueue $queue
+                #:put "We are here!"
+            }
+        }
+        :if ([:typeof $selectedQueue] = "nothing") do={
+            #just use the first that matches the speed
+            :foreach queue in=$queues do={
+                :local queueData [/queue/simple/get $queue]
+                :if (($queueData->"max-limit") = $speed) do={
+                    :set $selectedQueue $queue
+                    #:put "We are here!"
+                }
+            }
+        }
+        :foreach queue in=$queues do={
+            :local queueData [/queue/simple/get $queue]
+            :if (!(($queueData->".id") = $selectedQueue)) do={
+                :put ("Deleted ".($queueData->".id"))
+                [/queue/simple/remove ($queueData->".id")]
+                #:put "We are here!"
+            }
+        }
 
         # find first dot
         :local firstDot [:find $network "."]
@@ -110,8 +160,58 @@ if ([:len $subStr] > 0) do= {
 
         #GATEWAY
         :local gwStart [:find $obj "\"gateway\":\""]
-        :local gateway [:pick $obj ($gwStart + 11) [:len $obj]]
-        #:put "Gateway = $gateway";
+        :local gwEnd [:find $obj "\",\"account\":\""]
+        :local gateway [:pick $obj ($gwStart + 11) $gwEnd]
+        :put "Gateway = $gateway";
+
+        #ACCOUNT
+        :local accStart [:find $obj "\"account\":"]
+        :local accEnd [:find $obj "\"speed\":"]
+        :local account [:pick $obj ($accStart+11) ($accEnd-2)]
+        :put "Account = $account"
+        
+        #SPEED
+        :local speedStart [:find $obj "\"speed\":\""]
+        :local speed [:pick $obj ($speedStart+9) ([:len $obj]-1)]
+        :local speedStart [:find $speed "\\"]
+        :set $speed ([:pick $speed 0 $speedStart].[:pick $speed ($speedStart+1) [:len $speed]])
+        :put "Speed : $speed";
+
+        #check if the queue is more than 1
+        :local queues [/queue/simple/find where name~"$account\$"]
+        :put $queues
+        :local selectedQueue
+        :foreach queue in=$queues do={
+            #find the queue thats active
+            :put $queue
+            :local queueData [/queue/simple/get $queue]
+            :local uploadSpeed ($queueData->"bytes")
+            :set $uploadSpeed [:pick $uploadSpeed 0 [:find $uploadSpeed "/"]]
+            #:put $uploadSpeed;
+            #:put $queueData
+            :if (($queueData->"max-limit") = $speed $uploadSpeed > 0) do={
+                :set $selectedQueue $queue
+                #:put "We are here!"
+            }
+        }
+        :if ([:typeof $selectedQueue] = "nothing") do={
+            #just use the first that matches the speed
+            :foreach queue in=$queues do={
+                :local queueData [/queue/simple/get $queue]
+                :if (($queueData->"max-limit") = $speed) do={
+                    :set $selectedQueue $queue
+                    #:put "We are here!"
+                }
+            }
+        }
+        :foreach queue in=$queues do={
+            :local queueData [/queue/simple/get $queue]
+            :if (!(($queueData->".id") = $selectedQueue)) do={
+                :put ("Deleted ".($queueData->".id"))
+                [/queue/simple/remove ($queueData->".id")]
+                #:put "We are here!"
+            }
+        }
 
         # find first dot
         :local firstDot [:find $network "."]
