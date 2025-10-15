@@ -3577,9 +3577,9 @@ $export_text .= "
 
             // GENERATE CLIENTS DAILY
             $today = date("Ymd");
-            $usage_stats_daily = DB::connection("mysql2")->select("SELECT (SUM(download)+SUM(upload)) AS 'usage', SUM(download) AS download, SUM(upload) AS upload FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date LIKE '$today%'");
+            $usage_stats_daily = DB::connection("mysql2")->select("SELECT SUM(download+upload) AS 'usage', SUM(download) AS download, SUM(upload) AS upload FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date LIKE '$today%'");
             $yesterday = date("Ymd", strtotime("-1 day"));
-            $usage_stats_yesterday = DB::connection("mysql2")->select("SELECT SUM(download)+SUM(upload) AS 'usage', SUM(download) AS download, SUM(upload) AS upload FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date LIKE '$yesterday%'");
+            $usage_stats_yesterday = DB::connection("mysql2")->select("SELECT SUM(download+upload) AS 'usage', SUM(download) AS download, SUM(upload) AS upload FROM `client_usage_stats` WHERE account = '".$clients_data[0]->client_account."' AND date LIKE '$yesterday%'");
 
             $todays_usage = count($usage_stats_daily) > 0 ? $usage_stats_daily[0]->usage : 0;
             $yesterday_usage = count($usage_stats_yesterday) > 0 ? $usage_stats_yesterday[0]->usage : 0;
@@ -3600,7 +3600,7 @@ $export_text .= "
             $bandwidth_stats = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage', AVG(download) AS download, AVG(upload) AS upload FROM five_minute_stats WHERE account = '".$clients_data[0]->client_account."' AND date > '".$today."';");
             $today_band = count($bandwidth_stats) > 0 ? $bandwidth_stats[0]->usage : 0;
             $yesterday = date("Ymd")."000000";
-            $bandwidth_stats_yesterday = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage', AVG(download) AS download, AVG(upload) AS upload FROM five_minute_stats WHERE account = '".$clients_data[0]->client_account."' AND date > '".$yesterday."' AND date <= '".$yesterday."';");
+            $bandwidth_stats_yesterday = DB::connection("mysql2")->select("SELECT AVG(download+upload) AS 'usage', AVG(download) AS download, AVG(upload) AS upload FROM five_minute_stats WHERE account = '".$clients_data[0]->client_account."' AND date > '".$yesterday."' AND date < '".$today."';");
             $two_day_band = count($bandwidth_stats_yesterday) > 0 ? $bandwidth_stats_yesterday[0]->usage : 0;
             $difference = ($today_band > 0 && $two_day_band > 0) ? ($today_band > $two_day_band ? round((($today_band - $two_day_band) / $today_band) * 100, 1) : round((($two_day_band - $today_band) / $today_band) * 100, 1)) : 0;
             $isIncrease = $today_band > $two_day_band;
@@ -6100,11 +6100,42 @@ $export_text .= "
                             DB::connection("mysql2")->update("UPDATE client_tables SET last_seen = ? WHERE client_account = ?",[$now, $client['account']]);
                         }
                     }else{
+                        // check if there is a value for yesterday, if its not present add the value as it is
+                        $check_usage = DB::connection("mysql2")->select("SELECT * FROM client_usage_stats WHERE account = '".$client['account']."' AND date LIKE '".date("Ymd", strtotime("-1 day"))."%'");
+                        $upload_add = $client['upload'];
+                        $download_add = $client['download'];
+                        if(count($check_usage) > 0){
+                            // update
+                            $cumulative_download = $check_usage[0]->download*1;
+                            $cumulative_upload = $check_usage[0]->upload*1;
+                            $previous_upload = $check_usage[0]->previous_upload*1;
+                            $previous_download = $check_usage[0]->previous_download*1;
+                            
+                            $upload_add = 0;
+                            if($client['upload']*1 > $previous_upload){
+                                // reset
+                                $upload_add = $client['upload']*1 - $previous_upload;
+                            }elseif($client['upload']*1 < $previous_upload){
+                                // reset
+                                $upload_add = $client['upload']*1;
+                            }
+
+
+                            $download_add = 0;
+                            if($client['download']*1 > $previous_download){
+                                // reset
+                                $download_add = $client['download']*1 - $previous_download;
+                            }elseif($client['download']*1 < $previous_download){
+                                // reset
+                                $download_add = $client['download']*1;
+                            }
+                        }
+
                         // insert
                         DB::connection("mysql2")->table('client_usage_stats')
                         ->insert([
-                            'upload' => $client['upload']*1,
-                            'download' => $client['download']*1,
+                            'upload' => $upload_add*1,
+                            'download' => $download_add*1,
                             'previous_upload' => $client['upload']*1,
                             'previous_download' => $client['download']*1,
                             'account' => $client['account'],
@@ -7105,12 +7136,12 @@ $export_text .= "
 
         if ($report_type == "daily") {
             $days = [];
-            for ($index=0; $index < 7; $index++) { 
+            for ($index=0; $index < 7; $index++) {
                 array_push($days, date("Ymd", strtotime("-$index days")));
             }
             
             $minutes_array = [];
-            $date = date("Ymd")."000000";
+            $date = empty($next_date) ? date("Ymd")."000000" : date("Ymd", strtotime($next_date))."000000";
             for ($index=0; $index < (96); $index++) {
                 array_push($minutes_array, [$date, $this->addMinutes($date,15)]);
                 $date = $this->addMinutes($date,15);
@@ -7192,7 +7223,6 @@ $export_text .= "
             
             $all_data = [];
             foreach ($days as $key => $month) {
-
                 $month_data = [];
                 $month_data['day'] = $month;
                 $month_data['y'] = date("M dS Y",strtotime($month))." - ". date("M dS Y",strtotime($this->addDays($month, date("t", strtotime($month))-1)));

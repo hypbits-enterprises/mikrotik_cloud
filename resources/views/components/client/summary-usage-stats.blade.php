@@ -6,8 +6,8 @@
                     <div>
                         <small class="text-sm mb-0 text-capitalize">Total Usage Last 30 days</small>
                         <h4 class="mb-0">{{$monthly_stats['this_month_usage']}}</h4>
-                        <span class="badge bg-success text-dark mb-1"><b>D: </b>{{$monthly_stats['upload']}}</span>
-                        <span class="badge bg-warning text-dark"><b>U: </b>{{$monthly_stats['download']}}</span>
+                        <span class="badge bg-success text-dark mb-1"><b>D: </b>{{$monthly_stats['download']}}</span>
+                        <span class="badge bg-warning text-dark"><b>U: </b>{{$monthly_stats['upload']}}</span>
                     </div>
                     <div class="icon icon-md icon-shape bg-primary text-white shadow pt-1 px-1 text-center rounded">
                         <h4 class="text-white"><i class="ft-activity"></i></h4>
@@ -27,8 +27,8 @@
                     <div>
                         <small class="text-sm mb-0 text-capitalize">Total Usage Today</small>
                         <h4 class="mb-0">{{$daily_stats['todays_usage']}}</h4>
-                        <span class="badge bg-success text-dark mb-1"><b>D: </b>{{$daily_stats['upload']}}</span>
-                        <span class="badge bg-warning text-dark"><b>U: </b>{{$daily_stats['download']}}</span>
+                        <span class="badge bg-success text-dark mb-1"><b>D: </b>{{$daily_stats['download']}}</span>
+                        <span class="badge bg-warning text-dark"><b>U: </b>{{$daily_stats['upload']}}</span>
                     </div>
                     <div class="icon icon-md icon-shape bg-primary text-white shadow pt-1 px-1 text-center rounded">
                         <h5 class="text-white"><i class="ft-calendar"></i></h5>
@@ -48,8 +48,8 @@
                     <div>
                         <small class="text-sm mb-0 text-capitalize">Avg. Bandwidth Today</small>
                         <h4 class="mb-0">{{$bandwidth_stats['today_band']}}ps</h4>
-                        <span class="badge bg-success text-dark mb-1"><b>D: </b>{{$bandwidth_stats['upload']}}ps</span>
-                        <span class="badge bg-warning text-dark"><b>U: </b>{{$bandwidth_stats['download']}}ps</span>
+                        <span class="badge bg-success text-dark mb-1"><b>D: </b>{{$bandwidth_stats['download']}}ps</span>
+                        <span class="badge bg-warning text-dark"><b>U: </b>{{$bandwidth_stats['upload']}}ps</span>
                     </div>
                     <div class="icon icon-md icon-shape bg-primary text-white shadow pt-1 px-1 text-center rounded">
                         <h5 class="text-white"><i class="ft-bar-chart"></i></h5>
