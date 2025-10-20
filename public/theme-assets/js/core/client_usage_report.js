@@ -263,7 +263,7 @@ function createChart(report_data) {
                         if (label) {
                         label += ": ";
                         }
-                        label += context.parsed.y + " " + upload.unit+(cObj("report_on").value == "bandwidth" ? "PS" : ""); // tooltip suffix
+                        label += context.parsed.y + " " + upload.unit+(cObj("report_on").value == "bandwidth" ? "ps" : ""); // tooltip suffix
                         return label;
                     }
                 },
@@ -300,7 +300,7 @@ function createChart(report_data) {
                 beginAtZero: true,
                 ticks: {
                     callback: function (value) {
-                        return value + " " + upload.unit+(cObj("report_on").value == "bandwidth" ? "PS" : ""); // add suffix
+                        return value + " " + upload.unit+(cObj("report_on").value == "bandwidth" ? "ps" : ""); // add suffix
                     },
                     font: {
                         family: 'Comfortaa, sans-serif',

@@ -2,48 +2,134 @@
 :put "....Preparing your configuration...."
 :put "....Downloading...."
 
+# :local domain "http://192.168.86.16:8000"
 :local domain "https://test_billing.hypbits.com"
 
-:local apiUrl "$domain/scripts/check_my_config.rsc"
-/tool fetch url=$apiUrl mode=https keep-result=yes dst-path=checkconfig.rsc
-:put "....Downloading Config I...."
+:local apiUrl "$domain/scripts/check_config_pt1.rsc"
+/tool fetch url=$apiUrl mode=https keep-result=yes dst-path=checkconfigpt1.rsc
+:put "....Downloading Config I PART I...."
 :delay 2;
 
-#add the script if not exists
+#----------------------ADD THE CHECK CONFIG STATS--------------------------------
+# PART 1
 :local checkconfig [/system script find where name="checkconfig"];
 :if ([:len $checkconfig] > 0) do={
-    /system script set $checkconfig source=[/file get checkconfig.rsc contents]
+    /system script set $checkconfig source=[/file get checkconfigpt1.rsc contents]
 } else={
-    /system script add name="checkconfig" source=[/file get checkconfig.rsc contents]
+    /system script add name="checkconfig" source=[/file get checkconfigpt1.rsc contents]
+}
+/file remove checkconfigpt1.rsc
+
+# ADD PART 2
+:set $apiUrl "$domain/scripts/check_config_pt2.rsc"
+/tool fetch url=$apiUrl mode=https keep-result=yes dst-path=checkconfigpt2.rsc
+:put "....Downloading Config I PART II...."
+:delay 2;
+:local checkconfig [/system script find where name="checkconfig"];
+:if ([:len $checkconfig] > 0) do={
+    /system script set $checkconfig source=([/system script get $checkconfig source]."\n".[/file get checkconfigpt2.rsc contents])
+    /file remove checkconfigpt2.rsc
 }
 
-:local apiUrl2 "$domain/scripts/final_script.rsc"
-/tool fetch url=$apiUrl2 mode=https keep-result=yes dst-path=hbsScript.rsc
-:put "....Downloading Config II...."
+# FINAL SCRIPT 5 PARTS
+:local apiUrl2 "$domain/scripts/final_script_pt1.rsc"
+/tool fetch url=$apiUrl2 mode=https keep-result=yes dst-path=final_script_pt1.rsc
+:put "....Downloading Config II PART 1...."
 :delay 2
 
-#add the script if not exists
-# :put "hbs script downloaded";
+
+#--------------------ADD THE MAIN ACTIVATE AND DEACTIVATE SCRIPT-----------------------
+# PART 1
 :local hbsScript [/system script find where name="hbsScript"];
 :if ([:len $hbsScript] > 0) do={
-    /system script set $hbsScript source=[/file get hbsScript.rsc contents]
+    /system script set $hbsScript source=[/file get final_script_pt1.rsc contents]
 } else={
-    /system script add name="hbsScript" source=[/file get hbsScript.rsc contents]
+    /system script add name="hbsScript" source=[/file get final_script_pt1.rsc contents]
+}
+/file remove final_script_pt1.rsc
+
+# PART 2
+:set apiUrl2 "$domain/scripts/final_script_pt2.rsc"
+/tool fetch url=$apiUrl2 mode=https keep-result=yes dst-path=final_script_pt2.rsc
+:put "....Downloading Config II PART II...."
+:delay 2
+:set hbsScript [/system script find where name="hbsScript"];
+:if ([:len $hbsScript] > 0) do={
+    /system script set $hbsScript source=([/system script get $hbsScript source]."\n".[/file get final_script_pt2.rsc contents])
+    /file remove final_script_pt2.rsc
 }
 
-:local apiUrl3 "$domain/scripts/stats.rsc"
-/tool fetch url=$apiUrl3 mode=https keep-result=yes dst-path=stats.rsc
-:put "....Downloading Config III...."
+# PART 3
+:set apiUrl2 "$domain/scripts/final_script_pt3.rsc"
+/tool fetch url=$apiUrl2 mode=https keep-result=yes dst-path=final_script_pt3.rsc
+:put "....Downloading Config II PART III...."
+:delay 2
+:set hbsScript [/system script find where name="hbsScript"];
+:if ([:len $hbsScript] > 0) do={
+    /system script set $hbsScript source=([/system script get $hbsScript source]."\n".[/file get final_script_pt3.rsc contents])
+    /file remove final_script_pt3.rsc
+}
+
+# PART 4
+:set apiUrl2 "$domain/scripts/final_script_pt4.rsc"
+/tool fetch url=$apiUrl2 mode=https keep-result=yes dst-path=final_script_pt4.rsc
+:put "....Downloading Config II PART IV...."
+:delay 2
+:set hbsScript [/system script find where name="hbsScript"];
+:if ([:len $hbsScript] > 0) do={
+    /system script set $hbsScript source=([/system script get $hbsScript source]."\n".[/file get final_script_pt4.rsc contents])
+    /file remove final_script_pt4.rsc
+}
+
+# PART 5
+:set apiUrl2 "$domain/scripts/final_script_pt5.rsc"
+/tool fetch url=$apiUrl2 mode=https keep-result=yes dst-path=final_script_pt5.rsc
+:put "....Downloading Config II PART IV...."
+:delay 2
+:set hbsScript [/system script find where name="hbsScript"];
+:if ([:len $hbsScript] > 0) do={
+    /system script set $hbsScript source=([/system script get $hbsScript source]."\n".[/file get final_script_pt5.rsc contents])
+    /file remove final_script_pt5.rsc
+}
+
+# ---------------------------------DOWNLOAD STATS----------------------------
+:local apiUrl3 "$domain/scripts/stats_pt1.rsc"
+/tool fetch url=$apiUrl3 mode=https keep-result=yes dst-path=stats_pt1.rsc
+:put "....Downloading Config III PART 1...."
 :delay 2
 
 #add the script if not exists
 :put "Final script downloaded";
 :local stats [/system script find where name="stats"];
 :if ([:len $stats] > 0) do={
-    /system script set $stats source=[/file get stats.rsc contents]
+    /system script set $stats source=[/file get stats_pt1.rsc contents]
 } else={
-    /system script add name="stats" source=[/file get stats.rsc contents]
+    /system script add name="stats" source=[/file get stats_pt1.rsc contents]
 }
+/file remove stats_pt1.rsc
+
+:set apiUrl3 "$domain/scripts/stats_pt2.rsc"
+/tool fetch url=$apiUrl3 mode=https keep-result=yes dst-path=stats_pt2.rsc
+:put "....Downloading Config III PART II...."
+:delay 2
+:set stats [/system script find where name="stats"];
+:if ([:len $stats] > 0) do={
+    /system script set $stats source=([/system script get $stats source]."\n".[/file get stats_pt2.rsc contents])
+    /file remove stats_pt2.rsc
+}
+
+:set apiUrl3 "$domain/scripts/stats_pt3.rsc"
+/tool fetch url=$apiUrl3 mode=https keep-result=yes dst-path=stats_pt3.rsc
+:put "....Downloading Config III PART III...."
+:delay 2
+:set stats [/system script find where name="stats"];
+:if ([:len $stats] > 0) do={
+    /system script set $stats source=([/system script get $stats source]."\n".[/file get stats_pt3.rsc contents])
+    /file remove stats_pt3.rsc
+}
+
+
+# ------------------------------- SET SCHEDULER ----------------------------------------
 
 
 # set scheduler to run final script after 1 minute
@@ -66,4 +152,6 @@
 }
 
 #download the script for statistics
+/file remove import_config.rsc
+/system script remove [/system script find name="run_import_script"]
 :put "....Thank you for choosing Hypbits Enterprises Ltd...."

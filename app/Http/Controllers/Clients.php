@@ -5976,26 +5976,27 @@ $export_text .= "
                 }
             }
         }
-
-        // go for those that are TO BE ACTIVE BY EXPIRATION DATE AND ACTIVATE THEM
-        $client_list = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `next_expiration_date` >= ? AND `payments_status` = '1' AND `deleted` = '0' AND router_name = ?",[date("YmdHis"), $router_id]);
-        foreach($client_list as $key => $client){
-            // THESE ARE 
-            if($client->assignment == "static"){
-                array_push($active_static, array(
-                    "network" => $client->client_network,
-                    "gateway" => $client->client_default_gw,
-                    "account" => $client->client_account,
-                    "speed" => $client->max_upload_download
-                ));
-            }else{
-                array_push($active_pppoe, array(
-                    "secret" => $client->client_secret
-                ));
-            }
-            if($client->client_status != "1"){
-                // UPDATE THE STATUS OF THE CLIENT
-                DB::connection("mysql2")->update("UPDATE client_tables SET client_status = '1' WHERE client_id = '".$client->client_id."'");
+        if(date("Hi") > "0400" && date("Hi") < "0410"){
+            // go for those that are TO BE ACTIVE BY EXPIRATION DATE AND ACTIVATE THEM
+            $client_list = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `next_expiration_date` >= ? AND `payments_status` = '1' AND `deleted` = '0' AND router_name = ?",[date("YmdHis"), $router_id]);
+            foreach($client_list as $key => $client){
+                // THESE ARE 
+                if($client->assignment == "static"){
+                    array_push($active_static, array(
+                        "network" => $client->client_network,
+                        "gateway" => $client->client_default_gw,
+                        "account" => $client->client_account,
+                        "speed" => $client->max_upload_download
+                    ));
+                }else{
+                    array_push($active_pppoe, array(
+                        "secret" => $client->client_secret
+                    ));
+                }
+                if($client->client_status != "1"){
+                    // UPDATE THE STATUS OF THE CLIENT
+                    DB::connection("mysql2")->update("UPDATE client_tables SET client_status = '1' WHERE client_id = '".$client->client_id."'");
+                }
             }
         }
 
@@ -7169,8 +7170,8 @@ $export_text .= "
                             "hour" => $start_date_param,
                             "ends" => $end_date_param,
                             "x" => date("H:i", strtotime($start_date_param)),
-                            "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
-                            "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                            "upload" => count($day_data) > 0 ? round($day_data[0]->upload*1 ?? 0) : 0,
+                            "download" => count($day_data) > 0 ? round($day_data[0]->download*1 ?? 0) : 0
                         );
                         array_push($new_data['report'], $hour_data);
                     }
@@ -7206,8 +7207,8 @@ $export_text .= "
                         $hour_data = array(
                             "day" => $start_date_param,
                             "x" => date("dS M", strtotime($start_date_param)),
-                            "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
-                            "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                            "upload" => count($day_data) > 0 ? round($day_data[0]->upload*1 ?? 0) : 0,
+                            "download" => count($day_data) > 0 ? round($day_data[0]->download*1 ?? 0) : 0
                         );
                         array_push($week_data['report'], $hour_data);
                     }
@@ -7247,8 +7248,8 @@ $export_text .= "
                         $hour_data = array(
                             "day" => $start_date_param,
                             "x" => date("dS M", strtotime($start_date_param)) . " - " . date("dS M", strtotime($end_date_param)),
-                            "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
-                            "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                            "upload" => count($day_data) > 0 ? round($day_data[0]->upload*1 ?? 0) : 0,
+                            "download" => count($day_data) > 0 ? round($day_data[0]->download*1 ?? 0) : 0
                         );
                         array_push($month_data['report'], $hour_data);
                     }
@@ -7286,8 +7287,8 @@ $export_text .= "
                     $hour_data = array(
                         "day" => $start_date_param,
                         "x" => date("dS M", strtotime($start_date_param))." - ".date("dS M", strtotime($end_date_param)),
-                        "upload" => count($day_data) > 0 ? ($day_data[0]->upload*1 ?? 0) : 0,
-                        "download" => count($day_data) > 0 ? ($day_data[0]->download*1 ?? 0) : 0
+                        "upload" => count($day_data) > 0 ? round($day_data[0]->upload*1 ?? 0) : 0,
+                        "download" => count($day_data) > 0 ? round($day_data[0]->download*1 ?? 0) : 0
                     );
                     array_push($month_data['report'], $hour_data);
                 }
