@@ -1741,14 +1741,13 @@ $export_text .= "
 
         // return $req;
         $hold_user_id_data = $req->input("hold_user_id_data");
-        $delete_from_router = $req->input("delete_from_router");
+        $delete_from_router = $req->input("delete_from_router") ?? "off";
 
         if ($this->isJson_report($hold_user_id_data)) {
             $hold_user_id_data = json_decode($hold_user_id_data);
             for ($inde = 0; $inde < count($hold_user_id_data); $inde++) {
-                // return $hold_user_id_data[$inde];
-                $data = $this->delete_user($hold_user_id_data[$inde]);
-                // return $data;
+                $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_account` = '$hold_user_id_data[$inde]'");
+                $data = $this->delete_user($user_data[0]->client_id, $delete_from_router == "on");
             }
             session()->flash("success_reg", "Clients deleted successfully!");
         } else {
@@ -3086,7 +3085,7 @@ $export_text .= "
         }
     }
 
-    function delete_user($user_id)
+    function delete_user($user_id, $delete_router = true)
     {
         // change db
         $change_db = new login();
@@ -3103,7 +3102,7 @@ $export_text .= "
                 $router_id =  $user_data[0]->router_name;
                 $client_name = $user_data[0]->client_name;
                 $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'", [$router_id]);
-                if (count($router_data) > 0) {
+                if (count($router_data) > 0 && $delete_router) {
                     // disable the interface in that router
 
                     // get the sstp credentails they are also the api usernames
@@ -3192,7 +3191,7 @@ $export_text .= "
                 $router_id = $user_data[0]->router_name;
                 $client_name = $user_data[0]->client_name;
                 $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ? AND `deleted` = '0'", [$user_data[0]->router_name]);
-                if (count($router_data) > 0) {
+                if (count($router_data) > 0 && $delete_router) {
                     // get the sstp credentails they are also the api usernames
                     $sstp_username = $router_data[0]->sstp_username;
                     $sstp_password = $router_data[0]->sstp_password;
@@ -7320,6 +7319,139 @@ $export_text .= "
             unlink($file_location);
         }
         return response()->json(["success" => true, "message" => "$filename deleted successfully!"]);
+    }
+
+    function import_client_data(Request $req){
+        $file = $req->file('selected_files');
+
+        // Check if a file was uploaded
+        if (!$file) {
+            return back()->with('error', 'Please select a CSV file to upload.');
+        }
+
+        // Check if the file is valid
+        if (!$file->isValid()) {
+            return back()->with('error', 'The uploaded file is not valid.');
+        }
+
+        // Check extension
+        $extension = $file->getClientOriginalExtension();
+        if (!in_array(strtolower($extension), ['csv'])) {
+            return back()->with('error', 'Only CSV files are allowed.');
+        }
+
+        // Check size (in bytes)
+        $maxSize = 10 * 1024 * 1024; // 10 MB
+        if ($file->getSize() > $maxSize) {
+            return back()->with('error', 'The file is too large. Maximum size is 10MB.');
+        }
+
+        // ✅ If validation passes, read the file
+        $data = [];
+        if (($handle = fopen($file->getRealPath(), 'r')) !== false) {
+            while (($row = fgetcsv($handle, 1000, ',')) !== false) {
+                $data[] = $row;
+            }
+            fclose($handle);
+        }
+        if (count($data) < 2) {
+            return back()->with("error", "No client present in the file!");
+        }
+        
+        // create the rsc file for them to download
+        $with_error = "<ul>";
+        $client_count = 0;
+        $script_text = [];
+        $all_routers = DB::connection("mysql2")->select("SELECT * FROM `remote_routers`");
+        for ($index = 1; $index < count($data); $index++) {
+            $client_data = $data[$index];
+            if(!isset($script_text[$client_data[12]])){
+                $script_text[$client_data[12]] = "";
+            }
+            // add only if the account number is not available
+            $client_details = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE client_account = ?", [$client_data[1]]);
+            if(count($client_details) == 0){
+                $router_id = 0;
+                for ($i=0; $i < count($all_routers); $i++) { 
+                    if (trim(strtolower($all_routers[$i]->router_name)) == trim(strtolower($client_data[12]))) {
+                        $router_id = $all_routers[$i]->router_id;
+                    }
+                }
+                DB::connection("mysql2")->insert("INSERT INTO client_tables (client_name, client_address, client_network, client_default_gw, next_expiration_date, clients_reg_date, max_upload_download, monthly_payment, router_name, client_interface, comment, clients_contacts, client_account, client_status, payments_status, wallet_amount, client_username, client_password, assignment, client_secret, client_secret_password, client_profile, validated) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[
+                    $client_data[0],
+                    $client_data[14],
+                    $client_data[7] == "static" ? $client_data[8] : "",
+                    $client_data[7] == "static" ? $client_data[9] : "",
+                    date("Ymd",strtotime($client_data[3]))."235959",
+                    date("Ymd",strtotime($client_data[4]))."000000",
+                    $client_data[7] == "static" ? $client_data[10]."/".$client_data[11]:"",
+                    $client_data[5],
+                    $router_id,
+                    $client_data[13],
+                    $client_data[16],
+                    $client_data[2],
+                    $client_data[1],
+                    $client_data[15] == "active" ? "1" : "0",
+                    "1",
+                    $client_data[6],
+                    $client_data[1],
+                    $client_data[1],
+                    $client_data[7],
+                    $client_data[7] == "static" ? "":$client_data[8],
+                    $client_data[7] == "static" ? "":$client_data[9],
+                    $client_data[7] == "static" ? "":$client_data[13],
+                    "1"
+                ]);
+                $client_count+=1;
+                if($client_data[7] == "static"){
+                    $script_text[$client_data[12]] .= "if ([/ip address find network=\"".$client_data[8]."\"] = \"\") do={\n";
+                    $script_text[$client_data[12]] .= "   /ip address add address=\"".$client_data[9]."\" network=\"".$client_data[8]."\" disabled=\"".($client_data[15] == "inactive" ? "yes" : "no")."\" interface=\"".$client_data[13]."\" comment=\"".ucwords(strtolower($client_data[0]))." (".$client_data[14]." - ) - ".$client_data[1]."\"\n";
+                    $script_text[$client_data[12]] .= "}\n";
+                    $script_text[$client_data[12]] .= ":if ([/queue simple find target~\"".$client_data[8]."\"] = \"\") do={\n";
+                    $script_text[$client_data[12]] .= "   /queue simple add name=\"".ucwords(strtolower($client_data[0]))." (".$client_data[14]." - ) - ".$client_data[1]."\" target=\"".$client_data[8]."/".(explode("/",$client_data[9])[1])."\" max-limit=\"".$client_data[10]."/".$client_data[11]."\" comment=\"".ucwords(strtolower($client_data[0]))." (".$client_data[14]." - ) - ".$client_data[1]."\"\n";
+                    $script_text[$client_data[12]] .= "}\n";
+                }
+                if($client_data[7] == "pppoe"){
+                    $script_text[$client_data[12]] .= ":if ([/ppp secret find name=\"".$client_data[8]."\"] = \"\") do={\n";
+                    $script_text[$client_data[12]] .= "   /ppp secret add name=\"".$client_data[8]."\" password=\"".$client_data[9]."\" disabled=\"".($client_data[15] == "inactive" ? "yes" : "no")."\" service=\"pppoe\" profile=\"".$client_data[13]."\" comment=\"".ucwords(strtolower($client_data[0]))." (".$client_data[14]." - ) - ".$client_data[1]."\"\n";
+                    $script_text[$client_data[12]] .= "}\n";
+                }
+            }else{
+                $with_error .= "<li class='text-danger'>\"".ucwords(strtolower($client_data[0]))."\" account number \"".$client_data[1]."\" is already used by \"".ucwords(strtolower($client_details[0]->client_name))."\"!</li>";
+            }
+        }
+        $with_error .= "</ul>";
+        if($client_count > 0){
+            $with_success = "<div class='text-success'>".$client_count." client(s) have been added successfully!<br>Download the file(s) listed below to add these clients to your router<br>Its good practice to run even if they are present in the router!<br></div>";
+            session()->flash("success", $with_success);
+        }else{
+            $with_error = "<p class='text-danger'>No client imported!</p>".$with_error;
+        }
+        
+        $file_list = [];
+        if (!File::exists(public_path('scripts'))) {
+            File::makeDirectory(public_path('scripts'), 0755, true);
+        }
+        foreach ($script_text as $key => $script) {
+            if(strlen($script) == 0){
+                continue;
+            }
+            if (File::exists(public_path("scripts/".str_replace(" ","_",$key).".rsc"))) {
+                unlink(public_path("scripts/".str_replace(" ","_",$key).".rsc"));
+            }
+            $add_file_location = public_path("scripts/".str_replace(" ","_",$key).".rsc");
+            File::put($add_file_location, $script);
+            array_push($file_list, ["scripts/".str_replace(" ","_",$key).".rsc", $key]);
+        }
+
+        // session()->flash("success", $with_success);
+        if(count($client_details) != $client_count){
+            session()->flash("error", $with_error);
+        }
+        if($client_count > 0){
+            session()->flash("file_list", $file_list);
+        }
+        return back();
     }
 
     function migrate_client_data(Request $req){

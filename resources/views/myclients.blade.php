@@ -237,8 +237,27 @@
                             </div>
                             <div class="card-header">
                                 <p>- Manage Clients Further!</p>
+                                @if(session('success_reg'))
+                                    <p class="text-success">{{session('success_reg')}}</p>
+                                @endif
+                                @if (session('success'))
+                                    <p class="success">{!! session('success') !!}</p>
+                                @endif
+                                @if (session('error_clients'))
+                                    <p class="text-danger">{{ session('error_clients') }}</p>
+                                @endif
                                 @if (session()->has("error"))
-                                    <h6 style="color: orangered">{!!session("error")!!}</h6>
+                                    <p style="color: orangered">{!!session("error")!!}</p>
+                                @endif
+                                @if (session()->has("file_list"))
+                                    <div class="text-success">
+                                        <h6 class="text-success">Download List</h6>
+                                        <ul>
+                                            @foreach (session("file_list") as $file)
+                                                <li>Download : <code><a href="{{$file[0]}}" download>{{$file[1]}}</a></code></li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
                                 @endif
                                 @if (session()->has("router_data_migrate"))
                                     <form class="container mb-1" action="/reverse_migration" method="post">
@@ -302,10 +321,72 @@
                                 @endphp
                                 <x-button :btnText="$btnText" btnType="info" type="button" :disabled="$export_data" toolTip="Export Client Data" btnSize="md" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                                 {{-- <button class="btn btn-info mt-1 {{$export_data == "disabled" ? "d-none" : ""}}" style="padding: 3px;" {{$export_data}} data-toggle="tooltip" title="Export Client Data" id="export_client_data_btn"><span class="d-inline-block border border-white" style="border-radius: 2px; padding: 10px;"><i class="fa fa-file-export"></i> Export Client Data</span></button> --}}
+                                @php
+                                    $btnText = "<i class=\"fa fa-file-import\"></i> Import Client Data";
+                                    $otherClasses = "mt-1 ".($export_data == "disabled" ? "d-none" : "");
+                                    $btn_id = "import_client_data_btn";
+                                @endphp
+                                <x-button :btnText="$btnText" btnType="info" type="button" :disabled="$export_data" toolTip="Import Client Data" btnSize="md" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                {{-- <button class="btn btn-info mt-1 {{$export_data == "disabled" ? "d-none" : ""}}" style="padding: 3px;" {{$export_data}} data-toggle="tooltip" title="Export Client Data" id="import_client_data_btn"><span class="d-inline-block border border-white" style="border-radius: 2px; padding: 10px;"><i class="fa fa-file-export"></i> Export Client Data</span></button> --}}
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
                                     <div class="container">
+                                        {{-- EXPORT CLIENTS DATA --}}
+                                        <div class="modal fade text-left hide" id="import_client_data_window" tabindex="-1" role="dialog" aria-labelledby="myModalLabel6" style="padding-right: 17px;" aria-modal="true">
+                                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-info white">
+                                                    <h4 class="modal-title white" id="myModalLabel6"><i class="fa fa-file-export"></i> Import Client data</h4>
+                                                    <input type="hidden" id="import_client_data_list">
+                                                    <button id="close_import_client_data_window_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">×</span>
+                                                    </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="container">
+                                                            <div class="container border border-primary rounded p-1 mb-2">
+                                                                <b>Note:</b><br>
+                                                                <ul>
+                                                                    <li>Download the sample file and fill.</li>
+                                                                    <li>Download from here : <code><a class="text-danger" href="/export/client_list.csv" download class="code">Click to download!</a></code></li>
+                                                                </ul>
+                                                            </div>
+                                                            <form action="/import_client_data" target="_blank" enctype="multipart/form-data" method="post" class="form-control-group">
+                                                                @csrf
+                                                                <h6 class="text-center" >Import Client`s data</h6>
+                                                                
+                                                                <label for="selected_files" class="form-control-label" id=""><b>Select file</b></label>
+                                                                <input type="file" name="selected_files" id="selected_files" class="form-control" accept=".csv">
+                                                                
+                                                                <div class="row w-100">
+                                                                    <div class="col-md-6">
+                                                                        @php
+                                                                            $btnText = "<i class=\"fas fa-file-import\"></i> Import";
+                                                                            $otherClasses = "w-100 my-1 ".($export_data == "disabled" ? "d-none" : "");
+                                                                            $btn_id = "";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="info" type="submit" :disabled="$export_data" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                        {{-- <button type="submit" class="btn btn-outline-info btn-sm w-100 my-1" {{$export_data == "disabled" ? "d-none" : ""}}><i class="fas fa-download"></i> Download</button> --}}
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        @php
+                                                                            $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                                            $otherClasses = "w-100 my-1 ".($export_data == "disabled" ? "d-none" : "");
+                                                                            $btn_id = "close_import_client_data_window_2";
+                                                                        @endphp
+                                                                        <x-button :btnText="$btnText" btnType="secondary" type="button" :disabled="$export_data" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                                        {{-- <button class="btn btn-outline-secondary btn-sm w-100 my-1" type="button" id="close_export_client_data_2">Cancel</button> --}}
+                                                                    </div>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         {{-- EXPORT CLIENTS DATA --}}
                                         <div class="modal fade text-left hide" id="export_client_data" tabindex="-1" role="dialog" aria-labelledby="myModalLabel4" style="padding-right: 17px;" aria-modal="true">
                                             <div class="modal-dialog modal-dialog-centered" role="document">
@@ -361,7 +442,7 @@
                                                                         @php
                                                                             $btnText = "<i class=\"fas fa-download\"></i> Download";
                                                                             $otherClasses = "w-100 my-1 ".($export_data == "disabled" ? "d-none" : "");
-                                                                            $btn_id = "export_client_data_btn";
+                                                                            $btn_id = "";
                                                                         @endphp
                                                                         <x-button :btnText="$btnText" btnType="info" type="submit" :disabled="$export_data" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                                                                         {{-- <button type="submit" class="btn btn-outline-info btn-sm w-100 my-1" {{$export_data == "disabled" ? "d-none" : ""}}><i class="fas fa-download"></i> Download</button> --}}
@@ -526,15 +607,6 @@
                                     <p class="card-text">In this table below Client information can be displayed.</p>
                                     <p>Search options <span id="clients_search_loader" class="text-primary invisible"><i class="fas fa-refresh fa-spin"></i> Loading...</span></p>
                                     <p class="d-none" id="client_search_results"></p>
-                                    @if(session('success_reg'))
-                                        <p class="text-success">{{session('success_reg')}}</p>
-                                    @endif
-                                    @if (session('success'))
-                                        <p class="success">{{ session('success') }}</p>
-                                    @endif
-                                    @if (session('error_clients'))
-                                        <p class="text-danger">{{ session('error_clients') }}</p>
-                                    @endif
                                     <div class="row">
                                         <div class="col-md-9 form-group row border-right border-dark">
                                             <div class="col-md-5">
@@ -676,17 +748,6 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {{-- <tr>
-                                                    <th scope="row"><input type="checkbox" class="actions_id" id="actions_id_HYP016"><input type="hidden" id="actions_value_HYP016" value="HYP016"> 1 </th>
-                                                    <td><span class="badge text-light" style="background: rgb(119, 105, 183);" data-toggle="tooltip" title="" data-original-title="PPPoE Assigned">P</span> <a href="/Clients/View/586" class="text-secondary"><span class="" data-toggle="tooltip" title="" data-original-title="Verified">James Kato</span> <span class="badge badge-success"> </span></a><br><small class="text-gray d-none d-xl-block"></small></td>
-                                                    <td data-html="true" data-toggle="tooltip" title="" data-original-title="No Issues Yet!">HYP016 </td>
-                                                    <td>Kitale Kenya<br><small class="d-none d-md-block"></small></td>
-                                                    <td>Sun 26 Oct 2025 @ 20:19:00</td>
-                                                    <td><small>null; null; </small> <small class="text-gray d-xl-block">{No queues router}</small></td>
-                                                    <td><a href="/Clients/View/586" class="btn btn-primary btn-sm " style="padding: 3px;" id="" data-toggle="tooltip" title="" data-original-title="View this client!"><span class="d-inline-block border border-white w-100 text-center" style="border-radius: 2px; padding: 5px;"><i class="ft-eye"></i></span></a>
-                                                        <a href="/deactivate/586" class="btn btn-danger btn-sm " style="padding: 3px;" id="" data-toggle="tooltip" title="" data-original-title="Disable this client!"><span class="d-inline-block border border-white w-100 text-center" style="border-radius: 2px; padding: 5px;"><i class="ft-x"></i></span></a>
-                                                    </td>
-                                                </tr> --}}
                                             </tbody>
                                         </table>
                                     </div>

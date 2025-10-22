@@ -619,6 +619,25 @@ cObj("close_export_client_data_2").onclick = function () {
     cObj("export_client_data").classList.remove("showBlock");
 }
 
+// import client
+cObj("import_client_data_btn").onclick = function () {
+    cObj("import_client_data_window").classList.remove("hide");
+    cObj("import_client_data_window").classList.add("show");
+    cObj("import_client_data_window").classList.add("showBlock");
+}
+
+cObj("close_import_client_data_window_1").onclick = function () {
+    cObj("import_client_data_window").classList.add("hide");
+    cObj("import_client_data_window").classList.remove("show");
+    cObj("import_client_data_window").classList.remove("showBlock");
+}
+
+cObj("close_import_client_data_window_2").onclick = function () {
+    cObj("import_client_data_window").classList.add("hide");
+    cObj("import_client_data_window").classList.remove("show");
+    cObj("import_client_data_window").classList.remove("showBlock");
+}
+
 // migrate client data
 cObj("export_selected_clients_data_btn").onclick = function () {
     cObj("migrate_clients_window").classList.remove("hide");
