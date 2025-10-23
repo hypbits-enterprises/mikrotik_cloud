@@ -64,13 +64,99 @@ class Clients extends Controller
                 $export_data[$index]->clients = $client_data;
             }
         }
-        // return $export_data;
+        // export_data
 
         // CREATE THE EXPORT FILE.
-
-        if (count($export_data) > 0) {
+        $download_as = $request->input("download_as");
+        if(count($export_data) > 0 && $download_as == "csv"){
+            // create the excel export file
             $file_paths = [];
+            foreach ($export_data as $key => $exp_data) {
+                $filename = $exp_data->router_name.'.'.$request->input("download_as");
+                $filePath = public_path('mukirito-export-data');
+                if (!file_exists($filePath)) {
+                    mkdir($filePath, 0777, true); // Create folder if it doesn't exist
+                }
 
+                $titles = [
+                    "fullname",
+                    "account_no",
+                    "phone_number",
+                    "expiry_date(dd/mm/YYYY)",
+                    "registration_date(dd/mm/YYYY)",
+                    "monthly_payment",
+                    "wallet",
+                    "client_type(static,pppoe)",
+                    "client_network/client_secret",
+                    "client_gateway/client_password",
+                    "upload_speed",
+                    "download_speed",
+                    "router_name",
+                    "router_interface",
+                    "Address",
+                    "status",
+                    "comment"
+                ];
+                $file = fopen($filePath."/".$filename, 'w');
+                fputcsv($file,$titles);
+
+                foreach ($exp_data->clients as $client) {
+                    $router_name = DB::connection("mysql2")->select("SELECT * FROM remote_routers WHERE router_id = ?",[$client->router_name]);
+                    $router_name = count($router_name) > 0 ? $router_name[0]->router_name : "Null";
+                    fputcsv($file, [
+                        $client->client_name,
+                        $client->client_account,
+                        $client->clients_contacts,
+                        date("d/m/Y", strtotime($client->next_expiration_date)),
+                        date("d/m/Y", strtotime($client->clients_reg_date)),
+                        $client->monthly_payment,
+                        $client->wallet_amount,
+                        $client->assignment,
+                        $client->assignment == "static" ? $client->client_network : $client->client_secret,
+                        $client->assignment == "static" ? $client->client_default_gw : $client->client_secret_password,
+                        $client->assignment == "static" ? explode("/", $client->max_upload_download)[0] : "",
+                        $client->assignment == "static" ? explode("/", $client->max_upload_download)[1] : "",
+                        $router_name,
+                        $client->assignment == "static" ? $client->client_interface : $client->client_profile,
+                        $client->client_address,
+                        $client->client_status == 1 ? "active" : "inactive",
+                        $client->comment
+                    ]);
+                }
+                // Close file
+                fclose($file);
+                array_push($file_paths,$filePath."/".$filename);
+            }
+            // download the file if the file path is only one
+            if (count($file_paths) == 1) {
+                return response()->download($file_paths[0]);
+            }
+
+            // zip the files
+            $zipPath = public_path('zipped_exports/'.session("database_name"));
+            if (!file_exists($zipPath)) {
+                mkdir($zipPath, 0777, true); // Create folder if it doesn't exist
+            }
+
+            $zipPath.= "/Export-data-".date("YmdHis").".zip";
+            $zip = new \ZipArchive;
+            if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) === TRUE) {
+                foreach ($file_paths as $file) {
+                    if (file_exists($file)) {
+                        $zip->addFile($file, basename($file));
+                    }
+                }
+                $zip->close();
+                return response()->download($zipPath);
+            } else {
+                session()->flash("error", "An error has occured, try again later!");
+                return redirect(url()->previous());
+            }
+            
+        }
+
+        if (count($export_data) > 0 && ($download_as == "txt" || $download_as == "rsc")) {
+            $file_paths = [];
             for ($index=0; $index < count($export_data); $index++) {
                 $text_file = "";
                 $export_text = "";
@@ -200,7 +286,6 @@ $export_text .= "
 
 # === Enable API and Winbox === 
 /ip service set [find name=api] disabled=no port=1982
-/ip service set [find name=winbox] disabled=no port=8291
 
 # === Disable unnecessary services === 
 /ip service set [find name=api-ssl] disabled=yes
@@ -4379,14 +4464,39 @@ $export_text .= "
         // change db
         $change_db = new login();
         $change_db->change_db();
-
-        $new_expiration = date("Ymd", strtotime($req->input('expiration_date_edits'))) . str_replace(":", "", $req->input("expiration_time_edits")) . "00";
+        $affect_wallet_balance = $req->input("affect_wallet_balance") ?? "off";
         $client_id = $req->input('clients_id');
+
+        $client_tables = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
+        $previous_expiry = $client_tables[0]->next_expiration_date;
+        $wallet_amount = $client_tables[0]->wallet_amount;
+        $new_expiration = date("Ymd", strtotime($req->input('expiration_date_edits'))) . str_replace(":", "", $req->input("expiration_time_edits")) . date("s", strtotime($previous_expiry));
+
+        if($affect_wallet_balance == "on"){
+            // difference ine days
+            $per_day_cost = round($client_tables[0]->monthly_payment / 30);
+            if ($new_expiration > $previous_expiry) {
+                $date1 = date_create($previous_expiry);
+                $date2 = date_create($new_expiration);
+                $diff = date_diff($date1,$date2);
+                $days =  $diff->format("%a");
+                $wallet_amount -= ($days*$per_day_cost);
+            }else{
+                $date1 = date_create($new_expiration);
+                $date2 = date_create($previous_expiry);
+                $diff = date_diff($date1,$date2);
+                $days =  $diff->format("%a");
+                $wallet_amount += ($days*$per_day_cost);
+            }
+        }
+        // return [$new_expiration,$previous_expiry, $wallet_amount, $per_day_cost];
+
         DB::connection("mysql2")->table('client_tables')
             ->where('client_id', $client_id)
             ->update([
                 'next_expiration_date' => $new_expiration,
-                'date_changed' => date("YmdHis")
+                'date_changed' => date("YmdHis"),
+                'wallet_amount' => $wallet_amount
             ]);
 
         $client = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
@@ -7357,12 +7467,49 @@ $export_text .= "
         if (count($data) < 2) {
             return back()->with("error", "No client present in the file!");
         }
+
+        // check the data titles to see if they match whats expected
+        $titles = [
+            "fullname",
+            "account_no",
+            "phone_number",
+            "expiry_date(dd/mm/YYYY)",
+            "registration_date(dd/mm/YYYY)",
+            "monthly_payment",
+            "wallet",
+            "client_type(static,pppoe)",
+            "client_network/client_secret",
+            "client_gateway/client_password",
+            "upload_speed",
+            "download_speed",
+            "router_name",
+            "router_interface",
+            "Address",
+            "status",
+            "comment"
+        ];
+        $mismatch = 0;
+        foreach ($titles as $key => $title) {
+            if ($data[0][$key] != $title) {
+                $mismatch++;
+            }
+        }
+        if($mismatch > 0){
+            return back()->with("error", "There are $mismatch mismatches in your document titles, ensure they match the sample you are given to download!");
+        }
         
         // create the rsc file for them to download
         $with_error = "<ul>";
         $client_count = 0;
         $script_text = [];
         $all_routers = DB::connection("mysql2")->select("SELECT * FROM `remote_routers`");
+        // DELETE THE REMOTE ROUTER PRESENT
+        foreach ($all_routers as $router) {
+            if (File::exists(public_path("scripts/".str_replace(" ","_",$router->router_name).".rsc"))) {
+                unlink(public_path("scripts/".str_replace(" ","_",$router->router_name).".rsc"));
+            }
+        }
+        $errors = 0;
         for ($index = 1; $index < count($data); $index++) {
             $client_data = $data[$index];
             if(!isset($script_text[$client_data[12]])){
@@ -7389,7 +7536,7 @@ $export_text .= "
                     $router_id,
                     $client_data[13],
                     $client_data[16],
-                    $client_data[2],
+                    strlen($client_data[2]) == 9 ? "254".$client_data[2] : $client_data[2],
                     $client_data[1],
                     $client_data[15] == "active" ? "1" : "0",
                     "1",
@@ -7417,6 +7564,7 @@ $export_text .= "
                     $script_text[$client_data[12]] .= "}\n";
                 }
             }else{
+                $errors += 1;
                 $with_error .= "<li class='text-danger'>\"".ucwords(strtolower($client_data[0]))."\" account number \"".$client_data[1]."\" is already used by \"".ucwords(strtolower($client_details[0]->client_name))."\"!</li>";
             }
         }
@@ -7445,7 +7593,7 @@ $export_text .= "
         }
 
         // session()->flash("success", $with_success);
-        if(count($client_details) != $client_count){
+        if($errors > 0){
             session()->flash("error", $with_error);
         }
         if($client_count > 0){

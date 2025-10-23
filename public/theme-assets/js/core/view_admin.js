@@ -10,6 +10,80 @@ window.onload = function () {
     account_options();
     client_options();
     checkChecked();
+    addListernerRoles();
+
+    var roles = document.getElementsByClassName("selected_date_time_roles");
+    for (let index = 0; index < roles.length; index++) {
+        roles[index].dispatchEvent(new Event("change"));
+    }
+
+    var dropdown_roles = document.getElementsByClassName("dropdown_roles");
+    for (let index = 0; index < dropdown_roles.length; index++) {
+        dropdown_roles[index].dispatchEvent(new Event("change"));
+    }
+}
+
+function addListernerRoles() {
+    var dropdown_roles = document.getElementsByClassName("dropdown_roles");
+    for (let index = 0; index < dropdown_roles.length; index++) {
+        const element = dropdown_roles[index];
+        element.addEventListener("change", function () {
+            if (this.value == "definate_expiry") {
+                cObj("dropdown_date_"+this.id.substring(14)).classList.remove("hide");
+                cObj("dropdown_roles_"+this.id.substring(14)).classList.add("hide");
+            }
+
+            var all_priviledges = cObj("privileged").value;
+            if (hasJsonStructure(all_priviledges)) {
+                all_priviledges = JSON.parse(all_priviledges);
+                for (let index = 0; index < all_priviledges.length; index++) {
+                    const elems = all_priviledges[index];
+                    if(elems.option == cObj("menu_label_value_"+this.id.substring(14)).value){
+                        all_priviledges[index].expiry = this.value;
+                        all_priviledges[index].expiry_date = cObj("select_date_time_"+this.id.substring(14)).value;
+                    }
+                }
+                cObj("privileged").value = JSON.stringify(all_priviledges);
+            }
+        });
+    }
+
+    var back_to_dropdown = document.getElementsByClassName("back_to_dropdown");
+    for (let index = 0; index < back_to_dropdown.length; index++) {
+        const element = back_to_dropdown[index];
+        element.addEventListener("click", function(){
+            cObj("dropdown_date_"+this.id.substring(17)).classList.add("hide");
+            cObj("dropdown_roles_"+this.id.substring(17)).classList.remove("hide");
+
+            var select_expiry = cObj("select_expiry_"+this.id.substring(17)).children;
+            for (let index = 0; index < select_expiry.length; index++) {
+                const elems = select_expiry[index];
+                if (elems.value == "indefinate_expiry") {
+                    elems.selected = true;
+                }
+            }
+        });
+    }
+
+    var selected_date_time_roles = document.getElementsByClassName("selected_date_time_roles");
+    for (let index = 0; index < selected_date_time_roles.length; index++) {
+        const element = selected_date_time_roles[index];
+        element.addEventListener("change", function () {
+            var all_priviledges = cObj("privileged").value;
+            console.log(all_priviledges);
+            if (hasJsonStructure(all_priviledges)) {
+                all_priviledges = JSON.parse(all_priviledges);
+                for (let index = 0; index < all_priviledges.length; index++) {
+                    const elems = all_priviledges[index];
+                    if(elems.option == cObj("menu_label_value_"+this.id.substring(17)).value){
+                        all_priviledges[index].expiry = cObj("select_expiry_"+this.id.substring(17)).value;
+                        all_priviledges[index].expiry_date = this.value;
+                    }
+                }
+                cObj("privileged").value = JSON.stringify(all_priviledges);
+            }
+        });
+    }
 }
     
 function showModal(modal_id) {
@@ -697,6 +771,15 @@ function validateForm() {
         all_readonly[index].dispatchEvent(new Event("change"));
     }
 
+    var roles = document.getElementsByClassName("selected_date_time_roles");
+    for (let index = 0; index < roles.length; index++) {
+        roles[index].dispatchEvent(new Event("change"));
+    }
+
+    var dropdown_roles = document.getElementsByClassName("dropdown_roles");
+    for (let index = 0; index < dropdown_roles.length; index++) {
+        dropdown_roles[index].dispatchEvent(new Event("change"));
+    }
     return true;
 }
 cObj("accounts_option_readonly").onchange = function () {

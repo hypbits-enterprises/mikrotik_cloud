@@ -1,3 +1,0 @@
-fullname,account_no,phone_number,expiry_date(dd/mm/YYYY),registration_date(dd/mm/YYYY),monthly_payment,wallet,"client_type(static,pppoe)",client_network/client_secret,client_gateway/client_password,upload_speed,download_speed,router_name,router_interface,Address,comment
-HILLARY,HYP001,0743551250,5/13/2025,5/13/2025,2500,0,static,10.10.10.0,10.10.10.1/24,10M,10M,Dot 12 kisimani,bridge1,Kiembeni,We will conqure
-JAMES KARANI,HYP003,0713620727,5/13/2025,5/13/2025,2000,1000,pppoe,HYP003,HYP003,,,Dot 12 kisimani,10mbps,Mtwapa,We will win

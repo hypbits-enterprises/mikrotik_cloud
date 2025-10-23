@@ -305,7 +305,10 @@
 
                             <label for="expiration_time_edits" class="form-control-label" id="">New Expiration Time</label>
                             <input type="time" value="<?=date("H:i", strtotime($clients_data[0]->next_expiration_date))?>" required name="expiration_time_edits" id="expiration_time_edits" class="form-control" placeholder="New Expiration Time">
-
+                            
+                            <label for="affect_wallet_balance" class="form-control-label mt-2" data-toggle="tooltip" title="Moving the expiry date forward deducts an amount based on the daily rate and added days."><b>Affect Wallet Balance</b></label>
+                            <input type="checkbox" name="affect_wallet_balance" id="affect_wallet_balance">
+                            
                             <div class="row w-100">
                                 <div class="col-md-6">
                                     @php

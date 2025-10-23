@@ -1,15 +1,32 @@
-{
-    "refferer": "HYP028",
-    "Monthly_payment": "1000",
-    "payment_history": [
-        {
-            "month": "Jan-2022",
-            "amount": [
-                {
-                    "amount": 200,
-                    "date": "20220528190222"
-                }
-            ]
-        }
-    ]
-}
+[
+    {
+        "option": "My Clients",
+        "view": true,
+        "readonly": false
+    },
+    {
+        "option": "Transactions",
+        "view": true,
+        "readonly": false
+    },
+    {
+        "option": "Expenses",
+        "view": true,
+        "readonly": false
+    },
+    {
+        "option": "My Routers",
+        "view": true,
+        "readonly": false
+    },
+    {
+        "option": "SMS",
+        "view": true,
+        "readonly": false
+    },
+    {
+        "option": "Account and Profile",
+        "view": true,
+        "readonly": false
+    }
+]

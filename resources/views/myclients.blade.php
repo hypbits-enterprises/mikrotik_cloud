@@ -254,7 +254,7 @@
                                         <h6 class="text-success">Download List</h6>
                                         <ul>
                                             @foreach (session("file_list") as $file)
-                                                <li>Download : <code><a href="{{$file[0]}}" download>{{$file[1]}}</a></code></li>
+                                                <li>Download : <code><a class="text-danger" href="{{$file[0]}}" download>{{$file[1]}}</a></code></li>
                                             @endforeach
                                         </ul>
                                     </div>
@@ -349,10 +349,10 @@
                                                                 <b>Note:</b><br>
                                                                 <ul>
                                                                     <li>Download the sample file and fill.</li>
-                                                                    <li>Download from here : <code><a class="text-danger" href="/export/client_list.csv" download class="code">Click to download!</a></code></li>
+                                                                    <li>Download from here : <code><a class="text-danger" href="/export/HBS IMPORT SAMPLE - Sample.csv" download class="code">Click to download!</a></code></li>
                                                                 </ul>
                                                             </div>
-                                                            <form action="/import_client_data" target="_blank" enctype="multipart/form-data" method="post" class="form-control-group">
+                                                            <form action="/import_client_data" enctype="multipart/form-data" method="post" class="form-control-group">
                                                                 @csrf
                                                                 <h6 class="text-center" >Import Client`s data</h6>
                                                                 
@@ -435,6 +435,7 @@
                                                                     <option value="" hidden>Select Option</option>
                                                                     <option selected value="rsc">An RSC File</option>
                                                                     <option value="txt">A Text File</option>
+                                                                    <option value="csv">A CSV File</option>
                                                                 </select>
                                                                 
                                                                 <div class="row w-100">
