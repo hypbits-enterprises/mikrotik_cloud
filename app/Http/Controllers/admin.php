@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\admin_table;
-use File;
+use Illuminate\Support\Facades\File;
+// use File;
 date_default_timezone_set('Africa/Nairobi');
 
 class admin extends Controller

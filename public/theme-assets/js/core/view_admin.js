@@ -70,7 +70,6 @@ function addListernerRoles() {
         const element = selected_date_time_roles[index];
         element.addEventListener("change", function () {
             var all_priviledges = cObj("privileged").value;
-            console.log(all_priviledges);
             if (hasJsonStructure(all_priviledges)) {
                 all_priviledges = JSON.parse(all_priviledges);
                 for (let index = 0; index < all_priviledges.length; index++) {
@@ -759,6 +758,27 @@ cObj("all_readonly").onchange = function () {
     client_options();
     checkChecked();
 }
+function checkBlank(id) {
+  let err = 0;
+  if (cObj(id).value.trim().length > 0) {
+    if (cObj(id).value.trim() == "N/A") {
+    //   redBorder(cObj(id));
+      cObj(id).classList.add("border");
+      cObj(id).classList.add("border-danger");
+      err++;
+    } else {
+    //   grayBorder(cObj(id));
+      cObj(id).classList.remove("border");
+      cObj(id).classList.remove("border-danger");
+    }
+  } else {
+    cObj(id).classList.add("border");
+    cObj(id).classList.add("border-danger");
+    // redBorder(cObj(id));
+    err++;
+  }
+  return err;
+}
 
 function validateForm() {
     var all_view = document.getElementsByClassName("all_view");
@@ -772,15 +792,27 @@ function validateForm() {
     }
 
     var roles = document.getElementsByClassName("selected_date_time_roles");
+    var error = 0;
     for (let index = 0; index < roles.length; index++) {
         roles[index].dispatchEvent(new Event("change"));
+        if (cObj("select_expiry_"+roles[index].id.substring(17)).value == "definate_expiry") {
+            var err = checkBlank(roles[index].id);
+            if(err > 0){
+                error++;
+            }
+        }
     }
 
     var dropdown_roles = document.getElementsByClassName("dropdown_roles");
     for (let index = 0; index < dropdown_roles.length; index++) {
         dropdown_roles[index].dispatchEvent(new Event("change"));
     }
-    return true;
+
+    // check error
+    if(error == 0){
+        return true;
+    }
+    return false;
 }
 cObj("accounts_option_readonly").onchange = function () {
     var account_optioned = document.getElementsByClassName("account_options_2");

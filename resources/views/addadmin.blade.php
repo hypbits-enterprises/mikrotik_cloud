@@ -94,7 +94,7 @@
                                     @if(session('success'))
                                         <p class="text-success">{{session('success')}}</p>
                                     @endif
-                                    <form class="border border-secondary rounded border-3 p-1" action="/addAdministrator" method="post">
+                                    <form class="border border-secondary rounded border-3 p-1" action="/addAdministrator" method="post" onsubmit="return validateForm()">
                                         <h6><strong>Add administrator</strong></h6>
                                         <p class="card-text">Fill all fields to add the Administrator.</p>
                                         @csrf
@@ -134,6 +134,7 @@
                                                             <th>Menu</th>
                                                             <th>View <input type="checkbox" checked id="all_view"></th>
                                                             <th>Read-only <input type="checkbox" id="all_readonly"></th>
+                                                            <th>Role Expiry</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -147,16 +148,58 @@
                                                             <td><label for="my_clients_option" class="form-label"><b>My Clients</b></label></td>
                                                             <td><input class="all_view client_options" checked type="checkbox" id="my_clients_option_view"></td>
                                                             <td><input class="all_readonly client_options_2"  type="checkbox" id="my_clients_option_readonly"></td>
+                                                            <td>
+                                                                <div class="container" id="dropdown_roles_1">
+                                                                    <select id="select_expiry_1" class="form-control dropdown_roles">
+                                                                        <option value="" hidden>Select Role Expiry</option>
+                                                                        <option selected value="indefinate_expiry">Indefinate Expiry</option>
+                                                                        <option value="definate_expiry">Definate Expiry</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="container hide" id="dropdown_date_1">
+                                                                    <input type="hidden" id="menu_label_value_1" value="My Clients">
+                                                                    <input class="form-control selected_date_time_roles" type="datetime-local" id="select_date_time_1" placeholder="Select date and time">
+                                                                    <p id="back_to_dropdown_1" style="width: fit-content; cursor: pointer;" class="back_to_dropdown text-primary mt-1"><i class="fa fa-arrow-left"></i> back</p>
+                                                                </div>
+                                                            </td>
                                                         </tr>
                                                         <tr>
                                                             <td><label for="my_clients_option" class="form-label"><b>Quick Register</b></label></td>
                                                             <td><input class="all_view client_options" checked type="checkbox" id="quick_register_view"></td>
                                                             <td><input class="all_readonly client_options_2" type="checkbox" id="quick_register_readonly"></td>
+                                                            <td>
+                                                                <div class="container" id="dropdown_roles_2">
+                                                                    <select id="select_expiry_2" class="form-control dropdown_roles">
+                                                                        <option value="" hidden>Select Role Expiry</option>
+                                                                        <option selected value="indefinate_expiry">Indefinate Expiry</option>
+                                                                        <option value="definate_expiry">Definate Expiry</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="container hide" id="dropdown_date_2">
+                                                                    <input type="hidden" id="menu_label_value_2" value="Quick Register">
+                                                                    <input class="form-control selected_date_time_roles" type="datetime-local" id="select_date_time_2" placeholder="Select date and time">
+                                                                    <p id="back_to_dropdown_2" style="width: fit-content; cursor: pointer;" class="back_to_dropdown text-primary mt-1"><i class="fa fa-arrow-left"></i> back</p>
+                                                                </div>
+                                                            </td>
                                                         </tr>
                                                         <tr>
                                                             <td><label for="my_clients_option" class="form-label"><b>Clients Issues</b></label></td>
                                                             <td><input class="all_view client_options" checked type="checkbox" id="clients_issues_view"></td>
                                                             <td><input class="all_readonly client_options_2" type="checkbox" id="clients_issues_readonly"></td>
+                                                            <td>
+                                                                <div class="container" id="dropdown_roles_3">
+                                                                    <select id="select_expiry_3" class="form-control dropdown_roles">
+                                                                        <option value="" hidden>Select Role Expiry</option>
+                                                                        <option selected value="indefinate_expiry">Indefinate Expiry</option>
+                                                                        <option value="definate_expiry">Definate Expiry</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="container hide" id="dropdown_date_3">
+                                                                    <input type="hidden" id="menu_label_value_3" value="Clients Issues">
+                                                                    <input class="form-control selected_date_time_roles" type="datetime-local" id="select_date_time_3" placeholder="Select date and time">
+                                                                    <p id="back_to_dropdown_3" style="width: fit-content; cursor: pointer;" class="back_to_dropdown text-primary mt-1"><i class="fa fa-arrow-left"></i> back</p>
+                                                                </div>
+                                                            </td>
                                                         </tr>
                                                         <tr>
                                                             <th rowspan="3" scope="row">2</th>
@@ -168,29 +211,99 @@
                                                             <td ><label for="my_clients_option" class="form-label"><b><i>Transactions</i></b></label></td>
                                                             <td><input class="all_view account_options" checked type="checkbox" id="transactions_option_view"></td>
                                                             <td><input class="all_readonly account_options_2"  type="checkbox" id="transactions_option_readonly"></td>
+                                                            <td>
+                                                                <div class="container" id="dropdown_roles_4">
+                                                                    <select id="select_expiry_4" class="form-control dropdown_roles">
+                                                                        <option value="" hidden>Select Role Expiry</option>
+                                                                        <option selected value="indefinate_expiry">Indefinate Expiry</option>
+                                                                        <option value="definate_expiry">Definate Expiry</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="container hide" id="dropdown_date_4">
+                                                                    <input type="hidden" id="menu_label_value_4" value="Transactions">
+                                                                    <input class="form-control selected_date_time_roles" type="datetime-local" id="select_date_time_4" placeholder="Select date and time">
+                                                                    <p id="back_to_dropdown_4" style="width: fit-content; cursor: pointer;" class="back_to_dropdown text-primary mt-1"><i class="fa fa-arrow-left"></i> back</p>
+                                                                </div>
+                                                            </td>
                                                         </tr>
                                                         <tr>
                                                             <td ><label for="my_clients_option" class="form-label"><b><i>Expenses</i></b></label></td>
                                                             <td><input class="all_view account_options" checked type="checkbox" id="expenses_option_view"></td>
                                                             <td><input class="all_readonly account_options_2"  type="checkbox" id="expenses_option_readonly"></td>
+                                                            <td>
+                                                                <div class="container" id="dropdown_roles_5">
+                                                                    <select id="select_expiry_5" class="form-control dropdown_roles">
+                                                                        <option value="" hidden>Select Role Expiry</option>
+                                                                        <option selected value="indefinate_expiry">Indefinate Expiry</option>
+                                                                        <option value="definate_expiry">Definate Expiry</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="container hide" id="dropdown_date_5">
+                                                                    <input type="hidden" id="menu_label_value_5" value="Expenses">
+                                                                    <input class="form-control selected_date_time_roles" type="datetime-local" id="select_date_time_5" placeholder="Select date and time">
+                                                                    <p id="back_to_dropdown_5" style="width: fit-content; cursor: pointer;" class="back_to_dropdown text-primary mt-1"><i class="fa fa-arrow-left"></i> back</p>
+                                                                </div>
+                                                            </td>
                                                         </tr>
                                                         <tr>
                                                             <th scope="row">3</th>
                                                             <td ><label for="my_clients_option" class="form-label"><b>My Routers</b></label></td>
                                                             <td><input class="all_view" checked type="checkbox" id="my_routers_option_view"></td>
                                                             <td><input class="all_readonly" type="checkbox" id="my_routers_option_readonly"></td>
+                                                            <td>
+                                                                <div class="container" id="dropdown_roles_6">
+                                                                    <select id="select_expiry_6" class="form-control dropdown_roles">
+                                                                        <option value="" hidden>Select Role Expiry</option>
+                                                                        <option selected value="indefinate_expiry">Indefinate Expiry</option>
+                                                                        <option value="definate_expiry">Definate Expiry</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="container hide" id="dropdown_date_6">
+                                                                    <input type="hidden" id="menu_label_value_6" value="My Routers">
+                                                                    <input class="form-control selected_date_time_roles" type="datetime-local" id="select_date_time_6" placeholder="Select date and time">
+                                                                    <p id="back_to_dropdown_6" style="width: fit-content; cursor: pointer;" class="back_to_dropdown text-primary mt-1"><i class="fa fa-arrow-left"></i> back</p>
+                                                                </div>
+                                                            </td>
                                                         </tr>
                                                         <tr>
                                                             <th scope="row">4</th>
                                                             <td ><label for="my_clients_option" class="form-label"><b>SMS</b></label></td>
                                                             <td><input class="all_view" checked type="checkbox" id="sms_option_view"></td>
                                                             <td><input class="all_readonly" type="checkbox" id="sms_option_readonly"></td>
+                                                            <td>
+                                                                <div class="container" id="dropdown_roles_7">
+                                                                    <select id="select_expiry_7" class="form-control dropdown_roles">
+                                                                        <option value="" hidden>Select Role Expiry</option>
+                                                                        <option selected value="indefinate_expiry">Indefinate Expiry</option>
+                                                                        <option value="definate_expiry">Definate Expiry</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="container hide" id="dropdown_date_7">
+                                                                    <input type="hidden" id="menu_label_value_7" value="SMS">
+                                                                    <input class="form-control selected_date_time_roles" type="datetime-local" id="select_date_time_7" placeholder="Select date and time">
+                                                                    <p id="back_to_dropdown_7" style="width: fit-content; cursor: pointer;" class="back_to_dropdown text-primary mt-1"><i class="fa fa-arrow-left"></i> back</p>
+                                                                </div>
+                                                            </td>
                                                         </tr>
                                                         <tr>
                                                             <th scope="row">5</th>
                                                             <td ><label for="my_clients_option" class="form-label"><b>Account & Profile</b></label></td>
                                                             <td><input class="all_view" checked type="checkbox" id="account_profile_option_view"></td>
                                                             <td><input class="all_readonly" type="checkbox" id="account_profile_option_readonly"></td>
+                                                            <td>
+                                                                <div class="container" id="dropdown_roles_8">
+                                                                    <select id="select_expiry_8" class="form-control dropdown_roles">
+                                                                        <option value="" hidden>Select Role Expiry</option>
+                                                                        <option selected value="indefinate_expiry">Indefinate Expiry</option>
+                                                                        <option value="definate_expiry">Definate Expiry</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="container hide" id="dropdown_date_8">
+                                                                    <input type="hidden" id="menu_label_value_8" value="Account and Profile">
+                                                                    <input class="form-control selected_date_time_roles" type="datetime-local" id="select_date_time_8" placeholder="Select date and time">
+                                                                    <p id="back_to_dropdown_8" style="width: fit-content; cursor: pointer;" class="back_to_dropdown text-primary mt-1"><i class="fa fa-arrow-left"></i> back</p>
+                                                                </div>
+                                                            </td>
                                                         </tr>
                                                     </tbody>
                                                 </table>

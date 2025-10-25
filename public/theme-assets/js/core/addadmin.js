@@ -9,7 +9,115 @@ function cObj(id) {
 function stopInterval(id) {
     clearInterval(id);
 }
+function addListernerRoles() {
+    var dropdown_roles = document.getElementsByClassName("dropdown_roles");
+    for (let index = 0; index < dropdown_roles.length; index++) {
+        const element = dropdown_roles[index];
+        element.addEventListener("change", function () {
+            if (this.value == "definate_expiry") {
+                cObj("dropdown_date_"+this.id.substring(14)).classList.remove("hide");
+                cObj("dropdown_roles_"+this.id.substring(14)).classList.add("hide");
+            }
 
+            var all_priviledges = cObj("privileged").value;
+            if (hasJsonStructure(all_priviledges)) {
+                all_priviledges = JSON.parse(all_priviledges);
+                for (let index = 0; index < all_priviledges.length; index++) {
+                    const elems = all_priviledges[index];
+                    if(elems.option == cObj("menu_label_value_"+this.id.substring(14)).value){
+                        all_priviledges[index].expiry = this.value;
+                        all_priviledges[index].expiry_date = cObj("select_date_time_"+this.id.substring(14)).value;
+                    }
+                }
+                cObj("privileged").value = JSON.stringify(all_priviledges);
+            }
+        });
+    }
+
+    var back_to_dropdown = document.getElementsByClassName("back_to_dropdown");
+    for (let index = 0; index < back_to_dropdown.length; index++) {
+        const element = back_to_dropdown[index];
+        element.addEventListener("click", function(){
+            cObj("dropdown_date_"+this.id.substring(17)).classList.add("hide");
+            cObj("dropdown_roles_"+this.id.substring(17)).classList.remove("hide");
+
+            var select_expiry = cObj("select_expiry_"+this.id.substring(17)).children;
+            for (let index = 0; index < select_expiry.length; index++) {
+                const elems = select_expiry[index];
+                if (elems.value == "indefinate_expiry") {
+                    elems.selected = true;
+                }
+            }
+        });
+    }
+
+    var selected_date_time_roles = document.getElementsByClassName("selected_date_time_roles");
+    for (let index = 0; index < selected_date_time_roles.length; index++) {
+        const element = selected_date_time_roles[index];
+        element.addEventListener("change", function () {
+            var all_priviledges = cObj("privileged").value;
+            if (hasJsonStructure(all_priviledges)) {
+                all_priviledges = JSON.parse(all_priviledges);
+                for (let index = 0; index < all_priviledges.length; index++) {
+                    const elems = all_priviledges[index];
+                    if(elems.option == cObj("menu_label_value_"+this.id.substring(17)).value){
+                        all_priviledges[index].expiry = cObj("select_expiry_"+this.id.substring(17)).value;
+                        all_priviledges[index].expiry_date = this.value;
+                    }
+                }
+                cObj("privileged").value = JSON.stringify(all_priviledges);
+            }
+        });
+    }
+}
+
+function validateForm() {
+    var roles = document.getElementsByClassName("selected_date_time_roles");
+    var error = 0;
+    for (let index = 0; index < roles.length; index++) {
+        roles[index].dispatchEvent(new Event("change"));
+        if (cObj("select_expiry_"+roles[index].id.substring(17)).value == "definate_expiry") {
+            var err = checkBlank(roles[index].id);
+            if(err > 0){
+                error++;
+            }
+        }
+    }
+
+    var dropdown_roles = document.getElementsByClassName("dropdown_roles");
+    for (let index = 0; index < dropdown_roles.length; index++) {
+        dropdown_roles[index].dispatchEvent(new Event("change"));
+        error += checkBlank(dropdown_roles[index].id);
+    }
+
+    // check error
+    if(error == 0){
+        return true;
+    }
+    return false;
+}
+
+function checkBlank(id) {
+  let err = 0;
+  if (cObj(id).value.trim().length > 0) {
+    if (cObj(id).value.trim() == "N/A") {
+    //   redBorder(cObj(id));
+      cObj(id).classList.add("border");
+      cObj(id).classList.add("border-danger");
+      err++;
+    } else {
+    //   grayBorder(cObj(id));
+      cObj(id).classList.remove("border");
+      cObj(id).classList.remove("border-danger");
+    }
+  } else {
+    cObj(id).classList.add("border");
+    cObj(id).classList.add("border-danger");
+    // redBorder(cObj(id));
+    err++;
+  }
+  return err;
+}
 var rowsColStudents = [];
 var pagecountTransaction = 0; //this are the number of pages for transaction
 var pagecounttrans = 1; //the current page the user is
@@ -17,6 +125,7 @@ var startpage = 0; // this is where we start counting the page number
 
 // load the user data
 window.onload = function() {
+    addListernerRoles();
     // show that the username is already used
     var admin_username = document.getElementById("admin_username");
     admin_username.onkeyup = function () {
