@@ -1,0 +1,426 @@
+[
+    {
+        "rank": 1,
+        "model": "hAP lite (RB941-2nD)",
+        "category": "Small / Home",
+        "cpu": "650 MHz QCA9533",
+        "ram_mb": 32,
+        "storage_mb": 16,
+        "approx_devices_at_10mbps": 30,
+        "ports": "4x Fast Ethernet + Wi-Fi",
+        "features": [
+            "RouterOS",
+            "2.4GHz Wi-Fi"
+        ],
+        "price_usd": 25,
+        "notes": "Very low-end home router",
+        "throughput_mbps": "50.0 Mbps"
+    },
+    {
+        "rank": 2,
+        "model": "hAP mini (RB931-2nD)",
+        "category": "Small / Home",
+        "cpu": "650 MHz QCA9533",
+        "ram_mb": 32,
+        "storage_mb": 16,
+        "approx_devices_at_10mbps": 30,
+        "ports": "3x Fast Ethernet + Wi-Fi",
+        "features": [
+            "RouterOS",
+            "Compact"
+        ],
+        "price_usd": 20,
+        "notes": "Tiny, budget option",
+        "throughput_mbps": "50.0 Mbps"
+    },
+    {
+        "rank": 3,
+        "model": "hAP (RB951Ui-2nD)",
+        "category": "Small / Home",
+        "cpu": "600 MHz Atheros AR9344",
+        "ram_mb": 128,
+        "storage_mb": 128,
+        "approx_devices_at_10mbps": 40,
+        "ports": "5x Gigabit + Wi-Fi",
+        "features": [
+            "RouterOS",
+            "USB"
+        ],
+        "price_usd": 35,
+        "notes": "Older small office model",
+        "throughput_mbps": "100.0 Mbps"
+    },
+    {
+        "rank": 4,
+        "model": "hAP ac lite",
+        "category": "Small / Home",
+        "cpu": "650 MHz QCA9531",
+        "ram_mb": 64,
+        "storage_mb": 16,
+        "approx_devices_at_10mbps": 40,
+        "ports": "4x Gigabit + Dual-band Wi-Fi",
+        "features": [
+            "802.11ac",
+            "RouterOS"
+        ],
+        "price_usd": 45,
+        "notes": "Budget dual-band",
+        "throughput_mbps": "150.0 Mbps"
+    },
+    {
+        "rank": 5,
+        "model": "RB750UP",
+        "category": "Small / SOHO",
+        "cpu": "400 MHz AR7241",
+        "ram_mb": 64,
+        "storage_mb": 64,
+        "approx_devices_at_10mbps": 35,
+        "ports": "5x Fast/Gigabit + USB + PoE out",
+        "features": [
+            "PoE out",
+            "RouterOS"
+        ],
+        "price_usd": 30,
+        "notes": "Budget wired with PoE",
+        "throughput_mbps": "80.0 Mbps"
+    },
+    {
+        "rank": 6,
+        "model": "hEX lite (RB750r2)",
+        "category": "Small / SOHO",
+        "cpu": "850 MHz MT7621A",
+        "ram_mb": 64,
+        "storage_mb": 16,
+        "approx_devices_at_10mbps": 60,
+        "ports": "5x Gigabit",
+        "features": [
+            "RouterOS",
+            "small form factor"
+        ],
+        "price_usd": 40,
+        "notes": "Wired-only compact router",
+        "throughput_mbps": "200.0 Mbps"
+    },
+    {
+        "rank": 7,
+        "model": "hAP ac\u00b2 (RBD52G)",
+        "category": "Small / Home",
+        "cpu": "716 MHz IPQ-4018 Quad-core",
+        "ram_mb": 128,
+        "storage_mb": 16,
+        "approx_devices_at_10mbps": 80,
+        "ports": "5x Gigabit + Dual-band Wi-Fi",
+        "features": [
+            "802.11ac",
+            "4 core CPU"
+        ],
+        "price_usd": 80,
+        "notes": "Good home/office performer",
+        "throughput_mbps": "500.0 Mbps"
+    },
+    {
+        "rank": 8,
+        "model": "PowerBox (RB750P-PBr2)",
+        "category": "Small / Outdoor",
+        "cpu": "650 MHz QCA9531",
+        "ram_mb": 64,
+        "storage_mb": 16,
+        "approx_devices_at_10mbps": 80,
+        "ports": "5x Fast/Gigabit + PoE out",
+        "features": [
+            "Outdoor-ready",
+            "PoE"
+        ],
+        "price_usd": 65,
+        "notes": "Outdoor/solar-friendly",
+        "throughput_mbps": "300.0 Mbps"
+    },
+    {
+        "rank": 9,
+        "model": "RB750Gr3 (hEX)",
+        "category": "Small / SOHO",
+        "cpu": "880 MHz MT7621A Dual-core",
+        "ram_mb": 256,
+        "storage_mb": 16,
+        "approx_devices_at_10mbps": 150,
+        "ports": "5x Gigabit",
+        "features": [
+            "Dual-core",
+            "IPsec acceleration"
+        ],
+        "price_usd": 70,
+        "notes": "Reliable wired router",
+        "throughput_mbps": "800.0 Mbps"
+    },
+    {
+        "rank": 10,
+        "model": "hEX S (RB760iGS)",
+        "category": "Small / Mid",
+        "cpu": "880 MHz MT7621A Dual-core",
+        "ram_mb": 256,
+        "storage_mb": 16,
+        "approx_devices_at_10mbps": 200,
+        "ports": "5x Gigabit + SFP + PoE out",
+        "features": [
+            "SFP port",
+            "PoE out"
+        ],
+        "price_usd": 95,
+        "notes": "Great mid-range wired option",
+        "throughput_mbps": "1.5 Gbps"
+    },
+    {
+        "rank": 11,
+        "model": "Audience (RBD25G)",
+        "category": "Small / Mid",
+        "cpu": "716 MHz IPQ-4019 Quad-core",
+        "ram_mb": 256,
+        "storage_mb": 128,
+        "approx_devices_at_10mbps": "200 - 250",
+        "ports": "3x Gb Wi-Fi nodes (mesh)",
+        "features": [
+            "Mesh-capable",
+            "Tri-band"
+        ],
+        "price_usd": 150,
+        "notes": "Mesh home system",
+        "throughput_mbps": "700.0 Mbps"
+    },
+    {
+        "rank": 12,
+        "model": "hAP ax lite (L41G-2axD)",
+        "category": "Small / Mid",
+        "cpu": "864 MHz IPQ-6010",
+        "ram_mb": 256,
+        "storage_mb": 128,
+        "approx_devices_at_10mbps": "200 - 250",
+        "ports": "4x Gigabit + Wi-Fi 6",
+        "features": [
+            "802.11ax",
+            "Wi-Fi 6"
+        ],
+        "price_usd": 110,
+        "notes": "Affordable Wi\u2011Fi 6",
+        "throughput_mbps": "900.0 Mbps"
+    },
+    {
+        "rank": 13,
+        "model": "hAP ax\u00b2",
+        "category": "Mid-range Home/Office",
+        "cpu": "1.8 GHz IPQ-6010 Quad-core",
+        "ram_mb": 1024,
+        "storage_mb": 128,
+        "approx_devices_at_10mbps": "300 - 400",
+        "ports": "4x Gigabit + Wi-Fi 6",
+        "features": [
+            "Wi-Fi 6",
+            "1GB RAM"
+        ],
+        "price_usd": 160,
+        "notes": "Stronger Wi\u2011Fi 6 performer",
+        "throughput_mbps": "1.2 Gbps"
+    },
+    {
+        "rank": 14,
+        "model": "RB3011UiAS-RM",
+        "category": "Mid-range / SMB",
+        "cpu": "1.4 GHz IPQ-8064 Dual-core",
+        "ram_mb": 1024,
+        "storage_mb": 128,
+        "approx_devices_at_10mbps": "350 - 400",
+        "ports": "10x Gigabit + SFP",
+        "features": [
+            "1.4GHz CPU",
+            "Rackmount"
+        ],
+        "price_usd": 180,
+        "notes": "Older but solid SMB router",
+        "throughput_mbps": "2.0 Gbps"
+    },
+    {
+        "rank": 15,
+        "model": "RB4011iGS+RM",
+        "category": "Mid-range / SMB",
+        "cpu": "1.4 GHz AL21400 Quad-core",
+        "ram_mb": 1024,
+        "storage_mb": 512,
+        "approx_devices_at_10mbps": "400 - 550",
+        "ports": "10x Gigabit + 1x 10G SFP+",
+        "features": [
+            "Quad-core 1.4GHz",
+            "SFP+"
+        ],
+        "price_usd": 250,
+        "notes": "Excellent mid-range choice",
+        "throughput_mbps": "5.0 Gbps"
+    },
+    {
+        "rank": 16,
+        "model": "RB1100AHx4",
+        "category": "Mid-range / SMB",
+        "cpu": "1.4 GHz Annapurna AL21400 Quad-core",
+        "ram_mb": 1024,
+        "storage_mb": 128,
+        "approx_devices_at_10mbps": "300 - 400",
+        "ports": "13x Gigabit",
+        "features": [
+            "1U rack",
+            "Good port density"
+        ],
+        "price_usd": 320,
+        "notes": "High port-count SMB router",
+        "throughput_mbps": "1.5 Gbps"
+    },
+    {
+        "rank": 17,
+        "model": "RB5009UG+S+IN",
+        "category": "Mid-high / SMB",
+        "cpu": "1.4 GHz ARMv8 64-bit",
+        "ram_mb": 1024,
+        "storage_mb": 1024,
+        "approx_devices_at_10mbps": "400 - 550",
+        "ports": "7x1G + 1x2.5G + 1x10G SFP+",
+        "features": [
+            "ARM64",
+            "10G uplink"
+        ],
+        "price_usd": 280,
+        "notes": "Great for multi-gig home/lab",
+        "throughput_mbps": "6.0 Gbps"
+    },
+    {
+        "rank": 18,
+        "model": "CCR1009-7G-1C-1S+",
+        "category": "Enterprise Edge",
+        "cpu": "1.2 GHz Tilera 9-core",
+        "ram_mb": 2048,
+        "storage_mb": 128,
+        "approx_devices_at_10mbps": "500 - 600",
+        "ports": "7x Gigabit + 1x Combo + 1x SFP+",
+        "features": [
+            "9-core Tilera",
+            "Good throughput"
+        ],
+        "price_usd": 450,
+        "notes": "Entry CCR",
+        "throughput_mbps": "4.0 Gbps"
+    },
+    {
+        "rank": 19,
+        "model": "CCR1016-12G",
+        "category": "Enterprise",
+        "cpu": "1.2 GHz Tilera 16-core",
+        "ram_mb": 2048,
+        "storage_mb": 512,
+        "approx_devices_at_10mbps": "550 - 650",
+        "ports": "12x Gigabit",
+        "features": [
+            "16-core Tilera"
+        ],
+        "price_usd": 700,
+        "notes": "High pps performance",
+        "throughput_mbps": "7.0 Gbps"
+    },
+    {
+        "rank": 20,
+        "model": "CCR1036-12G-4S",
+        "category": "Enterprise",
+        "cpu": "1.2 GHz Tilera 36-core",
+        "ram_mb": 4096,
+        "storage_mb": 1024,
+        "approx_devices_at_10mbps": "750 - 850",
+        "ports": "12x Gigabit + 4x SFP",
+        "features": [
+            "36-core Tilera",
+            "Large routing tables"
+        ],
+        "price_usd": 1400,
+        "notes": "Very high throughput",
+        "throughput_mbps": "16.0 Gbps"
+    },
+    {
+        "rank": 21,
+        "model": "CCR2004-16G-2S+",
+        "category": "Enterprise",
+        "cpu": "1.7 GHz ARM64 4-core",
+        "ram_mb": 4096,
+        "storage_mb": 1024,
+        "approx_devices_at_10mbps": "750 - 850",
+        "ports": "16x Gigabit + 2x 10G SFP+",
+        "features": [
+            "ARM64",
+            "4-core high-performance"
+        ],
+        "price_usd": 900,
+        "notes": "Modern CCR generation",
+        "throughput_mbps": "10.0 Gbps"
+    },
+    {
+        "rank": 22,
+        "model": "CCR2116-12G-4S+",
+        "category": "Enterprise / ISP",
+        "cpu": "2.0 GHz ARM64 16-core",
+        "ram_mb": 16384,
+        "storage_mb": 4096,
+        "approx_devices_at_10mbps": "2000+",
+        "ports": "12x 10G SFP+ + 4x 25G/40G capable",
+        "features": [
+            "16-core ARM64",
+            "Large RAM"
+        ],
+        "price_usd": 2500,
+        "notes": "High-capacity edge router",
+        "throughput_mbps": "25.0 Gbps"
+    },
+    {
+        "rank": 23,
+        "model": "CCR2216-1G-12XS-2XQ",
+        "category": "ISP / Data Center",
+        "cpu": "2.2 GHz ARM64 16-core",
+        "ram_mb": 16384,
+        "storage_mb": 4096,
+        "approx_devices_at_10mbps": "2500+",
+        "ports": "12x 10G/25G SFP+ + 2x 100G QSFP28",
+        "features": [
+            "ARM64",
+            "DDR4 RAM"
+        ],
+        "price_usd": 6000,
+        "notes": "Top-tier ISP router",
+        "throughput_mbps": "40.0 Gbps"
+    },
+    {
+        "rank": 24,
+        "model": "CRS317-1G-16S+RM",
+        "category": "Switch/Router Hybrid",
+        "cpu": "800 MHz Dual-core",
+        "ram_mb": 1024,
+        "storage_mb": 512,
+        "approx_devices_at_10mbps": "3000+",
+        "ports": "16x 10G SFP+ + 1x Gigabit",
+        "features": [
+            "Switching-first",
+            "Layer 3 features"
+        ],
+        "price_usd": 1200,
+        "notes": "High-speed fiber switching",
+        "throughput_mbps": "20.0 Gbps"
+    },
+    {
+        "rank": 25,
+        "model": "CRS326-24S+2Q+RM",
+        "category": "Switch/Router Hybrid",
+        "cpu": "850 MHz ARM 32-bit",
+        "ram_mb": 1024,
+        "storage_mb": 512,
+        "approx_devices_at_10mbps": "3500+",
+        "ports": "24x 10G SFP+ + 2x 40G QSFP+",
+        "features": [
+            "Data center switching",
+            "Layer 3 capable"
+        ],
+        "price_usd": 2600,
+        "notes": "Large aggregation switch",
+        "throughput_mbps": "40.0 Gbps"
+    }
+]

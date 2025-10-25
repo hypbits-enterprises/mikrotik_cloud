@@ -197,6 +197,18 @@
                             </div>
                             <div class="card-content collapse">
                                 <div class="card-body">
+                                    <div class="alert round bg-primary alert-icon-left alert-dismissible ml-2 mt-1 mx-auto" role="alert">
+                                        <span class="alert-icon">
+                                            <i class="ft-bell bell-shake"></i>
+                                        </span>
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">×</span>
+                                        </button>
+                                        <b class="text-center">New Feature Alert</b><br>
+                                        Now you are able to see your clients usage stats, this includes bandwidth and data usage. <br>
+                                        This requires your router to run MikrotikOS version <u>7.18</u> and above. <br>
+                                        This upgrade may affect your router`s perfomance, check <u><b id="show_router_model_list" style="cursor: pointer;">this router list</b></u> provided to know your optimal router capability.
+                                    </div>
                                     <div id="vertical-bar2" class="row">
                                         <div class="col-md-4 border border-secondary rounded shadow">
                                             <h6 class="text-sm mt-1">Clients Stats</h6>
@@ -332,6 +344,53 @@
                             <div class="card-content collapse show">
                                 <div class="card-body">
                                     <div class="container">
+                                        {{-- EXPORT CLIENTS DATA --}}
+                                        <div class="modal fade text-left hide" id="router_board_lists" tabindex="-1" role="dialog" aria-labelledby="myModalLabel7" style="padding-right: 17px;" aria-modal="true">
+                                            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-info white">
+                                                    <h4 class="modal-title white" id="myModalLabel7"><i class="fa fa-file-export"></i> Router Board List</h4>
+                                                    <button id="close_router_board_list_window" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">×</span>
+                                                    </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="container">
+                                                            @php
+                                                                $path = public_path('mikrotik_router/mikrotik_routers_25_fullspec_mbps.json');
+                                                                // Read and decode the JSON file
+                                                                $json = file_get_contents($path);
+                                                                $all_routers_model = json_decode($json, false);
+                                                            @endphp
+                                                            <table class="table table-striped table-bordered zero-configuration" id="router_board_table">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>No</th>
+                                                                        <th>Model</th>
+                                                                        <th>RAM</th>
+                                                                        <th>Approx. Devices @ 5mbps each</th>
+                                                                        <th>Max throughput</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach ($all_routers_model as $router_data)
+                                                                        <tr>
+                                                                            <td>{{$router_data->rank}}</td>
+                                                                            <td>{{$router_data->model}}</td>
+                                                                            <td>{{$router_data->ram_mb}} MB</td>
+                                                                            <td>{{$router_data->approx_devices_at_10mbps}}</td>
+                                                                            <td>{{$router_data->throughput_mbps}}</td>
+                                                                        </tr>
+                                                                    @endforeach
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         {{-- EXPORT CLIENTS DATA --}}
                                         <div class="modal fade text-left hide" id="import_client_data_window" tabindex="-1" role="dialog" aria-labelledby="myModalLabel6" style="padding-right: 17px;" aria-modal="true">
                                             <div class="modal-dialog modal-dialog-centered" role="document">

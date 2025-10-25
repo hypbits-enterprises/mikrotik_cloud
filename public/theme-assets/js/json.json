@@ -2,41 +2,57 @@
     {
         "option": "My Clients",
         "view": true,
-        "readonly": false
+        "readonly": false,
+        "expiry": "definate_expiry",
+        "expiry_date": "2025-10-31T12:00"
     },
     {
         "option": "Transactions",
         "view": true,
-        "readonly": false
+        "readonly": false,
+        "expiry": "indefinate_expiry",
+        "expiry_date": ""
     },
     {
         "option": "Expenses",
         "view": true,
-        "readonly": false
+        "readonly": false,
+        "expiry": "indefinate_expiry",
+        "expiry_date": ""
     },
     {
         "option": "My Routers",
         "view": true,
-        "readonly": false
+        "readonly": false,
+        "expiry": "indefinate_expiry",
+        "expiry_date": ""
     },
     {
         "option": "SMS",
         "view": true,
-        "readonly": false
+        "readonly": false,
+        "expiry": "indefinate_expiry",
+        "expiry_date": ""
     },
     {
         "option": "Account and Profile",
         "view": true,
-        "readonly": false
-    },
-    {
-        "option": "Quick Register",
-        "view": true,
-        "readonly": false
+        "readonly": false,
+        "expiry": "indefinate_expiry",
+        "expiry_date": ""
     },
     {
         "option": "Clients Issues",
         "view": true,
-        "readonly": false
+        "readonly": false,
+        "expiry": "indefinate_expiry",
+        "expiry_date": ""
+    },
+    {
+        "option": "Quick Register",
+        "view": true,
+        "readonly": false,
+        "expiry": "indefinate_expiry",
+        "expiry_date": ""
     }
 ]

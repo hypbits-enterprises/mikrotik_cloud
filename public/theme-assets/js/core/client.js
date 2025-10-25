@@ -119,6 +119,11 @@ window.onload = function () {
 
     // usage reports
     cObj("client_usage_report_btn").click();
+
+     $('#router_board_table').DataTable({
+        pageLength: 10,  // default rows per page
+        lengthMenu: [5, 10, 20, 50, 100]
+    });
 }
 
 function checkBlank(object_id) {
@@ -637,6 +642,25 @@ cObj("close_import_client_data_window_2").onclick = function () {
     cObj("import_client_data_window").classList.remove("show");
     cObj("import_client_data_window").classList.remove("showBlock");
 }
+
+// show router board types
+cObj("show_router_model_list").onclick = function () {
+    cObj("router_board_lists").classList.remove("hide");
+    cObj("router_board_lists").classList.add("show");
+    cObj("router_board_lists").classList.add("showBlock");
+}
+
+cObj("close_router_board_list_window").onclick = function () {
+    cObj("router_board_lists").classList.add("hide");
+    cObj("router_board_lists").classList.remove("show");
+    cObj("router_board_lists").classList.remove("showBlock");
+}
+
+// cObj("close_import_client_data_window_2").onclick = function () {
+//     cObj("import_client_data_window").classList.add("hide");
+//     cObj("import_client_data_window").classList.remove("show");
+//     cObj("import_client_data_window").classList.remove("showBlock");
+// }
 
 // migrate client data
 cObj("export_selected_clients_data_btn").onclick = function () {

@@ -189,6 +189,14 @@
             for ($index=0; $index < count($priviledges); $index++) { 
                 if ($priviledges[$index]->option == $name) {
                     if ($priviledges[$index]->view) {
+                        // check if its expired
+                        if(isset($priviledges[$index]->expiry)){
+                            $today = date("YmdHis");
+                            $expiry_date = date("YmdHis", strtotime($priviledges[$index]->expiry_date));
+                            if($priviledges[$index]->expiry == "definate_expiry" && $today > $expiry_date){
+                                return $block_users ? "disabled d-none" : "d-none";
+                            }
+                        }
                         return $block_users ? "disabled" : "";
                     }else {
                         return $block_users ? "disabled d-none" : "d-none";
