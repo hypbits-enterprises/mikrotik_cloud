@@ -121,7 +121,7 @@ window.onload = function () {
     cObj("client_usage_report_btn").click();
 
      $('#router_board_table').DataTable({
-        pageLength: 10,  // default rows per page
+        pageLength: 5,  // default rows per page
         lengthMenu: [5, 10, 20, 50, 100]
     });
 }

@@ -368,7 +368,8 @@
                                                                         <th>No</th>
                                                                         <th>Model</th>
                                                                         <th>RAM</th>
-                                                                        <th>Approx. Devices @ 5mbps each</th>
+                                                                        <th>C.P.U</th>
+                                                                        <th>Approx. Clients</th>
                                                                         <th>Max throughput</th>
                                                                     </tr>
                                                                 </thead>
@@ -378,6 +379,7 @@
                                                                             <td>{{$router_data->rank}}</td>
                                                                             <td>{{$router_data->model}}</td>
                                                                             <td>{{$router_data->ram_mb}} MB</td>
+                                                                            <td>{{$router_data->cpu}}</td>
                                                                             <td>{{$router_data->approx_devices_at_10mbps}}</td>
                                                                             <td>{{$router_data->throughput_mbps}}</td>
                                                                         </tr>
