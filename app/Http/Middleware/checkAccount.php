@@ -17,6 +17,44 @@ class checkAccount
      * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
      * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
+    function modifyDate($date, $period, $unit = 'days', $format = "YmdHis") {
+        // Normalize the unit
+        $unit = strtolower(trim($unit));
+
+        // Determine if we are adding or subtracting
+        $sign = ($period >= 0) ? '+' : '';
+
+        // Build the interval string
+        switch ($unit) {
+            case 'day':
+            case 'days':
+                $intervalSpec = "{$sign}{$period} days";
+                break;
+            case 'week':
+            case 'weeks':
+                $intervalSpec = "{$sign}{$period} weeks";
+                break;
+            case 'month':
+            case 'months':
+                $intervalSpec = "{$sign}{$period} months";
+                break;
+            case 'year':
+            case 'years':
+                $intervalSpec = "{$sign}{$period} years";
+                break;
+            default:
+                $intervalSpec = "{$sign}{$period} days";
+        }
+
+        // Create the DateTime object
+        $dateTime = new DateTime($date);
+
+        // Modify the date
+        $dateTime->modify($intervalSpec);
+
+        // Return the new date in Y-m-d format
+        return $dateTime->format($format);
+    }
     public function handle(Request $request, Closure $next)
     {
         $days_to_expire = 2; // days before expiration to show notice
@@ -57,11 +95,13 @@ class checkAccount
             if($days <= 5){
                 // client expiry check
                 $client_expiry = date("YmdHis", strtotime("-$inactive_months months"));
-                $clients = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE next_expiration_date >= ?", [$client_expiry]);
+                $five_days_before_expiry = $this->modifyDate($organization[0]->expiry_date,-5);
+                $clients = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE next_expiration_date >= ? AND clients_reg_date <= ?", [$client_expiry, $five_days_before_expiry]);
                 $client_count = count($clients);
 
                 // GET AMOUNT TO PAY
                 $amount_to_pay = $client_count > 100 ? ($client_count * 20) : 1000;
+                // $amount_to_pay = ($client_count * 20);
                 $discount = $organization[0]->discount_type == "percentage" ? round(($organization[0]->discount_amount * $amount_to_pay) / 100) : $organization[0]->discount_amount;
                 $amount_to_pay -= $discount;
                 $monthly_payment = $amount_to_pay;
@@ -70,8 +110,6 @@ class checkAccount
                 $wallet_balance = $organization[0]->wallet;
 
                 if ($wallet_balance < $amount_to_pay) {
-                    // dd($days);
-                    // dd($wallet_balance, $amount_to_pay);
                     $amount_to_pay -= $wallet_balance;
                     if ($days <= -1) {
                         session()->put("block_edits", "true");
