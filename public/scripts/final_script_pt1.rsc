@@ -46,7 +46,7 @@ if ($mainVersion >= 7 $subVersion < 18) do={
 # Mikrotik script (RouterOS v6.x)
 :local apiUrl "$domain/router_clients/$userAccount/$routerId"
 
-#:local apiUrl "https://test_billing.hypbits.com/router_clients/mikrotik_cloud/22"
+#:local apiUrl "https://billing.hypbits.com/router_clients/mikrotik_cloud/22"
 
 #:log info ("[API-SYNC] starting fetch from " . $apiUrl)
 

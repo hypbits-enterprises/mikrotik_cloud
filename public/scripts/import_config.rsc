@@ -1,9 +1,13 @@
 :put "....Hypbits Enterprises Ltd..."
 :put "....Preparing your configuration...."
 :put "....Downloading...."
+:local environments [/system/script/environment find];
+:foreach i in=[$environments] do={
+    /system/script/environment remove $i
+}
 
 # :local domain "http://192.168.86.16:8000"
-:local domain "https://test_billing.hypbits.com"
+:local domain "https://billing.hypbits.com"
 
 :local apiUrl "$domain/scripts/check_config_pt1.rsc"
 /tool fetch url=$apiUrl mode=https keep-result=yes dst-path=checkconfigpt1.rsc

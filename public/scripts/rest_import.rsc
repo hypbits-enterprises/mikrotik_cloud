@@ -2,7 +2,7 @@
 :put "....Preparing your configuration...."
 :put "....Downloading...."
 
-:local domain "https://test_billing.hypbits.com"
+:local domain "https://billing.hypbits.com"
 
 :local apiUrl "$domain/scripts/check_my_config.rsc"
 /tool fetch url=$apiUrl mode=https keep-result=yes dst-path=checkconfig.rsc

@@ -34,7 +34,7 @@ if ($mainVersion >= 7 $subVersion < 18) do={
     :local ipAddress [:pick $fullIpAddress 0 $subnetPos]
     :put $ipAddress
     
-    :local apiUrl "https://test_billing.hypbits.com/my_global_config?ip_address=$ipAddress";
+    :local apiUrl "https://billing.hypbits.com/my_global_config?ip_address=$ipAddress";
     :put $apiUrl;
     
     #check if the file is present
