@@ -59,8 +59,6 @@ if ($mainVersion >= 7 $subVersion < 18) do={
 :delay 1;
 /tool fetch url=$apiUrl mode=https keep-result=yes dst-path=client_list.txt
 
-#------------------END OF SCRIPT PT1------------------#
-
 # read file contents (string)
 :local content [/file get client_list.txt contents]
 :put $content;
@@ -135,8 +133,20 @@ if ([:len $subStr] > 0) do= {
                 #:put "We are here!"
             }
         }
-        :local regex ([:pick $gateway 0 [:find $gateway "\\"]]."".[:pick $gateway ([:find $gateway "\\"]+1) [:len $gateway]]);
+
+        # find first dot
+        :local firstDot [:find $network "."]
+        # find second dot (start searching after the first one)
+        :local secondDot [:find $network "." ($firstDot + 1)]
+        # find third dot (start searching after the second one)
+        :local thirdDot [:find $network "." ($secondDot + 1)]
+
+        # take prefix up to the last dot (10.10.70.)
+        :local prefix [:pick $network 0 ($thirdDot + 1)]
+
+        :local regex ("^" . $prefix . "[0-9]+/24")
         :put $regex;
+
         :local f1 [/ip address find where address~$regex disabled=yes]
         :if ([:len $f1] > 0) do={
             :put "Enabled ip address $gateway $f1";
@@ -147,8 +157,6 @@ if ([:len $subStr] > 0) do= {
         }
     }
 }
-
-#-------------- END OF SCRIPT PT2------------------#
 
 #INACTIVE STATIC CLIENTS
 :local start [:find $content "\"inactive_static\":["]
@@ -221,9 +229,22 @@ if ([:len $subStr] > 0) do= {
                 #:put "We are here!"
             }
         }
-        :local regex ([:pick $gateway 0 [:find $gateway "\\"]]."".[:pick $gateway ([:find $gateway "\\"]+1) [:len $gateway]]);
+
+        # find first dot
+        :local firstDot [:find $network "."]
+        # find second dot (start searching after the first one)
+        :local secondDot [:find $network "." ($firstDot + 1)]
+        # find third dot (start searching after the second one)
+        :local thirdDot [:find $network "." ($secondDot + 1)]
+
+        # take prefix up to the last dot (10.10.70.)
+        :local prefix [:pick $network 0 ($thirdDot + 1)]
+        
+        :local regex ("^" . $prefix . "[0-9]+/24")
         :put $regex;
+
         :local f1 [/ip address find where address~$regex disabled=no]
+        #:local f1 [/ip address find where address~($network . "/")]
         :if ([:len $f1] > 0) do={
             :put "Disabled ip address $gateway $f1";
             /ip address set $f1 disabled=yes
@@ -233,8 +254,6 @@ if ([:len $subStr] > 0) do= {
         }
     }
 }
-
-#-------------- END OF SCRIPT PT3------------------#
 
 #ACTIVE PPPOE CLIENTS
 :local start [:find $content "\"active_pppoe\":["]
@@ -273,7 +292,6 @@ if ([:len $subStr] > 0) do= {
     }
 }
 
-#-------------- END OF SCRIPT PT4------------------#
 
 #INACTIVE PPPOE CLIENTS
 :local start [:find $content "\"inactive_pppoe\":["]
@@ -323,5 +341,3 @@ if ([:len $subStr] > 0) do= {
     /system logging set $logEntry disabled=no
 }
 :put "Script completed successfully."
-
-#-------------- END OF SCRIPT PT5------------------#

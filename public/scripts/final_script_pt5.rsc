@@ -1,5 +1,4 @@
 
-
 #INACTIVE PPPOE CLIENTS
 :local start [:find $content "\"inactive_pppoe\":["]
 :local end [:find $content "]}" $start]

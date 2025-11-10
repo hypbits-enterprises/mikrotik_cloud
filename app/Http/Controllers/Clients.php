@@ -4468,7 +4468,7 @@ $export_text .= "
         $client_id = $req->input('clients_id');
 
         $client_tables = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
-        $previous_expiry = $client_tables[0]->next_expiration_date;
+        $previous_expiry = $client_tables[0]->next_expiration_date < date("YmdHis") ? date("YmdHis") : $client_tables[0]->next_expiration_date;
         $wallet_amount = $client_tables[0]->wallet_amount;
         $new_expiration = date("Ymd", strtotime($req->input('expiration_date_edits'))) . str_replace(":", "", $req->input("expiration_time_edits")) . date("s", strtotime($previous_expiry));
 
@@ -4489,7 +4489,6 @@ $export_text .= "
                 $wallet_amount += ($days*$per_day_cost);
             }
         }
-        // return [$new_expiration,$previous_expiry, $wallet_amount, $per_day_cost];
 
         DB::connection("mysql2")->table('client_tables')
             ->where('client_id', $client_id)
@@ -6498,9 +6497,7 @@ $export_text .= "
         if(empty($router_ip_address)){
             return response()->json(["success" => false, "message" => "IP address is required"]);
         }
-
-        // get the ip address from the active connections
-
+        
         // get the server details
         $sstp_settings = DB::select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
         if (count($sstp_settings) == 0) {

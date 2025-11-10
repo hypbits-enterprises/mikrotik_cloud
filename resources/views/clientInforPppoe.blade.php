@@ -292,7 +292,7 @@
                                             <li class="nav-item" role="presentation">
                                                 <a class="nav-link " id="tab3-tab" data-toggle="tab" href="#tab3" role="tab"><i class="ft-file mr-1"></i> Invoices</a>
                                             </li>
-                                            <li class="nav-item" role="presentation">
+                                            <li class="nav-item d-none" role="presentation">
                                                 <a class="nav-link " id="tab4-tab" data-toggle="tab" href="#tab4" role="tab"><i class="ft-activity mr-1"></i> Usage Statistics</a>
                                             </li>
                                         </ul>

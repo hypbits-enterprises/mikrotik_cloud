@@ -70,24 +70,11 @@ if ([:len $subStr] > 0) do= {
                 #:put "We are here!"
             }
         }
-
-        # find first dot
-        :local firstDot [:find $network "."]
-        # find second dot (start searching after the first one)
-        :local secondDot [:find $network "." ($firstDot + 1)]
-        # find third dot (start searching after the second one)
-        :local thirdDot [:find $network "." ($secondDot + 1)]
-
-        # take prefix up to the last dot (10.10.70.)
-        :local prefix [:pick $network 0 ($thirdDot + 1)]
-        
-        :local regex ("^" . $prefix . "[0-9]+/24")
+        :local regex ([:pick $gateway 0 [:find $gateway "\\"]]."".[:pick $gateway ([:find $gateway "\\"]+1) [:len $gateway]]);
         :put $regex;
-
         :local f1 [/ip address find where address~$regex disabled=no]
-        #:local f1 [/ip address find where address~($network . "/")]
         :if ([:len $f1] > 0) do={
-            :put "Enabled ip address $gateway $f1";
+            :put "Disabled ip address $gateway $f1";
             /ip address set $f1 disabled=yes
             #:log info ("[API-SYNC] enabled ip address " . $gateway)
         } else={

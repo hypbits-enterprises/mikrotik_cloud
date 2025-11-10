@@ -777,6 +777,8 @@ cObj("all_view").onchange = function () {
     account_options();
     client_options();
     checkChecked();
+    cObj("clients_option_view").checked = this.checked;
+    cObj("accounts_option_view").checked = this.checked;
 }
 
 cObj("all_readonly").onchange = function () {
@@ -785,8 +787,10 @@ cObj("all_readonly").onchange = function () {
         const element = all_readonly[index];
         element.checked = this.checked;
     }
-
-
+    
+    cObj("clients_option_readonly").checked = this.checked;
+    cObj("accounts_option_readonly").checked = this.checked;
+    
     var privileged = cObj("privileged").value;
     if (hasJsonStructure(privileged)) {
         privileged = JSON.parse(privileged);

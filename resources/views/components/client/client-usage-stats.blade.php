@@ -1,4 +1,4 @@
-<div {!!$isTab == "true" ? "class='tab-pane fade' id='tab4' role='tabpanel'" : "class=''"!!} >
+<div {!!$isTab == "true" ? "class='tab-pane fade' id='tab4' role='tabpanel'" : "class='d-none'"!!} >
     <h6 class="text-center">Client Usage Statistics</h6>
     @if($isTab == "false")
         <input type="hidden" name="isTabElem" id="isTabElem" value="true">
