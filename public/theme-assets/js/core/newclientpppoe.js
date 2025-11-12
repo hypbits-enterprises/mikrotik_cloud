@@ -205,3 +205,25 @@ function checkOnlyDigits(e, object_id,errhandler) {
         }
     }
 }
+
+cObj("client_secret_two").onclick = function(){
+    var pass_field = cObj("repeat_secret_password");
+    if(pass_field.type === "password"){
+        pass_field.type = "text";
+        cObj("client_secret_two").innerHTML = "<i class='ft-eye-off'></i>";
+    }else{
+        pass_field.type = "password";
+        cObj("client_secret_two").innerHTML = "<i class='ft-eye'></i>";
+    }
+}
+
+cObj("client_secret_one").onclick = function(){
+    var pass_field = cObj("client_secret_password");
+    if(pass_field.type === "password"){
+        pass_field.type = "text";
+        cObj("client_secret_one").innerHTML = "<i class='ft-eye-off'></i>";
+    }else{
+        pass_field.type = "password";
+        cObj("client_secret_one").innerHTML = "<i class='ft-eye'></i>";
+    }
+}

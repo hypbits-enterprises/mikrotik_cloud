@@ -230,7 +230,10 @@
                                     
                                     <hr>
                                     {{-- retrive all clients stats --}}
-                                    <x-Client.client-usage-stats :clientsData="$client_data[0]" isTab="false" :readonly="$readonly"/>
+                                    @php
+                                        $client_data_stats = count($client_data) ? $client_data[0] : [];
+                                    @endphp
+                                    <x-Client.client-usage-stats :clientsData="$client_data_stats" isTab="false" :readonly="$readonly"/>
                                 </div>
                             </div>
                         </div>

@@ -197,18 +197,27 @@
                                             <div class="col-lg-4">
                                                 <label for="client_secret_password"  id="errorMsg1" class="form-control-label">Clients Secret
                                                     Password <span class="text-danger">*</span> <span class="badge bg-success">Suggested</span>{ {{$random}} }</label>
-                                                <input type="password" name="client_secret_password" id="client_secret_password"
-                                                    class="form-control rounded-lg p-1" placeholder="Secret Password"
-                                                    required
-                                                    value="{{ $random }}">
+                                                <div class="input-group" style="cursor: pointer;">
+                                                    <input type="password" name="client_secret_password" id="client_secret_password"
+                                                        class="form-control rounded-lg p-1 position-relative" placeholder="Secret Password"
+                                                        required aria-describedby="client_secret_one"
+                                                        value="{{ $random }}">
+                                                    <div class="input-group-prepend rounded-lg">
+                                                        <span class="input-group-text" id="client_secret_one"><i class="ft-eye"></i></span>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="col-lg-4">
-                                                <label for="repeat_secret_password"  id="errorMsg1" class="form-control-label">Repeat Secret
-                                                    Password <span class="text-danger">*</span> </label>
-                                                <input type="password" name="repeat_secret_password" id="repeat_secret_password"
-                                                    class="form-control rounded-lg p-1" placeholder="Secret Password"
-                                                    required
-                                                    value="{{ $random }}">
+                                                <label for="repeat_secret_password"  id="errorMsg1" class="form-control-label">Repeat Secret Password <span class="text-danger">*</span> </label>
+                                                <div class="input-group" style="cursor: pointer;">
+                                                    <input type="password" name="repeat_secret_password" id="repeat_secret_password"
+                                                        class="form-control rounded-lg p-1 position-relative" placeholder="Secret Password"
+                                                        required aria-describedby="client_secret_two"
+                                                        value="{{ $random }}">
+                                                    <div class="input-group-prepend rounded-lg">
+                                                        <span class="input-group-text" id="client_secret_two"><i class="ft-eye"></i></span>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="row my-1">

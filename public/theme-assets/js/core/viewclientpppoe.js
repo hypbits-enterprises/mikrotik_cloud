@@ -519,3 +519,14 @@ function sendDataPost1(method, file, datapassing, object1, object2) {
     xml.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xml.send(datapassing);
 }
+
+cObj("client_secret_one").onclick = function(){
+    var pass_field = cObj("client_secret_password");
+    if(pass_field.type === "password"){
+        pass_field.type = "text";
+        cObj("client_secret_one").innerHTML = "<i class='ft-eye-off'></i>";
+    }else{
+        pass_field.type = "password";
+        cObj("client_secret_one").innerHTML = "<i class='ft-eye'></i>";
+    }
+}
