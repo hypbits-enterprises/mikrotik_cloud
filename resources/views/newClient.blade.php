@@ -200,33 +200,26 @@
                                             </div>
                                             <div class="col-md-3">
                                                 <label for="upload_speed" class="form-control-label">Upload <span class="text-danger">*</span> </label>
-                                                <input class="form-control" type="number" name="upload_speed"
-                                                    id="upload_speed" placeholder="128" required
-                                                    value="{{ session('upload_speed') }}">
-                                                <select class="form-control" name="unit1" id="unit1" required
-                                                    value="">
+                                                <input class="form-control" type="number" name="upload_speed" id="upload_speed" placeholder="128" required value="{{ session('upload_speed') }}">
+                                                <select class="form-control" name="unit1" id="unit1" required value="">
                                                     <option value="" hidden>Select unit</option>
                                                     <option {{ session('unit1') == 'K' ? 'selected' : '' }}
                                                         value="K">
                                                         Kbps</option>
-                                                    <option {{ session('unit1') == 'M' ? 'selected' : '' }}
+                                                    <option selected
                                                         value="M">
                                                         Mbps</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-3">
-                                                <label for="download_speed"
-                                                    class="form-control-label">Download <span class="text-danger">*</span> </label>
-                                                <input class="form-control" type="number" name="download_speed"
-                                                    id="download_speed" placeholder="128" required
-                                                    value="{{ session('download_speed') }}">
-                                                <select class="form-control" name="unit2" id="unit2" required
-                                                    value="{{ session('unit2') }}">
+                                                <label for="download_speed" class="form-control-label">Download <span class="text-danger">*</span></label>
+                                                <input class="form-control" type="number" name="download_speed" id="download_speed" placeholder="128" autocomplete="off" required value="{{ session('download_speed') }}">
+                                                <select class="form-control" name="unit2" id="unit2" required value="{{ session('unit2') }}">
                                                     <option value="" hidden>Select unit</option>
                                                     <option {{ session('unit2') == 'K' ? 'selected' : '' }}
                                                         value="K">
                                                         Kbps</option>
-                                                    <option {{ session('unit2') == 'M' ? 'selected' : '' }}
+                                                    <option selected
                                                         value="M">
                                                         Mbps</option>
                                                 </select>
