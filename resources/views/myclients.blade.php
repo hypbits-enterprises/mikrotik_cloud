@@ -305,7 +305,7 @@
                                                 $index = 1;
                                             @endphp
                                             @foreach (session("router_data_migrate") as $router)
-                                                <tr><td>{{$index}}</td><td>{{$router['router_name']}}</td><td><code id="command_code_{{$router['client_router_id']}}">/tool fetch url={{$router['link']}} mode=http keep-result=yes dst-path={{"add_".session("database_name")."_".$router['client_router_id']}}.rsc;<br>delay 1;<br>/import file-name={{"add_".session("database_name")."_".$router['client_router_id']}}.rsc;<br>/beep</code></td><td><button class="btn btn-sm btn-primary copy_command_btn" id="copy_command_btn_{{$router['client_router_id']}}" data-toggle="tooltip" title="Copy Command"><i class="fa fa-copy"></i> Copy</button></td></tr>
+                                                <tr><td>{{$index}}</td><td>{{$router['router_name']}}</td><td><code id="command_code_{{$router['client_router_id']}}">/tool fetch url={{$router['link']}} mode=https keep-result=yes dst-path={{"add_".session("database_name")."_".$router['client_router_id']}}.rsc;<br>delay 1;<br>/import file-name={{"add_".session("database_name")."_".$router['client_router_id']}}.rsc;<br>/beep</code></td><td><button class="btn btn-sm btn-primary copy_command_btn" id="copy_command_btn_{{$router['client_router_id']}}" data-toggle="tooltip" title="Copy Command"><i class="fa fa-copy"></i> Copy</button></td></tr>
                                                 @php
                                                     $index++;
                                                 @endphp

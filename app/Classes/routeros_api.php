@@ -301,8 +301,8 @@ class routeros_api
             }
 
             // Read the response based on calculated LENGTH
+            $_ = '';
             if ($LENGTH > 0) {
-                $_ = '';
                 $retlen = 0;
 
                 // Set timeout for safe socket reading

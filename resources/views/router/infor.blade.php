@@ -13,23 +13,8 @@
     <title>Hypbits - Router Details</title>
     <link rel="apple-touch-icon" href="/theme-assets/images/logo2.jpeg">
     <link rel="shortcut icon" href="/theme-assets/images/logo2.jpeg">
-    <link href="https://fonts.googleapis.com/css?family=Muli:300,300i,400,400i,600,600i,700,700i%7CComfortaa:300,400,700" rel="stylesheet">
-    <link href="https://maxcdn.icons8.com/fonts/line-awesome/1.1/css/line-awesome.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- BEGIN VENDOR CSS-->
-    <link rel="stylesheet" type="text/css" href="/theme-assets/css/vendors.css">
-    <link rel="stylesheet" type="text/css" href="/theme-assets/vendors/css/charts/chartist.css">
-    <!-- END VENDOR CSS-->
-    <!-- BEGIN CHAMELEON  CSS-->
-    <link rel="stylesheet" type="text/css" href="/theme-assets/css/app-lite.css">
-    <!-- END CHAMELEON  CSS-->
-    <!-- BEGIN Page Level CSS-->
-    <link rel="stylesheet" type="text/css" href="/theme-assets/css/core/menu/menu-types/vertical-menu.css">
-    <link rel="stylesheet" type="text/css" href="/theme-assets/css/core/colors/palette-gradient.css">
-    <link rel="stylesheet" type="text/css" href="/theme-assets/css/pages/dashboard-ecommerce.css">
-    <!-- END Page Level CSS-->
-    <!-- BEGIN Custom CSS-->
-    <!-- END Custom CSS-->
+    {{-- CSS COMPONENT --}}
+    <x-css></x-css>
 </head>
 
 <style>
@@ -337,7 +322,7 @@
                         <div class="col-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <h4 class="card-title">More Information</h4>
+                                    <h4 class="card-title">Router Information</h4>
                                     <a class="heading-elements-toggle"><i
                                             class="la la-ellipsis-v font-medium-3"></i></a>
                                     <div class="heading-elements">
@@ -351,80 +336,168 @@
                                 </div>
                                 <div class="card-content collapse show">
                                     <div class="card-body">
-                                        <p class="card-text"><strong>Note:</strong> <br>
-                                            - Detailed information about the router and some actions to be carried out
-                                            by the router
-                                            <br>- The numeric data changes every time so when you referesh the page the
-                                            data won`t be the same
-                                            .
-                                        </p>
-                                        <h6 class="text-primary"><strong><u>Router Actions</u></strong></h6>
-                                        {{-- reboot restart and reset the router --}}
-                                        <div class="row my-1">
-                                            <div class="col-md-4">
-                                                @php
-                                                    $btnText = "Reboot";
-                                                    $otherClasses = "disabled";
-                                                    $btnLink = "/Router/Reboot/".$router_data[0]->router_id;
-                                                    $otherAttributes = "";
-                                                @endphp
-                                                <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                                {{-- <a href="/Router/Reboot/{{ $router_data[0]->router_id }}"
-                                                    class="btn btn-primary disabled {{$readonly}}">Reboot</a> --}}
-                                            </div>
+                                        <div class="mx-auto my-2">
+                                            <ul class="nav nav-tabs nav-justified" id="myTabs" role="tablist">
+                                                <li class="nav-item" role="presentation">
+                                                    <a class="nav-link active" id="tab1-tab" data-toggle="tab" href="#tab1" role="tab"><i class="ft-info mr-1"></i> Router Information</a>
+                                                </li>
+                                                <li class="nav-item" role="presentation">
+                                                    <a class="nav-link" id="tab2-tab" data-toggle="tab" href="#tab2" role="tab"><i class="ft-flag mr-1"></i> Bridge Management </a>
+                                                </li>
+                                                <li class="nav-item" role="presentation">
+                                                    <a class="nav-link " id="tab3-tab" data-toggle="tab" href="#tab3" role="tab"><i class="ft-file mr-1"></i> PPP Profile Management</a>
+                                                </li>
+                                            </ul>
                                         </div>
-                                        @if (session('success_router'))
-                                            <p class='text-success'>{{ session('success_router') }}</p>
-                                        @endif
-                                        @if (session('error_router'))
-                                            <p class='text-danger'>{{ session('error_router') }}</p>
-                                        @endif
-                                        {{-- start of router information --}}
-                                        <h6 class="text-primary"><strong><u>Router Detail</u></strong></h6>
-                                        <div class="row">
-                                            <div class="col-lg-8 row">
-                                                <div class="col-md-6">
-                                                    <p><strong>Router Identity: </strong></p>
+                                        <div class="tab-content" id="myTabsContent">
+                                            <div class="tab-pane fade show active" id="tab1" role="tabpanel">
+                                                <h5 class="text-center">Router Information</h5>
+                                                <p class="card-text"><strong>Note:</strong> <br>
+                                                    - Detailed information about the router and some actions to be carried out
+                                                    by the router
+                                                    <br>- The numeric data changes every time so when you referesh the page the
+                                                    data won`t be the same
+                                                    .
+                                                </p>
+                                                <h6 class="text-primary"><strong><u>Router Actions</u></strong></h6>
+                                                {{-- reboot restart and reset the router --}}
+                                                <div class="row my-1">
+                                                    <div class="col-md-4">
+                                                        @php
+                                                            $btnText = "Reboot";
+                                                            $otherClasses = "disabled";
+                                                            $btnLink = "/Router/Reboot/".$router_data[0]->router_id;
+                                                            $otherAttributes = "";
+                                                        @endphp
+                                                        <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                        {{-- <a href="/Router/Reboot/{{ $router_data[0]->router_id }}"
+                                                            class="btn btn-primary disabled {{$readonly}}">Reboot</a> --}}
+                                                    </div>
                                                 </div>
-                                                <div class="col-md-6">
-                                                    <p>{{ $router_stats[0]['version'] }}</p>
+                                                @if (session('success_router'))
+                                                    <p class='text-success'>{{ session('success_router') }}</p>
+                                                @endif
+                                                @if (session('error_router'))
+                                                    <p class='text-danger'>{{ session('error_router') }}</p>
+                                                @endif
+                                                {{-- start of router information --}}
+                                                <h6 class="text-primary"><strong><u>Router Detail</u></strong></h6>
+                                                <div class="row">
+                                                    <div class="col-lg-8 row">
+                                                        <div class="col-md-6">
+                                                            <p><strong>Router Identity: </strong></p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p>{{ $router_stats[0]['version'] }}</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p><strong>Up-Time: </strong></p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p>{{ $router_stats[0]['uptime'] }}</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p><strong>Memory: </strong></p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p>{{ number_format($router_stats[0]['free-memory'] / (1024*1024),2) }} MBS Out Of {{ number_format($router_stats[0]['total-memory'] / (1024*1024),2) }}</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p><strong>HDD Space: </strong></p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p>{{ number_format($router_stats[0]['free-hdd-space'] / (1024*1024),2) }} MBS Out Of {{ number_format($router_stats[0]['total-hdd-space'] / (1024*1024),2) }}</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p><strong>CPU Load: </strong></p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p>{{ $router_stats[0]['cpu-load'] }}</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p><strong>Board Name: </strong></p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p>{{ $router_stats[0]['board-name'] }}</p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p><strong>Clients Hosted: </strong></p>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <p>{{ $user_count[0]->Total }} Client(s)</p>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div class="col-md-6">
-                                                    <p><strong>Up-Time: </strong></p>
+                                            </div>
+                                            <div class="tab-pane fade" id="tab2" role="tabpanel">
+                                                <h5 class="text-center">Bridge Management</h5>
+                                                <h6 class="text-primary"><strong><u>Router List</u></strong></h6>
+                                                <div class="row my-1">
+                                                    <div class="col-md-4">
+                                                        @php
+                                                            $btnText = "Sync";
+                                                            $otherClasses = "disabled text-dark";
+                                                            $btnLink = "/Router/Reboot/".$router_data[0]->router_id;
+                                                            $otherAttributes = " data-toggle='tooltip' title='Sync your routers bridge to what you have in your router!'";
+                                                        @endphp
+                                                        <x-button-link btnType="success" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                        {{-- <a href="/Router/Reboot/{{ $router_data[0]->router_id }}"
+                                                            class="btn btn-primary disabled {{$readonly}}">Reboot</a> --}}
+                                                    </div>
                                                 </div>
-                                                <div class="col-md-6">
-                                                    <p>{{ $router_stats[0]['uptime'] }}</p>
+                                                <p class="card-text"><strong>Note:</strong> <br>
+                                                    - Manage your router bridges from here
+                                                    <br>- Every action you carry out here will be directly applied to the router.
+                                                    <br>- Sync to include the existing bridges on your router to this system.
+                                                </p>
+                                                <table class="table table-striped table-bordered zero-configuration dataTable" id="router_table_data">
+                                                    <thead>
+                                                        <tr>
+                                                            <th><span>#</span></th>
+                                                            <th><span>Router Names</span></th>
+                                                            <th><span>Bridge Status</span></th>
+                                                            <th>Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr><td colspan="4">Loading bridge details...</td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div class="tab-pane fade" id="tab3" role="tabpanel">
+                                                <h5 class="text-center">PPP Profile Management</h5>
+                                                <h6 class="text-primary"><strong><u>Profile List</u></strong></h6>
+                                                <div class="row my-1">
+                                                    <div class="col-md-4">
+                                                        @php
+                                                            $btnText = "Sync";
+                                                            $otherClasses = "disabled text-dark";
+                                                            $btnLink = "/Router/Reboot/".$router_data[0]->router_id;
+                                                            $otherAttributes = " data-toggle='tooltip' title='Sync your routers bridge to what you have in your router!'";
+                                                        @endphp
+                                                        <x-button-link btnType="success" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                        {{-- <a href="/Router/Reboot/{{ $router_data[0]->router_id }}"
+                                                            class="btn btn-primary disabled {{$readonly}}">Reboot</a> --}}
+                                                    </div>
                                                 </div>
-                                                <div class="col-md-6">
-                                                    <p><strong>Memory: </strong></p>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <p>{{ number_format($router_stats[0]['free-memory'] / (1024*1024),2) }} MBS Out Of {{ number_format($router_stats[0]['total-memory'] / (1024*1024),2) }}</p>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <p><strong>HDD Space: </strong></p>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <p>{{ number_format($router_stats[0]['free-hdd-space'] / (1024*1024),2) }} MBS Out Of {{ number_format($router_stats[0]['total-hdd-space'] / (1024*1024),2) }}</p>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <p><strong>CPU Load: </strong></p>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <p>{{ $router_stats[0]['cpu-load'] }}</p>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <p><strong>Board Name: </strong></p>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <p>{{ $router_stats[0]['board-name'] }}</p>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <p><strong>Clients Hosted: </strong></p>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <p>{{ $user_count[0]->Total }} Client(s)</p>
-                                                </div>
+                                                <p class="card-text"><strong>Note:</strong> <br>
+                                                    - Manage your router bridges from here
+                                                    <br>- Every action you carry out here will be directly applied to the router.
+                                                    <br>- Sync to include the existing bridges on your router to this system.
+                                                </p>
+                                                <table class="table table-striped table-bordered zero-configuration dataTable" id="router_profile_table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th><span>#</span></th>
+                                                            <th><span>Profile Name</span></th>
+                                                            <th><span>Profile Status</span></th>
+                                                            <th>Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr><td colspan="4">Loading profile details...</td></tr>
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
                                     </div>
@@ -494,18 +567,17 @@
 
     <!-- END PAGE VENDOR JS-->
     <!-- BEGIN CHAMELEON  JS-->
+    <script src="//cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="/theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
+    <script src="/theme-assets/js/core/app-lite.js" type="text/javascript"></script>
+    {{-- <script src="/theme-assets/js/core/view_router.js"></script> --}}
     <script>
         var router_detail = @json($router_detail ?? '');
         var load_router_infor = "0";
         if (router_detail.length > 0) {
             load_router_infor = "1";
         }
-        var router_data = @json($router_data ?? '');
-    </script>
-    <script src="/theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
-    <script src="/theme-assets/js/core/app-lite.js" type="text/javascript"></script>
-    {{-- <script src="/theme-assets/js/core/view_router.js"></script> --}}
-    <script>
+
         var milli_seconds = 1200;
         setInterval(() => {
             if (milli_seconds == 0) {
@@ -513,15 +585,6 @@
             }
             milli_seconds--;
         }, 1000);
-        // var delete_user = document.getElementById("delete_user");
-        // delete_user.addEventListener("click", function () {
-        //     document.getElementById("prompt_del_window").classList.remove("d-none");
-        // });
-        // var delet_user_no = document.getElementById("delet_user_no");
-        // delet_user_no.addEventListener("click", function () {
-        //     document.getElementById("prompt_del_window").classList.add("d-none");
-        // });
-
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text)
             .then(() => {
@@ -579,6 +642,73 @@
         function cObj(id) {
             return document.getElementById(id);
         }
+
+
+        var router_data = @json($router_data ?? '');
+        cObj("tab2-tab").addEventListener("click", function () {
+            if ($.fn.DataTable.isDataTable('#router_table_data')) {
+                // just reload data
+                $('#router_table_data').DataTable().ajax.reload();
+            } else {
+                let table = $('#router_table_data').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "/Router_Bridges/datatable/"+router_data[0].router_id, // route to controller
+                        type: "GET",
+                        data: function (d) {
+                        }
+                    },
+                    order: [[0, 'desc']],
+                    dom: '<"bottom"l>t<"bottom"ip>', // hide search, put length menu bottom-left
+                    pageLength: 5,  // default rows per page
+                    lengthMenu: [5, 10, 20], // available options
+                    columns: [
+                        { data: 'rownum' },
+                        { data: 'bridge_name' },
+                        { data: 'bridge_status' },
+                        { data: 'actions', orderable: false, searchable: false }
+                    ]
+                });
+                // reinitialize tooltips after table data is drawn/refreshed
+                table.on('draw.dt', function () {
+                    $('[data-toggle="tooltip"]').tooltip(); // Bootstrap 4
+                });
+            }
+        });
+
+
+        cObj("tab3-tab").addEventListener("click", function () {
+            if ($.fn.DataTable.isDataTable('#router_profile_table')) {
+                // just reload data
+                $('#router_profile_table').DataTable().ajax.reload();
+            } else {
+                let table = $('#router_profile_table').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "/Router_Profile/datatable/"+router_data[0].router_id, // route to controller
+                        type: "GET",
+                        data: function (d) {
+                        }
+                    },
+                    order: [[0, 'desc']],
+                    dom: '<"bottom"l>t<"bottom"ip>', // hide search, put length menu bottom-left
+                    pageLength: 20,  // default rows per page
+                    lengthMenu: [5, 10, 20, 50], // available options
+                    columns: [
+                        { data: 'rownum' },
+                        { data: 'profile_name' },
+                        { data: 'profile_status' },
+                        { data: 'actions', orderable: false, searchable: false }
+                    ]
+                });
+                // reinitialize tooltips after table data is drawn/refreshed
+                table.on('draw.dt', function () {
+                    $('[data-toggle="tooltip"]').tooltip(); // Bootstrap 4
+                });
+            }
+        });
     </script>
 </body>
 

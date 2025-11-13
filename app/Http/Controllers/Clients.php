@@ -6566,6 +6566,7 @@ $export_text .= "
             }
             
             $API->disconnect();
+            return response()->json(["success" => false, "message" => "Please activate your account!"]);
         }
         return response()->json(["success" => false, "message" => "Cannot connect to sstp server $server_ip_address $user $pass $port!"]);
     }
@@ -7798,10 +7799,10 @@ $export_text .= "
                     $add_script .= "/file remove [find name=\"add_".session("database_name")."_".$rdata['client_router_id'].".rsc\"]\n";
                     // $add_script .= "/system/script/remove [find name=\"import_".$rdata['client_router_id']."\"]\n";
                     $add_script .= ":put \"File deleted successfully\"\n";
-                    $add_script .= "/tool fetch url=\"".env("APP_URL", "https://billing.hypbits.com")."/delete_file_migrate?filename="."add_".session("database_name")."_".$rdata['client_router_id'].".rsc\""." mode=http keep-result=no\n";
+                    $add_script .= "/tool fetch url=\"".env("APP_URL", "https://billing.hypbits.com")."/delete_file_migrate?filename="."add_".session("database_name")."_".$rdata['client_router_id'].".rsc\""." mode=".env("APP_URL_MODE", "https")." keep-result=no\n";
                     File::put($add_file_location, $rdata['delete_script'].$add_script);
                 }else{
-                    $salutation_script = "/tool fetch url=\"".env("APP_URL", "https://billing.hypbits.com")."/delete_file_migrate?filename="."add_".session("database_name")."_".$rdata['client_router_id'].".rsc\""." mode=http keep-result=no\n";
+                    $salutation_script = "/tool fetch url=\"".env("APP_URL", "https://billing.hypbits.com")."/delete_file_migrate?filename="."add_".session("database_name")."_".$rdata['client_router_id'].".rsc\""." mode=".env("APP_URL_MODE", "https")." keep-result=no\n";
                     $salutation_script .= ":put \"Migration done successfully\"";
                     File::put($add_file_location, $rdata['delete_script'].$salutation_script);
                 }
@@ -7817,7 +7818,7 @@ $export_text .= "
                 $add_script .= "/file remove [find name=\"add_".session("database_name")."_".$router_data[0]->router_id.".rsc\"]\n";
                 // $add_script .= "/system/script/remove [find name=\"import_".$router_data[0]->router_id."\"]\n";
                 $add_script .= ":put \"File deleted successfully\"\n";
-                $add_script .= "/tool fetch url=\"".env("APP_URL", "https://billing.hypbits.com")."/delete_file_migrate?filename="."add_".session("database_name")."_".$router_data[0]->router_id.".rsc\""." mode=http keep-result=no\n";
+                $add_script .= "/tool fetch url=\"".env("APP_URL", "https://billing.hypbits.com")."/delete_file_migrate?filename="."add_".session("database_name")."_".$router_data[0]->router_id.".rsc\""." mode=".env("APP_URL_MODE", "https")." keep-result=no\n";
                 File::put($add_file_location, $add_script);
 
                 array_push($router_data_migrate, array(

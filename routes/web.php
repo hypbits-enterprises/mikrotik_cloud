@@ -373,3 +373,7 @@ Route::post("/register_mpesa_url", [mpesa_api::class, "register_url"])->name("re
 
 // EXPORT CLIENT DATA
 Route::post("/export_client_data", [Clients::class, "export_client_data"])->name("export_client_data");
+
+// MANAGE CLIENT ROUTER
+Route::get("/Router_Bridges/datatable/{router_id}", [Router_Cloud::class, 'get_router_bridge_information'])->name("get_router_bridge_information")->middleware(["checkAccount", "validated"]);
+Route::get("/Router_Profile/datatable/{router_id}", [Router_Cloud::class, 'get_router_secret_information'])->name("get_router_secret_information")->middleware(["checkAccount", "validated"]);
