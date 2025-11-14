@@ -12,6 +12,289 @@ use function PHPUnit\Framework\isJson;
 date_default_timezone_set('Africa/Nairobi');
 class Router_Cloud extends Controller
 {
+
+    function delete_router_bridge($router_id, $bridge_name){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // check first if the router configuration is done
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ?",[$router_id]);
+        if (count($router_data) == 0) {
+            session()->flash("error_router","Invalid router");
+            redirect(url()->route("view_router_cloud"));
+        }
+        
+        // create a SSTP secret on the SSTP server
+        // get the server details
+        $sstp_settings = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
+        if (count($sstp_settings) == 0) {
+            session()->flash("error_router","The SSTP server is not set, Contact your administrator!");
+            return redirect(url()->previous());
+        }
+
+        // connect to the server
+        $sstp_value = $this->isJson($sstp_settings[0]->value) ? json_decode($sstp_settings[0]->value) : null;
+
+        if ($sstp_value == null) {
+            session()->flash("error_router","The SSTP server is not set, Contact your administrator!");
+            return redirect(url()->previous());
+        }
+
+        // connect to the router and set the sstp client
+        $server_ip_address = $sstp_value->ip_address;
+        $user = $sstp_value->username;
+        $pass = $sstp_value->password;
+        $port = $sstp_value->port;
+
+        // check if the router is actively connected
+        $client_router_ip = $this->checkActive($server_ip_address, $user, $pass, $port, $router_data[0]->sstp_username);
+
+        // check if the bridge is present on the router
+        $API = new routeros_api();
+        $API->debug = false;
+        if ($API->connect($client_router_ip, $user, $pass, $port)){
+            // delete the bridge and unslave all the interfaces connected to that bridge
+            $bridge_ports = $API->comm("/interface/bridge/port/print", [
+                "?bridge" => $bridge_name
+            ]);
+            if(count($bridge_ports) > 0){
+                $bridge_ports_list = $API->comm("/interface/bridge/port/remove", [
+                    ".id" => $bridge_ports[0]['.id']
+                ]);
+            }
+
+            // delete the bridge
+            $bridge = $API->comm("/interface/bridge/print", [
+                "?name" => $bridge_name
+            ]);
+            if(count($bridge) > 0){
+                $delete_bridge = $API->comm("/interface/bridge/remove", [
+                    ".id" => $bridge[0]['.id']
+                ]);
+            }
+
+            // delete the bridge
+            DB::connection("mysql2")->delete("DELETE FROM router_bridge WHERE bridge_name = ?",[$bridge_name]);
+
+            // success messgae
+            session()->flash("success_router", "Router bridge has been deleted successfully!");
+            return redirect(url()->previous());
+        }else {
+            session()->flash("error_router","Cannot connect to router, ensure you have configured the router correctly!");
+            return redirect(url()->previous());
+        }
+    }
+
+    function update_bridge(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+        
+        $bridges = [];
+        $new_bridge_name = $req->input("edit_bridge_name");
+        $old_bridge_name = $req->input("edit_bridge_name_2");
+        $router_id = $req->input("router_id");
+
+        foreach($req->all() as $key => $value){
+            if(str_contains($key, "select_interface_checkbox_")){
+                $bridge = $req->input($key);
+                if($bridge == "on"){
+                    array_push($bridges, $req->input("interface_index_bridge_".substr($key,strlen("select_interface_checkbox_"))));
+                }
+            }
+        }
+
+        // check if the bridge name is already used
+        $check_bridge = DB::connection("mysql2")->select("SELECT * FROM `router_bridge` WHERE `bridge_name` = ? AND `router_id` = ?",[$new_bridge_name, $router_id]);
+        if(count($check_bridge) > 0 && $old_bridge_name != $new_bridge_name){
+            session()->flash("error_router","Bridge name already exists!");
+            return redirect(url()->previous());
+        }
+
+        // return $bridges;
+
+        // get the bridge ports
+        $curl_handle = curl_init();
+        $url = env('CRONJOB_URL', 'https://crontab.hypbits.com')."/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_id . "&r_bridge_ports=true";
+        curl_setopt($curl_handle, CURLOPT_URL, $url);
+        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
+        $curl_data = curl_exec($curl_handle);
+        curl_close($curl_handle);
+        $bridge_ports = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+        // return $bridge_ports;
+
+        // get the router interfaces
+        $interfaces = [];
+        $curl_handle = curl_init();
+        $url = env('CRONJOB_URL', 'https://crontab.hypbits.com')."/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_id . "&r_interfaces=true";
+        curl_setopt($curl_handle, CURLOPT_URL, $url);
+        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
+        $curl_data = curl_exec($curl_handle);
+        curl_close($curl_handle);
+        $interfaces = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+
+        // check those to remove, those to add and those retained
+        $to_add = [];
+        foreach ($bridges as $key => $bridge_port) {
+            $found = false;
+            foreach ($bridge_ports as $bp) {
+                if ($bp['bridge'] == $old_bridge_name && $bp['interface'] == $bridge_port) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found) {
+                array_push($to_add, $bridge_port);
+            }
+        }
+
+        $to_remove = [];
+        foreach ($bridge_ports as $bp) {
+            if ($bp['bridge'] == $old_bridge_name && !str_contains($bp['bridge'],"*")) {
+                $found = false;
+                foreach ($bridges as $bridge_port) {
+                    if ($bp['interface'] == $bridge_port) {
+                        $found = true;
+                        break;
+                    }
+                }
+                if (!$found) {
+                    array_push($to_remove, $bp['interface']);
+                }
+            }
+        }
+
+        // from the interface list check to see if to_remove list is type ether
+        foreach ($to_remove as $key => $remove_interface) {
+            for ($index=0; $index < count($interfaces); $index++) { 
+                if ($interfaces[$index]['name'] == $remove_interface && $interfaces[$index]['type'] != "ether") {
+                    // remove from to_remove list
+                    unset($to_remove[$key]);
+                }
+            }
+        }
+
+        // check first if the router configuration is done
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ?",[$router_id]);
+        if (count($router_data) == 0) {
+            session()->flash("error_router","Invalid router");
+            redirect(url()->route("view_router_cloud"));
+        }
+        
+        // create a SSTP secret on the SSTP server
+        // get the server details
+        $sstp_settings = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
+        if (count($sstp_settings) == 0) {
+            session()->flash("error_router","The SSTP server is not set, Contact your administrator!");
+            return redirect(url()->previous());
+        }
+
+        // connect to the server
+        $sstp_value = $this->isJson($sstp_settings[0]->value) ? json_decode($sstp_settings[0]->value) : null;
+
+        if ($sstp_value == null) {
+            session()->flash("error_router","The SSTP server is not set, Contact your administrator!");
+            return redirect(url()->previous());
+        }
+
+        // connect to the router and set the sstp client
+        $server_ip_address = $sstp_value->ip_address;
+        $user = $sstp_value->username;
+        $pass = $sstp_value->password;
+        $port = $sstp_value->port;
+
+        // check if the router is actively connected
+        $client_router_ip = $this->checkActive($server_ip_address, $user, $pass, $port, $router_data[0]->sstp_username);
+
+        // check if the bridge is present on the router
+        $API = new routeros_api();
+        $API->debug = false;
+        if ($API->connect($client_router_ip, $user, $pass, $port)){
+            // get all bridges
+            $all_bridges = $API->comm("/interface/bridge/print");
+            $bridge_found = false;
+            foreach ($all_bridges as $bridge) {
+                if ($bridge['name'] == $old_bridge_name) {
+                    $bridge_found = true;
+                    break;
+                }
+            }
+            if($bridge_found){
+                // update the bridge name if they don`t match
+                if($old_bridge_name != $new_bridge_name){
+                    $API->comm("/interface/bridge/set", [
+                        ".id" => $bridge['.id'],
+                        "name" => $new_bridge_name,
+                        "comment" => "Modified by HBS Cloud System"
+                    ]);
+
+                    // update the bridge name
+                    DB::connection("mysql2")->update("UPDATE router_bridge SET bridge_name = ? WHERE bridge_name = ? AND router_id = ?",[$new_bridge_name, $old_bridge_name, $router_id]);
+                }
+            }else{
+                // add the bridge if its not present
+                $API->comm("/interface/bridge/add", [
+                    "name" => $new_bridge_name,
+                    "comment" => "Added by HBS Cloud System"
+                ]);
+
+                // insert the bridge
+                $bridge_status = "1";
+                DB::connection("mysql2")->insert("INSERT INTO router_bridge (bridge_name, bridge_status, router_id) VALUES (?,?,?)",[$new_bridge_name, $bridge_status, $router_id]);
+            }
+            
+            // add multiple bridge ports
+            foreach ($to_add as $add_interface) {
+                $API->comm("/interface/bridge/port/add", [
+                    "bridge" => $new_bridge_name,
+                    "interface" => $add_interface
+                ]);
+            }
+
+            // remove multiple bridge ports
+            foreach ($to_remove as $remove_interface) {
+                // get the bridge port id
+                $bridge_ports_list = $API->comm("/interface/bridge/port/print", [
+                    "?interface" => $remove_interface,
+                    "?bridge" => $old_bridge_name
+                ]);
+                if (count($bridge_ports_list) > 0) {
+                    $API->comm("/interface/bridge/port/remove", [
+                        ".id" => $bridge_ports_list[0]['.id']
+                    ]);
+                }
+            }
+            
+            $API->disconnect();
+            session()->flash("success_router","Bridge updated successfully!");
+            return redirect(url()->previous());
+        }else{
+            session()->flash("error_router","Cannot connect to router, ensure you have configured the router correctly!");
+            return redirect(url()->previous());
+        }
+    }
+    function sync_bridge_modal(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+        
+        $bridges = [];
+        foreach ($req->all() as $key => $value) {
+            if (str_contains($key, "select_bridge_checkbox_")) {
+                $bridge = $req->input($key);
+                if ($bridge == "on") {
+                    array_push($bridges, $req->input("new_selected_bridge_".substr($key,strlen("select_bridge_checkbox_"))));
+                    $one_bridge = $req->input("new_selected_bridge_".substr($key,strlen("select_bridge_checkbox_")));
+                    $bridge_status = 1;
+                    DB::connection("mysql2")->insert("INSERT INTO router_bridge (bridge_name, bridge_status, router_id) VALUES (?,?,?)",[$one_bridge, $bridge_status, $req->input("router_id")]);
+                }
+            }
+        }
+        
+        session()->flash("success_router","Selected bridges synchronized successfully!");
+        return redirect(url()->previous());
+    }
     function get_router_secret_information(Request $request, $router_id){
         // change db
         $change_db = new login();
@@ -26,46 +309,21 @@ class Router_Cloud extends Controller
             session()->flash("error_router","The SSTP server is not set, Contact your administrator!");
             return redirect(url()->previous());
         }
-
-        // get the router details
-        $router_data = DB::connection("mysql2")->select("SELECT * FROM remote_routers WHERE router_id = ?",[$router_id]);
         
-        // connect to the router and set the sstp client
-        $sstp_value = $this->getSSTPAddress();
-        if ($sstp_value == null) {
-            $error = "The SSTP server is not set, Contact your administrator!";
-            session()->flash("error_router",$error);
-            return redirect(url()->route("view_router_cloud"));
-        }
-
-        // connect to the router and set the sstp client
-        $ip_address = $sstp_value->ip_address;
-        $user = $sstp_value->username;
-        $pass = $sstp_value->password;
-        $port = $sstp_value->port;
-
-        // check if the router is actively connected
-        $client_router_ip = $this->checkActive($ip_address,$user,$pass,$port,$router_data[0]->sstp_username);
-        if ($client_router_ip) {
-            // get the router details
-            $API = new routeros_api();
-            $API->debug = false;
-            
-            $ip_address = $client_router_ip;
-            $user = $router_data[0]->sstp_username;
-            $pass = $router_data[0]->sstp_password;
-            $port = $router_data[0]->api_port;
-            if ($API->connect($ip_address, $user, $pass, $port)){
-                $router_profile = $API->comm("/ppp/profile/print");
-                $API->disconnect();
-            }
-        }
+        // get the IP ADDRES
+        $curl_handle = curl_init();
+        $url = env('CRONJOB_URL', 'https://crontab.hypbits.com')."/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_id . "&r_ppoe_profiles=true";
+        curl_setopt($curl_handle, CURLOPT_URL, $url);
+        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
+        $curl_data = curl_exec($curl_handle);
+        curl_close($curl_handle);
+        $router_profile = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
 
         // CHECK IF THE DB BRIDGES EXIST
-        $db_profiles = DB::connection("mysql2")->select("SELECT * FROM `router_interfaces`");
+        $db_profiles = DB::connection("mysql2")->select("SELECT * FROM `router_profile` WHERE router_id = ?",[$router_id]);
         for ($index=0; $index < count($db_profiles); $index++) {
             $db_profiles[$index]->exists = 0;
-            for ($j=0; $j < count($router_profile); $j++) { 
+            for ($j=0; $j < count($router_profile); $j++) {
                 if ($db_profiles[$index]->bridge_name == $router_profile[$j]['name']) {
                     $db_profiles[$index]->exists = 1;
                     break;
@@ -113,6 +371,78 @@ class Router_Cloud extends Controller
         return $json_data;
     }
 
+    function get_router_bridge_interfaces(Request $request, $router_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // get the bridge information
+        $bridge_ports = [];
+        $bridge_name = $request->input("bridge_name");
+
+        // get the bridge ports
+        $curl_handle = curl_init();
+        $url = env('CRONJOB_URL', 'https://crontab.hypbits.com')."/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_id . "&r_bridge_ports=true";
+        curl_setopt($curl_handle, CURLOPT_URL, $url);
+        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
+        $curl_data = curl_exec($curl_handle);
+        curl_close($curl_handle);
+        $bridge_ports = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+
+        // get the router interfaces
+        $interfaces = [];
+        $curl_handle = curl_init();
+        $url = env('CRONJOB_URL', 'https://crontab.hypbits.com')."/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_id . "&r_interfaces=true";
+        curl_setopt($curl_handle, CURLOPT_URL, $url);
+        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
+        $curl_data = curl_exec($curl_handle);
+        curl_close($curl_handle);
+        $interfaces = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+        
+        $final_interfaces = [];
+        for ($index=0; $index < count($interfaces); $index++) { 
+            if ($interfaces[$index]['type'] == "ether") {
+                // check if the interface is part of any bridge
+                $bridge = null;
+                foreach ($bridge_ports as $key => $bridge_port) {
+                    if ($bridge_port['interface'] == $interfaces[$index]['name'] && !str_contains($bridge_port['bridge'],"*")) {
+                        // add to final interfaces
+                        $bridge = $bridge_port['bridge'];
+                        break;
+                    }
+                }
+                $interfaces[$index]['bridge'] = $bridge;
+                array_push($final_interfaces, $interfaces[$index]);
+            }
+        }
+        // return $final_interfaces;
+
+
+        // CHECK IF THE DB BRIDGES EXIST
+        $start = 0;
+        $data = [];
+        foreach ($final_interfaces as $index => $interface) {
+            $status = $interface['bridge'] ? ($interface['bridge'] != $bridge_name ? "disabled" : "") : "";
+            $checked = $interface['bridge'] ? "checked" : "";
+            $button = "<input type='checkbox' ".($status != "disabled" ? "name='select_interface_checkbox_".$index."' " : "")." ".$checked." class='form-check-input select_bridge_checkbox ml-1' $status id='select_interface_checkbox_".$index."'> <input type='hidden' ".($status != "disabled" ? "name='interface_index_bridge_".$index."' " : "")." value='".$interface['name']."'>";
+            $data[] = [
+                // add checkbox on first column to select
+                "rownum" => ($start + $index + 1),
+                "interface_name" => $interface['name'],
+                "interface_status" => $interface['bridge'] ? "<span class='badge bg-success'>".$interface['bridge']."</span>" : "<span class='badge bg-danger'>Not Assigned</span>",
+                "actions" =>  $button
+            ];
+        }
+
+         $json_data = [
+            "draw"            => intval($request->input('draw')),
+            "recordsTotal"    => count($data),
+            "recordsFiltered" => count($data),
+            "data"            => $data
+        ];
+        return $json_data;
+    }
+
     function get_router_bridge_information(Request $request, $router_id){
         // change db
         $change_db = new login();
@@ -121,48 +451,31 @@ class Router_Cloud extends Controller
         // get the bridge information
         $bridge_info = [];
 
+        $only_misconfigured = $request->has("only_misconfigured") ? $request->input("only_misconfigured") : "false";
+
         // get the server details
         $sstp_settings = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
         if (count($sstp_settings) == 0) {
             session()->flash("error_router","The SSTP server is not set, Contact your administrator!");
             return redirect(url()->previous());
         }
+        // get the IP ADDRES
+        $curl_handle = curl_init();
+        $url = env('CRONJOB_URL', 'https://crontab.hypbits.com')."/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_id . "&r_interfaces=true";
+        curl_setopt($curl_handle, CURLOPT_URL, $url);
+        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
+        $curl_data = curl_exec($curl_handle);
+        curl_close($curl_handle);
+        $interfaces = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
 
-        // get the router details
-        $router_data = DB::connection("mysql2")->select("SELECT * FROM remote_routers WHERE router_id = ?",[$router_id]);
-        
-        // connect to the router and set the sstp client
-        $sstp_value = $this->getSSTPAddress();
-        if ($sstp_value == null) {
-            $error = "The SSTP server is not set, Contact your administrator!";
-            session()->flash("error_router",$error);
-            return redirect(url()->route("view_router_cloud"));
-        }
-
-        // connect to the router and set the sstp client
-        $ip_address = $sstp_value->ip_address;
-        $user = $sstp_value->username;
-        $pass = $sstp_value->password;
-        $port = $sstp_value->port;
-
-        // check if the router is actively connected
-        $client_router_ip = $this->checkActive($ip_address,$user,$pass,$port,$router_data[0]->sstp_username);
-        if ($client_router_ip) {
-            // get the router details
-            $API = new routeros_api();
-            $API->debug = false;
-            
-            $ip_address = $client_router_ip;
-            $user = $router_data[0]->sstp_username;
-            $pass = $router_data[0]->sstp_password;
-            $port = $router_data[0]->api_port;
-            if ($API->connect($ip_address, $user, $pass, $port)){
-                $bridge_info = $API->comm("/interface/bridge/print");
-                $API->disconnect();
+        foreach ($interfaces as $key => $interface) {
+            if ($interface['type'] == "bridge") {
+                array_push($bridge_info, $interface);
             }
         }
+
         // CHECK IF THE DB BRIDGES EXIST
-        $db_bridges = DB::connection("mysql2")->select("SELECT * FROM `router_bridge`");
+        $db_bridges = DB::connection("mysql2")->select("SELECT * FROM `router_bridge` WHERE router_id = ?",[$router_id]);
         for ($index=0; $index < count($db_bridges); $index++) {
             $db_bridges[$index]->exists = 0;
             for ($j=0; $j < count($bridge_info); $j++) { 
@@ -190,14 +503,28 @@ class Router_Cloud extends Controller
                 ]);
             }
         }
+        
+        // handle requests for interfaces that are only misconfigured
+        if($only_misconfigured == "true"){
+            $filtered_bridges = [];
+            for ($index=0; $index < count($db_bridges); $index++) {
+                if ($db_bridges[$index]->exists == 0 && $db_bridges[$index]->bridge_id == null) {
+                    array_push($filtered_bridges, $db_bridges[$index]);
+                }
+            }
+            $db_bridges = $filtered_bridges;
+        }
+
         $data = [];
         $start = 0;
         foreach ($db_bridges as $index => $db_bridge) {
-            $button = "<button type='button' class='btn btn-info btn-sm btn-block mt-1  ' style='padding: 3px; background-color: rgb(40, 175, 208); transition: background-color 0.3s;' id='bridge_view_btn_".$db_bridge->bridge_id."'><span class='d-inline-block border border-white w-100 ' style='border-radius: 2px; padding: 5px; background-color: rgba(0, 0, 0, 0); color: rgb(255, 255, 255); border-color: rgb(255, 255, 255); transition: color 0.3s, background-color 0.3s, border-color 0.3s;'><i class='fa fa-file-export'></i> View</span></button>";
+            $button = "<button type='button' class='btn btn-info btn-sm bridge_view_btn' style='padding: 3px; background-color: rgb(40, 175, 208); transition: background-color 0.3s;' id='bridge_view_btn_".$db_bridge->bridge_id."' data-bridge-name='".$db_bridge->bridge_name."'><span class='d-inline-block border border-white w-100 ' style='border-radius: 2px; padding: 5px; background-color: rgba(0, 0, 0, 0); color: rgb(255, 255, 255); border-color: rgb(255, 255, 255); transition: color 0.3s, background-color 0.3s, border-color 0.3s;'><i class='fa fa-pen-fancy'></i> Edit</span></button>";
+            $button .= "<button type='button' class='btn btn-danger btn-sm bridge_del_btn ml-1' style='padding: 3px; background-color: rgb(250, 98, 107); transition: background-color 0.3s;' id='bridge_del_btn_".$db_bridge->bridge_id."' data-bridge-name='".$db_bridge->bridge_name."'><span class='d-inline-block border border-white w-100 ' style='border-radius: 2px; padding: 5px; background-color: rgba(0, 0, 0, 0); color: rgb(255, 255, 255); border-color: rgb(255, 255, 255); transition: color 0.3s, background-color 0.3s, border-color 0.3s;'><i class='fa fa-trash'></i> Del</span></button>";
             $data[] = [
-                "rownum" => ($start + $index + 1),
+                // add checkbox on first column to select
+                "rownum" => ($start + $index + 1) . ($only_misconfigured == "true" ? " <input type='checkbox' name='select_bridge_checkbox_".$index."' class='form-check-input select_bridge_checkbox ml-1' id='select_bridge_checkbox_".$index."'> <input type='hidden' name='new_selected_bridge_".$index."' value='".$db_bridge->bridge_name."'>" : ""),
                 "bridge_name" => $db_bridge->bridge_name,
-                "bridge_status" => ($db_bridge->exists == 1  ? " <span class='badge bg-success'>Configured</span>" : " <small data-toggle='tooltip' title='Not available on your account but available on your router!' class='badge bg-danger'>Missing!</small>"),
+                "bridge_status" => ($db_bridge->exists == 1  ? " <span class='badge bg-success'>Configured</span>" : " <small data-toggle='tooltip' title='' class='badge ".($db_bridge->bridge_id ? "bg-danger" : "bg-warning")." missing_bridge'>".($db_bridge->bridge_id ? "\"Missing in your router!\"" : "\"Missing in your account!\"")."</small>"),
                 "actions" =>  $db_bridge->bridge_id ? $button : "<span class='badge bg-danger'>Not in DB</span>"
             ];
         }

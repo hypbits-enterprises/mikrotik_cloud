@@ -377,3 +377,7 @@ Route::post("/export_client_data", [Clients::class, "export_client_data"])->name
 // MANAGE CLIENT ROUTER
 Route::get("/Router_Bridges/datatable/{router_id}", [Router_Cloud::class, 'get_router_bridge_information'])->name("get_router_bridge_information")->middleware(["checkAccount", "validated"]);
 Route::get("/Router_Profile/datatable/{router_id}", [Router_Cloud::class, 'get_router_secret_information'])->name("get_router_secret_information")->middleware(["checkAccount", "validated"]);
+Route::get("/Router_Bridge_Interfaces/datatable/{router_id}", [Router_Cloud::class, 'get_router_bridge_interfaces'])->name("get_router_bridge_interfaces")->middleware(["checkAccount", "validated"]);
+Route::get("/Router_Bridge/delete/{router_id}/{bridge_name}", [Router_Cloud::class, 'delete_router_bridge'])->name("delete_router_bridge")->middleware(["checkAccount", "validated"]);
+Route::post("sync_bridge_modal", [Router_Cloud::class, "sync_bridge_modal"])->name("sync_bridge_modal");
+Route::post("/update_bridge_data", [Router_Cloud::class, "update_bridge"])->name("update_bridge");

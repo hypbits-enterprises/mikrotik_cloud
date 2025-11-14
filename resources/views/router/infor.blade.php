@@ -69,6 +69,165 @@
                 </div>
             </div>
             <div class="content-body">
+                {{-- DELETE THE BRIDGE --}}
+                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="delete_bridge_data_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2" style="padding-right: 17px;" aria-modal="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger white">
+                            <h4 class="modal-title white" id="myModalLabel5">Confirm Deletion Of <span id="bridge_name_heading">Bridge</span>.</h4>
+                            <button id="close_delete_bridge_data_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="container">
+                                    <p>Are you sure you want to permanently delete this Bridge?</p>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <div class="row w-100">
+                                    <div class="col-md-6">
+                                        @php
+                                            $btnText = "<i class=\"fas fa-trash\"></i> Proceed to Delete";
+                                            $otherClasses = "btn-block";
+                                            $btnLink = "#";
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button-link btnType="danger" btnId='delete_bridge_url_holder' btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        {{-- <a href="/Routers/Delete/{{ $router_data[0]->router_id }}" class="btn btn-danger btn-sm" >Proceed to Delete</a> --}}
+                                    </div>
+                                    <div class="col-md-6">
+                                        @php
+                                            $btnText = "<i class=\"fas fa-x\"></i> Close";
+                                            $validated = "btn-block";
+                                        @endphp
+                                        <x-button :btnText="$btnText" btnType="secondary" btnSize="sm" :otherClasses="$validated" btnId="close_delete_bridge_data_modal_2" :readOnly="$readonly" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{-- UPDATE CLIENT PHONE NUMBER --}}
+                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="sync_bridge_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel3" style="padding-right: 17px;" aria-modal="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header bg-info white">
+                            <h4 class="modal-title white">Add Bridges</h4>
+                            <button id="close_sync_bridge_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="container">
+                                    <form action="/sync_bridge_modal" method="post" class="form-control-group">
+                                        @csrf
+                                        <input type="hidden" name="router_id" value="{{ $router_data[0]->router_id }}">
+                                        <h5 class="text-center" >Add Bridges</h5>
+                                        <p class="card-text"><strong>Note:</strong> 
+                                            <br>- Every bridge that is not available in your account is listed here!.
+                                            <br>- Select the bridges and they will be added to your account.
+                                        </p>
+                                        <h6 id="selected_bridges" class="d-none text-dark badge bg-success">0 bridge(s) selected</h6>
+                                        <table class="table table-striped table-bordered zero-configuration dataTable w-100" id="router_table_data_bridge">
+                                            <thead>
+                                                <tr>
+                                                    <th><span>#</span></th>
+                                                    <th><span>Router Names</span></th>
+                                                    <th><span>Bridge Status</span></th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr><td colspan="4" style="text-center">Loading bridge details...</td></tr>
+                                            </tbody>
+                                        </table>
+                                        <div class="row w-100">
+                                            <div class="col-md-6">
+                                                @php
+                                                    $btnText = "<i class=\"fas fa-save\"></i> Save";
+                                                    $otherClasses = "w-100 my-1";
+                                                @endphp
+                                                <x-button :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="" :readOnly="$readonly" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                @php
+                                                    $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                    $otherClasses = "w-100 my-1";
+                                                @endphp
+                                                <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_sync_bridge_modal_2" :readOnly="$readonly" />
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {{-- UPDATE CLIENT BRIDGE --}}
+                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="edit_bridge_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel3" style="padding-right: 17px;" aria-modal="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header bg-info white">
+                                <h4 class="modal-title white" id="heading_1">Edit Bridges Details</h4>
+                                <button id="close_edit_bridge_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="container">
+                                    <form action="/update_bridge_data" method="post" class="form-control-group">
+                                        @csrf
+                                        <input type="hidden" name="router_id" value="{{ $router_data[0]->router_id }}">
+                                        <h5 class="text-center" id="heading_2" >Edit Bridges Details</h5>
+                                        <p class="card-text"><strong>Note:</strong> 
+                                            <br>- Every bridge that is not available in your account is listed here!.
+                                            <br>- Select the bridges and they will be added to your account.
+                                        </p>
+                                        <hr>
+                                        <div class="form-group">
+                                            <label for="edit_bridge_name"  id="heading_3" class="form-control-label"><b>Edit Bridge Name</b></label>
+                                            <input type="text" name="edit_bridge_name" id="edit_bridge_name" class="form-control" required>
+                                            <input type="hidden" name="edit_bridge_name_2" id="edit_bridge_name_2" class="form-control">
+                                        </div>
+                                        <h6 class="text-center text-primary"><u>Interfaces</u></h6>
+                                        <table class="table table-striped table-bordered zero-configuration dataTable w-100" id="router_table_data_interfaces">
+                                            <thead>
+                                                <tr>
+                                                    <th><span>#</span></th>
+                                                    <th><span>Interface Name</span></th>
+                                                    <th><span>Bridge Assigned</span></th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr><td colspan="4" style="text-center">Loading bridge details...</td></tr>
+                                            </tbody>
+                                        </table>
+                                        <div class="row w-100">
+                                            <div class="col-md-6">
+                                                @php
+                                                    $btnText = "<i class=\"fas fa-save\"></i> Save";
+                                                    $otherClasses = "w-100 my-1";
+                                                @endphp
+                                                <x-button :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="" :readOnly="$readonly" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                @php
+                                                    $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                    $otherClasses = "w-100 my-1";
+                                                @endphp
+                                                <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_edit_bridge_modal_2" :readOnly="$readonly" />
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <!-- Basic Tables start -->
                 <div class="row">
                     <div class="col-12">
@@ -294,7 +453,7 @@
                                                     $otherClasses = "".$readonly;
                                                     $btn_id = "send_to_clipboard";
                                                 @endphp
-                                                <x-button :btnText="$btnText" btnType="success" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                <x-button :btnText="$btnText" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                                                 {{-- <button {{$readonly}} class="btn btn-success text-dark" type="submit"><i class="ft-upload"></i> Update</button> --}}
                                             </div>
                                             <div class="col-md-6">
@@ -435,14 +594,18 @@
                                                 <div class="row my-1">
                                                     <div class="col-md-4">
                                                         @php
-                                                            $btnText = "Sync";
-                                                            $otherClasses = "disabled text-dark";
-                                                            $btnLink = "/Router/Reboot/".$router_data[0]->router_id;
-                                                            $otherAttributes = " data-toggle='tooltip' title='Sync your routers bridge to what you have in your router!'";
+                                                            $btnText = "<i class=\"ft-refresh-cw\" ></i> Sync";
+                                                            $otherClasses = "text-dark";
+                                                            $btn_id = "sync_bridges_btn";
                                                         @endphp
-                                                        <x-button-link btnType="success" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                                        {{-- <a href="/Router/Reboot/{{ $router_data[0]->router_id }}"
-                                                            class="btn btn-primary disabled {{$readonly}}">Reboot</a> --}}
+                                                        <x-button :btnText="$btnText" btnType="success" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                        
+                                                        @php
+                                                            $btnText = "<i class=\"ft-plus\" ></i> Add Bridge";
+                                                            $otherClasses = "";
+                                                            $btn_id = "add_bridges_btn";
+                                                        @endphp
+                                                        <x-button :btnText="$btnText" btnType="primary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                                                     </div>
                                                 </div>
                                                 <p class="card-text"><strong>Note:</strong> <br>
@@ -450,7 +613,7 @@
                                                     <br>- Every action you carry out here will be directly applied to the router.
                                                     <br>- Sync to include the existing bridges on your router to this system.
                                                 </p>
-                                                <table class="table table-striped table-bordered zero-configuration dataTable" id="router_table_data">
+                                                <table class="table table-striped table-bordered zero-configuration dataTable w-100" id="router_table_data">
                                                     <thead>
                                                         <tr>
                                                             <th><span>#</span></th>
@@ -485,7 +648,7 @@
                                                     <br>- Every action you carry out here will be directly applied to the router.
                                                     <br>- Sync to include the existing bridges on your router to this system.
                                                 </p>
-                                                <table class="table table-striped table-bordered zero-configuration dataTable" id="router_profile_table">
+                                                <table class="table table-striped table-bordered zero-configuration dataTable w-100" id="router_profile_table">
                                                     <thead>
                                                         <tr>
                                                             <th><span>#</span></th>
@@ -673,9 +836,75 @@
                 // reinitialize tooltips after table data is drawn/refreshed
                 table.on('draw.dt', function () {
                     $('[data-toggle="tooltip"]').tooltip(); // Bootstrap 4
+                    var missing_bridge = document.getElementsByClassName("missing_bridge");
+                    if(missing_bridge.length > 0){
+                        cObj("sync_bridges_btn").classList.remove("d-none");
+                    }else{
+                        cObj("sync_bridges_btn").classList.add("d-none");
+                    }
+
+                    var bridge_del_btn = document.getElementsByClassName("bridge_del_btn");
+                    for (let index = 0; index < bridge_del_btn.length; index++) {
+                        const element = bridge_del_btn[index];
+                        element.addEventListener("click", function () {
+                            showModal("delete_bridge_data_modal");
+                            cObj("bridge_name_heading").innerText = this.getAttribute("data-bridge-name");
+                            cObj("delete_bridge_url_holder").href = "/Router_Bridge/delete/"+router_data[0].router_id+"/"+this.getAttribute("data-bridge-name");
+                        })
+                    }
+
+                    var bridge_view_btn  = document.getElementsByClassName("bridge_view_btn");
+                    for (let index = 0; index < bridge_view_btn.length; index++) {
+                        const element = bridge_view_btn[index];
+                        element.addEventListener("click", function () {
+                            showModal("edit_bridge_modal");
+                            cObj("heading_1").innerText = "Edit Bridges Details";
+                            cObj("heading_2").innerText = "Edit Bridges Details";
+                            cObj("heading_3").innerHTML = "<b>Edit Bridge Name</b>";
+                            cObj("edit_bridge_name").value = this.getAttribute("data-bridge-name");
+                            cObj("edit_bridge_name_2").value = this.getAttribute("data-bridge-name");
+                            if ($.fn.DataTable.isDataTable('#router_table_data_interfaces')) {
+                                // just reload data
+                                $('#router_table_data_interfaces').DataTable().ajax.reload();
+                            } else {
+                                let table = $('#router_table_data_interfaces').DataTable({
+                                    processing: true,
+                                    serverSide: true,
+                                    ajax: {
+                                        url: "/Router_Bridge_Interfaces/datatable/"+router_data[0].router_id, // route to controller
+                                        type: "GET",
+                                        data: function (d) {
+                                            d.bridge_name = cObj("edit_bridge_name_2").value;
+                                        }
+                                    },
+                                    order: [[0, 'desc']],
+                                    dom: '<"bottom"l>t<"bottom"ip>', // hide search, put length menu bottom-left
+                                    pageLength: 20,  // default rows per page
+                                    lengthMenu: [5, 10, 20, 50], // available options
+                                    columns: [
+                                        { data: 'rownum' },
+                                        { data: 'interface_name' },
+                                        { data: 'interface_status' },
+                                        { data: 'actions', orderable: false, searchable: false }
+                                    ]
+                                });
+                                // reinitialize tooltips after table data is drawn/refreshed
+                                table.on('draw.dt', function () {
+                                    $('[data-toggle="tooltip"]').tooltip(); // Bootstrap 4
+                                });
+                            }
+                        });
+                    }
                 });
             }
         });
+
+        cObj("close_edit_bridge_modal_1").onclick = function () {
+            hideModal("edit_bridge_modal");
+        }
+        cObj("close_edit_bridge_modal_2").onclick = function () {
+            hideModal("edit_bridge_modal");
+        }
 
 
         cObj("tab3-tab").addEventListener("click", function () {
@@ -709,6 +938,115 @@
                 });
             }
         });
+
+        cObj("sync_bridges_btn").onclick = function () {
+            showModal("sync_bridge_modal");
+            cObj("selected_bridges").classList.add("d-none");
+            if ($.fn.DataTable.isDataTable('#router_table_data_bridge')) {
+                // just reload data
+                $('#router_table_data_bridge').DataTable().ajax.reload();
+            } else {
+                let table = $('#router_table_data_bridge').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "/Router_Bridges/datatable/"+router_data[0].router_id+"?only_misconfigured=true", // route to controller
+                        type: "GET",
+                        data: function (d) {
+                        }
+                    },
+                    order: [[0, 'desc']],
+                    dom: '<"bottom"l>t<"bottom"ip>', // hide search, put length menu bottom-left
+                    pageLength: 5,  // default rows per page
+                    lengthMenu: [5, 10, 20], // available options
+                    columns: [
+                        { data: 'rownum' },
+                        { data: 'bridge_name' },
+                        { data: 'bridge_status' },
+                        { data: 'actions', orderable: false, searchable: false }
+                    ]
+                });
+                // reinitialize tooltips after table data is drawn/refreshed
+                table.on('draw.dt', function () {
+                    $('[data-toggle="tooltip"]').tooltip();
+                    var select_bridge_checkbox  = document.getElementsByClassName("select_bridge_checkbox");
+                    for (let index = 0; index < select_bridge_checkbox.length; index++) {
+                        const element = select_bridge_checkbox[index];
+                        element.addEventListener("change", function () {
+                            var select_bridge_checkbox_inside  = document.getElementsByClassName("select_bridge_checkbox");
+                            var counter = 0;
+                            for (let index = 0; index < select_bridge_checkbox_inside.length; index++) {
+                                const element_1 = select_bridge_checkbox_inside[index];
+                                counter += element_1.checked ? 1 : 0;
+                            }
+                            
+                            cObj("selected_bridges").innerHTML = ""+counter+" bridge(s) selected";
+                            if (counter > 0) {
+                                cObj("selected_bridges").classList.remove("d-none");
+                            } else {
+                                cObj("selected_bridges").classList.add("d-none");
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+        cObj("close_sync_bridge_modal_1").onclick = function () {
+            hideModal("sync_bridge_modal");
+        }
+
+        cObj("close_sync_bridge_modal_2").onclick = function () {
+            hideModal("sync_bridge_modal");
+        }
+
+        // display the table of the bridges that are not synced
+        cObj("add_bridges_btn").onclick = function () {
+            showModal("edit_bridge_modal");
+            cObj("edit_bridge_name").value = "";
+            cObj("edit_bridge_name_2").value = "";
+            cObj("heading_1").innerText = "Add Bridges Details";
+            cObj("heading_2").innerText = "Add Bridges Details";
+            cObj("heading_3").innerHTML = "<b>Bridge Name</b>";
+            if ($.fn.DataTable.isDataTable('#router_table_data_interfaces')) {
+                // just reload data
+                $('#router_table_data_interfaces').DataTable().ajax.reload();
+            } else {
+                let table = $('#router_table_data_interfaces').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "/Router_Bridge_Interfaces/datatable/"+router_data[0].router_id, // route to controller
+                        type: "GET",
+                        data: function (d) {
+                            d.bridge_name = cObj("edit_bridge_name_2").value;
+                        }
+                    },
+                    order: [[0, 'desc']],
+                    dom: '<"bottom"l>t<"bottom"ip>', // hide search, put length menu bottom-left
+                    pageLength: 20,  // default rows per page
+                    lengthMenu: [5, 10, 20, 50], // available options
+                    columns: [
+                        { data: 'rownum' },
+                        { data: 'interface_name' },
+                        { data: 'interface_status' },
+                        { data: 'actions', orderable: false, searchable: false }
+                    ]
+                });
+                // reinitialize tooltips after table data is drawn/refreshed
+                table.on('draw.dt', function () {
+                    $('[data-toggle="tooltip"]').tooltip(); // Bootstrap 4
+                });
+            }
+        }
+
+        cObj("close_delete_bridge_data_modal_1").onclick = function () {
+            hideModal("delete_bridge_data_modal");
+        }
+
+        cObj("close_delete_bridge_data_modal_2").onclick = function () {
+            hideModal("delete_bridge_data_modal");
+        }
     </script>
 </body>
 
