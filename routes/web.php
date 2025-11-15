@@ -379,5 +379,9 @@ Route::get("/Router_Bridges/datatable/{router_id}", [Router_Cloud::class, 'get_r
 Route::get("/Router_Profile/datatable/{router_id}", [Router_Cloud::class, 'get_router_secret_information'])->name("get_router_secret_information")->middleware(["checkAccount", "validated"]);
 Route::get("/Router_Bridge_Interfaces/datatable/{router_id}", [Router_Cloud::class, 'get_router_bridge_interfaces'])->name("get_router_bridge_interfaces")->middleware(["checkAccount", "validated"]);
 Route::get("/Router_Bridge/delete/{router_id}/{bridge_name}", [Router_Cloud::class, 'delete_router_bridge'])->name("delete_router_bridge")->middleware(["checkAccount", "validated"]);
+Route::get("/Router_Profile/delete/{router_id}/{profile_name}", [Router_Cloud::class, 'delete_router_profile'])->name("delete_router_profile")->middleware(["checkAccount", "validated"]);
+Route::get("/Router_Pool/print/{router_id}/{profile_name}", [Router_Cloud::class, 'display_router_pool'])->name("display_router_pool")->middleware(["checkAccount", "validated"]);
 Route::post("sync_bridge_modal", [Router_Cloud::class, "sync_bridge_modal"])->name("sync_bridge_modal");
+Route::post("sync_profile_modal", [Router_Cloud::class, "sync_profile_modal"])->name("sync_profile_modal");
 Route::post("/update_bridge_data", [Router_Cloud::class, "update_bridge"])->name("update_bridge");
+Route::post("/update_profile_data", [Router_Cloud::class, "update_profile"])->name("update_profile");

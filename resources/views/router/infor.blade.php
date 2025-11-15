@@ -108,6 +108,48 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- DELETE THE BRIDGE --}}
+                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="delete_profile_data_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel2" style="padding-right: 17px;" aria-modal="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger white">
+                            <h4 class="modal-title white" id="myModalLabel5">Confirm Deletion Of <span id="profile_name_heading">Bridge</span>.</h4>
+                            <button id="close_delete_profile_data_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="container">
+                                    <p>Are you sure you want to permanently delete this Bridge?</p>
+                                    <label for="accept_delete_pool" style="cursor: pointer;"><input type="checkbox" name="accept_delete_pool" id="accept_delete_pool"> <b>Also delete IP pool</b></label>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <div class="row w-100">
+                                    <div class="col-md-6">
+                                        @php
+                                            $btnText = "<i class=\"fas fa-trash\"></i> Proceed to Delete";
+                                            $otherClasses = "btn-block";
+                                            $btnLink = "#";
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button-link btnType="danger" btnId='delete_profile_url_holder' btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        {{-- <a href="/Routers/Delete/{{ $router_data[0]->router_id }}" class="btn btn-danger btn-sm" >Proceed to Delete</a> --}}
+                                    </div>
+                                    <div class="col-md-6">
+                                        @php
+                                            $btnText = "<i class=\"fas fa-x\"></i> Close";
+                                            $validated = "btn-block";
+                                        @endphp
+                                        <x-button :btnText="$btnText" btnType="secondary" btnSize="sm" :otherClasses="$validated" btnId="close_delete_profile_data_modal_2" :readOnly="$readonly" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- UPDATE CLIENT PHONE NUMBER --}}
                 <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="sync_bridge_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel3" style="padding-right: 17px;" aria-modal="true">
                     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
@@ -133,7 +175,7 @@
                                             <thead>
                                                 <tr>
                                                     <th><span>#</span></th>
-                                                    <th><span>Router Names</span></th>
+                                                    <th><span>Bridge Names</span></th>
                                                     <th><span>Bridge Status</span></th>
                                                     <th>Action</th>
                                                 </tr>
@@ -166,6 +208,181 @@
                         </div>
                     </div>
                 </div>
+                {{-- SYNC PPPOE PROFILES --}}
+                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="sync_profiles_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel3" style="padding-right: 17px;" aria-modal="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header bg-info white">
+                                <h4 class="modal-title white">Add PPPoE Profiles</h4>
+                                <button id="close_sync_profile_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="container">
+                                    <form action="/sync_profile_modal" method="post" class="form-control-group">
+                                        @csrf
+                                        <input type="hidden" name="router_id" value="{{ $router_data[0]->router_id }}">
+                                        <h5 class="text-center" >Add PPPoE Profiles</h5>
+                                        <p class="card-text"><strong>Note:</strong> 
+                                            <br>- Every profile that is not available in your account is listed here!.
+                                            <br>- Select the bridges and they will be added to your account.
+                                        </p>
+                                        <h6 id="selected_profiles" class="d-none text-dark badge bg-success">0 bridge(s) selected</h6>
+                                        <table class="table table-striped table-bordered zero-configuration dataTable w-100" id="router_table_data_profiles">
+                                            <thead>
+                                                <tr>
+                                                    <th><span>#</span></th>
+                                                    <th><span>Profile Names</span></th>
+                                                    <th><span>Profile Status</span></th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr><td colspan="4" style="text-center">Loading bridge details...</td></tr>
+                                            </tbody>
+                                        </table>
+                                        <div class="row w-100">
+                                            <div class="col-md-6">
+                                                @php
+                                                    $btnText = "<i class=\"fas fa-save\"></i> Save";
+                                                    $otherClasses = "w-100 my-1";
+                                                @endphp
+                                                <x-button :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="" :readOnly="$readonly" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                @php
+                                                    $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                    $otherClasses = "w-100 my-1";
+                                                @endphp
+                                                <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_sync_profile_modal_2" :readOnly="$readonly" />
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- UPDATE CLIENT BRIDGE --}}
+                <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="edit_profile_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel3" style="padding-right: 17px;" aria-modal="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header bg-info white">
+                                <h4 class="modal-title white" id="heading_profile_1">Edit Profile Details</h4>
+                                <button id="close_edit_profile_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="container">
+                                    <form action="/update_profile_data" method="post" class="form-control-group" onsubmit="return validateForm()">
+                                        @csrf
+                                        <input type="hidden" name="router_id" value="{{ $router_data[0]->router_id }}">
+                                        <h5 class="text-center" id="heading_profile_2" >Edit Profile Details <small id="loading_profile_details" class="text-small text-primary invisible"><i class="fas fa-refresh fa-spin"></i> Loading... </small></h5>
+                                        <p class="card-text"><strong>Note:</strong> 
+                                            <br>- Every bridge that is not available in your account is listed here!.
+                                            <br>- Select the bridges and they will be added to your account.
+                                        </p>
+                                        <p class="d-none" id="profile_details"></p>
+                                        <hr>
+                                        <div class="form-group">
+                                            <label for="edit_profile_name"  id="heading_profile_3" class="form-control-label"><b>Edit Profile Name</b></label>
+                                            <input type="text" name="edit_profile_name" id="edit_profile_name" class="form-control" required placeholder="e.g 10Mbps">
+                                            <input type="hidden" name="edit_profile_name_2" id="edit_profile_name_2" class="form-control">
+                                        </div>
+                                        <h6 class="text-left"><u>Select IP Address Pool</u></h6>
+                                        <label for="new_pool"><input type="checkbox" name="new_pool" id="new_pool"> <b>Create new IP Pool</b></label>
+                                        <div class="row" id="existing_pool">
+                                            <div class="col-md-6">
+                                                <label for="local_address" class="form-control-label">Local Address</label>
+                                                <select name="local_address" id="local_address" class="form-control">
+                                                    <option value="">Select Pool(No pool selected)</option>
+                                                    <option value="ip_address">Enter IP Address</option>
+                                                </select>
+                                                <input class="form-control d-none" type="text" name="local_ip_address" id="local_ip_address" placeholder="Input IP Address">
+                                                <small style="cursor: pointer;" id="back_to_ippools_list" style="width: fit-content;" class="text-primary mt-1 d-none"><i class="fa fa-arrow-left"></i> back to pool list</small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="remote_address" class="form-control-label">Remote Address</label>
+                                                <select name="remote_address" id="remote_address" class="form-control">
+                                                    <option value="" hidden>Select Pool(No pool selected)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row d-none" id="new_pool_address">
+                                            <div class="col-md-4">
+                                                <label for="new_pool_name" class="form-control-label">New Pool Name</label>
+                                                <input class="form-control" type="text" name="new_pool_name" id="new_pool_name" placeholder="e.g Pool A">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="pool_range_start" class="form-control-label">Pool Range Start</label>
+                                                <input class="form-control" type="text" name="pool_range_start" id="pool_range_start" placeholder="e.g 192.168.88.1">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="pool_range_end" class="form-control-label">Pool Range End</label>
+                                                <input class="form-control" type="text" name="pool_range_end" id="pool_range_end" placeholder="e.g 192.168.88.254">
+                                            </div>
+                                        </div>
+                                        <h6 class="text-left mt-1"><u>Speed</u></h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="" class="form-control-label">Upload Speed</label>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <input class="form-control" min="0" type="number" name="upload_speed_value" id="upload_speed_value" placeholder="e.g 10">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <select name="upload_speed_unit" id="upload_speed_unit" class="form-control">
+                                                            <option value="" hidden>Select Speed</option>
+                                                            <option selected value="M">Mbps</option>
+                                                            <option value="K">Kbps</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="" class="form-control-label">Download Speed</label>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <input class="form-control" min="0" type="number" name="download_speed_value" id="download_speed_value" placeholder="e.g 10">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <select name="download_speed_unit" id="download_speed_unit" class="form-control">
+                                                            <option value="" hidden>Select Speed</option>
+                                                            <option selected value="M">Mbps</option>
+                                                            <option value="K">Kbps</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row w-100">
+                                            <div class="col-md-6">
+                                                @php
+                                                    $btnText = "<i class=\"fas fa-save\"></i> Save";
+                                                    $otherClasses = "w-100 my-1";
+                                                @endphp
+                                                <x-button :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="save_router_profile" :readOnly="$readonly" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                @php
+                                                    $btnText = "<i class=\"fas fa-x\"></i> Cancel";
+                                                    $otherClasses = "w-100 my-1";
+                                                @endphp
+                                                <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_edit_profile_modal_2" :readOnly="$readonly" />
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- UPDATE CLIENT BRIDGE --}}
                 <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="edit_bridge_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel3" style="padding-right: 17px;" aria-modal="true">
                     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
@@ -633,14 +850,18 @@
                                                 <div class="row my-1">
                                                     <div class="col-md-4">
                                                         @php
-                                                            $btnText = "Sync";
-                                                            $otherClasses = "disabled text-dark";
-                                                            $btnLink = "/Router/Reboot/".$router_data[0]->router_id;
-                                                            $otherAttributes = " data-toggle='tooltip' title='Sync your routers bridge to what you have in your router!'";
+                                                            $btnText = "<i class=\"ft-refresh-cw\" ></i> Sync";
+                                                            $otherClasses = "text-dark d-none";
+                                                            $btn_id = "sync_profiles_btn";
                                                         @endphp
-                                                        <x-button-link btnType="success" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                                        {{-- <a href="/Router/Reboot/{{ $router_data[0]->router_id }}"
-                                                            class="btn btn-primary disabled {{$readonly}}">Reboot</a> --}}
+                                                        <x-button :btnText="$btnText" btnType="success" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                                        
+                                                        @php
+                                                            $btnText = "<i class=\"ft-plus\" ></i> Add PPPoE Profile";
+                                                            $otherClasses = "";
+                                                            $btn_id = "add_profiles_btn";
+                                                        @endphp
+                                                        <x-button :btnText="$btnText" btnType="primary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                                                     </div>
                                                 </div>
                                                 <p class="card-text"><strong>Note:</strong> <br>
@@ -770,7 +991,6 @@
                 }
             }, 2000);
             copyToClipboard(this_inner_text);
-            // console.log(this_inner_text);
         });
 
         document.getElementById("configuration_show_button").onclick = function () {
@@ -935,9 +1155,85 @@
                 // reinitialize tooltips after table data is drawn/refreshed
                 table.on('draw.dt', function () {
                     $('[data-toggle="tooltip"]').tooltip(); // Bootstrap 4
+                    var missing_profiles = document.getElementsByClassName("missing_profiles");
+                    if (missing_profiles.length > 0) {
+                        cObj("sync_profiles_btn").classList.remove("d-none");
+                    }else{
+                        cObj("sync_profiles_btn").classList.add("d-none");
+                    }
+
+                    var profile_edit_btn = document.getElementsByClassName("profile_edit_btn");
+                    for (let index = 0; index < profile_edit_btn.length; index++) {
+                        const element = profile_edit_btn[index];
+                        element.addEventListener("click", function () {
+                            // show modal
+                            showModal("edit_profile_modal");
+                            cObj("save_router_profile").disabled = true;
+                            cObj("edit_profile_name").value = this.getAttribute("data-profile-name");
+                            cObj("edit_profile_name_2").value = this.getAttribute("data-profile-name");
+                            
+                            // edit profile
+                            cObj("heading_profile_1").innerText = "Edit Profile Details";
+                            cObj("heading_profile_2").innerHTML = 'Edit Profile Details <small id="loading_profile_details" class="text-small text-primary invisible"><i class="fas fa-refresh fa-spin"></i> Loading... </small>';
+                            cObj("heading_profile_3").innerHTML = "<b>Edit Profile Name</b>";
+                            // send data
+                            display_pool_list(this.getAttribute("data-profile-name"));
+                        });
+                    }
+
+                    var profile_del_btn = document.getElementsByClassName("profile_del_btn");
+                    for (let index_2 = 0; index_2 < profile_del_btn.length; index_2++) {
+                        const element = profile_del_btn[index_2];
+                        element.addEventListener("click", function () {
+                            showModal("delete_profile_data_modal");
+                            cObj("accept_delete_pool").checked = false;
+                            // set the url
+                            cObj("delete_profile_url_holder").href = "/Router_Profile/delete/"+router_data[0].router_id+"/"+element.getAttribute("data-profile-name");
+                        });
+                    }
                 });
             }
         });
+
+        cObj("accept_delete_pool").onchange = function () {
+            if (this.checked) {
+                cObj("delete_profile_url_holder").href = cObj("delete_profile_url_holder").href+"?delete_pool=true"
+            }else{
+                cObj("delete_profile_url_holder").href = cObj("delete_profile_url_holder").href.slice(0, -17);
+            }
+        }
+
+        cObj("local_address").onchange = function () {
+            if (this.value == "ip_address") {
+                this.classList.add("d-none");
+                cObj("local_ip_address").classList.remove("d-none");
+                cObj("back_to_ippools_list").classList.remove("d-none");
+            }
+        }
+
+        cObj("close_delete_profile_data_modal_1").onclick = function () {
+            hideModal("delete_profile_data_modal")
+        }
+        cObj("close_delete_profile_data_modal_2").onclick = function () {
+            hideModal("delete_profile_data_modal")
+        }
+        
+        cObj("back_to_ippools_list").onclick = function () {
+            cObj("local_address").classList.remove("d-none");
+            cObj("local_ip_address").classList.add("d-none");
+            cObj("back_to_ippools_list").classList.add("d-none");
+            cObj("local_address").children[0].selected = true;
+        }
+
+        cObj("new_pool").onchange = function(){
+            if (this.checked) {
+                cObj("existing_pool").classList.add("d-none");
+                cObj("new_pool_address").classList.remove("d-none");
+            }else{
+                cObj("existing_pool").classList.remove("d-none");
+                cObj("new_pool_address").classList.add("d-none");
+            }
+        }
 
         cObj("sync_bridges_btn").onclick = function () {
             showModal("sync_bridge_modal");
@@ -1046,6 +1342,313 @@
 
         cObj("close_delete_bridge_data_modal_2").onclick = function () {
             hideModal("delete_bridge_data_modal");
+        }
+
+        cObj("sync_profiles_btn").onclick = function () {
+            showModal("sync_profiles_modal");
+            if ($.fn.DataTable.isDataTable('#router_table_data_profiles')) {
+                // just reload data
+                $('#router_table_data_profiles').DataTable().ajax.reload();
+            } else {
+                let table = $('#router_table_data_profiles').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: {
+                        url: "/Router_Profile/datatable/"+router_data[0].router_id, // route to controller
+                        type: "GET",
+                        data: function (d) {
+                            d.missing_account = true;
+                        }
+                    },
+                    order: [[0, 'desc']],
+                    dom: '<"bottom"l>t<"bottom"ip>', // hide search, put length menu bottom-left
+                    pageLength: 20,  // default rows per page
+                    lengthMenu: [5, 10, 20, 50], // available options
+                    columns: [
+                        { data: 'rownum' },
+                        { data: 'profile_name' },
+                        { data: 'profile_status' },
+                        { data: 'actions', orderable: false, searchable: false }
+                    ]
+                });
+                // reinitialize tooltips after table data is drawn/refreshed
+                table.on('draw.dt', function () {
+                    $('[data-toggle="tooltip"]').tooltip(); // Bootstrap 4
+                    var select_profile_checkbox = document.getElementsByClassName("select_profile_checkbox");
+                    for (let index = 0; index < select_profile_checkbox.length; index++) {
+                        const element = select_profile_checkbox[index];
+                        element.addEventListener("change", function () {
+                            var inside = document.getElementsByClassName("select_profile_checkbox");
+                            var count = 0;
+                            for (let index = 0; index < inside.length; index++) {
+                                const element2 = inside[index];
+                                count += element2.checked ? 1 : 0;
+                            }
+                            
+                            cObj("selected_profiles").innerHTML = ""+count+" profile(s) selected";
+                            if (count > 0) {
+                                cObj("selected_profiles").classList.remove("d-none");
+                            } else {
+                                cObj("selected_profiles").classList.add("d-none");
+                            }
+                        });
+                    }
+                });
+            }
+        }
+        cObj("close_sync_profile_modal_1").onclick = function () {
+            hideModal("sync_profiles_modal");
+        }
+        cObj("close_sync_profile_modal_2").onclick = function () {
+            hideModal("sync_profiles_modal");
+        }
+
+
+        cObj("close_edit_profile_modal_1").onclick = function () {
+            hideModal("edit_profile_modal");
+        }
+        cObj("close_edit_profile_modal_2").onclick = function () {
+            hideModal("edit_profile_modal");
+        }
+
+        cObj("add_profiles_btn").onclick = function () {
+            cObj("heading_profile_1").innerText = "Add New Profile";
+            cObj("heading_profile_2").innerHTML = 'Add New Profile <small id="loading_profile_details" class="text-small text-primary invisible"><i class="fas fa-refresh fa-spin"></i> Loading... </small>';
+            cObj("heading_profile_3").innerHTML = "<b>New Profile Name</b>";
+            cObj("existing_pool").classList.remove("d-none");
+            cObj("new_pool_address").classList.add("d-none");
+            cObj("local_address").children[0].selected = true;
+            cObj("remote_address").children[0].selected = true;
+            cObj("back_to_ippools_list").click();
+
+            showModal("edit_profile_modal");
+            display_pool_list("invalid");
+        }
+
+        function display_pool_list(profile_name = "null") {
+            sendDataGet("GET","/Router_Pool/print/"+router_data[0].router_id+"/"+profile_name, cObj("profile_details"), cObj("loading_profile_details"), function (response) {
+                if (hasJsonStructure(response)) {
+                    cObj("back_to_ippools_list").click();
+                    cObj("save_router_profile").disabled = false;
+                    var poolData = JSON.parse(response);
+
+                    // remove any existing children
+                    cObj("local_address").children[0].selected = true;
+                    var local_address_children = cObj("local_address").children;
+                    for (let index_2 = local_address_children.length-1; index_2 > 1; index_2--) {
+                        const element_2 = local_address_children[index_2];
+                        if (index_2 > 1) {
+                            cObj("local_address").removeChild(element_2);
+                        }
+                    }
+
+                    // add new children
+                    for (let index_3 = 0; index_3 < poolData.bridge_port.length; index_3++) {
+                        const element_3 = poolData.bridge_port[index_3];
+                        let opt = document.createElement("option");
+                        opt.value = element_3.name;
+                        opt.textContent = element_3.name+" ("+element_3.ranges+")";
+                        cObj("local_address").appendChild(opt);
+                    }
+
+
+                    // remove any existing children
+                    cObj("remote_address").children[0].selected = true;
+                    var local_address_children = cObj("remote_address").children;
+                    for (let index_2 = local_address_children.length-1; index_2 > 1; index_2--) {
+                        const element_2 = local_address_children[index_2];
+                        if (index_2 > 1) {
+                            cObj("remote_address").removeChild(element_2);
+                        }
+                    }
+
+                    // add new children
+                    for (let index_3 = 0; index_3 < poolData.bridge_port.length; index_3++) {
+                        const element_3 = poolData.bridge_port[index_3];
+                        let opt = document.createElement("option");
+                        opt.value = element_3.name;
+                        opt.textContent = element_3.name+" ("+element_3.ranges+")";
+                        cObj("remote_address").appendChild(opt);
+                    }
+
+                    // speed
+                    if (poolData.profile_details.length > 0) {
+                        if(poolData.profile_details[0]['rate-limit'] != undefined){
+                            var rate = poolData.profile_details[0]['rate-limit'];
+                            var upload_download = rate.split("/");
+
+                            // Extract speeds and units
+                            var upload_speed = upload_download[0].slice(0, -1);
+                            var upload_unit  = upload_download[0].slice(-1);
+
+                            var download_speed = upload_download[1].slice(0, -1);
+                            var download_unit  = upload_download[1].slice(-1);
+
+                            cObj("upload_speed_value").value = upload_speed;
+                            cObj("download_speed_value").value = download_speed;
+
+                            // Select UPLOAD unit
+                            var upload_speed_unit = cObj("upload_speed_unit").children;
+                            for (let i = 0; i < upload_speed_unit.length; i++) {
+                                if (upload_speed_unit[i].value == upload_unit) {
+                                    upload_speed_unit[i].selected = true;
+                                    break;
+                                }
+                            }
+
+                            // Select DOWNLOAD unit
+                            var download_speed_unit = cObj("download_speed_unit").children;
+                            for (let i = 0; i < download_speed_unit.length; i++) {
+                                if (download_speed_unit[i].value == download_unit) {
+                                    download_speed_unit[i].selected = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // set the pool selected
+                        var local_address_pool = poolData.profile_details[0]['local-address'] ? poolData.profile_details[0]['local-address'] : "";
+                        var remote_address_pool = poolData.profile_details[0]['remote-address'] ? poolData.profile_details[0]['remote-address'] : "";
+
+                        // assigned the dropdowns the value
+                        for (let index_6 = 0; index_6 < cObj("local_address").children.length; index_6++) {
+                            const element_6 = cObj("local_address").children[index_6];
+                            if (element_6.value == local_address_pool) {
+                                element_6.selected = true;
+                            }
+                        }
+
+                        // assigned the dropdowns the value
+                        for (let index_7 = 0; index_7 < cObj("remote_address").children.length; index_7++) {
+                            const element_7 = cObj("remote_address").children[index_7];
+                            if (element_7.value == remote_address_pool) {
+                                element_7.selected = true;
+                            }
+                        }
+                        if (isValidIPv4(local_address_pool)) {
+                            // display the ip address area
+                            cObj("local_address").classList.add("d-none");
+                            cObj("local_ip_address").classList.remove("d-none");
+                            cObj("back_to_ippools_list").classList.remove("d-none");
+                            cObj("local_ip_address").value = local_address_pool;
+                            cObj("local_address").children[1].selected = true;
+                        }
+                    }
+                }
+            });
+        }
+
+        // Send data with get
+        function sendDataGet(method, file, object1, object2, callback = null) {
+            //make the loading window show
+            object2.classList.remove("invisible");
+            let xml = new XMLHttpRequest();
+            xml.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    object1.innerHTML = this.responseText;
+                    object2.classList.add("invisible");
+
+                    // ✅ Run the callback after updating DOM
+                    if (typeof callback === "function") {
+                        callback(this.responseText);
+                    }
+                } else if (this.status == 500) {
+                    object2.classList.add("invisible");
+                    // cObj("loadings").classList.add("invisible");
+                    object1.innerHTML = "<p class='red_notice'>Cannot establish connection to server.<br>Try reloading your page</p>";
+                }
+            };
+            xml.open(method, file, true);
+            xml.send();
+        }
+        function hasJsonStructure(str) {
+            if (typeof str !== 'string') return false;
+            try {
+                const result = JSON.parse(str);
+                const type = Object.prototype.toString.call(result);
+                return type === '[object Object]'
+                    || type === '[object Array]';
+            } catch (err) {
+                return false;
+            }
+        }
+
+        function isValidIPv4(ip) {
+            const regex = /^(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)){3}$/;
+            return regex.test(ip);
+        }
+
+        function validateForm() {
+            var error = checkBlank("edit_profile_name");
+            if(cObj("new_pool").checked){
+                error+=checkBlank("new_pool_name");
+                error+=checkBlank("pool_range_start");
+                error+=checkBlank("pool_range_end");
+            }else{
+                error += checkBlank("local_address");
+                if(cObj("local_address").value == ""){
+                    error += checkBlank("local_ip_address");
+                }
+                error += checkBlank("remote_address");
+            }
+            error += checkBlank("upload_speed_value");
+            error += checkBlank("upload_speed_unit");
+            error += checkBlank("download_speed_value");
+            error += checkBlank("download_speed_unit");
+            // check error
+            if(error == 0){
+                if(cObj("new_pool").checked){
+                    // check the validity of the ipaddresses
+                    error += isValidIPv4(cObj("pool_range_start").value) ? 0 : 1;
+                    if(isValidIPv4(cObj("pool_range_start").value)){
+                        cObj("pool_range_start").classList.remove("border");
+                        cObj("pool_range_start").classList.remove("border-danger");
+                    }else{
+                        cObj("pool_range_start").classList.add("border");
+                        cObj("pool_range_start").classList.add("border-danger");
+                    }
+
+                    // is valid ipv4 address
+                    error += isValidIPv4(cObj("pool_range_end").value) ? 0 : 1;
+                    if(isValidIPv4(cObj("pool_range_end").value)){
+                        cObj("pool_range_end").classList.remove("border");
+                        cObj("pool_range_end").classList.remove("border-danger");
+                    }else{
+                        cObj("pool_range_end").classList.add("border");
+                        cObj("pool_range_end").classList.add("border-danger");
+                    }
+                    if(error > 0){
+                        return false;
+                    }else{
+                        return true;
+                    }
+                }else{
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function checkBlank(id) {
+            let err = 0;
+            if (cObj(id).value.trim().length > 0) {
+                if (cObj(id).value.trim() == "N/A") {
+                //   redBorder(cObj(id));
+                cObj(id).classList.add("border");
+                cObj(id).classList.add("border-danger");
+                err++;
+                } else {
+                //   grayBorder(cObj(id));
+                cObj(id).classList.remove("border");
+                cObj(id).classList.remove("border-danger");
+                }
+            } else {
+                cObj(id).classList.add("border");
+                cObj(id).classList.add("border-danger");
+                // redBorder(cObj(id));
+                err++;
+            }
+            return err;
         }
     </script>
 </body>

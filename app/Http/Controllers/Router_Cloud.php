@@ -13,6 +13,261 @@ date_default_timezone_set('Africa/Nairobi');
 class Router_Cloud extends Controller
 {
 
+    function update_profile(Request $req){
+        // return request
+        // return $req;
+
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // check first if the router configuration is done
+        $router_id = $req->input("router_id");
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ?",[$router_id]);
+        if (count($router_data) == 0) {
+            session()->flash("error_router","Invalid router");
+            redirect(url()->route("view_router_cloud"));
+        }
+        
+        // create a SSTP secret on the SSTP server
+        // get the server details
+        $sstp_settings = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
+        if (count($sstp_settings) == 0) {
+            session()->flash("error_router","The SSTP server is not set, Contact your administrator!");
+            return redirect(url()->previous());
+        }
+
+        // connect to the server
+        $sstp_value = $this->isJson($sstp_settings[0]->value) ? json_decode($sstp_settings[0]->value) : null;
+
+        if ($sstp_value == null) {
+            session()->flash("error_router","The SSTP server is not set, Contact your administrator!");
+            return redirect(url()->previous());
+        }
+
+        // connect to the router and set the sstp client
+        $server_ip_address = $sstp_value->ip_address;
+        $user = $sstp_value->username;
+        $pass = $sstp_value->password;
+        $port = $sstp_value->port;
+
+        // check if the router is actively connected
+        $client_router_ip = $this->checkActive($server_ip_address, $user, $pass, $port, $router_data[0]->sstp_username);
+
+        // check if the bridge is present on the router
+        $API = new routeros_api();
+        $API->debug = false;
+        $profile = null;
+        if ($API->connect($client_router_ip, $user, $pass, $port)){
+            // check if its a new pool so that its added
+            $local_address = $req->input("local_address");
+            $remote_address = $req->input("remote_address");
+            $pool_range_start = $req->input("pool_range_start");
+            $pool_range_end = $req->input("pool_range_end");
+            if($req->has("new_pool")){
+                if($req->input("new_pool") == "on"){
+                    $new_pool_name = $req->input("new_pool_name");
+                    $profile = $API->comm("/ip/pool/print", [
+                        "?name" => $new_pool_name
+                    ]);
+                    if (count($profile) > 0) {
+                        $API->disconnect();
+                        session()->flash("error_router", "IP Pool name is present in your router, create a new name!");
+                        return redirect(url()->previous());
+                    }
+
+                    // proceed and register the new pool
+                    $API->comm("/ip/pool/add", [
+                        "name" => $new_pool_name,
+                        "ranges" => $pool_range_start."-".$pool_range_end
+                    ]);
+                    $local_address = $new_pool_name;
+                    $remote_address = $new_pool_name;
+                }
+            }else{
+                $local_address = $local_address == "ip_address" ? $req->input("local_ip_address") : $local_address;
+            }
+
+            // register the profile and assign it the new pool name
+            $check_profile = $API->comm("/ppp/profile/print", [
+                "?name" => $req->input("edit_profile_name_2")
+            ]);
+            if(count($check_profile) > 0){
+                $API->comm("/ppp/profile/set", [
+                    ".id" => $check_profile[0]['.id'],
+                    "name" => $req->input("edit_profile_name"),
+                    "local-address" => $local_address,
+                    "remote-address" => $remote_address,
+                    "rate-limit" => $req->input("upload_speed_value").$req->input("upload_speed_unit")."/".$req->input("download_speed_value").$req->input("download_speed_unit")
+                ]);
+            }else{
+                $API->comm("/ppp/profile/add", [
+                    "name" => $req->input("edit_profile_name"),
+                    "local-address" => $local_address,
+                    "remote-address" => $remote_address,
+                    "rate-limit" => $req->input("upload_speed_value").$req->input("upload_speed_unit")."/".$req->input("download_speed_value").$req->input("download_speed_unit")
+                ]);
+            }
+            
+            // status
+            $status = 1;
+            $profile_details = DB::connection("mysql2")->select("SELECT * FROM `router_profile` WHERE profile_name = ? AND router_id = ?", [$req->input("edit_profile_name"), $router_id]);
+            if(count($profile_details) > 0){
+                DB::connection("mysql2")->update("UPDATE router_profile SET profile_name = ? WHERE profile_id = ?", [$req->input("edit_profile_name"), $profile_details[0]->profile_id]);
+            }else{
+                DB::connection("mysql2")->insert("INSERT INTO router_profile (profile_name, profile_status, router_id) VALUES (?,?,?)", [$req->input("edit_profile_name"), $status, $router_id]);
+            }
+            $API->disconnect();
+
+            session()->flash("success_router", "Profile has been updated successfully!");
+            return redirect(url()->previous());
+        }else{
+            session()->flash("error_router", "Cannot connect to your router try again later!");
+            return redirect(url()->previous());
+        }
+    }
+
+    function display_router_pool($router_id, $profile_name){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // get the bridge ports
+        $curl_handle = curl_init();
+        $url = env('CRONJOB_URL', 'https://crontab.hypbits.com')."/getIpaddress.php?db_name=" . session("database_name") . "&r_id=" . $router_id . "&r_ip_pool=true";
+        curl_setopt($curl_handle, CURLOPT_URL, $url);
+        curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, true);
+        $curl_data = curl_exec($curl_handle);
+        curl_close($curl_handle);
+        $bridge_ports = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
+        // return $bridge_ports;
+
+        // check first if the router configuration is done
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ?",[$router_id]);
+        if (count($router_data) == 0) {
+            session()->flash("error_router","Invalid router");
+            redirect(url()->route("view_router_cloud"));
+        }
+        
+        // create a SSTP secret on the SSTP server
+        // get the server details
+        $sstp_settings = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
+        if (count($sstp_settings) == 0) {
+            session()->flash("error_router","The SSTP server is not set, Contact your administrator!");
+            return redirect(url()->previous());
+        }
+
+        // connect to the server
+        $sstp_value = $this->isJson($sstp_settings[0]->value) ? json_decode($sstp_settings[0]->value) : null;
+
+        if ($sstp_value == null) {
+            session()->flash("error_router","The SSTP server is not set, Contact your administrator!");
+            return redirect(url()->previous());
+        }
+
+        // connect to the router and set the sstp client
+        $server_ip_address = $sstp_value->ip_address;
+        $user = $sstp_value->username;
+        $pass = $sstp_value->password;
+        $port = $sstp_value->port;
+
+        // check if the router is actively connected
+        $client_router_ip = $this->checkActive($server_ip_address, $user, $pass, $port, $router_data[0]->sstp_username);
+
+        // check if the bridge is present on the router
+        $API = new routeros_api();
+        $API->debug = false;
+        $profile = null;
+        if ($API->connect($client_router_ip, $user, $pass, $port)){
+            $profile = $API->comm("/ppp/profile/print", [
+                "?name" => $profile_name
+            ]);
+            $API->disconnect();
+        }
+        return array("profile_details" => $profile, "bridge_port" => $bridge_ports);
+    }
+
+    function delete_router_profile($router_id, $profile_name, Request $request){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // check first if the router configuration is done
+        $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `router_id` = ?",[$router_id]);
+        if (count($router_data) == 0) {
+            session()->flash("error_router","Invalid router");
+            redirect(url()->route("view_router_cloud"));
+        }
+        
+        // create a SSTP secret on the SSTP server
+        // get the server details
+        $sstp_settings = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
+        if (count($sstp_settings) == 0) {
+            session()->flash("error_router","The SSTP server is not set, Contact your administrator!");
+            return redirect(url()->previous());
+        }
+
+        // connect to the server
+        $sstp_value = $this->isJson($sstp_settings[0]->value) ? json_decode($sstp_settings[0]->value) : null;
+
+        if ($sstp_value == null) {
+            session()->flash("error_router","The SSTP server is not set, Contact your administrator!");
+            return redirect(url()->previous());
+        }
+
+        // connect to the router and set the sstp client
+        $server_ip_address = $sstp_value->ip_address;
+        $user = $sstp_value->username;
+        $pass = $sstp_value->password;
+        $port = $sstp_value->port;
+
+        // check if the router is actively connected
+        $client_router_ip = $this->checkActive($server_ip_address, $user, $pass, $port, $router_data[0]->sstp_username);
+        $delete_pool = $request->has("delete_pool") ? $request->input("delete_pool") : "false";
+
+        // check if the bridge is present on the router
+        $API = new routeros_api();
+        $API->debug = false;
+        if ($API->connect($client_router_ip, $user, $pass, $port)){
+            // delete the bridge and unslave all the interfaces connected to that bridge
+            $profile_data = $API->comm("/ppp/profile/print", [
+                "?name" => $profile_name
+            ]);
+            if(count($profile_data) > 0){
+                $active_pool = $profile_data[0]['remote-address'] ?? "";
+                $API->comm("/ppp/profile/remove", [
+                    ".id" => $profile_data[0]['.id']
+                ]);
+                if($delete_pool == "true"){
+                    $pool_list = $API->comm("/ip/pool/print", [
+                        "?name" => $active_pool
+                    ]);
+                    if(count($pool_list) > 0){
+                        $API->comm("/ip/pool/remove", [
+                            ".id" => $pool_list[0]['.id']
+                        ]);
+                    }
+                }
+
+                $API->disconnect();
+            }
+
+            // delete the profile
+            DB::connection("mysql2")->delete("DELETE FROM router_profile WHERE profile_name = ?",[$profile_name]);
+
+            // success messgae
+            session()->flash("success_router", "Router profile has been deleted successfully!");
+            return redirect(url()->previous());
+        }else {
+            // delete the profile
+            DB::connection("mysql2")->delete("DELETE FROM router_profile WHERE profile_name = ?",[$profile_name]);
+            // success messgae
+            session()->flash("success_router", "Router profile has been deleted successfully!");
+            session()->flash("error_router","Cannot connect to router, ensure you have configured the router correctly!");
+            return redirect(url()->previous());
+        }
+    }
+
     function delete_router_bridge($router_id, $bridge_name){
         // change db
         $change_db = new login();
@@ -59,7 +314,7 @@ class Router_Cloud extends Controller
                 "?bridge" => $bridge_name
             ]);
             if(count($bridge_ports) > 0){
-                $bridge_ports_list = $API->comm("/interface/bridge/port/remove", [
+                $API->comm("/interface/bridge/port/remove", [
                     ".id" => $bridge_ports[0]['.id']
                 ]);
             }
@@ -69,7 +324,7 @@ class Router_Cloud extends Controller
                 "?name" => $bridge_name
             ]);
             if(count($bridge) > 0){
-                $delete_bridge = $API->comm("/interface/bridge/remove", [
+                $API->comm("/interface/bridge/remove", [
                     ".id" => $bridge[0]['.id']
                 ]);
             }
@@ -81,6 +336,11 @@ class Router_Cloud extends Controller
             session()->flash("success_router", "Router bridge has been deleted successfully!");
             return redirect(url()->previous());
         }else {
+            // delete the bridge
+            DB::connection("mysql2")->delete("DELETE FROM router_bridge WHERE bridge_name = ?",[$bridge_name]);
+
+            // success messgae
+            session()->flash("success_router", "Router bridge has been deleted successfully!");
             session()->flash("error_router","Cannot connect to router, ensure you have configured the router correctly!");
             return redirect(url()->previous());
         }
@@ -295,6 +555,28 @@ class Router_Cloud extends Controller
         session()->flash("success_router","Selected bridges synchronized successfully!");
         return redirect(url()->previous());
     }
+
+    function sync_profile_modal(Request $req){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+        
+        $bridges = [];
+        foreach ($req->all() as $key => $value) {
+            if (str_contains($key, "select_profile_checkbox_")) {
+                $profile = $req->input($key);
+                if ($profile == "on") {
+                    array_push($bridges, $req->input("new_selected_profile_".substr($key,strlen("select_profile_checkbox_"))));
+                    $one_profile = $req->input("new_selected_profile_".substr($key,strlen("select_profile_checkbox_")));
+                    $profile_status = 1;
+                    DB::connection("mysql2")->insert("INSERT INTO router_profile (profile_name, profile_status,router_id) VALUES (?,?,?)",[$one_profile, $profile_status, $req->input("router_id")]);
+                }
+            }
+        }
+        session()->flash("success_router","Selected profiles synchronized successfully!");
+        return redirect(url()->previous());
+    }
+
     function get_router_secret_information(Request $request, $router_id){
         // change db
         $change_db = new login();
@@ -302,6 +584,7 @@ class Router_Cloud extends Controller
 
         // get the bridge information
         $router_profile = [];
+        $missing_account = $request->has("missing_account") ? $request->input("missing_account") : "false";
 
         // get the server details
         $sstp_settings = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sstp_server'");
@@ -319,46 +602,56 @@ class Router_Cloud extends Controller
         curl_close($curl_handle);
         $router_profile = strlen($curl_data) > 0 ? json_decode($curl_data, true) : [];
 
-        // CHECK IF THE DB BRIDGES EXIST
+        // CHECK IF THE DB PROFILES EXIST
         $db_profiles = DB::connection("mysql2")->select("SELECT * FROM `router_profile` WHERE router_id = ?",[$router_id]);
         for ($index=0; $index < count($db_profiles); $index++) {
             $db_profiles[$index]->exists = 0;
             for ($j=0; $j < count($router_profile); $j++) {
-                if ($db_profiles[$index]->bridge_name == $router_profile[$j]['name']) {
+                if ($db_profiles[$index]->profile_name == $router_profile[$j]['name']) {
                     $db_profiles[$index]->exists = 1;
                     break;
                 }
             }
         }
 
-        // CHECK IF THERE IS ANY NEW BRIDGES AND ADD THEM TO THE DB BRIDGE WITH THE STATUS EXIST TO 0
+        // CHECK IF THERE IS ANY NEW PROFILES AND ADD THEM TO THE DB BRIDGE WITH THE STATUS EXIST TO 0
         for ($j=0; $j < count($router_profile); $j++) {
             $found = 0;
             for ($index=0; $index < count($db_profiles); $index++) {
-                if ($db_profiles[$index]->bridge_name == $router_profile[$j]['name']) {
+                if ($db_profiles[$index]->profile_name == $router_profile[$j]['name']) {
                     $found = 1;
                     break;
                 }
             }
             if ($found == 0) {
                 array_push($db_profiles, (object)[
-                    "bridge_id" => null,
-                    "bridge_name" => $router_profile[$j]['name'],
+                    "profile_id" => null,
+                    "profile_name" => $router_profile[$j]['name'],
                     "exists" => 0
                 ]);
             }
+        }
+        if($missing_account == "true"){
+            $temp_profiles = [];
+            for ($i=0; $i < count($db_profiles); $i++) { 
+                if ($db_profiles[$i]->exists == 0 && $db_profiles[$i]->profile_id == null) {
+                    array_push($temp_profiles, $db_profiles[$i]);
+                }
+            }
+            $db_profiles = $temp_profiles;
         }
 
         // data list
         $data = [];
         $start = 0;
         foreach ($db_profiles as $index => $db_profile) {
-            $button = "<button type='button' class='btn btn-info btn-sm btn-block mt-1  ' style='padding: 3px; background-color: rgb(40, 175, 208); transition: background-color 0.3s;' id='bridge_view_btn_".$db_profile->bridge_id."'><span class='d-inline-block border border-white w-100 ' style='border-radius: 2px; padding: 5px; background-color: rgba(0, 0, 0, 0); color: rgb(255, 255, 255); border-color: rgb(255, 255, 255); transition: color 0.3s, background-color 0.3s, border-color 0.3s;'><i class='fa fa-file-export'></i> View</span></button>";
+            $button = "<button type='button' class='btn btn-info btn-sm profile_edit_btn' style='padding: 3px; background-color: rgb(40, 175, 208); transition: background-color 0.3s;' data-profile-name='".$db_profile->profile_name."' id='profile_edit_btn_".$db_profile->profile_id."'><span class='d-inline-block border border-white w-100 ' style='border-radius: 2px; padding: 5px; background-color: rgba(0, 0, 0, 0); color: rgb(255, 255, 255); border-color: rgb(255, 255, 255); transition: color 0.3s, background-color 0.3s, border-color 0.3s;'><i class='fa fa-pen-fancy'></i> Edit</span></button>";
+            $button .= "<button type='button' class='btn btn-danger btn-sm profile_del_btn ml-1' style='padding: 3px; background-color: rgb(250, 98, 107); transition: background-color 0.3s;' data-profile-name='".$db_profile->profile_name."' id='profile_del_btn_".$db_profile->profile_id."' ><span class='d-inline-block border border-white w-100 ' style='border-radius: 2px; padding: 5px; background-color: rgba(0, 0, 0, 0); color: rgb(255, 255, 255); border-color: rgb(255, 255, 255); transition: color 0.3s, background-color 0.3s, border-color 0.3s;'><i class='fa fa-trash'></i> Del</span></button>";
             $data[] = [
-                "rownum" => ($start + $index + 1),
-                "profile_name" => $db_profile->bridge_name,
-                "profile_status" => ($db_profile->exists == 1  ? " <span class='badge bg-success'>Configured</span>" : " <small data-toggle='tooltip' title='Not available on your account but available on your router!' class='badge bg-danger'>Missing!</small>"),
-                "actions" =>  $db_profile->bridge_id ? $button : "<span class='badge bg-danger'>Not in DB</span>"
+                "rownum" => ($start + $index + 1). ($missing_account == "true" ? " <input type='checkbox' name='select_profile_checkbox_".$index."' class='form-check-input select_profile_checkbox ml-1' id='select_profile_checkbox_".$index."'> <input type='hidden' name='new_selected_profile_".$index."' value='".$db_profile->profile_name."'>" : ""),
+                "profile_name" => $db_profile->profile_name,
+                "profile_status" => ($db_profile->exists == 1  ? " <span class='badge bg-success'>Configured</span>" : " <small data-toggle='tooltip' title='' class='badge ".($db_profile->profile_id ? "bg-danger" : "bg-warning")." missing_profiles'>".($db_profile->profile_id ? "\"Missing in your router!\"" : "\"Missing in your account!\"")."</small>"),
+                "actions" =>  $db_profile->profile_id ? $button : "<span class='badge bg-danger'>Not in DB</span>"
             ];
         }
 
@@ -424,7 +717,7 @@ class Router_Cloud extends Controller
         foreach ($final_interfaces as $index => $interface) {
             $status = $interface['bridge'] ? ($interface['bridge'] != $bridge_name ? "disabled" : "") : "";
             $checked = $interface['bridge'] ? "checked" : "";
-            $button = "<input type='checkbox' ".($status != "disabled" ? "name='select_interface_checkbox_".$index."' " : "")." ".$checked." class='form-check-input select_bridge_checkbox ml-1' $status id='select_interface_checkbox_".$index."'> <input type='hidden' ".($status != "disabled" ? "name='interface_index_bridge_".$index."' " : "")." value='".$interface['name']."'>";
+            $button = "<input type='checkbox' ".($status != "disabled" ? "name='select_interface_checkbox_".$index."' " : "")." ".$checked." class='form-check-input ml-1' $status id='select_interface_checkbox_".$index."'> <input type='hidden' ".($status != "disabled" ? "name='interface_index_bridge_".$index."' " : "")." value='".$interface['name']."'>";
             $data[] = [
                 // add checkbox on first column to select
                 "rownum" => ($start + $index + 1),
