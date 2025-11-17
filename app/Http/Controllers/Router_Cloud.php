@@ -79,7 +79,8 @@ class Router_Cloud extends Controller
                     // proceed and register the new pool
                     $API->comm("/ip/pool/add", [
                         "name" => $new_pool_name,
-                        "ranges" => $pool_range_start."-".$pool_range_end
+                        "ranges" => $pool_range_start."-".$pool_range_end,
+                        "comment" => "Added by Hypbits Billing System!"
                     ]);
                     $local_address = $new_pool_name;
                     $remote_address = $new_pool_name;
@@ -98,14 +99,16 @@ class Router_Cloud extends Controller
                     "name" => $req->input("edit_profile_name"),
                     "local-address" => $local_address,
                     "remote-address" => $remote_address,
-                    "rate-limit" => $req->input("upload_speed_value").$req->input("upload_speed_unit")."/".$req->input("download_speed_value").$req->input("download_speed_unit")
+                    "rate-limit" => $req->input("upload_speed_value").$req->input("upload_speed_unit")."/".$req->input("download_speed_value").$req->input("download_speed_unit"),
+                    "comment" => "Modified by Hypbits Billing System!"
                 ]);
             }else{
                 $API->comm("/ppp/profile/add", [
                     "name" => $req->input("edit_profile_name"),
                     "local-address" => $local_address,
                     "remote-address" => $remote_address,
-                    "rate-limit" => $req->input("upload_speed_value").$req->input("upload_speed_unit")."/".$req->input("download_speed_value").$req->input("download_speed_unit")
+                    "rate-limit" => $req->input("upload_speed_value").$req->input("upload_speed_unit")."/".$req->input("download_speed_value").$req->input("download_speed_unit"),
+                    "comment" => "Added by Hypbits Billing System!"
                 ]);
             }
             
@@ -508,7 +511,8 @@ class Router_Cloud extends Controller
             foreach ($to_add as $add_interface) {
                 $API->comm("/interface/bridge/port/add", [
                     "bridge" => $new_bridge_name,
-                    "interface" => $add_interface
+                    "interface" => $add_interface,
+                    "comment" => "Added by HBS Cloud System"
                 ]);
             }
 
