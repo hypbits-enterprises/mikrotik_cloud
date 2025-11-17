@@ -22,10 +22,10 @@
                                     @endphp
                                     @if ($days == 0)
                                         <strong>Hello {{ session('Usernames') }}!</strong> Your account is due today, This month`s payment is: <b>Kes {{number_format(session("monthly_payment"))}}</b><br><br>
-                                        Pay Kes <b>{{session("amount_to_pay")}}</b> via Paybill: <b>247247</b> Account: <b>{{--{{$organization->account_no}}--}}164216</b> then forward your M-Pesa message to <b>0720268519</b>. {{--(Wallet balance: Kes {{number_format(session("wallet_balance"))}})--}}<br>
+                                        Pay Kes <b>{{session("amount_to_pay")}}</b> via Paybill: <b>4188427</b> Account: <b>{{$organization->account_no}}</b> Wallet balance: Kes {{number_format(session("wallet_balance"))}}<br>
                                     @else
                                         <strong>Hello {{ session('Usernames') }}!</strong> Your account is due in {{$days}} day(s), This month`s payment is: <b>Kes {{number_format(session("monthly_payment"))}}</b><br><br>
-                                        Pay Kes <b>{{session("amount_to_pay")}}</b> via Paybill: <b>247247</b> Account: <b>{{--{{$organization->account_no}}--}}164216</b> then forward your M-Pesa message to <b>0720268519</b>. {{--(Wallet balance: Kes {{number_format(session("wallet_balance"))}})--}}<br>
+                                        Pay Kes <b>{{session("amount_to_pay")}}</b> via Paybill: <b>4188427</b> Account: <b>{{$organization->account_no}}</b> Wallet balance: Kes {{number_format(session("wallet_balance"))}}<br>
                                     @endif
                                 @else
                                     @php
@@ -33,7 +33,7 @@
                                         $days = abs((int) session("days_to_expire"));
                                     @endphp
                                     <strong>Hello {{ session('Usernames') }}!</strong> Your account expired {{$days}} days ago. This month`s payment is: <b>Kes {{number_format(session("monthly_payment"))}}</b><br><br>
-                                    Pay Kes <b>{{session("amount_to_pay")}}</b> via Paybill: <b>247247</b> Account: <b>{{--{{$organization->account_no}}--}}164216</b> then forward your M-Pesa message to <b>0720268519</b>. {{--(Wallet balance: Kes {{number_format(session("wallet_balance"))}})--}}<br>
+                                    Pay Kes <b>{{session("amount_to_pay")}}</b> via Paybill: <b>4188427</b> Account: <b>{{$organization->account_no}}</b> Wallet balance: Kes {{number_format(session("wallet_balance"))}}<br>
                                 @endif
                             </div>
                         @else
