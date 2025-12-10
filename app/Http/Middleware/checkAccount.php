@@ -58,7 +58,7 @@ class checkAccount
     public function handle(Request $request, Closure $next)
     {
         $days_to_expire = 2; // days before expiration to show notice
-        $inactive_months = 3; // months of inactivity before account is considered inactive
+        $inactive_months = 1; // months of inactivity before account is considered inactive
 
         // change db
         $change_db = new login();
