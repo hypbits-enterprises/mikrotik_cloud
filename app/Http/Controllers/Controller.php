@@ -252,28 +252,31 @@ class Controller extends BaseController
 
         return $data;
     }
+
+    // format phone number
     function formatKenyanPhone($number) {
         // Remove spaces, dashes, and plus sign
         $number = preg_replace('/[\s\-\+]/', '', $number);
 
-        // If it starts with "07", replace with "2547"
-        if (preg_match('/^07\d{8}$/', $number)) {
+        // Local format: 07XXXXXXXX or 01XXXXXXXX
+        if (preg_match('/^(07|01)\d{8}$/', $number)) {
             return '254' . substr($number, 1);
         }
 
-        // If it starts with "+2547" (after plus removal)
-        if (preg_match('/^2547\d{8}$/', $number)) {
+        // International format without plus: 2547XXXXXXXX or 2541XXXXXXXX
+        if (preg_match('/^254(7|1)\d{8}$/', $number)) {
             return $number;
         }
 
-        // If it starts with "7" only, add "254"
-        if (preg_match('/^7\d{8}$/', $number)) {
+        // Short format: 7XXXXXXXX or 1XXXXXXXX
+        if (preg_match('/^(7|1)\d{8}$/', $number)) {
             return '254' . $number;
         }
 
-        // Invalid number
-        return null;
+        // Invalid Kenyan mobile number
+        return $number;
     }
+
 
     function sendHostPinnacleSMS($message, $mobile, $apikey, $partnerID, $shortcode) {
         // API URL
