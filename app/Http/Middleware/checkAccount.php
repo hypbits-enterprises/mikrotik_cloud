@@ -100,7 +100,7 @@ class checkAccount
                 $client_count = count($clients);
 
                 // GET AMOUNT TO PAY
-                $amount_to_pay = $client_count > 100 ? ($client_count * 20) : 1000;
+                $amount_to_pay = $client_count > 50 ? ($client_count * 20) : 1000;
                 // $amount_to_pay = ($client_count * 20);
                 $discount = $organization[0]->discount_type == "percentage" ? round(($organization[0]->discount_amount * $amount_to_pay) / 100) : $organization[0]->discount_amount;
                 $amount_to_pay -= $discount;
