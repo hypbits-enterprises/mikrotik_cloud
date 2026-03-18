@@ -575,51 +575,57 @@
                                         {{-- <button class="btn btn-sm btn-primary mb-2" id="send_to_clipboard"><i class="ft-copy" ></i> Copy</button> --}}
                                         <h4 class="text-center">Router Configuration</h4>
                                         <p id="command_holder">
-                                            {{-- <span class="text-success">## Set the SSTP Profile</span><br> --}}
+                                            <span class="text-success">## Set the SSTP Profile</span><br>
+                                            /ppp profile remove [find where name="SYSTEM_SSTP"]<br>
                                             /ppp profile add name="SYSTEM_SSTP" comment="Do not delete: Default SYSTEM VPN profile"<br><br>
-                                            
-                                            {{-- <span class="text-success">## Add the SSTP Interface</span><br> --}}
+
+                                            <span class="text-success">## Add the SSTP Interface</span><br>
+                                            /interface sstp-client remove [find where name="SYSTEM_SSTP_TWO"]<br>
                                             /interface sstp-client add name="SYSTEM_SSTP_TWO" connect-to={{$ip_address}} user={{$router_data[0]->sstp_username}} password={{$router_data[0]->sstp_password}} profile="SYSTEM_SSTP" authentication=pap,chap,mschap1,mschap2 disabled=no comment="Do not delete: SYSTEM connection to {{$router_data[0]->router_name}}"<br><br>
-                                            
-                                            {{-- <span class="text-success">## Configure routes</span><br> --}}
+
+                                            <span class="text-success">## Configure routes</span><br>
+                                            /ip route remove [find where comment="Do not delete: SYSTEM VPN SERVER NETWORK1"]<br>
                                             /ip route add dst-address=192.168.254.0/24 gateway=192.168.254.1 comment="Do not delete: SYSTEM VPN SERVER NETWORK1"<br>
+                                            /ip route remove [find where comment="Do not delete: SYSTEM VPN SERVER NETWORK2"]<br>
                                             /ip route add dst-address=192.168.253.0/24 gateway=192.168.254.1 comment="Do not delete: SYSTEM VPN SERVER NETWORK2"<br>
+                                            /ip route remove [find where comment="Do not delete: SYSTEM VPN SERVER NETWORK3"]<br>
                                             /ip route add dst-address=192.168.252.0/24 gateway=192.168.254.1 comment="Do not delete: SYSTEM VPN SERVER NETWORK3"<br><br>
-                                            
-                                            {{-- <span class="text-success">## Configure firewall</span><br> --}}
+
+                                            <span class="text-success">## Configure firewall</span><br>
+                                            /ip firewall filter remove [find where comment="Do not delete: Allow SYSTEM remote access"]<br>
                                             /ip firewall filter add chain=input action=accept in-interface=SYSTEM_SSTP_TWO log=no log-prefix="" comment="Do not delete: Allow SYSTEM remote access" disabled=no<br>
                                             /ip firewall filter move [find where in-interface=SYSTEM_SSTP_TWO] destination=0<br><br>
 
-                                            {{-- <span class="text-success">## Enable required services</span><br> --}}
+                                            <span class="text-success">## Enable required services</span><br>
                                             /ip service set api disabled=no port={{$router_data[0]->api_port}}<br>
                                             /ip service set winbox disabled=no port={{$router_data[0]->winbox_port}}<br>
                                             /ip service set api-ssl disabled=yes<br>
                                             /ip service set ftp disabled=yes<br>
                                             /ip service set ssl disabled=yes<br>
-                                            /ip service set ftp disabled=yes<br>
                                             /ip service set www disabled=yes<br>
                                             /ip service set www-ssl disabled=yes<br><br>
-                                            
-                                            {{-- <span class="text-success">## version 6.49.10</span><br> --}}
-                                            /user group add name="SYSTEM_FULL" policy="local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,tikapp,!dude" comment="Do not delete: SYSTEM user group"<br>
-                                            <br>
-                                            
-                                            {{-- <span class="text-success">## version 7.11.2</span><br> --}}
-                                            /user group add name="SYSTEM_FULL" policy="local,telnet,ssh,ftp,reboot,read,write,test,winbox,read,sensitive,api" comment="Do not delete: SYSTEM user group"<br>
-                                            
-                                            /user add name="{{$router_data[0]->sstp_username}}" password="{{$router_data[0]->sstp_password}}" group="SYSTEM_FULL" comment="Do not delete: SYSTEM API User" <br>
-                                            
-                                            /beep
-                                            <br>
+
+                                            <span class="text-success">## version 6.XXXX</span><br>
+                                            /user group remove [find where name="SYSTEM_FULL"]<br>
+                                            /user group add name="SYSTEM_FULL" policy="local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,tikapp,!dude" comment="Do not delete: SYSTEM user group"<br><br>
+
+                                            <span class="text-success">## version 7.XXXX</span><br>
+                                            /user group remove [find where name="SYSTEM_FULL"]<br>
+                                            /user group add name="SYSTEM_FULL" policy="local,telnet,ssh,ftp,reboot,read,write,policy,test,winbox,password,web,sniff,sensitive,api,romon,rest-api" comment="Do not delete: SYSTEM user group"<br><br>
+
+                                            /user remove [find where name="{{$router_data[0]->sstp_username}}"]<br>
+                                            /user add name="{{$router_data[0]->sstp_username}}" password="{{$router_data[0]->sstp_password}}" group="SYSTEM_FULL" comment="Do not delete: SYSTEM API User"<br>
+
+                                            /beep<br>
                                         </p>
-                                            @php
-                                                $btnText = "<i class=\"ft-settings\"></i> Connect";
-                                                $otherClasses = "mt-1 ".($router_data[0]->activated == 0 ? "" : "d-none");
-                                                $btnLink = "".url()->route("connect_router",$router_data[0]->router_id);
-                                                $otherAttributes = "";
-                                            @endphp
-                                            <x-button-link btnType="success" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                            {{-- <a href="{{url()->route("connect_router",$router_data[0]->router_id)}}" class="btn btn-success btn-sm mt-1 {{$router_data[0]->activated == 0 ? "" : "d-none"}}"><i class="ft-settings"></i> Connect</a> --}}
+                                        @php
+                                            $btnText = "<i class=\"ft-settings\"></i> Connect";
+                                            $otherClasses = "mt-1 ".($router_data[0]->activated == 0 ? "" : "d-none");
+                                            $btnLink = "".url()->route("connect_router",$router_data[0]->router_id);
+                                            $otherAttributes = "";
+                                        @endphp
+                                        <x-button-link btnType="success" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        {{-- <a href="{{url()->route("connect_router",$router_data[0]->router_id)}}" class="btn btn-success btn-sm mt-1 {{$router_data[0]->activated == 0 ? "" : "d-none"}}"><i class="ft-settings"></i> Connect</a> --}}
                                     </div>
                                     <form action="{{url()->route("update_router")}}" method="post">
                                         @csrf
