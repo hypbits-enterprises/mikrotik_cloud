@@ -58,7 +58,7 @@ class checkAccount
     public function handle(Request $request, Closure $next)
     {
         $days_to_expire = 2; // days before expiration to show notice
-        $inactive_months = 1; // months of inactivity before account is considered inactive
+        $inactive_months = 3; // months of inactivity before account is considered inactive
 
         // change db
         $change_db = new login();
@@ -94,7 +94,7 @@ class checkAccount
 
             if($days <= 5){
                 // client expiry check
-                $client_expiry = date("YmdHis", strtotime("-$inactive_months months"));
+                $client_expiry = date("Ym", strtotime("-$inactive_months months"))."01000000";
                 $five_days_before_expiry = $this->modifyDate($organization[0]->expiry_date,-5);
                 $clients = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE next_expiration_date >= ? AND clients_reg_date <= ?", [$client_expiry, $five_days_before_expiry]);
                 $client_count = count($clients);
