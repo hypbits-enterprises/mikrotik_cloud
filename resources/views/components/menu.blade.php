@@ -7,7 +7,7 @@
                     <li class="nav-item d-block d-md-none"><a class="nav-link nav-menu-main menu-toggle hidden-xs"
                             href="#"><i class="ft-menu"></i></a></li>
                     <li class="nav-item dropdown navbar-search">
-                        @if (session()->has("show_payment_notice") && session("show_payment_notice") == "true")
+                        @if (session()->has("show_payment_notice") && session("show_payment_notice") == "true" && session("auth") == "admin")
                             <div class="alert round {{session("days_to_expire") >= 0 ? (session("days_to_expire") == 0 ? "bg-warning text-dark" : "bg-primary") : "bg-danger"}} alert-icon-left alert-dismissible ml-2 mt-1 mx-auto" role="alert">
                                 <span class="alert-icon">
                                     <i class="ft-bell bell-shake"></i>
@@ -43,7 +43,7 @@
                 </ul>
                 @if (!Session::has('Usernames'))
                     @php
-                        header('Location: ' . URL::to('/Login'), true, 302);
+                        header('Location: ' . URL::to(session("auth") == "admin" ? '/Login' : '/Client-Login'), true, 302);
                         exit();
                     @endphp
                 @endif

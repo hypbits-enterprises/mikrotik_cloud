@@ -8,7 +8,7 @@
     <meta name="description" content="My ISP is the number one kenyan webserver software that helps you manage and monitor your webserver.">
     <meta name="keywords" content="admin template, Client template, dashboard template, gradient admin template, responsive client template, webapp, eCommerce dashboard, analytic dashboard">
     <meta name="author" content="ThemeSelect">
-    <title>Hypbits - Forgot Password</title>
+    <title>Hypbits - Login</title>
     <link rel="apple-touch-icon" href="/theme-assets/images/logo2.jpeg">
     <link rel="shortcut icon" href="/theme-assets/images/logo2.jpeg">
     <link href="https://fonts.googleapis.com/css?family=Muli:300,300i,400,400i,600,600i,700,700i%7CComfortaa:300,400,700" rel="stylesheet">
@@ -29,6 +29,42 @@
     <!-- BEGIN Custom CSS-->
     <!-- END Custom CSS-->
 </head>
+@php
+    date_default_timezone_set('Africa/Nairobi');
+    $privilleged = session("priviledges");
+    $priviledges = ($privilleged);
+    function showOption($priviledges,$name){
+        if (isJson($priviledges)) {
+            $priviledges = json_decode($priviledges);
+            for ($index=0; $index < count($priviledges); $index++) { 
+                if ($priviledges[$index]->option == $name) {
+                    if ($priviledges[$index]->view) {
+                        return "";
+                    }
+                }
+            }
+        }
+        return "d-none";
+    }
+    function readOnly($priviledges,$name){
+        if (isJson($priviledges)){
+            $priviledges = json_decode($priviledges);
+            for ($index=0; $index < count($priviledges); $index++) { 
+                if ($priviledges[$index]->option == $name) {
+                    if ($priviledges[$index]->readonly) {
+                        return "";
+                    }
+                }
+            }
+        }
+        return "disabled";
+    }
+    function isJson($string) {
+        return ((is_string($string) &&
+                (is_object(json_decode($string)) ||
+                is_array(json_decode($string))))) ? true : false;
+    }
+@endphp
 
 <style>
     .bg-login-image {
@@ -40,14 +76,16 @@
 <body>
 
     <!-- create the icons that customers will go to -->
-    <div class="container">
+    <div class="container align-content-center ">
         <!-- Outer Row -->
-        <div class="row col-md-8 mx-auto justify-content-center align-content-center">
+        <div class="row col-md-8 justify-content-center align-content-center mx-auto">
             <div class="col-xl-10 col-lg-12 col-md-9">
                 <div class="card o-hidden border-0 shadow-lg my-5">
                     <div class="card-body p-0">
                         <!-- Nested Row within Card Body -->
                         <div class="row">
+                            {{-- <div class="col-lg-6 d-none d-lg-block bg-secondary bg-login-image">
+                            </div> --}}
                             <div class="col-lg-12">
                                 <div class="p-5">
                                     <div class="text-center">
@@ -56,12 +94,15 @@
                                                 <img class="w-100" src="/theme-assets/images/logo2.jpeg" alt="" srcset="">
                                             </a>
                                         </div>
-                                        <h1 class="h4 text-gray-900 my-2">Forgot My Password!</h1>
-                                        @php
-                                            Session::forget('Usernames');
-                                        @endphp
+                                        <h1 class="h4 text-gray-900 my-2">Verify Your Account!</h1>
                                     </div>
-                                    <form class="user" action="{{url()->route("forgot_password")}}" method="POST">
+                                    <div class="text-center">
+                                        <p class="text-success">
+                                            @if(session('contacts'))
+                                                <span>We have sent you a verification code to {{session('contacts')}}</span>
+                                            @endif.</p>
+                                    </div>
+                                    <form class="user" action="{{url()->route("verify_code")}}" method="POST">
                                         @csrf
                                         <div class="form-group">
                                             @if(session('error'))
@@ -69,22 +110,12 @@
                                             @endif
                                         </div>
                                         <div class="form-group">
-                                            <select name="what_i_remember" id="what_i_remember" class="form-control" required>
-                                                <option value="" hidden >What I remember!</option>
-                                                <option value="email">My E-Mail</option>
-                                                <option value="phone">My Phone Number</option>
-                                                <option value="username">My Username</option>
-                                                <option value="nothing">I don`t remember anything!</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group" id="user_keyword_retriever">
-                                            <input type="text" name="user_keyword" class="form-control form-control-user text-center"
-                                                id="user_keyword" aria-describedby="emailHelp"
-                                                placeholder="Type what you remember . . ." required>
+                                            <input type="number" name="verification_code" class="form-control form-control-user text-center"
+                                                placeholder="Enter verification code . . ." required>
                                         </div>
                                         @php
-                                            $btnText = "Reset Password";
-                                            $otherClasses = "btn-user btn-block";
+                                            $btnText = "<span id=\"spinners\" class=\"invisible spinner-grow text-success spinner-grow-sm\"></span> Submit";
+                                            $otherClasses = "btn-block";
                                             $btn_id = "login-btn";
                                             $btnSize="md";
                                             $type = "submit";
@@ -92,13 +123,14 @@
                                             $otherAttributes = "";
                                         @endphp
                                         <x-button toolTip="" btnType="primary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
-                                        {{-- <button  type="submit" id="login-btn" class="btn btn-primary btn-user btn-block">
-                                            Login
+                                        {{-- <button type="submit" id="login-btn" class="btn btn-primary btn-user btn-block">
+                                            <span id="spinners" class="invisible spinner-grow text-success spinner-grow-sm"></span>
+                                            Submit
                                         </button> --}}
                                         <p class="text-left text-xxs text-bolder pt-2" id="errHandler"></p>
                                     </form>
                                     <div class="text-center">
-                                        <a href="/Hypbits" class="secondary">I know my credentials</a>
+                                        <a href="/Login" class="secondary">Return to Login Page...</a>
                                     </div>
                                     <hr>
                                     <div class="text-center">
@@ -113,47 +145,5 @@
         </div>
     </div>
     <!-- ////////////////////////// -->
-<script>
-    var what_i_remember = document.getElementById("what_i_remember");
-    var authority = document.getElementById("authority");
-    var exampleInputEmail = document.getElementById("exampleInputEmail");
-    var exampleInputPassword = document.getElementById("exampleInputPassword");
-    var login_btn = document.getElementById("login-btn");
-    login_btn.onclick = function () {
-        var err = 0;
-        console.log("clicked");
-        if (err == 0) {
-            setTimeout(() => {
-                login_btn.disabled = true;
-            }, 100);
-        }
-    }
-
-    what_i_remember.addEventListener("change", function () {
-        var user_keyword = document.getElementById("user_keyword");
-        var user_keyword_retriever = document.getElementById("user_keyword_retriever");
-        user_keyword_retriever.classList.remove("d-none");
-        user_keyword.value = "";
-        if (this.value == "email") {
-            user_keyword.placeholder = "Enter your E-Mail...";
-        }else if (this.value == "phone") {
-            user_keyword.placeholder = "Enter your Phone Number...";
-        }else if (this.value == "username") {
-            user_keyword.placeholder = "Enter your Username...";
-        }else if (this.value == "nothing") {
-            user_keyword_retriever.classList.add("d-none");
-            user_keyword.value = "No answer!";
-            user_keyword.placeholder = "Well, this is unfortunate...";
-        }
-    });
-    function checkBlank(id) {
-        var elemts = document.getElementById(id);
-        if (elemts.value.trim().length > 0) {
-            return 0;
-        }
-        return 1;
-    }
-</script>
 </body>
-
 </html>

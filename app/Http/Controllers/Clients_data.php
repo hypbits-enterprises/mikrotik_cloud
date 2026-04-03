@@ -35,7 +35,7 @@ class Clients_data extends Controller
         $second = substr($date_data,12,2);
         $d = mktime($hour, $minute, $second, $month, $day, $year);
         $dates = date("D dS M Y  h:i:sa", $d);
-        return view("clientDash",["client_data" => $client_data,"reg_date" => $dates2,"expiration_date" => $dates]);
+        return view("clients.clientDash",["client_data" => $client_data,"reg_date" => $dates2,"expiration_date" => $dates]);
     }
     // get the client transaction information
     function getTransaction(){
@@ -60,7 +60,7 @@ class Clients_data extends Controller
             $dat = date("D dS M Y  h:i:sa", $d);
             array_push($dates,$dat);
         }
-        return view("clienttrans",["transData" => $trans_data,"dates" => $dates]);
+        return view("clients.clienttrans",["transData" => $trans_data,"dates" => $dates]);
     }
     function viewPayment($paymentId){
         // change db
@@ -80,7 +80,7 @@ class Clients_data extends Controller
         $d = mktime($hour, $minute, $second, $month, $day, $year);
         $dat = date("D dS M Y  h:i:sa", $d);
 
-        return view("viewpay",["payments" => $payment,"dates" => $dat]);
+        return view("clients.viewpay",["payments" => $payment,"dates" => $dat]);
     }
     function confirm_mpesa($mpesa_id){
         // change db

@@ -67,9 +67,20 @@ class checkAccount
         session()->remove("inactive_menu");
 
         // check admin password reset account
-        $check_reset = $this->checkAdminPasswordResetRequest();
+        $check_reset = false;
+        if(session("auth") == "client"){
+            $check_reset = $this->checkClientPasswordResetRequest();
+        }else{
+            $check_reset = $this->checkAdminPasswordResetRequest();
+        }
+
+        // check if the user has requested for password reset, if yes, redirect to reset password page
         if($check_reset){
-            return redirect("/Reset-Password")->with("success", "You must change your password before you can proceed!");
+            if(session("auth") == "client"){
+                return redirect("/Client-Reset-Password")->with("success", "You need to change your password before you can proceed!");
+            }else{
+                return redirect("/Reset-Password")->with("success", "You need to change your password before you can proceed!");
+            }
         }
 
         // get the organization account details
@@ -133,6 +144,14 @@ class checkAccount
     function checkAdminPasswordResetRequest(){
         $admin = DB::select("SELECT * FROM admin_tables WHERE admin_id = ? AND use_otp = '1'", [session("Userid")]);
         if(count($admin) > 0){
+            return true;
+        }
+        return false;
+    }
+
+    function checkClientPasswordResetRequest(){
+        $client = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE client_id = ? AND use_otp = '1'", [session("Userid")]);
+        if(count($client) > 0){
             return true;
         }
         return false;

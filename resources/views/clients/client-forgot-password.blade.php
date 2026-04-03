@@ -56,12 +56,12 @@
                                                 <img class="w-100" src="/theme-assets/images/logo2.jpeg" alt="" srcset="">
                                             </a>
                                         </div>
-                                        <h1 class="h4 text-gray-900 my-2">Forgot My Password!</h1>
+                                        <h1 class="h4 text-gray-900 my-2">Reset Your Password!</h1>
                                         @php
                                             Session::forget('Usernames');
                                         @endphp
                                     </div>
-                                    <form class="user" action="{{url()->route("forgot_password")}}" method="POST">
+                                    <form class="user" action="{{url()->route("client_reset_password")}}" method="POST">
                                         @csrf
                                         <div class="form-group">
                                             @if(session('error'))
@@ -70,9 +70,8 @@
                                         </div>
                                         <div class="form-group">
                                             <select name="what_i_remember" id="what_i_remember" class="form-control" required>
-                                                <option value="" hidden >What I remember!</option>
-                                                <option value="email">My E-Mail</option>
-                                                <option value="phone">My Phone Number</option>
+                                                <option value="" hidden >What do you remember?</option>
+                                                <option value="account_number">My Account Number</option>
                                                 <option value="username">My Username</option>
                                                 <option value="nothing">I don`t remember anything!</option>
                                             </select>
@@ -81,6 +80,11 @@
                                             <input type="text" name="user_keyword" class="form-control form-control-user text-center"
                                                 id="user_keyword" aria-describedby="emailHelp"
                                                 placeholder="Type what you remember . . ." required>
+                                        </div>
+                                        <div class="form-group" id="phone_number_holder">
+                                            <input type="text" name="phone_number" class="form-control form-control-user text-center"
+                                                id="phone_number"
+                                                placeholder="Enter your registered phone number . . ." required>
                                         </div>
                                         @php
                                             $btnText = "Reset Password";
@@ -98,7 +102,7 @@
                                         <p class="text-left text-xxs text-bolder pt-2" id="errHandler"></p>
                                     </form>
                                     <div class="text-center">
-                                        <a href="/Hypbits" class="secondary">I know my credentials</a>
+                                        <a href="/Client-Login" class="secondary">I know my credentials</a>
                                     </div>
                                     <hr>
                                     <div class="text-center">
@@ -132,16 +136,19 @@
     what_i_remember.addEventListener("change", function () {
         var user_keyword = document.getElementById("user_keyword");
         var user_keyword_retriever = document.getElementById("user_keyword_retriever");
+        var phone_number_holder = document.getElementById("phone_number_holder");
         user_keyword_retriever.classList.remove("d-none");
+        phone_number_holder.classList.remove("d-none");
         user_keyword.value = "";
-        if (this.value == "email") {
-            user_keyword.placeholder = "Enter your E-Mail...";
+        if (this.value == "account_number") {
+            user_keyword.placeholder = "Enter your Account Number. e.g. HYP001";
         }else if (this.value == "phone") {
             user_keyword.placeholder = "Enter your Phone Number...";
         }else if (this.value == "username") {
             user_keyword.placeholder = "Enter your Username...";
         }else if (this.value == "nothing") {
             user_keyword_retriever.classList.add("d-none");
+            phone_number_holder.classList.add("d-none");
             user_keyword.value = "No answer!";
             user_keyword.placeholder = "Well, this is unfortunate...";
         }

@@ -173,92 +173,123 @@ class login extends Controller
             // redirect to the client dash
             $username = $data['emails'];
             $password = $data['password'];
+            $acc_number = $data['acc_number'];
             $send_code = $data['send_code'];
             if ($send_code == "EMAILS") {
                 session()->flash('error',"Email Set-Up has not been completed, Kindly use SMS!");
                 return redirect("/Login");
             }
 
-            $result = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_username` = '$username' AND `client_password` = '$password'");
-            // return $result;
-            if (count($result) > 0) {
-                // get the student data
-                $req->session()->put("Userid",$result[0]->client_id);
-                $req->session()->put("auth","client");
-                $contacts = $result[0]->clients_contacts;
-                $admin_id = $result[0]->client_id;
-                $contact = substr($contacts,0,4)."XXXX".substr($contacts,8);
-                // GET THE SMS KEYS FROM THE DATABASE
-                $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-                $sms_sender = count($select) > 0 ? $select[0]->value : "";
-                $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
-                $sms_api_key = $sms_keys[0]->value;
-                $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
-                $sms_partner_id = $sms_keys[0]->value;
-                $sms_keys = DB::select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
-                $sms_shortcode = $sms_keys[0]->value;
-
-                $message_status = 0;
-                // if send sms is 1 we send  the sms
-                $partnerID = $sms_partner_id;
-                $apikey = $sms_api_key;
-                $shortcode = $sms_shortcode;
-                $random_no = rand(1000,9999);
-                $mobile = $contacts; // Bulk messages can be comma separated
-                $message = "Your verification code is ".$random_no.". It will expire in 5 minutes";
-                $resulted = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                $message_status = $resulted != null ? 1 : 0;
-                if($resulted != null){
-                    session()->flash("error","There is an issue with SMS, use email instead!");
-                    return redirect("/Login");
+            // check the client in the organization
+            $organizations = DB::select("SELECT * FROM `organizations`");
+            $client_data = null;
+            foreach ($organizations as $organization_id => $organization_data) {
+                // set the database to the organization database
+                $this->change_db($organization_data->organization_database);
+                $result = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_username` = '$username' AND ((`client_password` = '$password') OR (`use_otp` = '1' AND `otp` = '$password' AND `otp_date_change` > '".date("YmdHis")."')) AND `client_account` = '$acc_number'");
+                if (count($result) > 0) {
+                    // this means that we have found the client in this organization
+                    // we break the loop and continue with the login process
+                    $client_data = $result[0];
+                    break;
                 }
+            }
 
-
-                // save the sms in the database
-                $sms_table = new sms_table();
-                $sms_table->sms_content = $message;
-                $sms_table->date_sent = date("YmdHis");
-                $sms_table->recipient_phone = $mobile;
-                $sms_table->sms_status = $message_status;
-                $sms_table->account_id = "0";
-                $sms_table->sms_type = "2";
-                $sms_table->save();
-
-                // save the verifcation code in the database
-                $verification_code = new verification_code();
-                $verification_code->code = $random_no;
-                $verification_code->phone_sent = $mobile;
-                $verification_code->date_generated = date("YmdHis",strtotime("5 Minutes"));
-                $verification_code->status = "0";
-                $verification_code->save();
+            // client_data is null this means that the client was not found in any organization
+            if($client_data == null){
+                // SESSION ERROR MESSAGE
+                session()->flash('error',"Invalid username, password or account number provided!");
                 
-
-                $req->session()->flash("contacts",$contact);
-                return redirect("/verify");
-                // return redirect("/ClientDashboard");
-            }else {
-                
+                // LOG
                 $new_client = new Clients();
                 $txt = ": Client failed attempt to login username:".$username." on ip ".$_SERVER['REMOTE_ADDR'];
                 $new_client->log($txt);
 
-                session()->flash('error',"Invalid username and password provided!");
-                return redirect("/Login");
+                // REDIRECT THE USER BACK TO THE LOGIN PAGE
+                return redirect("/Client-Login");
             }
+
+            // DECLINE LOGIN FOR ORGANIZATIONS THAT DONT HAVE SMS ENABLED
+            if($organization_data->send_sms == 0){
+                session()->flash('error',"Your organization has not enabled SMS! Contact your administrator for more details!");
+                return redirect("/Client-Login");
+            }
+
+            // set the session right data
+            session()->put("Userid",$client_data->client_id);
+            session()->put("auth","client");
+
+            // store the database name in the session so that its connected to when needed
+            session()->put("database_name",$organization_data->organization_database);
+            session()->put("organization_id",$organization_data->organization_id);
+            session()->put("organization",$organization_data);
+            session()->put("organization_logo",$organization_data->organization_logo);
+
+            // CONTACTS
+            $contacts = $client_data->clients_contacts;
+            $contact = substr($contacts,0,4)."XXXX".substr($contacts,8);
+
+            // GET THE SMS KEYS FROM THE DATABASE
+            $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+            $sms_sender = count($select) > 0 ? $select[0]->value : "";
+            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
+            $sms_api_key = $sms_keys[0]->value;
+            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
+            $sms_partner_id = $sms_keys[0]->value;
+            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
+            $sms_shortcode = $sms_keys[0]->value;
+            $message_status = 0;
+
+            // if send sms is 1 we send  the sms
+            $partnerID = $sms_partner_id;
+            $apikey = $sms_api_key;
+            $shortcode = $sms_shortcode;
+            $random_no = rand(1000,9999);
+            $mobile = $contacts; // Bulk messages can be comma separated
+            $message = "Your verification code is ".$random_no.". It will expire in 5 minutes";
+            $resulted = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+            $message_status = $resulted != null ? 1 : 0;
+            if($resulted == null){
+                session()->flash("error","There is an issue with SMS, use email instead!");
+                return redirect("/Client-Login");
+            }
+
+
+            // save the sms in the database
+            $sms_table = new sms_table();
+            $sms_table->sms_content = $message;
+            $sms_table->date_sent = date("YmdHis");
+            $sms_table->recipient_phone = $mobile;
+            $sms_table->sms_status = $message_status;
+            $sms_table->account_id = "0";
+            $sms_table->sms_type = "2";
+            $sms_table->save();
+
+            // save the verifcation code in the database
+            $verification_code = new verification_code();
+            $verification_code->code = $random_no;
+            $verification_code->phone_sent = $mobile;
+            $verification_code->date_generated = date("YmdHis",strtotime("5 Minutes"));
+            $verification_code->status = "0";
+            $verification_code->save();
+            
+            $req->session()->flash("contacts",$contact);
+            return redirect("/Client-Verify");
         }
     }
 
-    function reset_password(){
-        $this->change_db();
-        return view("reset_password");
-    }
-
     function no_change_password(){
+        $this->change_db();
         // update the admin otp status
         $user_id = session('Userid');
-        $update = DB::update("UPDATE admin_tables SET use_otp = '0', otp = NULL, otp_change_time = 0, otp_date_change = NULL, date_changed = ? WHERE admin_id = ?", [date("YmdHis"), $user_id]);
         session()->flash("success", "Request declined successfully!");
-        return redirect("/Dashboard");
+        if(session("auth") == "admin"){
+            DB::update("UPDATE admin_tables SET use_otp = '0', otp = NULL, otp_change_time = 0, otp_date_change = NULL, date_changed = ? WHERE admin_id = ?", [date("YmdHis"), $user_id]);
+            return redirect("/Dashboard");
+        }elseif (session("auth") == "client") {
+            DB::connection("mysql2")->update("UPDATE client_tables SET use_otp = '0', otp = NULL, otp_change_time = 0, otp_date_change = NULL, date_changed = ? WHERE client_id = ?", [date("YmdHis"), $user_id]);
+            return redirect("/ClientDashboard");
+        }
     }
 
     function reset_my_password(Request $req){
@@ -288,6 +319,35 @@ class login extends Controller
         // destroy the session
         session()->flash("success", "You have successfully changed your password, you can now login with your new password!");
         return redirect("/Dashboard");
+    }
+
+    function reset_client_password(Request $req){
+        $old_password = $req->input("old_user_password");
+        $new_password = $req->input("new_user_password");
+        $repeat_password = $req->input("repeat_user_password");
+        if ($new_password != $repeat_password) {
+            session()->flash("error", "Your passwords do not match!");
+            return redirect("/Client-Reset-Password");
+        }
+        $this->change_db();
+
+        $client_id = session('Userid');
+        $admin_data = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE (client_password = ? OR otp = ?) AND client_id = ?", [$old_password, $old_password, $client_id]);
+        if(count($admin_data) == 0){
+            session()->flash("error", "Your old password is incorrect!");
+            return redirect("/Client-Reset-Password");
+        }
+        
+        // update the password
+        DB::connection("mysql2")->update("UPDATE `client_tables` SET `client_password` = ?, `use_otp` = '0', `otp` = NULL, `otp_change_time` = 0, `otp_date_change` = NULL, `date_changed` = ? WHERE `client_id` = ?", [$new_password, date("YmdHis"), $client_id]);
+
+        $new_client = new Clients();
+        $txt = $admin_data[0]->client_name." successfully changed password on ip ".$_SERVER['REMOTE_ADDR'];
+        $new_client->log($txt);
+
+        // destroy the session
+        session()->flash("success", "You have successfully changed your password, you can now login with your new password!");
+        return redirect("/ClientDashboard");
     }
 
     function forgot_password(Request $req){
@@ -422,6 +482,82 @@ class login extends Controller
         return redirect("/Hypbits");
     }
 
+    function client_reset_password(Request $req){
+        $user_keyword = $req->input("user_keyword");
+        $phone_number = $req->input("phone_number");
+        $what_i_remember = $req->input("what_i_remember");
+        $user_data = [];
+        if($what_i_remember == "account_number"){
+            $organizations = DB::select("SELECT * FROM `organizations`");
+            foreach ($organizations as $organization_id => $organization_data) {
+                // get the client with the account number
+                $this->change_db($organization_data->organization_database);
+                $user_data = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE client_account = ? AND clients_contacts = ?",[$user_keyword, $phone_number]);
+                if (count($user_data) > 0) {
+                    // we found the user with the account number
+                    break;
+                }
+            }
+        }elseif ($what_i_remember == "username") {
+            // the same case for username
+            $organizations = DB::select("SELECT * FROM `organizations`");
+            foreach ($organizations as $organization_id => $organization_data) {
+                // get the client with the username
+                $this->change_db($organization_data->organization_database);
+                $user_data = DB::connection("mysql2")->select("SELECT * FROM client_tables WHERE client_username = ? AND clients_contacts = ?",[$user_keyword, $phone_number]);
+                if (count($user_data) > 0) {
+                    // we found the user with the username
+                    break;
+                }
+            }
+        }else{
+            // error
+            session()->flash("error", "Call us on 0720268519 for more guidance!");
+            return redirect("/Client-Forgot-Password");
+        }
+
+        if (count($user_data) == 0) {
+            session()->flash("error", "No user found with the details you provided!");
+            return redirect("/Client-Forgot-Password");
+        }
+
+        // check if the user is allowed to reset password
+        if ($user_data[0]->otp_change_time >= 3 && date("Ymd") == date("Ymd",strtotime($user_data[0]->otp_date_change))) {
+            session()->flash("error", "You are not allowed to reset your password because you have used your three attempts, contact your administrator!");
+            return redirect("/Client-Forgot-Password");
+        }
+
+
+
+        // proceed to reset the password
+        $new_password = rand(100000,999999);
+        $use_otp = 1;
+        $date_created = date("YmdHis",strtotime("+5 Minutes"));
+        $change_times = date("Ymd") == date("Ymd", strtotime($user_data[0]->otp_date_change)) ? $user_data[0]->otp_change_time + 1 : 1;
+
+        // update admin_tables
+        DB::connection("mysql2")->update("UPDATE client_tables SET use_otp = ?, otp = ?, otp_change_time = ?, otp_date_change = ? WHERE client_id = ?", [$use_otp, $new_password, $change_times, $date_created, $user_data[0]->client_id]);
+
+        // GET THE SMS KEYS FROM THE DATABASE
+        $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+        $sms_sender = count($select) > 0 ? $select[0]->value : "";
+        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
+        $sms_api_key = $sms_keys[0]->value;
+        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
+        $sms_partner_id = $sms_keys[0]->value;
+        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
+        $sms_shortcode = $sms_keys[0]->value;
+
+        // if send sms is 1 we send the sms
+        $partnerID = $sms_partner_id;
+        $apikey = $sms_api_key;
+        $shortcode = $sms_shortcode;
+        $message = "Hello ".ucwords(strtolower($user_data[0]->client_name)).", Your username is: ".$user_data[0]->client_username." and one-time password is: ".$new_password.". It expired in 5 minutes";
+        $this->GlobalSendSMS($message, $user_data[0]->clients_contacts, $apikey, $sms_sender, $shortcode, $partnerID);
+        session()->flash("success", "We have sent you a new password to your phone number, it expires in 5 minutes!");
+        return redirect("/Client-Login");
+    }
+
     function change_db($database_name = null){
         if (!session("database_name") && $database_name == null) {
             return redirect("/");
@@ -489,11 +625,12 @@ class login extends Controller
     function processVerification(Request $req){
         // get the verifaction code
         // return $req->input('verification_code');
-        // get the user id
+        // get the user_id
         $this->change_db();
         $code = $req->input('verification_code');
         $user_id = session('Userid');
         $dates = date("YmdHis");
+
         // get the user data
         $verify = DB::connection("mysql2")->select("SELECT * FROM `verification_codes` WHERE `deleted` = '0' AND `code` = '$code' AND `date_generated` > '$dates'  AND `status` = '0'");
         if (count($verify) > 0) {
@@ -519,23 +656,24 @@ class login extends Controller
                     return redirect("/Login");
                 }
             }elseif (session('auth') == 'client') {
-                $user_data = DB::select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = '$user_id'");
-                DB::table("verification_codes")->where("code",$code)->update(["status" => "1",'date_changed' => date("YmdHis")]);
+                $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = '$user_id'");
+                DB::connection("mysql2")->table("verification_codes")->where("code",$code)->update(["status" => "1",'date_changed' => date("YmdHis")]);
                 if (count($user_data) > 0) {
-                    $req->session()->put("fullname",$user_data[0]->client_name);
-                    $req->session()->put("Usernames",$user_data[0]->client_name);
-                    $req->session()->put("client_id",$user_data[0]->client_id);
+                    $req->session()->put("fullname", $user_data[0]->client_name);
+                    $req->session()->put("Usernames", $user_data[0]->client_name);
+                    $req->session()->put("client_id", $user_data[0]->client_id);
+                    $req->session()->put("client_data", $user_data[0]);
                 
+                    // new client log
                     $new_client = new Clients();
                     $txt = $user_data[0]->client_name." successfully login as client on ip ".$_SERVER['REMOTE_ADDR'];
                     $new_client->log($txt);
-
-                    // session_unset('Userid');
+                    
                     // redirect the page to the dashbord of the administrator, update the last time they logged in;
                     return redirect("/ClientDashboard");
                 }else {
                     session()->flash('error',"Invalid User!");
-                    return redirect("/Login");
+                    return redirect("/Client-Login");
                 }
             }else {
                 session()->flash('error',"Invalid User!");
@@ -543,8 +681,13 @@ class login extends Controller
             }
         }else {
             // the code is invalid
-            session()->flash('error',"Invalid verification code!");
-            return redirect("/verify");
+            if (session('auth') == "admin"){
+                session()->flash('error',"Invalid verification code!");
+                return redirect("/verify");
+            }else{
+                session()->flash('error',"Invalid verification code!");
+                return redirect("/Client-Verify");
+            }
         }
     }
 }

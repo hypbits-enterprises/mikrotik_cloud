@@ -52,14 +52,21 @@ Route::get('/Login', function () {
 Route::view("/Hypbits", "login");
 Route::view("/verify", "verify");
 Route::view("/Forgot-Password", "forget_password");
-Route::get("/Reset-Password", [login::class, "reset_password"])->name("reset_password");
+Route::view("/Reset-Password", 'reset_password');
+Route::view("/Client-Reset-Password", 'clients.client_reset_password_view');
 // Route::view("/Clients/NewStatic","newClient");
+
+// CLIENT LOGIN
+Route::view("/Client-Login", "clients.client-login");
+Route::view("/Client-Verify", "clients.client-verify");
 
 //login controller router
 Route::post("/process_login", [login::class, "processLogin"])->name("process_login");
 Route::post("/verifycode", [Login::class, "processVerification"])->name("verify_code");//
 Route::post("/forgot_password", [login::class, "forgot_password"])->name("forgot_password");
+Route::post("/client_reset_password", [login::class, "client_reset_password"])->name("client_reset_password");
 Route::post("/reset_my_password", [login::class, "reset_my_password"])->name("reset_my_password");
+Route::post("/reset_client_password", [login::class, "reset_client_password"])->name("reset_client_password");
 Route::get("/No-Change-Password", [login::class, "no_change_password"])->name("no_change_password");
 
 // save client route
@@ -236,12 +243,12 @@ Route::post("/update_organization_profile", [admin::class, "update_organization_
 
 
 // routes for the clients information
-Route::get("/ClientDashboard", [Clients_data::class, "getClientInfor"]);
+Route::get("/ClientDashboard", [Clients_data::class, "getClientInfor"])->middleware(["checkAccount", "validated"]);
 Route::get("/Payment", [Clients_data::class, "getTransaction"]);
 Route::get("/Payment/View/{paymentid}", [Clients_data::class, 'viewPayment']);
 Route::view("/Payment/Confirm", "confirmPay");
 Route::get("/Payment/mpesa/{mpesaid}", [Clients_data::class, "confirm_mpesa"]);
-Route::view("/Credentials", "credential");
+Route::view("/Credentials", "clients.credential");
 Route::post("/changePassword", [Clients_data::class, "change_password"]);
 Route::get("/Payment/stkpush_init", [Transaction::class, "stkpush"]);
 Route::post("/Payment/stkpush", [Transaction::class, "initiate_stk"]);
@@ -385,3 +392,7 @@ Route::post("sync_bridge_modal", [Router_Cloud::class, "sync_bridge_modal"])->na
 Route::post("sync_profile_modal", [Router_Cloud::class, "sync_profile_modal"])->name("sync_profile_modal");
 Route::post("/update_bridge_data", [Router_Cloud::class, "update_bridge"])->name("update_bridge");
 Route::post("/update_profile_data", [Router_Cloud::class, "update_profile"])->name("update_profile");
+
+
+// CLIENT FORGOT PASSWORD
+Route::view("/Client-Forgot-Password", "clients.client-forgot-password")->name("client_forgot_password");

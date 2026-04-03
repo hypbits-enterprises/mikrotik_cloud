@@ -1014,8 +1014,8 @@ class Transaction extends Controller
 
         // get the clients id 
         // push stk
-        // $client_id =  session("client_id");
-        $client_id = "584";
+        $client_id =  session("client_id");
+        // $client_id = "584";
         $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `client_id` = '$client_id'");
         $phone_number = strlen($client_data[0]->clients_contacts) == 12? $client_data[0]->clients_contacts: "254".substr($client_data[0]->clients_contacts,1);
         $monthly_payment = $client_data[0]->monthly_payment;

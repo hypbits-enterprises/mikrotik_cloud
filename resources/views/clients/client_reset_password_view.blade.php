@@ -56,31 +56,32 @@
                                                 <img class="w-100" src="/theme-assets/images/logo2.jpeg" alt="" srcset="">
                                             </a>
                                         </div>
-                                        <h1 class="h4 text-gray-900 my-2">Forgot My Password!</h1>
-                                        @php
-                                            Session::forget('Usernames');
-                                        @endphp
+                                        <h1 class="h4 text-gray-900 my-2">Reset My Password!</h1>
                                     </div>
-                                    <form class="user" action="{{url()->route("forgot_password")}}" method="POST">
+                                    <form class="user" action="{{url()->route("reset_client_password")}}" method="POST">
                                         @csrf
                                         <div class="form-group">
                                             @if(session('error'))
                                                 <p class="text-danger text-bolder">{{session('error')}}</p>
                                             @endif
+                                            @if(session('success'))
+                                                <p class="text-success text-bolder">{{session('success')}}</p>
+                                            @endif
                                         </div>
                                         <div class="form-group">
-                                            <select name="what_i_remember" id="what_i_remember" class="form-control" required>
-                                                <option value="" hidden >What I remember!</option>
-                                                <option value="email">My E-Mail</option>
-                                                <option value="phone">My Phone Number</option>
-                                                <option value="username">My Username</option>
-                                                <option value="nothing">I don`t remember anything!</option>
-                                            </select>
+                                            <input type="password" name="old_user_password" class="form-control form-control-user text-center"
+                                                id="old_user_password" aria-describedby="emailHelp"
+                                                placeholder="Old Password ..." required>
                                         </div>
-                                        <div class="form-group" id="user_keyword_retriever">
-                                            <input type="text" name="user_keyword" class="form-control form-control-user text-center"
-                                                id="user_keyword" aria-describedby="emailHelp"
-                                                placeholder="Type what you remember . . ." required>
+                                        <div class="form-group">
+                                            <input type="password" name="new_user_password" class="form-control form-control-user text-center"
+                                                id="new_user_password" aria-describedby="emailHelp"
+                                                placeholder="New Password ..." required>
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="password" name="repeat_user_password" class="form-control form-control-user text-center"
+                                                id="repeat_user_password" aria-describedby="emailHelp"
+                                                placeholder="Repeat Password ..." required>
                                         </div>
                                         @php
                                             $btnText = "Reset Password";
@@ -98,7 +99,7 @@
                                         <p class="text-left text-xxs text-bolder pt-2" id="errHandler"></p>
                                     </form>
                                     <div class="text-center">
-                                        <a href="/Hypbits" class="secondary">I know my credentials</a>
+                                        <a href="/No-Change-Password" class="secondary">I don`t want to change my password!</a>
                                     </div>
                                     <hr>
                                     <div class="text-center">
@@ -114,38 +115,21 @@
     </div>
     <!-- ////////////////////////// -->
 <script>
-    var what_i_remember = document.getElementById("what_i_remember");
     var authority = document.getElementById("authority");
     var exampleInputEmail = document.getElementById("exampleInputEmail");
     var exampleInputPassword = document.getElementById("exampleInputPassword");
     var login_btn = document.getElementById("login-btn");
     login_btn.onclick = function () {
         var err = 0;
-        console.log("clicked");
+        // err+=checkBlank("authority");
+        // err+=checkBlank("exampleInputEmail");
+        // err+=checkBlank("exampleInputPassword");
         if (err == 0) {
             setTimeout(() => {
                 login_btn.disabled = true;
             }, 100);
         }
     }
-
-    what_i_remember.addEventListener("change", function () {
-        var user_keyword = document.getElementById("user_keyword");
-        var user_keyword_retriever = document.getElementById("user_keyword_retriever");
-        user_keyword_retriever.classList.remove("d-none");
-        user_keyword.value = "";
-        if (this.value == "email") {
-            user_keyword.placeholder = "Enter your E-Mail...";
-        }else if (this.value == "phone") {
-            user_keyword.placeholder = "Enter your Phone Number...";
-        }else if (this.value == "username") {
-            user_keyword.placeholder = "Enter your Username...";
-        }else if (this.value == "nothing") {
-            user_keyword_retriever.classList.add("d-none");
-            user_keyword.value = "No answer!";
-            user_keyword.placeholder = "Well, this is unfortunate...";
-        }
-    });
     function checkBlank(id) {
         var elemts = document.getElementById(id);
         if (elemts.value.trim().length > 0) {
