@@ -120,7 +120,17 @@ date_default_timezone_set('Africa/Nairobi');
                                                 <input type="password" name="repeat_password" id="repeat_password" class="form-control" placeholder="Repeat Password" required>
                                             </div>
                                             <div class="col-md-4 my-2">
-                                                <button type="submit" class="btn btn-primary">Change Password</button>
+                                                {{-- <button type="submit" class="btn btn-primary">Change Password</button> --}}
+                                                @php
+                                                    $btnText = "Change Password";
+                                                    $otherClasses = "";
+                                                    $btn_id = "login-btn";
+                                                    $btnSize="md";
+                                                    $type = "submit";
+                                                    $readonly = "";
+                                                    $otherAttributes = "";
+                                                @endphp
+                                                <x-button toolTip="" btnType="primary" :otherAttributes="$otherAttributes" :btnText="$btnText" :type="$type" :btnSize="$btnSize" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
                                             </div>
                                         </div>
                                     </div>

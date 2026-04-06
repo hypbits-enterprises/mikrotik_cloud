@@ -130,7 +130,7 @@
                                         <p class="text-left text-xxs text-bolder pt-2" id="errHandler"></p>
                                     </form>
                                     <div class="text-center">
-                                        <a href="/Login" class="secondary">Return to Login Page...</a>
+                                        <a href="/Client-Login" class="secondary">Return to Login Page...</a>
                                     </div>
                                     <hr>
                                     <div class="text-center">

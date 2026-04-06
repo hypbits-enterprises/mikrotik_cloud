@@ -493,6 +493,7 @@ class Transaction extends Controller
         session()->flash("success","You have successfully transfered the funds to ".$client_data[0]->client_name."");
         return redirect("/Transactions/View/$trans_id");
     }
+
     // HANDLE THE DASHBOARD
     function getDashboard(){
         // change db
@@ -709,8 +710,11 @@ class Transaction extends Controller
                                 $message_status = $result != null ? 1 : 0;
 
                                 // get the user id of the number from the database
-                                $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `client_account` = '".$client_refferal->client_acc."'");
-                                $client_id = (count($user_data) > 0) ? $user_data[0]->client_id : 0;
+                                $refferer_details = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `client_account` = '".$client_refferal->client_acc."'");
+                                $client_id = (count($refferer_details) > 0) ? $refferer_details[0]->client_id : 0;
+                                if(count($refferer_details) > 0){
+                                    $refferer_details[0]->refferal_amount = $refferal_amount;
+                                }
                                 // if the message status is one the message is already sent to the user
                                 $sms_table = new sms_table();
                                 $sms_table->sms_content = $message;
@@ -780,7 +784,8 @@ class Transaction extends Controller
             $new_client = new Clients();
             $txt = ": Funds successfully received from ".$jsonMpesaResponse['FirstName']." paid for INVALID account number ".$jsonMpesaResponse['BillRefNumber']."!";
             if (count($user_data) > 0) {
-                $txt = ": Funds successfully recieved from ".$jsonMpesaResponse['FirstName']." paid for ".$user_data[0]->client_name." account ".$jsonMpesaResponse['BillRefNumber']."!";
+                $refferer_message = isset($refferer_details) && !empty($refferer_details[0]->client_name) ? "their referee ".$refferer_details[0]->client_name ." has also received their cut of Kes ". number_format($refferer_details[0]->refferal_amount).""  : "";
+                $txt = ": Funds successfully recieved from ".$jsonMpesaResponse['FirstName']." paid for ".$user_data[0]->client_name." account ".$jsonMpesaResponse['BillRefNumber']." (".$refferer_message.")!";
             }
             $new_client->log_db($txt,$organization[0]->organization_database);
             // end of log file

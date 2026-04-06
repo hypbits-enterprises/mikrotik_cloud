@@ -35,8 +35,52 @@ class Clients_data extends Controller
         $second = substr($date_data,12,2);
         $d = mktime($hour, $minute, $second, $month, $day, $year);
         $dates = date("D dS M Y  h:i:sa", $d);
-        return view("clients.clientDash",["client_data" => $client_data,"reg_date" => $dates2,"expiration_date" => $dates]);
+        return view("clients.client-profile",["client_data" => $client_data,"reg_date" => $dates2,"expiration_date" => $dates]);
     }
+
+    function view_client_dashboard(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // get the clients information
+        $client_id = session('client_id');
+        $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
+        if (count($client_data) == 0) {
+            return redirect("/Client-Login")->with("error", "Login and try again!!");
+        }
+        $recent_payments = DB::connection("mysql2")->select("SELECT * FROM `transaction_tables` WHERE `transaction_acc_id` = '$client_id' AND `deleted` = '0' ORDER BY `transaction_date` DESC LIMIT 5");
+        
+        // recent refferals
+        $all_clients = DB::connection("mysql2")->select("SELECT * FROM `client_tables` ORDER BY `clients_reg_date`");
+
+        // add reffered clients to an array
+        $reffered_clients = [];
+        $refferal_collection = [];
+        foreach ($all_clients as $client) {
+            $string = str_replace("\\", "", $client->reffered_by);
+            $string = str_replace("'", "\"", $string);
+            if ($this->isJson($string)) {
+                $reffered_by = json_decode($string, true);
+                if ($reffered_by["client_acc"] == $client_data[0]->client_account && count($reffered_clients) <= 5) {
+                    array_push($reffered_clients, $client);
+                }
+                if($reffered_by["client_acc"] == $client_data[0]->client_account){
+                    foreach ($reffered_by["payment_history"] as $payment) {
+                        $payment["client_name"] = $client->client_name;
+                        $payment["client_id"] = $client->client_id;
+                        array_push($refferal_collection, $payment);
+                    }
+                }
+            }
+        }
+
+        $refferal_collection = $this->sortArrayByKey($refferal_collection, 'date', 'desc');
+        $refferal_collection = array_slice($refferal_collection, 0, 5);
+
+        return view("clients.clientDash", ["recent_payments" => $recent_payments, "recent_refferals" => $reffered_clients, "refferal_commisions" => $refferal_collection]);
+    }
+
     // get the client transaction information
     function getTransaction(){
         // change db

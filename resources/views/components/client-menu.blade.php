@@ -36,8 +36,8 @@
                                                 src="{{ session('dp_locale') ? session('dp_locale') : '/theme-assets/images/pngegg.png' }}"
                                                 alt="avatar"><br><br><span
                                                 class="user-name text-bold-700 ml-1">{{ session('Usernames') }}</span></span></a>
-                                    <div class="dropdown-divider"></div><a class="dropdown-item" href="/Accounts"><i
-                                            class="ft-user"></i>My Profile</a>
+                                    <div class="dropdown-divider"></div><a class="dropdown-item" href="/My-Profile"><i
+                                            class="ft-user"></i>My Profile & Settings</a>
                                     {{-- <a class="dropdown-item" href="#"><i class="ft-mail"></i> My Inbox</a><a class="dropdown-item" href="#"><i class="ft-check-square"></i> Task</a><a class="dropdown-item" href="#"><i class="ft-message-square"></i> Chats</a> --}}
                                     <div class="dropdown-divider"></div><a class="dropdown-item" href="/Client-Login"><i
                                             class="ft-power"></i> Logout</a>
@@ -56,7 +56,7 @@
         <div class="navbar-header" style="height: 120px">
             <ul class="nav navbar-nav flex-row p-0 justify-content-center align-item-center">
                 <li class="nav-item mr-auto p-0 w-75 text-center" style="width: fit-content"><a class="navbar-brand "
-                        href="/Dashboard">
+                        href="/ClientDashboard">
                         <img class="w-100 mx-auto" height="100" alt="Your Logo Appear Here"
                             src="{{session("organization_logo") != null ? session("organization_logo") :'/theme-assets/images/logoplaceholder.svg'}}" />
                     </a></li>
@@ -70,6 +70,8 @@
                 <li class="{{$active == "transactions" ? "active" : ""}}"><a href="/Payment"><i class="ft-award"></i><span class="menu-title" data-i18n="">Transactions</span></a>
                 </li>
                 <li class="{{$active == "referrals" ? "active" : ""}}"><a href="/Refferals"><i class="ft-users"></i><span class="menu-title" data-i18n="">My Referrals</span></a>
+                </li>
+                <li class="{{$active == "profile" ? "active" : ""}}"><a href="/My-Profile"><i class="ft-settings"></i><span class="menu-title" data-i18n="">Profile & Settings</span></a>
                 </li>
             </ul>
         </div>

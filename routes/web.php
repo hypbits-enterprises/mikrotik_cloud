@@ -32,7 +32,12 @@ use Symfony\Component\Mime\Crypto\SMime;
 // });
 // Route::view("/","mainpage");
 Route::get("/", function () {
-    return redirect('/Hypbits');
+    if(session("auth") == "client"){
+        return redirect('/Client-Login');
+    }else{
+        session("auth", "admin");
+        return redirect('/Hypbits');
+    }
 });
 // Route::view("/Dashboard","index");
 Route::get("/Dashboard", [Transaction::class, "getDashboard"])->middleware(["checkAccount", "validated"]);
@@ -243,7 +248,8 @@ Route::post("/update_organization_profile", [admin::class, "update_organization_
 
 
 // routes for the clients information
-Route::get("/ClientDashboard", [Clients_data::class, "getClientInfor"])->middleware(["checkAccount", "validated"]);
+Route::get("/ClientDashboard", [Clients_data::class, "view_client_dashboard"])->middleware(["checkAccount", "validated"]);
+Route::get("/My-Profile", [Clients_data::class, "getClientInfor"])->middleware(["checkAccount", "validated"]);
 Route::get("/Payment", [Clients_data::class, "getTransaction"]);
 Route::get("/Payment/View/{paymentid}", [Clients_data::class, 'viewPayment']);
 Route::view("/Payment/Confirm", "confirmPay");

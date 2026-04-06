@@ -31,15 +31,6 @@ use mysqli;
 date_default_timezone_set('Africa/Nairobi');
 class Clients extends Controller
 {
-    
-    // check json structure
-    function isJson_report($string)
-    {
-        return ((is_string($string) &&
-            (is_object(json_decode($string)) ||
-                is_array(json_decode($string))))) ? true : false;
-    }
-
     function export_client_data(Request $request){
         // change db
         $change_db = new login();
@@ -3358,13 +3349,6 @@ $export_text .= "
             session()->flash("error_clients", "User not found!");
             return redirect("/Clients");
         }
-    }
-
-    function isJson($string)
-    {
-        return ((is_string($string) &&
-            (is_object(json_decode($string)) ||
-                is_array(json_decode($string))))) ? true : false;
     }
 
     function checkActive($ip_address, $user, $pass, $port, $sstp_username)
