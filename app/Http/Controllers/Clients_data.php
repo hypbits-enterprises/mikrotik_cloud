@@ -81,6 +81,97 @@ class Clients_data extends Controller
         return view("clients.clientDash", ["recent_payments" => $recent_payments, "recent_refferals" => $reffered_clients, "refferal_commisions" => $refferal_collection]);
     }
 
+    function get_refferals(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // get the clients information
+        $client_id = session('client_id');
+        $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
+        if (count($client_data) == 0) {
+            return redirect("/Client-Login")->with("error", "Login and try again!!");
+        }
+        
+        // recent refferals
+        $all_clients = DB::connection("mysql2")->select("SELECT * FROM `client_tables` ORDER BY `clients_reg_date`");
+
+        // add reffered clients to an array
+        $reffered_clients = [];
+        foreach ($all_clients as $client) {
+            $string = str_replace("\\", "", $client->reffered_by);
+            $string = str_replace("'", "\"", $string);
+            if ($this->isJson($string)) {
+                $reffered_by = json_decode($string, true);
+                if ($reffered_by["client_acc"] == $client_data[0]->client_account) {
+                    $client->refferer_cut = $reffered_by["monthly_payment"];
+                    array_push($reffered_clients, $client);
+                }
+            }
+        }
+
+        // return view with the reffered clients
+        return view("clients.refferals", ["reffered_clients" => $reffered_clients]);
+    }
+
+    function get_refferals_information($client_id){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // get the clients information
+        $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
+        if (count($client_data) == 0) {
+            return redirect("/Refferals")->with("error", "Invalid referral!!");
+        }
+        
+        // return view with the reffered clients
+        $client_data[0]->reffered_by = str_replace("\\", "", $client_data[0]->reffered_by);
+        $client_data[0]->reffered_by = str_replace("'", "\"", $client_data[0]->reffered_by);
+        $client_data[0]->reffered_by = $this->isJson($client_data[0]->reffered_by) ? json_decode($client_data[0]->reffered_by) : null;
+        return view("clients.refferal_info", ["client_data" => $client_data[0]]);
+    }
+
+    function get_commissions(){
+        // change db
+        $change_db = new login();
+        $change_db->change_db();
+
+        // get the clients information
+        $client_id = session('client_id');
+        $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
+        if (count($client_data) == 0) {
+            return redirect("/Client-Login")->with("error", "Login and try again!!");
+        }
+        
+        // recent refferals
+        $all_clients = DB::connection("mysql2")->select("SELECT * FROM `client_tables` ORDER BY `clients_reg_date`");
+
+        // add reffered clients to an array
+        $refferal_collection = [];
+        foreach ($all_clients as $client) {
+            $string = str_replace("\\", "", $client->reffered_by);
+            $string = str_replace("'", "\"", $string);
+            if ($this->isJson($string)) {
+                $reffered_by = json_decode($string, true);
+                if ($reffered_by["client_acc"] == $client_data[0]->client_account) {
+                    foreach ($reffered_by["payment_history"] as $payment) {
+                        $payment["client_name"] = $client->client_name;
+                        $payment["client_account"] = $client->client_account;
+                        $payment["client_contact"] = $client->clients_contacts;
+                        $payment["monthly_payment"] = $client->monthly_payment;
+                        $payment["client_id"] = $client->client_id;
+                        array_push($refferal_collection, $payment);
+                    }
+                }
+            }
+        }
+
+        // return view with the reffered clients
+        // return $refferal_collection;
+        return view("clients.commissions", ["commisions" => $refferal_collection]);
+    }
+
     // get the client transaction information
     function getTransaction(){
         // change db

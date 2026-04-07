@@ -402,3 +402,6 @@ Route::post("/update_profile_data", [Router_Cloud::class, "update_profile"])->na
 
 // CLIENT FORGOT PASSWORD
 Route::view("/Client-Forgot-Password", "clients.client-forgot-password")->name("client_forgot_password");
+Route::get("/Refferals", [Clients_data::class, "get_refferals"])->name("get_refferals");
+Route::get("/Refferals/View/{client_id}", [Clients_data::class, "get_refferals_information"])->name("get_refferals_information");
+Route::get("/Commission", [Clients_data::class, "get_commissions"])->name("get_commissions");

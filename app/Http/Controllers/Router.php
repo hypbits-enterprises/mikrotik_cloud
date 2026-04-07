@@ -10,8 +10,6 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\File;
 
-use function PHPUnit\Framework\isJson;
-
 date_default_timezone_set('Africa/Nairobi');
 
 class Router extends Controller
@@ -1512,11 +1510,6 @@ class Router extends Controller
             // return redirect("/Routers");
             return "INvalid Operation!";
         }
-    }
-    function isJson($string) {
-        return ((is_string($string) &&
-                (is_object(json_decode($string)) ||
-                is_array(json_decode($string))))) ? true : false;
     }
     function isPresent($array,$string){
         if (count($array) > 0 ) {

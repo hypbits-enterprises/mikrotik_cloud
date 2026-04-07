@@ -11,12 +11,6 @@ date_default_timezone_set('Africa/Nairobi');
 
 class admin extends Controller
 {
-    function isJson($string) {
-        return ((is_string($string) &&
-                (is_object(json_decode($string)) ||
-                is_array(json_decode($string))))) ? true : false;
-    }
-
     function showOption($priviledges,$name){
         if ($this->isJson($priviledges)) {
             $priviledges = json_decode($priviledges);

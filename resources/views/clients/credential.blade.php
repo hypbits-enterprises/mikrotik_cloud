@@ -41,7 +41,7 @@ date_default_timezone_set('Africa/Nairobi');
 <body class="vertical-layout vertical-menu 2-columns  menu-expanded fixed-navbar" data-open="click" data-menu="vertical-menu" data-color="bg-chartbg" data-col="2-columns">
 
     <!-- fixed-top-->
-    <x-client-menu active="dashboard"></x-client-menu>
+    <x-client-menu active="profile"></x-client-menu>
     <div class="app-content content">
         <div class="content-wrapper">
             <div class="content-wrapper-before"></div>
@@ -88,7 +88,7 @@ date_default_timezone_set('Africa/Nairobi');
                                         $otherAttributes = "";
                                     @endphp
                                     <x-button-link btnType="infor" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" /> --}}
-                                    <a href="/ClientDashboard" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+                                    <a href="/My-Profile" class="btn btn-infor"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
                                     <p class="card-text">- Below you will be able to change your password. <br>
                                     - Enter your old password and your new password to change it.</p>
                                     <div class="row">

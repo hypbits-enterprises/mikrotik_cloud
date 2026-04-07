@@ -67,7 +67,9 @@
             <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
                 <li class="{{$active == "dashboard" ? "active" : ""}}"><a href="/ClientDashboard"><i class="ft-home"></i><span class="menu-title" data-i18n="">Home</span></a>
                 </li>
-                <li class="{{$active == "transactions" ? "active" : ""}}"><a href="/Payment"><i class="ft-award"></i><span class="menu-title" data-i18n="">Transactions</span></a>
+                <li class="{{$active == "transactions" ? "active" : ""}}"><a href="/Payment"><i class="ft-award"></i><span class="menu-title" data-i18n="">My Payments</span></a>
+                </li>
+                <li class="{{$active == "commission" ? "active" : ""}}"><a href="/Commission"><i class="ft-trending-up"></i><span class="menu-title" data-i18n="">My Commissions</span></a>
                 </li>
                 <li class="{{$active == "referrals" ? "active" : ""}}"><a href="/Refferals"><i class="ft-users"></i><span class="menu-title" data-i18n="">My Referrals</span></a>
                 </li>

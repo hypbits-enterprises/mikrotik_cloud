@@ -1,58 +1,14 @@
-[
-    {
-        "option": "My Clients",
-        "view": true,
-        "readonly": false,
-        "expiry": "definate_expiry",
-        "expiry_date": "2025-10-31T12:00"
-    },
-    {
-        "option": "Transactions",
-        "view": true,
-        "readonly": false,
-        "expiry": "indefinate_expiry",
-        "expiry_date": ""
-    },
-    {
-        "option": "Expenses",
-        "view": true,
-        "readonly": false,
-        "expiry": "indefinate_expiry",
-        "expiry_date": ""
-    },
-    {
-        "option": "My Routers",
-        "view": true,
-        "readonly": false,
-        "expiry": "indefinate_expiry",
-        "expiry_date": ""
-    },
-    {
-        "option": "SMS",
-        "view": true,
-        "readonly": false,
-        "expiry": "indefinate_expiry",
-        "expiry_date": ""
-    },
-    {
-        "option": "Account and Profile",
-        "view": true,
-        "readonly": false,
-        "expiry": "indefinate_expiry",
-        "expiry_date": ""
-    },
-    {
-        "option": "Clients Issues",
-        "view": true,
-        "readonly": false,
-        "expiry": "indefinate_expiry",
-        "expiry_date": ""
-    },
-    {
-        "option": "Quick Register",
-        "view": true,
-        "readonly": false,
-        "expiry": "indefinate_expiry",
-        "expiry_date": ""
-    }
-]
+{
+    "client_acc": "HYP003",
+    "monthly_payment": "300",
+    "payment_history": [
+        {
+            "amount": 225,
+            "date": "20260406190008"
+        },
+        {
+            "amount": 225,
+            "date": "20260406191000"
+        }
+    ]
+}

@@ -6,8 +6,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Classes\routeros_api;
 
-use function PHPUnit\Framework\isJson;
-
 
 date_default_timezone_set('Africa/Nairobi');
 class Router_Cloud extends Controller
@@ -1212,11 +1210,6 @@ class Router_Cloud extends Controller
             $router_data[$index]->user_count = count($users);
         }
         return view("router.myRouter",['router_data'=>$router_data]);
-    }
-    function isJson($string) {
-        return ((is_string($string) &&
-                (is_object(json_decode($string)) ||
-                is_array(json_decode($string))))) ? true : false;
     }
     
     // delete router
