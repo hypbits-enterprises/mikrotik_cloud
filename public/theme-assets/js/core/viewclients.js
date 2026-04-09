@@ -609,14 +609,14 @@ cObj("initiate_client_payment_mpesa").onclick = function () {
 
 function checkBlank(object_id) {
     if (cObj(object_id).value.trim().length > 0) {
-        cObj(object_id).classList.add("border");
-        cObj(object_id).classList.add("border-secondary");
-        cObj(object_id).classList.add("border-danger");
-        return 0;
-    }else{
         cObj(object_id).classList.remove("border");
         cObj(object_id).classList.remove("border-danger");
         cObj(object_id).classList.add("border-secondary");
+        return 0;
+    }else{
+        cObj(object_id).classList.remove("border");
+        cObj(object_id).classList.remove("border-secondary");
+        cObj(object_id).classList.add("border-danger");
         return 1;
     }
 }

@@ -78,7 +78,10 @@ date_default_timezone_set('Africa/Nairobi');
                                         </div>
                                     </div>
                                     <div class="table-responsive" id="transDataReciever">
-                                        <table class="table" id="refferal_table">
+                                        <table class="table" @if (count($commisions) > 0) 
+                                                                id="refferal_table"
+                                                            @endif
+                                            >
                                             <thead>
                                                 <tr>
                                                     <th>#</th>
@@ -160,14 +163,16 @@ date_default_timezone_set('Africa/Nairobi');
             }
             milli_seconds--;
         }, 1000);
-
-        var table = $("#refferal_table").DataTable({
-            order: [[0, "desc"]],
-            dom: 'lrtip' // removes default search box + length dropdown
-        });
-        $('#searchkey').on('keyup', function () {
-            table.search(this.value).draw();
-        });
+        
+        if(document.getElementById('transDataReciever') != null){
+            var table = $("#refferal_table").DataTable({
+                order: [[0, "desc"]],
+                dom: 'lrtip' // removes default search box + length dropdown
+            });
+            $('#searchkey').on('keyup', function () {
+                table.search(this.value).draw();
+            });
+        }
     </script>
     <!-- END PAGE LEVEL JS-->
 </body>

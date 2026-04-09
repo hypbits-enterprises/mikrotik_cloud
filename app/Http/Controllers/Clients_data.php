@@ -195,7 +195,10 @@ class Clients_data extends Controller
             $dat = date("D dS M Y  h:i:sa", $d);
             array_push($dates,$dat);
         }
-        return view("clients.clienttrans",["transData" => $trans_data,"dates" => $dates]);
+
+        // get client_data
+        $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$client_id' AND `deleted` = '0'");
+        return view("clients.clienttrans",["transData" => $trans_data,"dates" => $dates, "client_data" => $client_data[0]]);
     }
     function viewPayment($paymentId){
         // change db

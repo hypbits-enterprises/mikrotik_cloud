@@ -78,7 +78,9 @@ date_default_timezone_set('Africa/Nairobi');
                                         </div>
                                     </div>
                                     <div class="table-responsive" id="transDataReciever">
-                                        <table class="table" id="refferal_table">
+                                        <table class="table" @if (count($reffered_clients) > 0) 
+                                                                id="refferal_table"
+                                                            @endif>
                                             <thead>
                                                 <tr>
                                                     <th>#</th>

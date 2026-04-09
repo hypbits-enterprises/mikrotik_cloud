@@ -11,7 +11,7 @@ date_default_timezone_set('Africa/Nairobi');
     <meta name="description" content="My ISP is the number one kenyan webserver software that helps you manage and monitor your webserver.">
     <meta name="keywords" content="admin template, Client template, dashboard template, gradient admin template, responsive client template, webapp, eCommerce dashboard, analytic dashboard">
     <meta name="author" content="ThemeSelect">
-    <title>Hypbits - Client Dashboard</title>
+    <title>Hypbits - Client Profile</title>
     <link rel="apple-touch-icon" href="/theme-assets/images/logo2.jpeg">
     <link rel="shortcut icon" href="/theme-assets/images/logo2.jpeg">
     <link href="https://fonts.googleapis.com/css?family=Muli:300,300i,400,400i,600,600i,700,700i%7CComfortaa:300,400,700" rel="stylesheet">
@@ -58,7 +58,7 @@ date_default_timezone_set('Africa/Nairobi');
                 <!-- Chart -->
                 <!-- eCommerce statistic -->
                 <div class="card text-center p-1">
-                    <h4 class="text-dark">Dashboard</h4>
+                    <h4 class="text-dark">My Profile</h4>
                 </div>
                 <!--/ eCommerce statistic -->
 
@@ -83,7 +83,7 @@ date_default_timezone_set('Africa/Nairobi');
                                         $greeting = "Good Evening";
                                     }
                                     echo $greeting;
-                                @endphp {{session('fullname')? session('fullname'):"Null";}}</h4>
+                                @endphp "{{session('fullname')? session('fullname'):"Null";}}"</h4>
                                 <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
                                 <div class="heading-elements">
                                     <ul class="list-inline mb-0">
@@ -108,118 +108,71 @@ date_default_timezone_set('Africa/Nairobi');
                                         <div class="col-md-6">
                                             <h6 class="text-primary"><strong><u>Personal Detail</u></strong></h6>
                                         </div>
+                                    </div>
+                                    <div class="container">
+                                        <table class="table">
+                                            <tr>
+                                                <td><b>Name</b></td>
+                                                <td>{{$client_data[0]->client_name}}</td>
+                                                <td><b>Address</b></td>
+                                                <td>{{$client_data[0]->client_address}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><b>Registration Date:</b></td>
+                                                <td>{{$reg_date}}</td>
+                                                <td><b>Monthly Pay:</b></td>
+                                                <td>{{$client_data[0]->monthly_payment}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><b>Contacts:</b></td>
+                                                <td>{{$client_data[0]->clients_contacts}}</td>
+                                                <td><b>Wallet Amount:</b></td>
+                                                <td>{{$client_data[0]->wallet_amount}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><b>Username:</b></td>
+                                                <td>{{$client_data[0]->client_username}}</td>
+                                                <td><b>Change Password:</b></td>
+                                                <td>
+                                                    @php
+                                                        $btnText = "Change password";
+                                                        $otherClasses = "";
+                                                        $btnLink = "/Credentials";
+                                                        $otherAttributes = "";
+                                                    @endphp
+                                                    <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="row mt-5">
                                         <div class="col-md-6">
                                             <h6 class="text-primary"><strong><u>Account Detail</u></strong></h6>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-lg-6 row">
-                                            <div class="col-md-6">
-                                                <p><strong>Name: </strong></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p>{{$client_data[0]->client_name}}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Address: </strong></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p>{{$client_data[0]->client_address}}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Registration Date: </strong></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p>{{$reg_date}}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Monthly Pay: </strong></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p>{{$client_data[0]->monthly_payment}}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Contacts: </strong></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p>{{$client_data[0]->clients_contacts}} </p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Wallet Amount: </strong></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p>{{$client_data[0]->wallet_amount}}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Username: </strong></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p>{{$client_data[0]->client_username}}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Change Password: </strong></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                @php
-                                                    $btnText = "Change password";
-                                                    $otherClasses = "";
-                                                    $btnLink = "/Credentials";
-                                                    $otherAttributes = "";
-                                                @endphp
-                                                <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                                {{-- <a href="/Credentials" class="btn btn-primary">Change password</a> --}}
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6 row">
-                                            <div class="col-md-6">
-                                                <p><strong>Account Number: </strong></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p>{{$client_data[0]->client_account}}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Account Status: </strong></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p>
-                                                    @if ($client_data[0]->client_status == 1)
-                                                        <span class = 'text-success'>Active</span>
-                                                    @else
-                                                        <span class = 'text-danger'>In-Active</span>
-                                                    @endif
-                                                </p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Subscription Plan: </strong></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p>{{$client_data[0]->max_upload_download." @ Kes ".$client_data[0]->monthly_payment}}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Date Registered: </strong></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p>{{$reg_date}}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Expiration Date: </strong></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p>{{$expiration_date}}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Upload Speed: </strong></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p>{{explode("/",$client_data[0]->max_upload_download)[0]."BPS"}}</p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p><strong>Download Speed: </strong></p>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <p>{{explode("/",$client_data[0]->max_upload_download)[1]."BPS"}}</p>
-                                            </div>
-                                        </div>
+                                    <div class="container">
+                                        <table class="table">
+                                            <tr>
+                                                <td><b>Account Number</b></td>
+                                                <td>{{$client_data[0]->client_account}}</td>
+                                                <td><b>Account Status</b></td>
+                                                <td>
+                                                    <p>
+                                                        @if ($client_data[0]->client_status == 1)
+                                                            <small class = 'badge bg-success'>Active</small>
+                                                        @else
+                                                            <small class = 'badge bg-danger'>In-Active</small>
+                                                        @endif
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><b>Subscription Plan:</b></td>
+                                                <td>{{ ($client_data[0]->assignment == "static" ? $client_data[0]->max_upload_download : $client_data[0]->client_profile)." @ Kes ".$client_data[0]->monthly_payment}}</td>
+                                                <td><b>Expiration Date:</b></td>
+                                                <td>{{$expiration_date}}</td>
+                                            </tr>
+                                        </table>
                                     </div>
                                 </div>
                             </div>

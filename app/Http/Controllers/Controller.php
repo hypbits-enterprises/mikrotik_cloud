@@ -510,10 +510,10 @@ class Controller extends BaseController
             $response = [
                 "success"  => $httpCode >= 200 && $httpCode < 300,
                 "status"   => $httpCode,
-                "response" => $decoded ?: $response,
+                "response" => $decoded ? $decoded : $response,
             ];
             if(isset($response['response']['data']['remaining_balance'])){
-                return number_format(substr($response['response']['data']['remaining_balance'], 3))." SMS";
+                return substr($response['response']['data']['remaining_balance'], 3)." SMS";
             }
         }
         return "0 SMS";

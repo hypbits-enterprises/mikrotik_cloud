@@ -11,7 +11,7 @@ date_default_timezone_set('Africa/Nairobi');
     <meta name="description" content="My ISP is the number one kenyan webserver software that helps you manage and monitor your webserver.">
     <meta name="keywords" content="admin template, Client template, dashboard template, gradient admin template, responsive client template, webapp, eCommerce dashboard, analytic dashboard">
     <meta name="author" content="ThemeSelect">
-    <title>Hypbits - Dashboard</title>
+    <title>Hypbits - Update Credentials</title>
     <link rel="apple-touch-icon" href="/theme-assets/images/logo2.jpeg">
     <link rel="shortcut icon" href="/theme-assets/images/logo2.jpeg">
     <link href="https://fonts.googleapis.com/css?family=Muli:300,300i,400,400i,600,600i,700,700i%7CComfortaa:300,400,700" rel="stylesheet">
@@ -125,7 +125,7 @@ date_default_timezone_set('Africa/Nairobi');
                                                     $btnText = "Change Password";
                                                     $otherClasses = "";
                                                     $btn_id = "login-btn";
-                                                    $btnSize="md";
+                                                    $btnSize="sm";
                                                     $type = "submit";
                                                     $readonly = "";
                                                     $otherAttributes = "";
