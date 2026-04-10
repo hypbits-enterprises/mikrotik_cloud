@@ -11,6 +11,7 @@
     <link rel="stylesheet" type="text/css" href="/theme-assets/css/components-lite.css">
     <link rel="stylesheet" type="text/css" href="/theme-assets/vendors/css/charts/chartist.css">
     <link rel="stylesheet" type="text/css" href="/theme-assets/css/pages/error.css">
+    <link rel="stylesheet" type="text/css" href="/theme-assets/css/pages/advanced-cards.css">
     <!-- END VENDOR CSS-->
     
     <!-- BEGIN CHAMELEON  CSS-->

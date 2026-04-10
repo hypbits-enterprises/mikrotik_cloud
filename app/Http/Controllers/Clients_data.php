@@ -146,7 +146,7 @@ class Clients_data extends Controller
         
         // recent refferals
         $all_clients = DB::connection("mysql2")->select("SELECT * FROM `client_tables` ORDER BY `clients_reg_date`");
-
+        
         // add reffered clients to an array
         $refferal_collection = [];
         foreach ($all_clients as $client) {
@@ -167,9 +167,128 @@ class Clients_data extends Controller
             }
         }
 
+        // take the stats
+        $stats_today = [];
+        $stats_today_total = 0;
+        $today_start = date("Ymd")."000000";
+        $today_end = date("Ymd")."235959";
+        foreach ($all_clients as $client) {
+            $string = str_replace("\\", "", $client->reffered_by);
+            $string = str_replace("'", "\"", $string);
+            if ($this->isJson($string)) {
+                $reffered_by = json_decode($string, true);
+                if ($reffered_by["client_acc"] == $client_data[0]->client_account) {
+                    foreach ($reffered_by["payment_history"] as $payment) {
+                        $payment["client_name"] = $client->client_name;
+                        $payment["client_account"] = $client->client_account;
+                        $payment["client_contact"] = $client->clients_contacts;
+                        $payment["monthly_payment"] = $client->monthly_payment;
+                        $payment["client_id"] = $client->client_id;
+                        if($today_start <= $payment["date"]*1 && $payment["date"]*1 <= $today_end){
+                            $stats_today_total += $payment["amount"];
+                            array_push($stats_today, $payment);
+                        }
+                    }
+                }
+            }
+        }
+
+        // stats this week
+        $stats_this_week = [];
+        $stats_this_week_total = 0;
+        $week_start = date("Ymd", strtotime('monday this week'))."000000";
+        $week_end = date("Ymd", strtotime('sunday this week'))."235959";
+        foreach ($all_clients as $client) {
+            $string = str_replace("\\", "", $client->reffered_by);
+            $string = str_replace("'", "\"", $string);
+            if ($this->isJson($string)) {
+                $reffered_by = json_decode($string, true);
+                if ($reffered_by["client_acc"] == $client_data[0]->client_account) {
+                    foreach ($reffered_by["payment_history"] as $payment) {
+                        $payment["client_name"] = $client->client_name;
+                        $payment["client_account"] = $client->client_account;
+                        $payment["client_contact"] = $client->clients_contacts;
+                        $payment["monthly_payment"] = $client->monthly_payment;
+                        $payment["client_id"] = $client->client_id;
+                        if($payment["date"]*1 >= $week_start && $payment["date"]*1 <= $week_end){
+                            $stats_this_week_total += $payment["amount"];
+                            array_push($stats_this_week, $payment);
+                        }
+                    }
+                }
+            }
+        }
+
+        $stats_this_month = [];
+        $stats_this_month_total = 0;
+        $month_start = date("Ymd", strtotime('first day of this month'))."000000";
+        $month_end = date("Ymd", strtotime('last day of this month'))."235959";
+        foreach ($all_clients as $client) {
+            $string = str_replace("\\", "", $client->reffered_by);
+            $string = str_replace("'", "\"", $string);
+            if ($this->isJson($string)) {
+                $reffered_by = json_decode($string, true);
+                if ($reffered_by["client_acc"] == $client_data[0]->client_account) {
+                    foreach ($reffered_by["payment_history"] as $payment) {
+                        $payment["client_name"] = $client->client_name;
+                        $payment["client_account"] = $client->client_account;
+                        $payment["client_contact"] = $client->clients_contacts;
+                        $payment["monthly_payment"] = $client->monthly_payment;
+                        $payment["client_id"] = $client->client_id;
+                        if($payment["date"]*1 >= $month_start && $payment["date"]*1 <= $month_end){
+                            $stats_this_month_total += $payment["amount"];
+                            array_push($stats_this_month, $payment);
+                        }
+                    }
+                }
+            }
+        }
+
+
+        $stats_this_year = [];
+        $stats_this_year_total = 0;
+        $year_start = date("Ymd", strtotime('first day of January this year'))."000000";
+        $year_end = date("Ymd", strtotime('last day of December this year'))."235959";
+        foreach ($all_clients as $client) {
+            $string = str_replace("\\", "", $client->reffered_by);
+            $string = str_replace("'", "\"", $string);
+            if ($this->isJson($string)) {
+                $reffered_by = json_decode($string, true);
+                if ($reffered_by["client_acc"] == $client_data[0]->client_account) {
+                    foreach ($reffered_by["payment_history"] as $payment) {
+                        $payment["client_name"] = $client->client_name;
+                        $payment["client_account"] = $client->client_account;
+                        $payment["client_contact"] = $client->clients_contacts;
+                        $payment["monthly_payment"] = $client->monthly_payment;
+                        $payment["client_id"] = $client->client_id;
+                        if($payment["date"]*1 >= $year_start && $payment["date"]*1 <= $year_end){
+                            $stats_this_year_total += $payment["amount"];
+                            array_push($stats_this_year, $payment);
+                        }
+                    }
+                }
+            }
+        }
+
+        $table_title = "Commissions Earned";
+        if(isset($_GET['period'])){
+            if($_GET['period'] == "today"){
+                $table_title = "Commissions Earned Today";
+                $refferal_collection = $stats_today;
+            }else if($_GET['period'] == "this_week"){
+                $table_title = "Commissions Earned This Week";
+                $refferal_collection = $stats_this_week;
+            }else if($_GET['period'] == "this_month"){
+                $table_title = "Commissions Earned This Month";
+                $refferal_collection = $stats_this_month;
+            }else if($_GET['period'] == "this_year"){
+                $table_title = "Commissions Earned This Year";
+                $refferal_collection = $stats_this_year;
+            }
+        }
+        
         // return view with the reffered clients
-        // return $refferal_collection;
-        return view("clients.commissions", ["commisions" => $refferal_collection]);
+        return view("clients.commissions", ["commisions" => $refferal_collection, "table_title" => $table_title, "stats_today_total" => $stats_today_total, "stats_this_week_total" => $stats_this_week_total, "stats_this_month_total" => $stats_this_month_total, "stats_this_year_total" => $stats_this_year_total]);
     }
 
     // get the client transaction information

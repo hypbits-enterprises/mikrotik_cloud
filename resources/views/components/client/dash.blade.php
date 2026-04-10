@@ -729,7 +729,7 @@
                     <div class="container">
                         <form action="/update_client_comment" method="post" class="form-control-group">
                             @csrf
-                            <h6 class="text-center">Update Comment</h6>
+                            <h6 class="text-center">Initiate Payment</h6>
                             <p><b>Note</b> This will only work if we have done M-Pesa Integration</p>
                             <div class="form-group">
                                 <label for="client_amount" class="form-control-label">Amount to Pay</label>

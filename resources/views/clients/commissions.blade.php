@@ -64,6 +64,76 @@ date_default_timezone_set('Africa/Nairobi');
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-xl-3 col-lg-6 col-12">
+                                            <a href="/Commission?period=today" class="card bg-gradient-x-blue-cyan" data-toggle="tooltip" title="Click me to see!">
+                                                <div class="card-content">
+                                                    <div class="card-body">
+                                                        <div class="media d-flex">
+                                                            <div class="align-self-top">
+                                                                <i class="ft-sun text-white font-large-2 float-left"></i>
+                                                            </div>
+                                                            <div class="media-body text-white text-right align-self-bottom mt-3">
+                                                                <span class="d-block mb-1 font-medium-1">Last 24 Hrs</span>
+                                                                <h1 class="text-white mb-0">Kes {{$stats_today_total}}</h1>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        <div class="col-xl-3 col-lg-6 col-12">
+                                            <a href="/Commission?period=this_week" class="card bg-gradient-x-blue-green" data-toggle="tooltip" title="Click me to see!">
+                                                <div class="card-content">
+                                                    <div class="card-body">
+                                                        <div class="media d-flex">
+                                                            <div class="align-self-top">
+                                                                <i class="ft-grid text-white font-large-2 float-left"></i>
+                                                            </div>
+                                                            <div class="media-body text-white text-right align-self-bottom mt-3">
+                                                                <span class="d-block mb-1 font-medium-1">Last One Week</span>
+                                                                <h1 class="text-white mb-0">Kes {{$stats_this_week_total}}</h1>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        <div class="col-xl-3 col-lg-6 col-12">
+                                            <a href="/Commission?period=this_month" class="card bg-gradient-x-purple-blue" data-toggle="tooltip" title="Click me to see!">
+                                                <div class="card-content">
+                                                    <div class="card-body">
+                                                        <div class="media d-flex">
+                                                            <div class="align-self-top">
+                                                                <i class="ft-calendar text-white font-large-2 float-left"></i>
+                                                            </div>
+                                                            <div class="media-body text-white text-right align-self-bottom mt-3">
+                                                                <span class="d-block mb-1 font-medium-1">Last One Month</span>
+                                                                <h1 class="text-white mb-0">Kes {{$stats_this_month_total}}</h1>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                        <div class="col-xl-3 col-lg-6 col-12">
+                                            <a href="/Commission?period=this_year" class="card bg-gradient-x-orange-yellow" data-toggle="tooltip" title="Click me to see!">
+                                                <div class="card-content">
+                                                    <div class="card-body">
+                                                        <div class="media d-flex">
+                                                            <div class="align-self-top">
+                                                                <i class="ft-bar-chart-2 text-white font-large-2 float-left"></i>
+                                                            </div>
+                                                            <div class="media-body text-white text-right align-self-bottom mt-3">
+                                                                <span class="d-block mb-1 font-medium-1">Last One Year</span>
+                                                                <h1 class="text-white mb-0">Kes {{$stats_this_year_total}}</h1>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
                                     <p class="card-text">This table holds the commissions you have earned.</p>
                                     <p><span class="text-bold-600">Commission Table:</span></p>
                                     <div class="row">
@@ -78,6 +148,7 @@ date_default_timezone_set('Africa/Nairobi');
                                         </div>
                                     </div>
                                     <div class="table-responsive" id="transDataReciever">
+                                        <h5 class="text-center">{{$table_title}}</h5>
                                         <table class="table" @if (count($commisions) > 0) 
                                                                 id="refferal_table"
                                                             @endif
@@ -173,6 +244,10 @@ date_default_timezone_set('Africa/Nairobi');
                 table.search(this.value).draw();
             });
         }
+        // enable tooltips every where
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        });
     </script>
     <!-- END PAGE LEVEL JS-->
 </body>

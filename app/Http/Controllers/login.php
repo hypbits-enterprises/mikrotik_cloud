@@ -467,16 +467,6 @@ class login extends Controller
             $message = "Hello ".ucwords(strtolower($user_data[0]->admin_fullname)).", Your username is: ".$user_data[0]->admin_username." and one-time password is: ".$new_password.". It expired in 5 minutes";
             $this->GlobalSendSMS($message, $user_data[0]->contacts, $apikey, $sms_sender, $shortcode, $partnerID);
             $message_status = 1;
-
-            // save the sms in the database
-            // $sms_table = new sms_table();
-            // $sms_table->sms_content = $message;
-            // $sms_table->date_sent = date("YmdHis");
-            // $sms_table->recipient_phone = $user_data[0]->contacts;
-            // $sms_table->sms_status = $message_status;
-            // $sms_table->account_id = "0";
-            // $sms_table->sms_type = "2";
-            // $sms_table->save();
             session()->flash("success", "We have sent you a new password to your phone number, it expires in 5 minutes!");
         }
         return redirect("/Hypbits");
@@ -559,12 +549,12 @@ class login extends Controller
     }
 
     function change_db($database_name = null){
-        if (!session("database_name") && $database_name == null) {
+        if (!session()->has("database_name") && $database_name == null) {
             return redirect("/");
         }
 
         // set the session of the database name
-        Config::set('database.connections.mysql2.database', ($database_name == null ? session("database_name") : $database_name));
+        Config::set('database.connections.mysql2.database', ($database_name == null ? session()->get("database_name") : $database_name));
         DB::purge('mysql2');
         DB::reconnect('mysql2');
     }
