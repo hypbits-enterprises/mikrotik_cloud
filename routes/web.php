@@ -248,16 +248,16 @@ Route::post("/update_organization_profile", [admin::class, "update_organization_
 
 
 // routes for the clients information
-Route::get("/ClientDashboard", [Clients_data::class, "view_client_dashboard"])->middleware(["checkAccount", "validated"]);
-Route::get("/My-Profile", [Clients_data::class, "getClientInfor"])->middleware(["checkAccount", "validated"]);
-Route::get("/Payment", [Clients_data::class, "getTransaction"]);
-Route::get("/Payment/View/{paymentid}", [Clients_data::class, 'viewPayment']);
-Route::view("/Payment/Confirm", "confirmPay");
-Route::get("/Payment/mpesa/{mpesaid}", [Clients_data::class, "confirm_mpesa"]);
-Route::view("/Credentials", "clients.credential");
-Route::post("/changePassword", [Clients_data::class, "change_password"]);
-Route::get("/Payment/stkpush_init", [Transaction::class, "stkpush"]);
-Route::post("/Payment/stkpush", [Transaction::class, "initiate_stk"]);
+Route::get("/ClientDashboard", [Clients_data::class, "view_client_dashboard"])->middleware(["checkAccount", "clientValidate"]);
+Route::get("/My-Profile", [Clients_data::class, "getClientInfor"])->middleware(["clientValidate"]);
+Route::get("/Payment", [Clients_data::class, "getTransaction"])->middleware(["clientValidate"]);
+Route::get("/Payment/View/{paymentid}", [Clients_data::class, 'viewPayment'])->middleware(["clientValidate"]);
+Route::view("/Payment/Confirm", "confirmPay")->middleware(["clientValidate"]);
+Route::get("/Payment/mpesa/{mpesaid}", [Clients_data::class, "confirm_mpesa"])->middleware(["clientValidate"]);
+Route::view("/Credentials", "clients.credential")->middleware(["clientValidate"]);
+Route::post("/changePassword", [Clients_data::class, "change_password"])->middleware(["clientValidate"]);
+Route::get("/Payment/stkpush_init", [Transaction::class, "stkpush"])->middleware(["clientValidate"]);
+Route::post("/Payment/stkpush", [Transaction::class, "initiate_stk"])->middleware(["clientValidate"]);
 
 // get ip addresses
 Route::get("/ipAddress/{routerid}", [Clients::class, "getIpaddresses"]);
@@ -402,6 +402,6 @@ Route::post("/update_profile_data", [Router_Cloud::class, "update_profile"])->na
 
 // CLIENT FORGOT PASSWORD
 Route::view("/Client-Forgot-Password", "clients.client-forgot-password")->name("client_forgot_password");
-Route::get("/Refferals", [Clients_data::class, "get_refferals"])->name("get_refferals");
-Route::get("/Refferals/View/{client_id}", [Clients_data::class, "get_refferals_information"])->name("get_refferals_information");
-Route::get("/Commission", [Clients_data::class, "get_commissions"])->name("get_commissions");
+Route::get("/Refferals", [Clients_data::class, "get_refferals"])->name("get_refferals")->middleware(["clientValidate"]);
+Route::get("/Refferals/View/{client_id}", [Clients_data::class, "get_refferals_information"])->name("get_refferals_information")->middleware(["clientValidate"]);
+Route::get("/Commission", [Clients_data::class, "get_commissions"])->name("get_commissions")->middleware(["clientValidate"]);

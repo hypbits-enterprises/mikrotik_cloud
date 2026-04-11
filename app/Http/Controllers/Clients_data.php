@@ -78,7 +78,59 @@ class Clients_data extends Controller
         $refferal_collection = $this->sortArrayByKey($refferal_collection, 'date', 'desc');
         $refferal_collection = array_slice($refferal_collection, 0, 5);
 
-        return view("clients.clientDash", ["recent_payments" => $recent_payments, "recent_refferals" => $reffered_clients, "refferal_commisions" => $refferal_collection]);
+        // get weekly collection from today to 7 days back
+        $weekly_collection = [];
+        $today = date("Ymd")."235959";
+        for($index = 6; $index >= 0; $index--){
+            $day_data = array(
+                "date" => date("Ymd", strtotime("-$index days")),
+                "amount" => 0,
+                "X" => date("D dS", strtotime("-$index days"))
+            );
+            foreach ($all_clients as $client) {
+                $string = str_replace("\\", "", $client->reffered_by);
+                $string = str_replace("'", "\"", $string);
+                if ($this->isJson($string)) {
+                    $reffered_by = json_decode($string, true);
+                    if($reffered_by["client_acc"] == $client_data[0]->client_account){
+                        foreach ($reffered_by["payment_history"] as $payment) {
+                            if($payment["date"]*1 >= $day_data['date']."000000" && $payment["date"]*1 <= $day_data['date']."235959"){
+                                $day_data["amount"] += $payment["amount"];
+                            }
+                        }
+                    }
+                }
+            }
+            array_push($weekly_collection, $day_data);
+        }
+        // return $weekly_collection;
+
+        // get monthly collection for each month for the last 12 months
+        $monthly_collection = [];
+        for($index = 11; $index >= 0; $index--){
+            $month_data = array(
+                "date" => date("Ym", strtotime("-$index months")),
+                "amount" => 0,
+                "X" => date("M Y", strtotime("-$index months"))
+            );
+            foreach ($all_clients as $client) {
+                $string = str_replace("\\", "", $client->reffered_by);
+                $string = str_replace("'", "\"", $string);
+                if ($this->isJson($string)) {
+                    $reffered_by = json_decode($string, true);
+                    if($reffered_by["client_acc"] == $client_data[0]->client_account){
+                        foreach ($reffered_by["payment_history"] as $payment) {
+                            if($payment["date"]*1 >= $month_data['date']."01000000" && $payment["date"]*1 <= $month_data['date']."31235959"){
+                                $month_data["amount"] += $payment["amount"];
+                            }
+                        }
+                    }
+                }
+            }
+            array_push($monthly_collection, $month_data);
+        }
+        
+        return view("clients.clientDash", ["recent_payments" => $recent_payments, "recent_refferals" => $reffered_clients, "refferal_commisions" => $refferal_collection, "weekly_collection" => $weekly_collection, "monthly_collection" => $monthly_collection]);
     }
 
     function get_refferals(){
@@ -273,15 +325,19 @@ class Clients_data extends Controller
         $table_title = "Commissions Earned";
         if(isset($_GET['period'])){
             if($_GET['period'] == "today"){
+                session()->flash("success","Showing commissions earned today!");
                 $table_title = "Commissions Earned Today";
                 $refferal_collection = $stats_today;
             }else if($_GET['period'] == "this_week"){
+                session()->flash("success","Showing commissions earned this week!");
                 $table_title = "Commissions Earned This Week";
                 $refferal_collection = $stats_this_week;
             }else if($_GET['period'] == "this_month"){
+                session()->flash("success","Showing commissions earned this month!");
                 $table_title = "Commissions Earned This Month";
                 $refferal_collection = $stats_this_month;
             }else if($_GET['period'] == "this_year"){
+                session()->flash("success","Showing commissions earned this year!");
                 $table_title = "Commissions Earned This Year";
                 $refferal_collection = $stats_this_year;
             }

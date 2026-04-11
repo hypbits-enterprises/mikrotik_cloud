@@ -57,10 +57,28 @@
                 </div>
                 <!-- eCommerce statistic -->
                 <div class="card text-center p-1">
-                    <h4 class="text-dark">Weekly Collection Graph</h4>
+                    <h4 class="text-dark">Collection Graph</h4>
                     <p>@if (session('danger'))
                         <p class="text-danger">{{ session('danger') }}</p>
                     @endif</p>
+                    <div class="row my-2">
+                        <div class="col-md-6">
+                            <h4>Daily Collection</h4>
+                            <div class="container my-2 rounded" style="height:300px; background-color: rgba(0, 0, 0, 0.05);">
+                                <canvas class="w-100 mx-auto" id="daily_collection_graph" aria-label="Data will appear here" role="img" >
+                                    <p class="text-secondary text-bold-700" >Data will be displayed here!</p>
+                                </canvas>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Monthly Collection</h4>
+                            <div class="container my-2 rounded" style="height:300px; background-color: rgba(0, 0, 0, 0.05);">
+                                <canvas class="w-100 mx-auto" id="monthly_collection_graph" aria-label="Data will appear here" role="img" >
+                                    <p class="text-secondary text-bold-700" >Data will be displayed here!</p>
+                                </canvas>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Statistics -->
@@ -96,7 +114,7 @@
                                                 @endif
                                                 <div class="media-left pr-1 text-center text-lg">
                                                     <span class="avatar avatar-md avatar-online">
-                                                        <img class="media-object rounded-circle" src="theme-assets/logos/cash-in-hand.jpg" alt="Generic placeholder image">
+                                                        <img class="media-object rounded-circle" src="/theme-assets/logos/cash-in-hand.jpg" alt="Generic placeholder image">
                                                         <i></i>
                                                     </span>
                                                 </div>
@@ -113,7 +131,7 @@
                                         <a href="#" class="media border-0">
                                             <div class="media-left pr-1 text-center text-lg">
                                                 <span class="avatar avatar-md avatar-online">
-                                                    <img class="media-object rounded-circle" src="theme-assets/logos/cash-in-hand.jpg" alt="Generic placeholder image">
+                                                    <img class="media-object rounded-circle" src="/theme-assets/logos/cash-in-hand.jpg" alt="Generic placeholder image">
                                                     <i></i>
                                                 </span>
                                             </div>
@@ -159,7 +177,7 @@
                                             @endif
                                                 <div class="media-left pr-1">
                                                     <span class="avatar avatar-md avatar-online">
-                                                        <img class="media-object rounded-circle" src="theme-assets/logos/young-user-icon.jpg" alt="Generic placeholder image">
+                                                        <img class="media-object rounded-circle" src="/theme-assets/logos/young-user-icon.jpg" alt="Generic placeholder image">
                                                         <i></i>
                                                     </span>
                                                 </div>
@@ -178,7 +196,7 @@
                                         <a href="#" class="media border-0">
                                             <div class="media-left pr-1">
                                                 <span class="avatar avatar-md avatar-online">
-                                                    <img class="media-object rounded-circle" src="theme-assets/logos/young-user-icon.jpg" alt="Generic placeholder image">
+                                                    <img class="media-object rounded-circle" src="/theme-assets/logos/young-user-icon.jpg" alt="Generic placeholder image">
                                                     <i></i>
                                                 </span>
                                             </div>
@@ -221,7 +239,7 @@
                                             @endif
                                                 <div class="media-left pr-1">
                                                     <span class="avatar avatar-md avatar-online">
-                                                        <img class="media-object rounded-circle" src="theme-assets/logos/money-bag-512.jpg" alt="Generic placeholder image">
+                                                        <img class="media-object rounded-circle" src="/theme-assets/logos/money-bag-512.jpg" alt="Generic placeholder image">
                                                         <i></i>
                                                     </span>
                                                 </div>
@@ -239,7 +257,7 @@
                                         <a href="#" class="media border-0">
                                             <div class="media-left pr-1">
                                                 <span class="avatar avatar-md avatar-online">
-                                                    <img class="media-object rounded-circle" src="theme-assets/logos/money-bag-512.jpg" alt="Generic placeholder image">
+                                                    <img class="media-object rounded-circle" src="/theme-assets/logos/money-bag-512.jpg" alt="Generic placeholder image">
                                                     <i></i>
                                                 </span>
                                             </div>
@@ -272,14 +290,16 @@
 
     
     <!-- BEGIN VENDOR JS-->
-    <script src="theme-assets/vendors/js/vendors.min.js" type="text/javascript"></script>
+    <script src="/theme-assets/vendors/js/vendors.min.js" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/theme-assets/js/core/clientDash.js"></script>
     <!-- BEGIN VENDOR JS-->
     <!-- BEGIN PAGE VENDOR JS-->
     
     <!-- END PAGE VENDOR JS-->
     <!-- BEGIN CHAMELEON  JS-->
-    <script src="theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
-    <script src="theme-assets/js/core/app-lite.js" type="text/javascript"></script>
+    <script src="/theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
+    <script src="/theme-assets/js/core/app-lite.js" type="text/javascript"></script>
     <!-- END CHAMELEON  JS-->
     <!-- BEGIN PAGE LEVEL JS-->
     <script>
@@ -290,7 +310,11 @@
             }
             milli_seconds--;
         }, 1000);
-      </script>
+        var myChart;
+        plotGraph(@json($weekly_collection), "daily_collection_graph", "Weekly Collection", myChart);
+        var myChart2;
+        plotGraph(@json($monthly_collection), "monthly_collection_graph", "Monthly Collection", myChart2);
+    </script>
   
     
     <!-- END PAGE LEVEL JS-->

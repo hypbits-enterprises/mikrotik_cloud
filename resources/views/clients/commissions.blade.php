@@ -65,6 +65,13 @@ date_default_timezone_set('Africa/Nairobi');
                             <div class="card-content collapse show">
                                 <div class="card-body">
                                     <div class="row">
+                                        <div class="col-md-4">
+                                            @if(session('success'))
+                                                <p class='text-success border border-success rounded p-1'>{{session('success')}}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="row">
                                         <div class="col-xl-3 col-lg-6 col-12">
                                             <a href="/Commission?period=today" class="card bg-gradient-x-blue-cyan" data-toggle="tooltip" title="Click me to see!">
                                                 <div class="card-content">
@@ -140,11 +147,6 @@ date_default_timezone_set('Africa/Nairobi');
                                         <div class="col-md-6 form-group">
                                             <input type="text" name="search" id="searchkey"
                                                 class="form-control rounded-lg p-1" placeholder="Search here ..">
-                                        </div>
-                                        <div class="col-md-6">
-                                            @if(session('success'))
-                                                <p class='text-success'>{{session('success')}}</p>
-                                            @endif
                                         </div>
                                     </div>
                                     <div class="table-responsive" id="transDataReciever">

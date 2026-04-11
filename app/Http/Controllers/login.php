@@ -549,8 +549,13 @@ class login extends Controller
     }
 
     function change_db($database_name = null){
-        if (!session()->has("database_name") && $database_name == null) {
-            return redirect("/");
+        if (session()->has("database_name")) {
+            $database_name = session("database_name");
+        }
+
+        if($database_name == null || empty($database_name)){
+            // this means that the database name is not set in the session and it is not provided as a parameter, we redirect to the login page
+            return redirect("/Login");
         }
 
         // set the session of the database name

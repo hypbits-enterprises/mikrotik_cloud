@@ -86,7 +86,7 @@ date_default_timezone_set('Africa/Nairobi');
             <div class="content-wrapper-before"></div>
             <div class="content-header row">
                 <div class="content-header-left col-md-4 col-12 mb-2">
-                    <h3 class="content-header-title">My Transactions</h3>
+                    <h3 class="content-header-title">My Payments</h3>
                 </div>
                 <div class="content-header-right col-md-8 col-12">
                     <div class="breadcrumbs-top float-md-right">
@@ -94,7 +94,7 @@ date_default_timezone_set('Africa/Nairobi');
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="/ClientDashboard">Dashboard</a>
                                 </li>
-                                <li class="breadcrumb-item active">My Transactions
+                                <li class="breadcrumb-item active">My Payments
                                 </li>
                             </ol>
                         </div>
@@ -119,7 +119,6 @@ date_default_timezone_set('Africa/Nairobi');
                                     <form action="/update_client_comment" method="post" class="form-control-group">
                                         @csrf
                                         <h6 class="text-center">Initiate payment</h6>
-                                        <p><b>Note</b> This will only work if we have done M-Pesa Integration</p>
                                         <div class="form-group">
                                             <label for="client_amount" class="form-control-label">Amount to Pay</label>
                                             <input type="number" name="client_amount" id="client_amount" placeholder="Client Amount" class="form-control" value="{{$client_data->monthly_payment}}" required>
@@ -165,7 +164,7 @@ date_default_timezone_set('Africa/Nairobi');
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <h4 class="card-title">Transaction Table</h4>
+                                <h4 class="card-title">Payment Table</h4>
                                 <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
                                 <div class="heading-elements">
                                     <ul class="list-inline mb-0">
@@ -203,7 +202,7 @@ date_default_timezone_set('Africa/Nairobi');
                                     <x-button-link btnType="primary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" readOnly="" /> --}}
                                     
                                     <p class="card-text">In this table below all payment you have done with us will appear here.</p>
-                                    <p><span class="text-bold-600">Transaction Table:</span></p>
+                                    <p><span class="text-bold-600">Payment Table:</span></p>
                                     <div class="row">
                                         <div class="col-md-6 form-group">
                                             <input type="text" name="search" id="searchkey"
@@ -222,7 +221,7 @@ date_default_timezone_set('Africa/Nairobi');
                                             <thead>
                                                 <tr>
                                                     <th>#</th>
-                                                    <th>Transaction ID</th>
+                                                    <th>M-Pesa Code</th>
                                                     <th>Account Number</th>
                                                     <th>Amount</th>
                                                     <th>Date</th>
