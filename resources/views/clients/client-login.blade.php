@@ -59,6 +59,8 @@
                                         <h1 class="h4 text-gray-900 my-2">Client Login!</h1>
                                         @php
                                             Session::forget('Usernames');
+                                            Session::forget('auth');
+                                            Session::forget('user_id');
                                         @endphp
                                     </div>
                                     <form class="user" action="{{url()->route("process_login")}}" method="POST">

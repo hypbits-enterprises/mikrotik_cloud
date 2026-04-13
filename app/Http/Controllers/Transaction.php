@@ -481,10 +481,82 @@ class Transaction extends Controller
             'date_changed' => date("YmdHis")
         ]);
         // check if its the user or the admin
-        if (session()->has('client_id')) {
+        if (session("auth") == "client") {
             session()->flash("success","You have successfully transfered the funds to your account");
             return redirect("/Payment");
         }
+        
+        // check if the user has a refferer then share the cut to the user
+        $client_data[0]->reffered_by = str_replace("'","\"",$client_data[0]->reffered_by);
+        $client_refferal = strlen($client_data[0]->reffered_by) > 0? json_decode($client_data[0]->reffered_by): json_decode("{}");
+        if (isset($client_refferal->client_acc)) {
+            if (($client_refferal->monthly_payment*1) > 0) {
+                // get the precentage the refferer is to be paid of the amount paid
+                $percentage = round((($client_refferal->monthly_payment * 100) / $client_data[0]->monthly_payment),2);
+
+                // refferee cut
+                $refferal_amount = round($percentage * ($trans_data[0]->transacion_amount * 1)) / 100;
+
+                // refferer details
+                $refferer_dets = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `client_account` = '".$client_refferal->client_acc."'");
+                
+                // add the refferal amount to the wallet
+                $new_wallet_balance = ($refferal_amount*1) + ($refferer_dets[0]->wallet_amount*1);
+                DB::connection("mysql2")->table("client_tables")->where('client_id', $refferer_dets[0]->client_id)->update(["wallet_amount" => $new_wallet_balance,'last_changed' => date("YmdHis"),'date_changed' => date("YmdHis")]);
+                
+                // get the refferer phone
+                $reffer_phone = $refferer_dets[0]->clients_contacts;
+                $mobile = $reffer_phone; // Bulk messages can be comma separated
+                
+                // add the payment to the refferal payment history
+                $new_payment = array("amount" => $refferal_amount,"date" => date("YmdHis"));
+                array_push($client_refferal->payment_history,$new_payment);
+                $payments = json_encode($client_refferal);
+                
+                // update the main client payments
+                DB::connection("mysql2")->table("client_tables")->where('client_account',$client_data[0]->client_account)->update(["reffered_by" => $payments,'date_changed' => date("YmdHis")]);
+                
+                // send sms
+                $message_contents = $this->get_sms();
+                $message = $message_contents[1]->messages[2]->message;
+                if ($message) {
+                    // get the sms keys
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
+                    $sms_api_key = $sms_keys[0]->value;
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
+                    $sms_partner_id = $sms_keys[0]->value;
+                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
+                    $sms_shortcode = $sms_keys[0]->value;
+                    $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+                    $sms_sender = count($select) > 0 ? $select[0]->value : "";
+                    
+                    // PATNER ID, API KEY, SHORTCODE
+                    $partnerID = $sms_partner_id;
+                    $apikey = $sms_api_key;
+                    $shortcode = $sms_shortcode;
+
+                    // replace false with message above
+                    $trans_amount = $refferal_amount;
+                    $refferer_id = trim($client_data[0]->client_account);
+
+                    // send message to the refferer
+                    $message = $this->message_content($message,$refferer_dets[0]->client_id,$trans_amount,$trans_amount,$refferer_id);
+                    $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+                    $message_status = $result != null ? 1 : 0;
+                    
+                    // if the message status is one the message is already sent to the user
+                    $sms_table = new sms_table();
+                    $sms_table->sms_content = $message;
+                    $sms_table->date_sent = date("YmdHis");
+                    $sms_table->recipient_phone = $mobile;
+                    $sms_table->sms_status = $message_status;
+                    $sms_table->account_id = $refferer_dets[0]->client_id;
+                    $sms_table->sms_type = 1;
+                    $sms_table->save();
+                }
+            }
+        }
+        
                 
         $new_client = new Clients();
         $txt = ":Fund successfully transfered by  ".session('Usernames')." to ".$client_data[0]->client_name."!";

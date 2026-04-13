@@ -11,7 +11,7 @@ date_default_timezone_set('Africa/Nairobi');
     <meta name="description" content="My ISP is the number one kenyan webserver software that helps you manage and monitor your webserver.">
     <meta name="keywords" content="admin template, Client template, dashboard template, gradient admin template, responsive client template, webapp, eCommerce dashboard, analytic dashboard">
     <meta name="author" content="ThemeSelect">
-    <title>Hypbits - Refferals</title>
+    <title>Hypbits - Commissions</title>
     <link rel="apple-touch-icon" href="/theme-assets/images/logo2.jpeg">
     <link rel="shortcut icon" href="/theme-assets/images/logo2.jpeg">
     
@@ -30,7 +30,7 @@ date_default_timezone_set('Africa/Nairobi');
             <div class="content-wrapper-before"></div>
             <div class="content-header row">
                 <div class="content-header-left col-md-4 col-12 mb-2">
-                    <h3 class="content-header-title">My Refferals</h3>
+                    <h3 class="content-header-title">My Commissions</h3>
                 </div>
                 <div class="content-header-right col-md-8 col-12">
                     <div class="breadcrumbs-top float-md-right">
@@ -38,7 +38,7 @@ date_default_timezone_set('Africa/Nairobi');
                             <ol class="breadcrumb">
                                 <li class="breadcrumb-item"><a href="/ClientDashboard">Dashboard</a>
                                 </li>
-                                <li class="breadcrumb-item active">My Refferals
+                                <li class="breadcrumb-item active">My Commissions
                                 </li>
                             </ol>
                         </div>

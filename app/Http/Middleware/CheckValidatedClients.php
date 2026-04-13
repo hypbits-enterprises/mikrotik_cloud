@@ -18,6 +18,11 @@ class CheckValidatedClients
      */
     public function handle(Request $request, Closure $next)
     {
+        if(session("auth") != "admin"){
+            // this means that the user is not a client and it is not provided as a parameter, we redirect to the login page
+            // return redirect("/Client-Login")->with("error", "Login and try again!!");
+            return abort(403);
+        }
         // change db
         $change_db = new login();
         $change_db->change_db();
