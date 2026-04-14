@@ -187,7 +187,7 @@ date_default_timezone_set('Africa/Nairobi');
                                                     @endforeach
                                                 @else
                                                     <tr>
-                                                        <td colspan="7" class="text-center">No refferals found.</td>
+                                                        <td colspan="7" class="text-center">No commissions found.</td>
                                                     </tr>
                                                 @endif
                                             </tbody>

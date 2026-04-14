@@ -186,7 +186,14 @@ class login extends Controller
             foreach ($organizations as $organization_id => $organization_data) {
                 // set the database to the organization database
                 $this->change_db($organization_data->organization_database);
-                $result = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_username` = '$username' AND ((`client_password` = '$password') OR (`use_otp` = '1' AND `otp` = '$password' AND `otp_date_change` > '".date("YmdHis")."')) AND `client_account` = '$acc_number'");
+                $result = DB::connection("mysql2")->select(
+                                "SELECT * FROM `client_tables` 
+                                WHERE `deleted` = '0' 
+                                AND `client_username` = ? 
+                                AND ((`client_password` = ?) OR (`use_otp` = '1' AND `otp` = ? AND `otp_date_change` > ?))
+                                AND `client_account` = ?",
+                                [$username, $password, $password, date("YmdHis"), $acc_number]
+                            );
                 if (count($result) > 0) {
                     // this means that we have found the client in this organization
                     // we break the loop and continue with the login process
@@ -548,18 +555,19 @@ class login extends Controller
         return redirect("/Client-Login");
     }
 
-    function change_db($database_name = null){
-        if (session()->has("database_name")) {
-            $database_name = session("database_name");
+    function change_db($database_name = null) {
+        // Only use session as fallback, don't override a provided value
+        if ($database_name == null || empty($database_name)) {
+            if (session()->has("database_name")) {
+                $database_name = session("database_name");
+            }
         }
 
-        if($database_name == null || empty($database_name)){
-            // this means that the database name is not set in the session and it is not provided as a parameter, we redirect to the login page
+        if ($database_name == null || empty($database_name)) {
             return redirect("/Login");
         }
 
-        // set the session of the database name
-        Config::set('database.connections.mysql2.database', ($database_name == null ? session()->get("database_name") : $database_name));
+        Config::set('database.connections.mysql2.database', $database_name);
         DB::purge('mysql2');
         DB::reconnect('mysql2');
     }

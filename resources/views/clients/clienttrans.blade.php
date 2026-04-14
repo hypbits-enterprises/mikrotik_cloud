@@ -250,7 +250,7 @@ date_default_timezone_set('Africa/Nairobi');
                                                     @endforeach
                                                 @else
                                                     <tr>
-                                                        <td colspan="6" class="text-center">No transactions found.</td>
+                                                        <td colspan="6" class="text-center">No payments found.</td>
                                                     </tr>
                                                 @endif
                                             </tbody>
