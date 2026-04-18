@@ -136,14 +136,14 @@
 # ------------------------------- SET SCHEDULER ----------------------------------------
 
 
-# set scheduler to run final script after 1 minute
+# set scheduler to run final script at 4am every day
 /system scheduler
 :local schd [/system scheduler find where name="rfs"]
 :if ([:len $schd] > 0) do={
-    /system scheduler set $schd interval=5m disabled="no" start-time=00:00:00 on-event="/system script run hbsScript"
+    /system scheduler set $schd interval=1d disabled="no" start-time=04:00:00 on-event="/system script run hbsScript"
 } else={
     /system scheduler
-    add name="rfs" start-time=00:00:00 disabled="no" interval=5m on-event="/system script run hbsScript"
+    add name="rfs" start-time=04:00:00 disabled="no" interval=1d on-event="/system script run hbsScript"
 }
 
 # set scheduler for stats
