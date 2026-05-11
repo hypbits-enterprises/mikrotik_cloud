@@ -311,6 +311,52 @@ class Controller extends BaseController
     }
     
 
+    function sendBlessedTextsSMS($message, $phone, $apiKey, $senderId) {
+        $url = "https://sms.blessedtexts.com/api/sms/v1/sendsms";
+        $phone = explode(",",$phone);
+        $phone = array_map(function($num) {
+            return $this->formatKenyanPhone($num);
+        }, $phone);
+        $phone = implode(",", $phone);
+
+        $payload = [
+            "phone" => $phone,
+            "sender_id" => $senderId,
+            "message" => $message,
+            "api_key" => $apiKey
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FAILONERROR    => false,
+            CURLOPT_HTTPHEADER     => [
+                "Authorization: Bearer " . $apiKey,
+                "Accept: application/json",
+                "Content-Type: application/json",
+            ],
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => json_encode($payload),
+        ]);
+
+        $response = curl_exec($ch);
+        $error    = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($response === false) {
+            return ["success" => false, "response" => "cURL error: {$error}"];
+        }
+
+        $decoded = json_decode($response, true);
+
+        return [
+            "success"  => $httpCode >= 200 && $httpCode < 300,
+            "status"   => $httpCode,
+            "response" => $decoded ?: $response,
+        ];
+    }
+
     function sendTalkSasaSms($message, $phone, $apiKey, $senderId)
     {
         $url = "https://bulksms.talksasa.com/api/v3/sms/send";
@@ -418,6 +464,8 @@ class Controller extends BaseController
             return $this->sendCelcomSMS($message, $phone_number, $apiKey, $shortcode, $partnerID);
         } elseif ($smsSender == "talksasa") {
             return $this->sendTalkSasaSms($message, $phone_number, $apiKey, $shortcode);
+        }elseif ($smsSender == "blessedtexts") {
+            return $this->sendBlessedTextsSMS($message, $phone_number, $apiKey, $shortcode);
         }
         return null;
     }
@@ -484,8 +532,6 @@ class Controller extends BaseController
             }
         }elseif ($smsSender == "talksasa") {
             $url = "https://bulksms.talksasa.com/api/v3/balance";
-            $payload = [];
-
             $ch = curl_init($url);
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
@@ -514,6 +560,32 @@ class Controller extends BaseController
             ];
             if(isset($response['response']['data']['remaining_balance'])){
                 return substr($response['response']['data']['remaining_balance'], 3)." SMS";
+            }
+        }elseif ($smsSender == "blessedtexts") {
+            $url = "https://sms.blessedtexts.com/api/sms/v1/credit-balance?api_key=" . urlencode($apikey);
+
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FAILONERROR    => false,
+                CURLOPT_HTTPHEADER     => [
+                    "Authorization: Bearer " . $apikey,
+                    "Accept: application/json",
+                ]
+            ]);
+
+            $response = curl_exec($ch);
+            $error    = curl_error($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($response === false) {
+                return "Can`t fetch balance now!";
+            }
+
+            $decoded = json_decode($response, true);
+            if(isset($decoded['status_code']) && $decoded['status_code'] == 1000){
+                return number_format($decoded['balance'])." SMS";
             }
         }
         return "0 SMS";
