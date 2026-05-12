@@ -5076,7 +5076,7 @@ $export_text .= "
                     session()->flash("success", "Updates have been done successfully!");
                     return redirect("Clients/View/" . $clients_id);
                 } else {
-                    session()->flash("error", "An error occured! Check your router credentials and try again!");
+                    session()->flash("error", "An error occured! Check your router connection and try again!");
                     return redirect(url()->previous());
                 }
             } elseif ($client_data[0]->assignment == "pppoe") {
@@ -5162,6 +5162,9 @@ $export_text .= "
                                     ".id" => $active_id
                                 ));
                             }
+                        }else {
+                            session()->flash("error", "An error occured! Check your router connection and try again!");
+                            return redirect(url()->previous());
                         }
                     }
                 }
@@ -5311,6 +5314,9 @@ $export_text .= "
                         $txt = ":Client (" . $client_name . ") information updated by " . session('Usernames') . " on the database! \n";
                         $this->log($txt);
                     }
+                }else {
+                    session()->flash("error", "An error occured! Check your router connection and try again!");
+                    return redirect(url()->previous());
                 }
 
                 // redirect to the client table

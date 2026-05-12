@@ -48,11 +48,8 @@ class routeros_api
 
 
     /**
-     * 
-     *
-     * @param string        $length
-     *
-     * @return void
+     * @param int    $length
+     * @return string
      */
     function encode_length($length)
     {
@@ -93,7 +90,7 @@ class routeros_api
             $this->debug('Connection attempt #' . $ATTEMPT . ' to ' . $PROTOCOL . $ip . ':' . $this->port . '...');
             $this->socket = @stream_socket_client($PROTOCOL . $ip . ':' . $this->port, $this->error_no, $this->error_str, $this->timeout, STREAM_CLIENT_CONNECT, $context);
             if ($this->socket) {
-                socket_set_timeout($this->socket, $this->timeout);
+                stream_set_timeout($this->socket, $this->timeout);
                 $this->write('/login', false);
                 $this->write('=name=' . $login, false);
                 $this->write('=password=' . $password);
