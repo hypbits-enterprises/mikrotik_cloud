@@ -2495,9 +2495,14 @@ $export_text .= "
         // validate the user
         // return $client_gw;
         $req->validate([
-            'client_phone' => 'max:12|min:10',
+            'client_phone'   => 'max:12|min:10',
             'interface_name' => 'required',
-            'router_name' => 'required'
+            'router_name'    => 'required',
+            'client_gw'      => ['required', 'regex:/^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)\/(3[0-2]|[1-2]?\d)$/'],
+            'client_network' => ['required', 'regex:/^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/'],
+        ], [
+            'client_gw.regex'      => 'Gateway must be in CIDR format, e.g. 192.168.0.1/24',
+            'client_network.regex' => 'Network must be a plain IP address, e.g. 192.168.0.0',
         ]);
 
 
@@ -2818,9 +2823,14 @@ $export_text .= "
         // validate the user
         // return $client_gw;
         $req->validate([
-            'client_phone' => 'max:12|min:10',
+            'client_phone'   => 'max:12|min:10',
             'interface_name' => 'required',
-            'router_name' => 'required'
+            'router_name'    => 'required',
+            'client_gw'      => ['required', 'regex:/^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)\/(3[0-2]|[1-2]?\d)$/'],
+            'client_network' => ['required', 'regex:/^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/'],
+        ], [
+            'client_gw.regex'      => 'Gateway must be in CIDR format, e.g. 192.168.0.1/24',
+            'client_network.regex' => 'Network must be a plain IP address, e.g. 192.168.0.0',
         ]);
 
 

@@ -403,6 +403,38 @@
     <script src="/theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
     <script src="/theme-assets/js/core/app-lite.js" type="text/javascript"></script>
     <script>
+      const cidrPattern    = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)\/(3[0-2]|[1-2]?\d)$/;
+      const networkPattern = /^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$/;
+
+      function validateField(input, pattern, errorMsg) {
+        let feedback = input.nextElementSibling;
+        if (!feedback || !feedback.classList.contains('format-feedback')) {
+          feedback = document.createElement('small');
+          feedback.classList.add('format-feedback', 'text-danger');
+          input.insertAdjacentElement('afterend', feedback);
+        }
+        const valid = pattern.test(input.value.trim());
+        feedback.textContent = valid || input.value === '' ? '' : errorMsg;
+        input.classList.toggle('border-danger', !valid && input.value !== '');
+        return valid;
+      }
+
+      const gwInput  = document.getElementById('client_gw');
+      const netInput = document.getElementById('client_network');
+
+      gwInput.addEventListener('input',  () => validateField(gwInput,  cidrPattern,    'Format: 192.168.0.1/24'));
+      netInput.addEventListener('input', () => validateField(netInput, networkPattern, 'Format: 192.168.0.0'));
+
+      gwInput.closest('form').addEventListener('submit', function (e) {
+        const gwOk  = validateField(gwInput,  cidrPattern,    'Format: 192.168.0.1/24');
+        const netOk = validateField(netInput, networkPattern, 'Format: 192.168.0.0');
+        if (!gwOk || !netOk) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
+    </script>
+    <script>
       var milli_seconds = 1200;
       setInterval(() => {
           if (milli_seconds == 0) {
