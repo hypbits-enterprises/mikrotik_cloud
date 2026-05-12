@@ -2,6 +2,8 @@
 
 namespace App\Classes;
 
+use App\Exceptions\RouterConnectionLostException;
+
 /*****************************
  *
  * RouterOS PHP API class v1.4
@@ -273,26 +275,34 @@ class routeros_api
         $RESPONSE = array();
         while (true) {
             // Read the first byte to determine message length
-            $BYTE = ord(fread($this->socket, 1));
+            $firstByte = fread($this->socket, 1);
+            if ($firstByte === false || $firstByte === '') {
+                if ($this->connected) {
+                    $this->connected = false;
+                    throw new RouterConnectionLostException();
+                }
+                break;
+            }
+            $BYTE = ord($firstByte);
             $LENGTH = 0;
 
             if ($BYTE & 128) {
                 if (($BYTE & 192) == 128) {
-                    $LENGTH = (($BYTE & 63) << 8) + ord(fread($this->socket, 1));
+                    $LENGTH = (($BYTE & 63) << 8) + ord(@fread($this->socket, 1));
                 } else {
                     if (($BYTE & 224) == 192) {
-                        $LENGTH = (($BYTE & 31) << 8) + ord(fread($this->socket, 1));
-                        $LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
+                        $LENGTH = (($BYTE & 31) << 8) + ord(@fread($this->socket, 1));
+                        $LENGTH = ($LENGTH << 8) + ord(@fread($this->socket, 1));
                     } else {
                         if (($BYTE & 240) == 224) {
-                            $LENGTH = (($BYTE & 15) << 8) + ord(fread($this->socket, 1));
-                            $LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
-                            $LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
+                            $LENGTH = (($BYTE & 15) << 8) + ord(@fread($this->socket, 1));
+                            $LENGTH = ($LENGTH << 8) + ord(@fread($this->socket, 1));
+                            $LENGTH = ($LENGTH << 8) + ord(@fread($this->socket, 1));
                         } else {
-                            $LENGTH = ord(fread($this->socket, 1));
-                            $LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
-                            $LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
-                            $LENGTH = ($LENGTH << 8) + ord(fread($this->socket, 1));
+                            $LENGTH = ord(@fread($this->socket, 1));
+                            $LENGTH = ($LENGTH << 8) + ord(@fread($this->socket, 1));
+                            $LENGTH = ($LENGTH << 8) + ord(@fread($this->socket, 1));
+                            $LENGTH = ($LENGTH << 8) + ord(@fread($this->socket, 1));
                         }
                     }
                 }
@@ -301,6 +311,7 @@ class routeros_api
             }
 
             // Read the response based on calculated LENGTH
+            $_ = '';
             if ($LENGTH > 0) {
                 $_ = '';
                 $retlen = 0;
@@ -312,8 +323,11 @@ class routeros_api
                     $chunk = fread($this->socket, $toread);
 
                     if ($chunk === false || $chunk === '') {
-                        $info = stream_get_meta_data($this->socket);
-                        $this->debug(">>> fread() failed or returned empty. Stream info: " . json_encode($info));
+                        if ($this->connected) {
+                            $this->connected = false;
+                            throw new RouterConnectionLostException();
+                        }
+                        $this->debug(">>> fread() failed or returned empty.");
                         break;
                     }
 
@@ -325,11 +339,9 @@ class routeros_api
                 $this->debug('>>> [' . $retlen . '/' . $LENGTH . '] bytes read.');
             }
 
-            // Check if reply was !done
-            $receiveddone = false;
-            if ($_ == "!done" || $_ == "!trap" || $_ == "!fatal" || $_ = ' ') {
-                $receiveddone = true;
-            }
+            // Check if reply was !done. A zero-length word is the RouterOS API sentence terminator.
+            $receiveddone = ($LENGTH === 0 || $_ == "!done" || $_ == "!trap" || $_ == "!fatal");
+
 
             // Get socket status
             $STATUS = socket_get_status($this->socket);
@@ -369,14 +381,30 @@ class routeros_api
             $data = explode("\n", $command);
             foreach ($data as $com) {
                 $com = trim($com);
-                fwrite($this->socket, $this->encode_length(strlen($com)) . $com);
+                $result = @fwrite($this->socket, $this->encode_length(strlen($com)) . $com);
+                if ($result === false) {
+                    if ($this->connected) {
+                        $this->connected = false;
+                        throw new RouterConnectionLostException();
+                    }
+                    return false;
+                }
                 $this->debug('<<< [' . strlen($com) . '] ' . $com);
             }
             if (gettype($param2) == 'integer') {
-                fwrite($this->socket, $this->encode_length(strlen('.tag=' . $param2)) . '.tag=' . $param2 . chr(0));
+                $result = @fwrite($this->socket, $this->encode_length(strlen('.tag=' . $param2)) . '.tag=' . $param2 . chr(0));
+                if ($result === false && $this->connected) {
+                    $this->connected = false;
+                    throw new RouterConnectionLostException();
+                }
                 $this->debug('<<< [' . strlen('.tag=' . $param2) . '] .tag=' . $param2);
-            } else if (gettype($param2) == 'boolean')
-                fwrite($this->socket, ($param2 ? chr(0) : ''));
+            } else if (gettype($param2) == 'boolean') {
+                $result = @fwrite($this->socket, ($param2 ? chr(0) : ''));
+                if ($result === false && $this->connected) {
+                    $this->connected = false;
+                    throw new RouterConnectionLostException();
+                }
+            }
             return true;
         } else
             return false;

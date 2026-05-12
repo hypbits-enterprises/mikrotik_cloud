@@ -82,6 +82,9 @@
                                 @if (session('network_presence'))
                                     <p class="text-danger">{{ session('network_presence') }}</p>
                                 @endif
+                                @if (session('error_router'))
+                                    <p class="text-danger">{{ session('error_router') }}</p>
+                                @endif
                                 @if (session('error'))
                                     <p class="text-danger">{{ session('error') }}</p>
                                 @endif

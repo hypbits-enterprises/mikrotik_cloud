@@ -95,6 +95,9 @@
                                     @if (session('network_presence'))
                                         <p class="text-danger">{{ session('network_presence') }}</p>
                                     @endif
+                                    @if (session('error_router'))
+                                        <p class="text-danger">{{ session('error_router') }}</p>
+                                    @endif
                                     <p class="card-text">Fill all the fields to add the client.</p>
                                     <form action="{{route("clients.addstatic")}}" method="post">
                                         @csrf

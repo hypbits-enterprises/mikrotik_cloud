@@ -13,7 +13,7 @@ class Handler extends ExceptionHandler
      * @var array<int, class-string<Throwable>>
      */
     protected $dontReport = [
-        //
+        RouterConnectionLostException::class,
     ];
 
     /**
@@ -37,5 +37,28 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    /**
+     * Render an exception into an HTTP response.
+     */
+    public function render($request, Throwable $exception)
+    {
+        if ($exception instanceof RouterConnectionLostException) {
+            $message = 'Connection to the router was lost while processing your request. '
+                     . 'The operation was not completed. Please try again.';
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response(
+                    "<p class='text-danger'><i class='fas fa-exclamation-triangle'></i> " . $message . "</p>",
+                    200
+                );
+            }
+
+            session()->flash('error_router', $message);
+            return redirect()->back();
+        }
+
+        return parent::render($request, $exception);
     }
 }
