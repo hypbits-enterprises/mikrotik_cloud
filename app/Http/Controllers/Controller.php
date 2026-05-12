@@ -590,6 +590,24 @@ class Controller extends BaseController
         }
         return "0 SMS";
     }
+    function getSmsSettings() {
+        $sender_row     = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
+        $api_key_row    = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
+        $partner_id_row = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
+        $shortcode_row  = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
+
+        if (count($api_key_row) == 0 || count($partner_id_row) == 0 || count($shortcode_row) == 0) {
+            return null;
+        }
+
+        return [
+            'sms_sender'     => count($sender_row) > 0 ? $sender_row[0]->value : "",
+            'sms_api_key'    => $api_key_row[0]->value,
+            'sms_partner_id' => $partner_id_row[0]->value,
+            'sms_shortcode'  => $shortcode_row[0]->value,
+        ];
+    }
+
     function isJson($string): bool
     {
         if (!is_string($string)) {

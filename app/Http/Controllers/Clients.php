@@ -415,17 +415,11 @@ $export_text .= "
 
                 if (isset($client_data[0]->clients_contacts)) {
                     if (session("organization")->send_sms == 1) {
-                        // GET THE SMS API LINK
-                        $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-                        $sms_sender = count($select) > 0 ? $select[0]->value : "";
-                        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
-                        $sms_api_key = $sms_keys[0]->value;
-                        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
-                        $sms_partner_id = $sms_keys[0]->value;
-                        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
-                        $sms_shortcode = $sms_keys[0]->value;
-
-                        // if send sms is 1 we send  the sms
+                        $sms_settings = $this->getSmsSettings();
+                        $sms_sender = $sms_settings !== null ? $sms_settings['sms_sender'] : '';
+                        $sms_api_key = $sms_settings !== null ? $sms_settings['sms_api_key'] : '';
+                        $sms_partner_id = $sms_settings !== null ? $sms_settings['sms_partner_id'] : '';
+                        $sms_shortcode = $sms_settings !== null ? $sms_settings['sms_shortcode'] : '';
                         $partnerID = $sms_partner_id;
                         $apikey = $sms_api_key;
                         $shortcode = $sms_shortcode;
@@ -2143,15 +2137,11 @@ $export_text .= "
                 $clients_table->save();
                 session()->flash("success_reg", "The user data has been successfully registered!");
 
-                // get the sms keys
-                $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-                $sms_sender = count($select) > 0 ? $select[0]->value : "";
-                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
-                $sms_api_key = $sms_keys[0]->value;
-                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
-                $sms_partner_id = $sms_keys[0]->value;
-                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
-                $sms_shortcode = $sms_keys[0]->value;
+                $sms_settings = $this->getSmsSettings();
+                $sms_sender = $sms_settings !== null ? $sms_settings['sms_sender'] : '';
+                $sms_api_key = $sms_settings !== null ? $sms_settings['sms_api_key'] : '';
+                $sms_partner_id = $sms_settings !== null ? $sms_settings['sms_partner_id'] : '';
+                $sms_shortcode = $sms_settings !== null ? $sms_settings['sms_shortcode'] : '';
                 $partnerID = $sms_partner_id;
                 $apikey = $sms_api_key;
                 $shortcode = $sms_shortcode;
@@ -2388,15 +2378,11 @@ $export_text .= "
                 $clients_table->validated = "0";
                 $clients_table->save();
 
-                // get the sms keys
-                $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-                $sms_sender = count($select) > 0 ? $select[0]->value : "";
-                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
-                $sms_api_key = $sms_keys[0]->value;
-                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
-                $sms_partner_id = $sms_keys[0]->value;
-                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
-                $sms_shortcode = $sms_keys[0]->value;
+                $sms_settings = $this->getSmsSettings();
+                $sms_sender = $sms_settings !== null ? $sms_settings['sms_sender'] : '';
+                $sms_api_key = $sms_settings !== null ? $sms_settings['sms_api_key'] : '';
+                $sms_partner_id = $sms_settings !== null ? $sms_settings['sms_partner_id'] : '';
+                $sms_shortcode = $sms_settings !== null ? $sms_settings['sms_shortcode'] : '';
                 $partnerID = $sms_partner_id;
                 $apikey = $sms_api_key;
                 $shortcode = $sms_shortcode;
@@ -2716,17 +2702,11 @@ $export_text .= "
                     // return $clients_table;
 
 
-                    // get the sms keys
-
-                    // GET THE SMS API LINK
-                    $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-                    $sms_sender = count($select) > 0 ? $select[0]->value : "";
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
-                    $sms_api_key = $sms_keys[0]->value;
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
-                    $sms_partner_id = $sms_keys[0]->value;
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
-                    $sms_shortcode = $sms_keys[0]->value;
+                    $sms_settings = $this->getSmsSettings();
+                    $sms_sender = $sms_settings !== null ? $sms_settings['sms_sender'] : '';
+                    $sms_api_key = $sms_settings !== null ? $sms_settings['sms_api_key'] : '';
+                    $sms_partner_id = $sms_settings !== null ? $sms_settings['sms_partner_id'] : '';
+                    $sms_shortcode = $sms_settings !== null ? $sms_settings['sms_shortcode'] : '';
                     $partnerID = $sms_partner_id;
                     $apikey = $sms_api_key;
                     $shortcode = $sms_shortcode;
@@ -3043,17 +3023,11 @@ $export_text .= "
                     $clients_table->save();
 
 
-                    // get the sms keys
-
-                    // GET THE SMS API LINK
-                    $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-                    $sms_sender = count($select) > 0 ? $select[0]->value : "";
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
-                    $sms_api_key = $sms_keys[0]->value;
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
-                    $sms_partner_id = $sms_keys[0]->value;
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
-                    $sms_shortcode = $sms_keys[0]->value;
+                    $sms_settings = $this->getSmsSettings();
+                    $sms_sender = $sms_settings !== null ? $sms_settings['sms_sender'] : '';
+                    $sms_api_key = $sms_settings !== null ? $sms_settings['sms_api_key'] : '';
+                    $sms_partner_id = $sms_settings !== null ? $sms_settings['sms_partner_id'] : '';
+                    $sms_shortcode = $sms_settings !== null ? $sms_settings['sms_shortcode'] : '';
                     $partnerID = $sms_partner_id;
                     $apikey = $sms_api_key;
                     $shortcode = $sms_shortcode;
@@ -4275,15 +4249,11 @@ $export_text .= "
                     $freeze_date = $freeze_date != "00000000000000" ? $freeze_date : "Indefinite";
                     $new_message = $this->message_content($message, $client_id, null, $day_frozen, $freeze_date);
 
-                    // get the sms keys
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
-                    $sms_api_key = $sms_keys[0]->value;
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
-                    $sms_partner_id = $sms_keys[0]->value;
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
-                    $sms_shortcode = $sms_keys[0]->value;
-                    $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-                    $sms_sender = count($select) > 0 ? $select[0]->value : "";
+                    $sms_settings = $this->getSmsSettings();
+                    $sms_sender = $sms_settings !== null ? $sms_settings['sms_sender'] : '';
+                    $sms_api_key = $sms_settings !== null ? $sms_settings['sms_api_key'] : '';
+                    $sms_partner_id = $sms_settings !== null ? $sms_settings['sms_partner_id'] : '';
+                    $sms_shortcode = $sms_settings !== null ? $sms_settings['sms_shortcode'] : '';
                     $partnerID = $sms_partner_id;
                     $apikey = $sms_api_key;
                     $shortcode = $sms_shortcode;
@@ -4395,15 +4365,11 @@ $export_text .= "
                     $freeze_date = $freeze_date != "00000000000000" ? $freeze_date : "Indefinite";
                     $new_message = $this->message_content($message, $client_id, null, $day_frozen, $freeze_date, $freezing_date);
 
-                    // get the sms keys
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
-                    $sms_api_key = $sms_keys[0]->value;
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
-                    $sms_partner_id = $sms_keys[0]->value;
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
-                    $sms_shortcode = $sms_keys[0]->value;
-                    $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-                    $sms_sender = count($select) > 0 ? $select[0]->value : "";
+                    $sms_settings = $this->getSmsSettings();
+                    $sms_sender = $sms_settings !== null ? $sms_settings['sms_sender'] : '';
+                    $sms_api_key = $sms_settings !== null ? $sms_settings['sms_api_key'] : '';
+                    $sms_partner_id = $sms_settings !== null ? $sms_settings['sms_partner_id'] : '';
+                    $sms_shortcode = $sms_settings !== null ? $sms_settings['sms_shortcode'] : '';
                     $partnerID = $sms_partner_id;
                     $apikey = $sms_api_key;
                     $shortcode = $sms_shortcode;
@@ -4562,19 +4528,14 @@ $export_text .= "
                 // change the tags first
                 $new_message = $this->message_content($message, $client_id, null);
 
-                // get the sms keys
-                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
-                $sms_api_key = $sms_keys[0]->value;
-                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
-                $sms_partner_id = $sms_keys[0]->value;
-                $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
-                $sms_shortcode = $sms_keys[0]->value;
-                $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-                $sms_sender = count($select) > 0 ? $select[0]->value : "";
+                $sms_settings = $this->getSmsSettings();
+                $sms_sender = $sms_settings !== null ? $sms_settings['sms_sender'] : '';
+                $sms_api_key = $sms_settings !== null ? $sms_settings['sms_api_key'] : '';
+                $sms_partner_id = $sms_settings !== null ? $sms_settings['sms_partner_id'] : '';
+                $sms_shortcode = $sms_settings !== null ? $sms_settings['sms_shortcode'] : '';
                 $partnerID = $sms_partner_id;
                 $apikey = $sms_api_key;
                 $shortcode = $sms_shortcode;
-
 
                 // $client_id = $client_id;
                 $mobile = $client[0]->clients_contacts;
@@ -6560,19 +6521,14 @@ $export_text .= "
         // send the message
         // change the tags first
 
-        // get the sms keys
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
-        $sms_api_key = $sms_keys[0]->value;
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
-        $sms_partner_id = $sms_keys[0]->value;
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
-        $sms_shortcode = $sms_keys[0]->value;
-        $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-        $sms_sender = count($select) > 0 ? $select[0]->value : "";
+        $sms_settings = $this->getSmsSettings();
+        $sms_sender = $sms_settings !== null ? $sms_settings['sms_sender'] : '';
+        $sms_api_key = $sms_settings !== null ? $sms_settings['sms_api_key'] : '';
+        $sms_partner_id = $sms_settings !== null ? $sms_settings['sms_partner_id'] : '';
+        $sms_shortcode = $sms_settings !== null ? $sms_settings['sms_shortcode'] : '';
         $partnerID = $sms_partner_id;
         $apikey = $sms_api_key;
         $shortcode = $sms_shortcode;
-
 
         // $client_id = $client_id;
         $mobile = $client_data->clients_contacts;

@@ -157,18 +157,11 @@ class Sms extends Controller
         $change_db = new login();
         $change_db->change_db();
         
-        // GET THE SMS KEYS FROM THE DATABASE
-        $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-        $sms_sender = count($select) > 0 ? $select[0]->value : "";
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
-        $sms_api_key = $sms_keys[0]->value;
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
-        $sms_partner_id = $sms_keys[0]->value;
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
-        $sms_shortcode = $sms_keys[0]->value;
-
-        $sms_balance = $this->getSMSBalance($sms_api_key, $sms_sender, $sms_shortcode, $sms_partner_id);
-        return $sms_balance;
+        $sms_settings = $this->getSmsSettings();
+        if ($sms_settings === null) {
+            return "SMS not configured";
+        }
+        return $this->getSMSBalance($sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id']);
     }
 
     // get the sms id
@@ -234,16 +227,11 @@ class Sms extends Controller
         $change_db = new login();
         $change_db->change_db();
 
-        // GET THE SMS KEYS FROM THE DATABASE
-            // GET THE SMS API LINK
-        $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-        $sms_sender = count($select) > 0 ? $select[0]->value : "";
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
-        $sms_api_key = $sms_keys[0]->value;
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
-        $sms_partner_id = $sms_keys[0]->value;
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
-        $sms_shortcode = $sms_keys[0]->value;
+        $sms_settings = $this->getSmsSettings();
+        $sms_sender = $sms_settings !== null ? $sms_settings['sms_sender'] : '';
+        $sms_api_key = $sms_settings !== null ? $sms_settings['sms_api_key'] : '';
+        $sms_partner_id = $sms_settings !== null ? $sms_settings['sms_partner_id'] : '';
+        $sms_shortcode = $sms_settings !== null ? $sms_settings['sms_shortcode'] : '';
         // GET THE VALUES
         $select_recipient = $req->input('select_recipient');
         $phone_number = $req->input('phone_number') ? $req->input('phone_number') : $req->input('phone_numbers');
@@ -424,15 +412,11 @@ class Sms extends Controller
         $change_db->change_db();
 
         // return $req->input();
-        // GET THE SMS API LINK
-        $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-        $sms_sender = count($select) > 0 ? $select[0]->value : "";
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
-        $sms_api_key = $sms_keys[0]->value;
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
-        $sms_partner_id = $sms_keys[0]->value;
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
-        $sms_shortcode = $sms_keys[0]->value;
+        $sms_settings = $this->getSmsSettings();
+        $sms_sender = $sms_settings !== null ? $sms_settings['sms_sender'] : '';
+        $sms_api_key = $sms_settings !== null ? $sms_settings['sms_api_key'] : '';
+        $sms_partner_id = $sms_settings !== null ? $sms_settings['sms_partner_id'] : '';
+        $sms_shortcode = $sms_settings !== null ? $sms_settings['sms_shortcode'] : '';
         // GET THE VALUES
         $select_client_group = $req->input('select_client_group');
         $messages = $req->input('messages');
@@ -1224,31 +1208,21 @@ class Sms extends Controller
             $hold_user_id_data = $req->input("hold_user_id_data");
             $hold_user_id_data = json_decode($hold_user_id_data);
     
-            // GET THE SMS KEYS FROM THE DATABASE
-            $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-            $sms_sender = count($select) > 0 ? $select[0]->value : "";
-            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_api_key'");
-            $sms_api_key = $sms_keys[0]->value;
-            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_partner_id'");
-            $sms_partner_id = $sms_keys[0]->value;
-            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted`= '0' AND `keyword` = 'sms_shortcode'");
-            $sms_shortcode = $sms_keys[0]->value;
-    
-            for ($index=0; $index < count($hold_user_id_data); $index++) { 
+            $sms_settings = $this->getSmsSettings();
+            if ($sms_settings === null) {
+                session()->flash("error_sms", "SMS is not configured. Please contact your administrator to set up SMS settings.");
+                return redirect("/sms");
+            }
+
+            for ($index=0; $index < count($hold_user_id_data); $index++) {
                 $sms_data = DB::connection("mysql2")->select("SELECT * FROM `sms_tables` WHERE `sms_id` = '".$hold_user_id_data[$index]."'");
                 if (count($sms_data) > 0) {
                     $recipient_phone = $sms_data[0]->recipient_phone;
                     $sms_content = $sms_data[0]->sms_content;
-    
-    
-                    // if send sms is 1 we send  the sms
-                    $partnerID = $sms_partner_id;
-                    $apikey = $sms_api_key;
-                    $shortcode = $sms_shortcode;
-                    
+
                     $mobile = $recipient_phone; // Bulk messages can be comma separated
                     $message = $sms_content;
-                    $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+                    $result = $this->GlobalSendSMS($message, $mobile, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id']);
                     $message_status = $result != null ? 1 : 0;
                     if($result == null){
                         session()->flash("error_sms","Your account cannot send sms, contact us for more information!");

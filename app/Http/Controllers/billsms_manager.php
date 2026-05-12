@@ -150,22 +150,13 @@ class billsms_manager extends Controller
                     $wlcm_sms = $this->message_content_smsclients($wlcm_sms,$client_data[0]->client_id,0);
                     // return $wlcm_sms;
                     // send sms
-                    // get the sms keys
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_api_key' AND `deleted` = '0'");
-                    $sms_api_key = $sms_keys[0]->value;
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_partner_id' AND `deleted` = '0'");
-                    $sms_partner_id = $sms_keys[0]->value;
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_shortcode' AND `deleted` = '0'");
-                    $sms_shortcode = $sms_keys[0]->value;
-                    $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-                    $sms_sender = count($select) > 0 ? $select[0]->value : "";
-                    $partnerID = $sms_partner_id;
-                    $apikey = $sms_api_key;
-                    $shortcode = $sms_shortcode;
+                    $sms_settings = $this->getSmsSettings();
                     $mobile = $req->input("client_phone");
-
                     $message = $wlcm_sms;
-                    $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+                    $result = null;
+                    if ($sms_settings !== null) {
+                        $result = $this->GlobalSendSMS($message, $mobile, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id']);
+                    }
                     $message_status = 1;
                     if($result == null){
                         session()->flash("network_presence","SMS is not setup, use email instead!");

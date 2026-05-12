@@ -74,21 +74,12 @@ class login extends Controller
                 }
 
                 if ($send_code == "SMS" && $sms_status == 1) {
-                    // GET THE SMS KEYS FROM THE DATABASE
-                    $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-                    $sms_sender = count($select) > 0 ? $select[0]->value : "";
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
-                    $sms_api_key = $sms_keys[0]->value;
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
-                    $sms_partner_id = $sms_keys[0]->value;
-                    $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
-                    $sms_shortcode = $sms_keys[0]->value;
-
-                    // if send sms is 1 we send  the sms
-                    $partnerID = $sms_partner_id;
-                    $apikey = $sms_api_key;
-                    $shortcode = $sms_shortcode;
-                    $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+                    $sms_settings = $this->getSmsSettings();
+                    if ($sms_settings === null) {
+                        session()->flash('error', "SMS is not configured. Please contact your administrator to set up SMS settings, or use Email to receive your verification code.");
+                        return redirect("/Login");
+                    }
+                    $this->GlobalSendSMS($message, $mobile, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id']);
                     $message_status = 1;
                 }elseif ($send_code == "EMAILS" || ($send_code == "SMS" && $sms_status == 0)) {
                     // if the username email is null redirect and show error
@@ -97,6 +88,11 @@ class login extends Controller
                         return redirect("/Login");
                     }
                     
+                    if (empty(env("EMAIL_HOST")) || empty(env("EMAIL_USERNAME")) || empty(env("EMAIL_PASSWORD"))) {
+                        session()->flash('error', "Email is not configured. Please contact your administrator to set up email settings, or use SMS to receive your verification code.");
+                        return redirect("/Login");
+                    }
+
                     $sender_name = "HypBits";
                     $email_username = "hypbits@gmail.com";
                     $sender_address = $result[0]->email;
@@ -104,7 +100,7 @@ class login extends Controller
 
                     // USE PHP MAILER
                     $mail = new PHPMailer(true);
-            
+
                     $mail->isSMTP();
                     // $mail->SMTPDebug = SMTP::DEBUG_SERVER;
                     $mail->Host = env("EMAIL_HOST");
@@ -120,16 +116,21 @@ class login extends Controller
                         'user_data' => $result[0],
                         'otp_password' => $random_no
                     ])->render();
-                    
-                    
+
+
                     $mail->setFrom($email_username,$sender_name);
                     $mail->addAddress($sender_address);
                     $mail->isHTML(true);
                     $mail->Subject = "Hypbits Login Code";
                     $mail->Body = $message;
-            
-                    $mail->send();
-                    $message_status = 1;
+
+                    try {
+                        $mail->send();
+                        $message_status = 1;
+                    } catch (\Exception $e) {
+                        session()->flash('error', "Failed to send email. Please contact your administrator to verify email settings, or use SMS to receive your verification code.");
+                        return redirect("/Login");
+                    }
                 }
                 $message = "Your verification code is ".$random_no.". It will expire in 5 minutes";
 
@@ -242,25 +243,17 @@ class login extends Controller
             $contacts = $client_data->clients_contacts;
             $contact = substr($contacts,0,4)."XXXX".substr($contacts,8);
 
-            // GET THE SMS KEYS FROM THE DATABASE
-            $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-            $sms_sender = count($select) > 0 ? $select[0]->value : "";
-            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
-            $sms_api_key = $sms_keys[0]->value;
-            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
-            $sms_partner_id = $sms_keys[0]->value;
-            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
-            $sms_shortcode = $sms_keys[0]->value;
+            $sms_settings = $this->getSmsSettings();
+            if ($sms_settings === null) {
+                session()->flash('error', "SMS is not configured for your organization. Please contact your administrator to set up SMS settings.");
+                return redirect("/Client-Login");
+            }
             $message_status = 0;
 
-            // if send sms is 1 we send  the sms
-            $partnerID = $sms_partner_id;
-            $apikey = $sms_api_key;
-            $shortcode = $sms_shortcode;
             $random_no = rand(1000,9999);
             $mobile = $contacts; // Bulk messages can be comma separated
             $message = "Your verification code is ".$random_no.". It will expire in 5 minutes";
-            $resulted = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
+            $resulted = $this->GlobalSendSMS($message, $mobile, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id']);
             $message_status = $resulted != null ? 1 : 0;
             if($resulted == null){
                 session()->flash("error","There is an issue with SMS, use email instead!");
@@ -415,6 +408,11 @@ class login extends Controller
         
 
         if ($what_i_remember == "email") {
+            if (empty(env("EMAIL_HOST")) || empty(env("EMAIL_USERNAME")) || empty(env("EMAIL_PASSWORD"))) {
+                session()->flash('error', "Email is not configured. Please contact your administrator to set up email settings, or use your phone number to reset your password.");
+                return redirect("/Forgot-Password");
+            }
+
             $sender_name = "HypBits";
             $email_username = "hypbits@gmail.com";
             $sender_address = $user_data[0]->email;
@@ -422,7 +420,7 @@ class login extends Controller
 
             // USE PHP MAILER
             $mail = new PHPMailer(true);
-    
+
             $mail->isSMTP();
             // $mail->SMTPDebug = SMTP::DEBUG_SERVER;
             $mail->Host = env("EMAIL_HOST");
@@ -439,8 +437,8 @@ class login extends Controller
                 'otp_password' => $new_password,
                 "change_times" => $change_times
             ])->render();
-            
-            
+
+
             $mail->setFrom($email_username,$sender_name);
             $mail->addAddress($sender_address);
             $mail->isHTML(true);
@@ -448,9 +446,14 @@ class login extends Controller
             $mail->Body = $message;
             $message_2 = "Your Username: ".$user_data[0]->admin_username." and your new password is: " . $new_password.", it expires in 5 minutes";
             $mail->AltBody = $message_2;
-    
-            $mail->send();
-            $message_status = 1;
+
+            try {
+                $mail->send();
+                $message_status = 1;
+            } catch (\Exception $e) {
+                session()->flash('error', "Failed to send email. Please contact your administrator to verify email settings, or use your phone number to reset your password.");
+                return redirect("/Forgot-Password");
+            }
 
             // save the sms in the database
             // $sms_table = new sms_table();
@@ -463,22 +466,13 @@ class login extends Controller
             // $sms_table->save();
             session()->flash("success", "We have sent you a new password to your email, it expires in 5 minutes!");
         } else{
-            // GET THE SMS KEYS FROM THE DATABASE
-            $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-            $sms_sender = count($select) > 0 ? $select[0]->value : "";
-            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
-            $sms_api_key = $sms_keys[0]->value;
-            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
-            $sms_partner_id = $sms_keys[0]->value;
-            $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
-            $sms_shortcode = $sms_keys[0]->value;
-
-            // if send sms is 1 we send  the sms
-            $partnerID = $sms_partner_id;
-            $apikey = $sms_api_key;
-            $shortcode = $sms_shortcode;
+            $sms_settings = $this->getSmsSettings();
+            if ($sms_settings === null) {
+                session()->flash('error', "SMS is not configured. Please contact your administrator to set up SMS settings, or try using your email address to reset your password.");
+                return redirect("/Forgot-Password");
+            }
             $message = "Hello ".ucwords(strtolower($user_data[0]->admin_fullname)).", Your username is: ".$user_data[0]->admin_username." and one-time password is: ".$new_password.". It expired in 5 minutes";
-            $this->GlobalSendSMS($message, $user_data[0]->contacts, $apikey, $sms_sender, $shortcode, $partnerID);
+            $this->GlobalSendSMS($message, $user_data[0]->contacts, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id']);
             $message_status = 1;
             session()->flash("success", "We have sent you a new password to your phone number, it expires in 5 minutes!");
         }
@@ -541,22 +535,13 @@ class login extends Controller
         // update admin_tables
         DB::connection("mysql2")->update("UPDATE client_tables SET use_otp = ?, otp = ?, otp_change_time = ?, otp_date_change = ? WHERE client_id = ?", [$use_otp, $new_password, $change_times, $date_created, $user_data[0]->client_id]);
 
-        // GET THE SMS KEYS FROM THE DATABASE
-        $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'sms_sender'");
-        $sms_sender = count($select) > 0 ? $select[0]->value : "";
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_api_key'");
-        $sms_api_key = $sms_keys[0]->value;
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_partner_id'");
-        $sms_partner_id = $sms_keys[0]->value;
-        $sms_keys = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'sms_shortcode'");
-        $sms_shortcode = $sms_keys[0]->value;
-
-        // if send sms is 1 we send the sms
-        $partnerID = $sms_partner_id;
-        $apikey = $sms_api_key;
-        $shortcode = $sms_shortcode;
+        $sms_settings = $this->getSmsSettings();
+        if ($sms_settings === null) {
+            session()->flash('error', "SMS is not configured for your organization. Please contact your administrator to set up SMS settings.");
+            return redirect("/Client-Forgot-Password");
+        }
         $message = "Hello ".ucwords(strtolower($user_data[0]->client_name)).", Your username is: ".$user_data[0]->client_username." and one-time password is: ".$new_password.". It expired in 5 minutes";
-        $this->GlobalSendSMS($message, $user_data[0]->clients_contacts, $apikey, $sms_sender, $shortcode, $partnerID);
+        $this->GlobalSendSMS($message, $user_data[0]->clients_contacts, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id']);
         session()->flash("success", "We have sent you a new password to your phone number, it expires in 5 minutes!");
         return redirect("/Client-Login");
     }
