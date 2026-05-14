@@ -266,7 +266,16 @@
             </li>
             <li class="{{showOption($priviledges,"My Routers")}} nav-item {{$active == "myrouters" ? "active" : ""}}"><a href="/Routers"><i class="ft-layers"></i><span class="menu-title" data-i18n="">My Routers</span></a>
             </li>
-            <li class="{{showOption($priviledges,"SMS")}} nav-item {{$active == "sms" ? "active" : ""}}"><a href="/sms"><i class="ft-mail"></i><span class="menu-title" data-i18n="">SMS</span></a>
+            <li class="{{showOption($priviledges,"SMS")}} nav-item has-sub {{$active == "sms" || $active == "whatsapp" ? "active open" : ""}}">
+                <a href="#"><i class="ft-mail"></i><span class="menu-title" data-i18n="">Messaging</span></a>
+                <ul class="menu-content">
+                    <li class="{{showOption($priviledges,"SMS")}} nav-item {{$active == "sms" ? "active" : ""}}">
+                        <a href="/sms"><i class="ft-message-square"></i> SMS &amp; History</a>
+                    </li>
+                    <li class="{{showOption($priviledges,"SMS")}} nav-item {{$active == "whatsapp" ? "active" : ""}}">
+                        <a href="/whatsapp/chats"><i class="fa-brands fa-whatsapp"></i> WhatsApp Chats</a>
+                    </li>
+                </ul>
             </li>
             <li class="{{showOption($priviledges,"Account and Profile")}} nav-item {{$active == "account_and_profile" ? "active" : ""}}"><a href="/Accounts"><i class="ft-lock"></i><span class="menu-title" data-i18n="">Account and Profile</span></a>
             </li>

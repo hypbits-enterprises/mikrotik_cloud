@@ -617,4 +617,162 @@ class Controller extends BaseController
         json_decode($string);
         return json_last_error() === JSON_ERROR_NONE;
     }
+
+    // ─── WhatsApp Helpers ─────────────────────────────────────────────────────
+
+    function getWhatsAppSettings(): ?array
+    {
+        $token   = config('messaging.whatsapp.access_token');
+        $phoneId = config('messaging.whatsapp.phone_number_id');
+
+        if (!$token || !$phoneId) {
+            return null;
+        }
+
+        return [
+            'access_token'        => $token,
+            'phone_number_id'     => $phoneId,
+            'business_account_id' => config('messaging.whatsapp.business_account_id'),
+            'api_version'         => config('messaging.whatsapp.api_version', 'v19.0'),
+            'base_url'            => config('messaging.whatsapp.base_url', 'https://graph.facebook.com'),
+        ];
+    }
+
+    function sendWhatsAppMessage(string $to, string $body, string $category = 'service'): array
+    {
+        $settings = $this->getWhatsAppSettings();
+        if (!$settings) {
+            return ['error' => 'WhatsApp not configured'];
+        }
+
+        $url     = "{$settings['base_url']}/{$settings['api_version']}/{$settings['phone_number_id']}/messages";
+        $payload = json_encode([
+            'messaging_product' => 'whatsapp',
+            'to'                => $to,
+            'type'              => 'text',
+            'text'              => ['body' => $body],
+        ]);
+
+        return $this->whatsappApiCall($url, $settings['access_token'], $payload);
+    }
+
+    function sendWhatsAppTemplate(string $to, string $templateName, array $variables, string $category = 'utility', string $language = 'en'): array
+    {
+        $settings = $this->getWhatsAppSettings();
+        if (!$settings) {
+            return ['error' => 'WhatsApp not configured'];
+        }
+
+        $components = [];
+        if (!empty($variables)) {
+            $params = array_map(fn($v) => ['type' => 'text', 'text' => (string) $v], $variables);
+            $components[] = ['type' => 'body', 'parameters' => $params];
+        }
+
+        $url     = "{$settings['base_url']}/{$settings['api_version']}/{$settings['phone_number_id']}/messages";
+        $payload = json_encode([
+            'messaging_product' => 'whatsapp',
+            'to'                => $to,
+            'type'              => 'template',
+            'template'          => [
+                'name'       => $templateName,
+                'language'   => ['code' => $language],
+                'components' => $components,
+            ],
+        ]);
+
+        return $this->whatsappApiCall($url, $settings['access_token'], $payload);
+    }
+
+    function isWithin24hrWindow(int $clientId): bool
+    {
+        $cutoff = date('YmdHis', strtotime('-24 hours'));
+
+        $last = DB::connection('mysql2')->select("
+            SELECT wc.received_at FROM whatsapp_chats wc
+            JOIN sms_tables s ON s.sms_id = wc.message_id
+            WHERE s.account_id = ? AND s.channel = 'whatsapp'
+              AND wc.direction = 'inbound' AND s.deleted = '0'
+            ORDER BY wc.received_at DESC LIMIT 1
+        ", [$clientId]);
+
+        if (empty($last) || !$last[0]->received_at) {
+            return false;
+        }
+
+        return $last[0]->received_at >= $cutoff;
+    }
+
+    function notifyClient($client, string $message, ?string $templateName = null): void
+    {
+        $channel = $this->getPreferredChannel();
+
+        $phone = is_object($client) ? $client->clients_contacts : ($client['clients_contacts'] ?? null);
+        if (!$phone) return;
+
+        if ($channel === 'whatsapp') {
+            if ($templateName) {
+                $clientId = is_object($client) ? $client->client_id : ($client['client_id'] ?? 0);
+                $withinWindow = $this->isWithin24hrWindow($clientId);
+
+                if (!$withinWindow) {
+                    // Template send for clients outside window — callers must pass template name
+                    $this->sendWhatsAppMessage($this->formatKenyanPhone($phone), $message, 'utility');
+                    return;
+                }
+            }
+            $this->sendWhatsAppMessage($this->formatKenyanPhone($phone), $message, 'utility');
+        } else {
+            $smsSettings = $this->getSmsSettings();
+            if ($smsSettings) {
+                $this->GlobalSendSMS(
+                    $message,
+                    $this->formatKenyanPhone($phone),
+                    $smsSettings['sms_api_key'],
+                    $smsSettings['sms_sender'],
+                    $smsSettings['sms_shortcode'],
+                    $smsSettings['sms_partner_id']
+                );
+            }
+        }
+    }
+
+    function getPreferredChannel(): string
+    {
+        $row = DB::connection('mysql2')->select(
+            "SELECT `value` FROM `settings` WHERE `keyword` = 'preferred_channel' AND `deleted` = '0' LIMIT 1"
+        );
+        return !empty($row) ? $row[0]->value : 'sms';
+    }
+
+    protected function whatsappApiCall(string $url, string $token, ?string $payload = null, string $method = 'POST'): array
+    {
+        $ch   = curl_init($url);
+        $opts = [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER     => [
+                'Authorization: Bearer ' . $token,
+                'Content-Type: application/json',
+            ],
+            CURLOPT_TIMEOUT        => 30,
+        ];
+
+        if ($method === 'POST') {
+            $opts[CURLOPT_POST]       = true;
+            $opts[CURLOPT_POSTFIELDS] = $payload;
+        } elseif ($method === 'DELETE') {
+            $opts[CURLOPT_CUSTOMREQUEST] = 'DELETE';
+        }
+        // GET: no extra opts needed
+
+        curl_setopt_array($ch, $opts);
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        if (!$response) {
+            return ['error' => 'No response from WhatsApp API'];
+        }
+
+        return json_decode($response, true) ?? ['error' => 'Invalid JSON response'];
+    }
 }

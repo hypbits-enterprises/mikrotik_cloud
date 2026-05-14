@@ -100,9 +100,57 @@ All application routes are in `routes/web.php` (26KB). The API routes (`routes/a
 
 Blade templates in `resources/views/` (89 files). Assets compiled via Laravel Mix (`webpack.mix.js`). No SPA framework — server-rendered with jQuery/Axios for dynamic interactions. Public JS scripts also live in `public/scripts/` and `public/ajax/`.
 
+**UI Theme: Chameleon Admin v1.0.0** by ThemeSelection (Bootstrap 4). All frontend work must remain consistent with this theme — use its existing CSS classes, components, colour variables, and layout patterns. Do not introduce styles, component libraries, or layout structures from other themes or frameworks unless explicitly instructed.
+
+**Blade Template Rules:** Every UI build must strictly follow Laravel Blade syntax:
+- Use `@{{ expression }}` to output literal `{{ }}` curly braces (e.g. `@{{1}}` renders as `{{1}}`). Never use PHP string concatenation or nested Blade expressions to escape curly braces.
+- All buttons and links must use the existing `<x-button>` and `<x-button-link>` components — never raw `<button>` or `<a class="btn">` elements. This applies everywhere: page bodies, card headers, modal footers, inline forms. Set a `btnId` when the element's `href` or state needs to be updated by JavaScript.
+- Every view that navigates beyond what the menu shows must include back-navigation buttons at the top of the content body using `<x-button-link>`.
+- Never use `btnType="outline-*"`. Always use the solid variant: `primary`, `secondary`, `info`, `success`, `warning`, `danger`.
+
+**Date formatting:** `client_tables` date fields (`next_expiration_date`, `clients_reg_date`, `last_seen`, etc.) are stored as MySQL datetime strings (`YYYY-MM-DD HH:MM:SS`). In PHP format them with `date('D jS M Y g:i:sA', strtotime($value))`. In JavaScript use the `fmtDatetime()` helper (defined in `chats.blade.php`) which calls `new Date(s.replace(' ','T'))` and formats as `"Ddd Dth Mon YYYY H:MM:SSam/pm"` (e.g. `"Mon 10th Jan 2026 10:00:10AM"`).
+
 ### Test Database
 
 Tests run against a real MySQL database (not SQLite in-memory) — see `phpunit.xml`. Ensure the test database is available and `DB_DATABASE` is set before running tests.
+
+The organisation database used for development and testing is `mikrotik_cloud` (the `mysql2` / secondary connection). When testing features that query per-org tables (`sms_tables`, `client_tables`, `settings`, `whatsapp_chats`, etc.), ensure `DB_DATABASE_CLIENT=mikrotik_cloud` is set in `.env`.
+
+### WhatsApp Module
+
+`app/Http/Controllers/WhatsApp.php` handles the full WhatsApp Business Cloud API flow:
+- Chat list and per-client message threads (`/whatsapp/chats`, `/whatsapp/chat/{id}`)
+- Outbound free-form and template messages
+- Bulk template sends
+- Template CRUD with Meta API auto-submission and status sync
+- Inbound webhook (`GET /whatsapp/webhook` for verification, `POST /whatsapp/webhook` for events)
+
+**Multi-tenant webhook routing:** The webhook has no user session, so it cannot use `switchDb()`. Instead `resolveOrgByPhone()` searches the sender's phone number across all org databases in the primary `organizations` table, then stays on the matching org's `mysql2` connection. Status updates use `resolveOrgByWaMessageId()` which searches `whatsapp_chats` across all orgs.
+
+**Webhook payload logging:** Every POST from Meta is written to `storage/logs/laravel.log` via `\Log::info('WhatsApp webhook payload', $payload)`.
+
+**App timezone:** `config/app.php` timezone is `Africa/Nairobi`. All timestamp writes use `now()->format('YmdHis')` — do not use bare `date()` in WhatsApp handlers.
+
+**ngrok for local testing:** Run `ngrok http 8000` to get a public HTTPS URL, then register `https://<subdomain>.ngrok-free.app/whatsapp/webhook` in Meta's webhook settings. The verify token is in `.env` as `WHATSAPP_WEBHOOK_VERIFY_TOKEN`.
+
+**Views:** `resources/views/whatsapp/` — `chats.blade.php` (inbox + client info modal), `chat.blade.php` (single thread), `templates.blade.php`, `bulk.blade.php`.
+
+**Config:** `config/messaging.php` holds WhatsApp settings, max templates, and message categories.
+
+## Session Progress (last updated 2026-05-14)
+
+WhatsApp module is complete and confirmed working end-to-end:
+- Inbound messages from Meta are received, routed to the correct org DB, and saved
+- Outbound messages (free-form and template) send successfully
+- Client info modal in chat header shows formatted client details
+- SMS/WhatsApp channel tabs in compose view working
+- adminsms sms.js crash fixed (hidden nav stubs); SMS graph rendering fixed
+- App timezone set to `Africa/Nairobi` — stored times now match EAT
+
+**Possible next steps:**
+- Display raw webhook payloads in the admin UI (currently only in `laravel.log`)
+- WhatsApp chats: real-time updates via polling or WebSocket instead of full-page reload
+- Template variable preview in the template editor
 
 ## Git Commit Guidelines
 

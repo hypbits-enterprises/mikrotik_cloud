@@ -122,8 +122,13 @@
                                     @if (session('success'))
                                         <p class="text-success">{{ session('success') }}</p>
                                     @endif
-                                    <a href="/sms" class="btn btn-infor"><i class="fas fa-arrow-left"></i>
-                                        Back to list</a>
+                                    @php
+                                        $btnText = "<i class='fas fa-arrow-left'></i> Back to list";
+                                        $otherClasses = "";
+                                        $btnLink = "/sms";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="secondary" btnSize="sm" toolTip="Back to SMS list" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" readOnly="" />
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
                                         <ul class="text-danger" style="color: orangered">
@@ -143,8 +148,37 @@
                                 </div>
                                 <div class="card-body">
                                     {{-- write a message --}}
-                                    <form class="row" method="POST" action="/sendsms">
+                                    <form class="row" method="POST" action="/sendsms" id="compose-form">
                                         @csrf
+                                        {{-- Channel Selector --}}
+                                        <div class="col-md-12 mb-1">
+                                            <label class="form-control-label">Send via</label>
+                                            <ul class="nav nav-tabs mb-0" id="channelTabs">
+                                                <li class="nav-item">
+                                                    <a class="nav-link active" href="#" id="tab-channel-sms" onclick="setChannel('sms'); return false;">
+                                                        <i class="ft-message-square"></i> SMS
+                                                    </a>
+                                                </li>
+                                                <li class="nav-item">
+                                                    <a class="nav-link" href="#" id="tab-channel-whatsapp" onclick="setChannel('whatsapp'); return false;">
+                                                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                            <input type="hidden" name="channel" id="channel_input" value="sms">
+                                        </div>
+
+                                        {{-- WhatsApp: message category --}}
+                                        <div class="col-md-6 mb-1 d-none" id="wa_category_row">
+                                            <label class="form-control-label">Message Category</label>
+                                            <select name="message_category" class="form-control">
+                                                <option value="service">Service (within 24hr window)</option>
+                                                <option value="utility">Utility</option>
+                                                <option value="authentication">Authentication</option>
+                                                <option value="marketing">Marketing</option>
+                                            </select>
+                                        </div>
+
                                         <div class="col-md-6">
                                             <label for="select_recipient" class="form-control-label">Select
                                                 Recipient</label>
@@ -179,8 +213,10 @@
                                             </div>
                                         </div>
                                         <div class="col-md-12 my-1">
-                                            <label for="messages" class="form-control-label">Write Message <small>(162
-                                                    characters cost 1 unit of sms)</small></label>
+                                            <label for="messages" class="form-control-label">Write Message
+                                                <small id="sms_hint">(162 characters cost 1 unit of SMS)</small>
+                                                <small id="wa_hint" class="d-none text-success">(WhatsApp — up to 4096 characters)</small>
+                                            </label>
                                             <textarea name="messages" class="form-control" id="messages" cols="30" rows="2" placeholder="Write your message here"
                                                 required>{{ isset($messages) ? $messages : '' }}</textarea>
                                         </div>
@@ -207,6 +243,18 @@
                                                 Cancel</a> --}}
                                         </div>
                                     </form>
+                                    <script>
+                                        function setChannel(channel) {
+                                            var isSms = channel === 'sms';
+                                            document.getElementById('channel_input').value = channel;
+                                            document.getElementById('tab-channel-sms').classList.toggle('active', isSms);
+                                            document.getElementById('tab-channel-whatsapp').classList.toggle('active', !isSms);
+                                            document.getElementById('wa_category_row').classList.toggle('d-none', isSms);
+                                            document.getElementById('sms_hint').classList.toggle('d-none', !isSms);
+                                            document.getElementById('wa_hint').classList.toggle('d-none', isSms);
+                                            document.getElementById('compose-form').action = isSms ? '/sendsms' : '/whatsapp/send-compose';
+                                        }
+                                    </script>
                                 </div>
                             </div>
                         </div>
@@ -238,8 +286,13 @@
                                     @if (session('success'))
                                         <p class="text-success">{{ session('success') }}</p>
                                     @endif
-                                    <a href="/sms" class="btn btn-infor"><i class="fas fa-arrow-left"></i>
-                                        Back to list</a>
+                                    @php
+                                        $btnText = "<i class='fas fa-arrow-left'></i> Back to list";
+                                        $otherClasses = "";
+                                        $btnLink = "/sms";
+                                        $otherAttributes = "";
+                                    @endphp
+                                    <x-button-link btnType="secondary" btnSize="sm" toolTip="Back to SMS list" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" readOnly="" />
                                     @if ($errors->any())
                                         <h6 style="color: orangered">Errors</h6>
                                         <ul class="text-danger" style="color: orangered">

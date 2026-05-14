@@ -89,6 +89,10 @@ class admin extends Controller
             $sms_shortcode = count($select) > 0 ? $select[0]->value : "";
             $organization[0]->sms_shortcode = $sms_shortcode;
 
+            // GET PREFERRED CHANNEL
+            $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'preferred_channel'");
+            $organization[0]->preferred_channel = count($select) > 0 ? $select[0]->value : "sms";
+
             return view("account",["admin_data" => $admin_data , "date_time" => $dates2, "delete_trans" => $delete_trans,"delete_sms"=>$delete_sms, "organization" => $organization[0]]);
         }else{
             session()->flash("error","Please login again to proceed to view your profile");
@@ -506,6 +510,17 @@ class admin extends Controller
             DB::connection("mysql2")->update("UPDATE `settings` SET `value` = '".$req->input("sms_api_key")."' WHERE `id` = '".$api_link_id."'");
         }else{
             $insert = DB::connection("mysql2")->insert("INSERT INTO `settings` (`keyword`, `value`,`status`) VALUES ('sms_api_key','".$req->input("sms_api_key")."','1')");
+        }
+
+        // insert or update preferred channel (sms / whatsapp)
+        $preferred_channel = in_array($req->input("preferred_channel"), ['sms', 'whatsapp'])
+            ? $req->input("preferred_channel")
+            : 'sms';
+        $api_link = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'preferred_channel'");
+        if (count($api_link) > 0) {
+            DB::connection("mysql2")->update("UPDATE `settings` SET `value` = '{$preferred_channel}' WHERE `keyword` = 'preferred_channel'");
+        } else {
+            DB::connection("mysql2")->insert("INSERT INTO `settings` (`keyword`, `value`, `status`) VALUES ('preferred_channel', '{$preferred_channel}', '1')");
         }
 
         $organization = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[session("organization_id")]);

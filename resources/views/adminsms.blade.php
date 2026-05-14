@@ -282,8 +282,25 @@
                                             </form>
                                         </div>
                                     </div>
-                                    <p class="card-text">In this table all sms sent by the system are displayed.</p>
-                                    <p><span class="text-bold-600">SMS Table:</span></p>
+                                    <p class="card-text">All messages sent by the system are displayed here.</p>
+
+                                    {{-- Channel Filter Tabs --}}
+                                    <ul class="nav nav-tabs mb-2" id="channelTabs">
+                                        <li class="nav-item">
+                                            <a class="nav-link active" href="#" data-channel="all">All</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#" data-channel="sms"><i class="ft-message-square"></i> SMS</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#" data-channel="whatsapp"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="#" data-channel="email"><i class="ft-mail"></i> Email</a>
+                                        </li>
+                                    </ul>
+
+                                    <p><span class="text-bold-600">Message Table:</span></p>
                                     <div class="row">
                                         <div class="col-md-6 form-group">
                                             <input type="text" name="search" id="searchkey" class="form-control rounded-lg p-1" placeholder="Search here ..">
@@ -296,7 +313,6 @@
                                                 $otherAttributes = "";
                                             @endphp
                                             <x-button-link btnType="info" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                            {{-- <a href="/sms/compose" class="btn btn-info text-bolder float-right {{$readonly}}"><i class="ft-plus"> Write Message</i></a> --}}
                                         </div>
                                     </div>
                                     <div class="container border border-secondary rounded p-1 hide" id="action_for_selected_window">
@@ -353,81 +369,36 @@
                                             </form>
                                         </div>
                                     </div>
-                                    <div class="table-responsive"  id="transDataReciever">
-                                        <div class="container text-center my-2">
-                                            <img class=" mx-auto fa-beat-fade"  width="100" alt="Your Logo Appear Here"
-                                                src="{{session("organization_logo") != null ? session("organization_logo") :'/theme-assets/images/logoplaceholder.svg'}}" />
-                                        </div>
-                                        {{-- <table class="table">
+                                    {{-- Hidden stubs required by sms.js top-level onclick/onchange assignments --}}
+                                    <div id="transDataReciever" style="display:none;"></div>
+                                    <nav id="tablefooter" style="display:none;">
+                                        <button id="tofirstNav"></button>
+                                        <button id="toprevNac"></button>
+                                        <button id="tonextNav"></button>
+                                        <button id="tolastNav"></button>
+                                        <span id="pagenumNav"></span>
+                                        <span id="startNo"></span>
+                                        <span id="finishNo"></span>
+                                        <span id="tot_records"></span>
+                                        <span id="client_select_counts"></span>
+                                        <span id="delete_number_clients"></span>
+                                    </nav>
+
+                                    {{-- DataTable --}}
+                                    <div class="table-responsive">
+                                        <table id="sms_table" class="table table-striped table-bordered zero-configuration">
                                             <thead>
                                                 <tr>
                                                     <th>#</th>
                                                     <th>Date Sent</th>
-                                                    <th>Message Body</th>
-                                                    <th>Message Type</th>
-                                                    <th>Action</th>
+                                                    <th>Message</th>
+                                                    <th>Type</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <th scope="row">
-                                                        <span  class="d-flex flex-row align-items-center">
-                                                            <span>1.</span>
-                                                            <i class="ft-refresh-ccw"></i>
-                                                        </span>
-                                                    </th>
-                                                    <td>22nd June 2022 <span class="badge badge-success"> </span><br><small>OWEN MALINGU</small></td>
-                                                    <td>Confirmed You have recieved Kes 2,000 from Acc: 0743551250.... </td>
-                                                    <td>Transaction</td>
-                                                    <td><a href="#" class="btn btn-sm btn-primary text-bolder" data-toggle="tooltip" title="View this transaction"><i class="ft-eye"></i></a></td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">2</th>
-                                                    <td>22nd June 2022 <span class="badge badge-danger"> </span><br><small>OWEN MALINGU</small></td>
-                                                    <td>Confirmed You have recieved Kes 2,000 from Acc: 0743551250.... </td>
-                                                    <td>Notification</td>
-                                                    <td><a href="#" class="btn btn-sm btn-primary text-bolder" data-toggle="tooltip" title="View this transaction"><i class="ft-eye"></i></a></td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">2</th>
-                                                    <td>22nd June 2022 <span class="badge badge-success"> </span><br><small>OWEN MALINGU</small></td>
-                                                    <td>Confirmed You have recieved Kes 2,000 from Acc: 0743551250.... </td>
-                                                    <td>Transaction</td>
-                                                    <td><a href="#" class="btn btn-sm btn-primary text-bolder" data-toggle="tooltip" title="View this transaction"><i class="ft-eye"></i></a></td>
-                                                </tr>
-                                            </tbody>
-                                        </table> --}}
+                                            <tbody></tbody>
+                                        </table>
                                     </div>
-                                    <nav aria-label="Page navigation example" id="tablefooter">
-                                        <ul class="pagination" id="datatable_paginate">
-                                            <li class="page-item"  id="tofirstNav">
-                                                <a class="page-link" href="#" aria-label="Fisrt">
-                                                    <span aria-hidden="true">&laquo; &laquo;</span>
-                                                    <span class="sr-only">First</span>
-                                                </a>
-                                            </li>
-                                            <li class="page-item" id="toprevNac">
-                                                <a class="page-link" href="#" aria-label="Previous">
-                                                    <span aria-hidden="true">&laquo;</span>
-                                                    <span class="sr-only">Previous</span>
-                                                </a>
-                                            </li>
-                                            <li class="page-item"><button disabled class="page-link" id="pagenumNav">Page: 1</button></li>
-                                            <li class="page-item">
-                                                <a class="page-link" href="#" aria-label="Next" id="tonextNav">
-                                                    <span aria-hidden="true">&raquo;</span>
-                                                    <span class="sr-only">Next</span>
-                                                </a>
-                                            </li>
-                                            <li class="page-item">
-                                                <a class="page-link" href="#" aria-label="Last Page"  id="tolastNav">
-                                                    <span aria-hidden="true">&raquo;&raquo;</span>
-                                                    <span class="sr-only">Next</span>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                        <p class="card-text text-xxs">Showing from <span class="text-primary" id="startNo">1</span> to <span class="text-secondary"  id="finishNo">10</span> records of <span  id="tot_records">56</span></p>
-                                    </nav>
                                 </div>
                             </div>
                         </div>
@@ -597,7 +568,67 @@
         autocomplete(document.getElementById("myInput"), client_account, client_contacts, client_named);
         autocomplete(document.getElementById("myInput2"), client_contacts, client_account, client_named);
     </script>
+    <script src="//cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="/theme-assets/js/core/sms.js" type="text/javascript"></script>
+    <script>
+    (function () {
+        var activeChannel = 'all';
+
+        var smsTable = $('#sms_table').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: '/sms/datatable',
+                type: 'GET',
+                data: function (d) { d.channel = activeChannel; }
+            },
+            order: [[0, 'desc']],
+            dom: '<"bottom"l>t<"bottom"ip>',
+            pageLength: 20,
+            lengthMenu: [10, 20, 50, 100],
+            columns: [
+                { data: 'rownum',      orderable: false, searchable: false },
+                { data: 'date_sent' },
+                { data: 'sms_content' },
+                { data: 'sms_type' },
+                { data: 'actions',     orderable: false, searchable: false }
+            ]
+        });
+
+        // Hook external search box into DataTables
+        document.getElementById('searchkey').addEventListener('keyup', function () {
+            smsTable.search(this.value).draw();
+        });
+
+        // Channel tab filter
+        document.querySelectorAll('#channelTabs .nav-link').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelectorAll('#channelTabs .nav-link').forEach(function (l) {
+                    l.classList.remove('active');
+                });
+                this.classList.add('active');
+                activeChannel = this.getAttribute('data-channel');
+                smsTable.ajax.reload();
+            });
+        });
+
+        // Re-init tooltips and bulk-select checkboxes after each draw
+        smsTable.on('draw.dt', function () {
+            $('[data-toggle="tooltip"]').tooltip();
+            checkedUnchecked();
+        });
+    }());
+    </script>
+    <script>
+        // sms.js only calls plotGraph when sms_data.length > 0, which is never true
+        // now that the table uses DataTables. Call it directly here instead.
+        window.addEventListener('load', function () {
+            if (typeof plotGraph === 'function' && weekly_sms_data) {
+                plotGraph(weekly_sms_data);
+            }
+        });
+    </script>
     <script>
       var milli_seconds = 1200;
       setInterval(() => {

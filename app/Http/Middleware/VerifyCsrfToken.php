@@ -39,6 +39,7 @@ class VerifyCsrfToken extends Middleware
         '/New-Invoice',
         '/register_mpesa_url',
         '/Payment/stkpush',
-        '/router_clients/{acc_name}/{r_name}'
+        '/router_clients/{acc_name}/{r_name}',
+        '/whatsapp/webhook',
     ];
 }

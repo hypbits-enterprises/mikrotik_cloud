@@ -30,38 +30,10 @@ class Sms extends Controller
         $change_db = new login();
         $change_db->change_db();
 
-        $sms_data = DB::connection("mysql2")->select("SELECT * FROM `sms_tables` WHERE `deleted`= '0' ORDER BY `sms_id` DESC LIMIT 1000");
-        // get the clients names
+        // sms_data is now served via /sms/datatable (DataTables server-side)
+        $sms_data     = [];
         $client_names = [];
-        $dates = [];
-        foreach ($sms_data as $value) {
-            // get the clients data
-            $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `client_id` = '$value->account_id'");
-            $client_name = $value->recipient_phone;
-
-            if (count($client_data) > 0) {
-                $client_name = $client_data[0]->client_name;
-            }else{
-                // $client_name = (count($client_data)>0) ? $client_data[0]->client_name: $value->recipient_phone;
-                $phone_db = (strlen($value->recipient_phone) == 12) ? substr($value->recipient_phone,3,9) : substr($value->recipient_phone,1,9);
-                $user_data_return = $this->getOwnerPhone($value->account_id,$phone_db);
-                $client_name = $value->recipient_phone;
-            }
-            array_push($client_names,$client_name);
-            // get the payment dates
-            // return $client_name;
-            
-            $date_data = $value->date_sent;
-            $year = substr($date_data,0,4);
-            $month = substr($date_data,4,2);
-            $day = substr($date_data,6,2);
-            $hour = substr($date_data,8,2);
-            $minute = substr($date_data,10,2);
-            $second = substr($date_data,12,2);
-            $d = mktime($hour, $minute, $second, $month, $day, $year);
-            $dates2 = date("D dS M Y  h:i:sa", $d);
-            array_push($dates,$dates2);
-        }
+        $dates        = [];
         // return count($client_names);
         // GET ALL THE SMS SENT TODAY
         $today = date("Ymd");
@@ -150,6 +122,125 @@ class Sms extends Controller
         // return the view with the stats
         // return $dailyStatToday;
         return view("adminsms",["week_stats" => $week_stats, "dailyStats" => $dailyStatToday, "monthlyStats" => $monthlyStat, "weeklyStats" => $weeklyStat, "sms_data" =>$sms_data,"client_names" => $client_names, "dates" => $dates, "sms_count" => $sms_count, "last_week" => $sms_week,"total_sms" => $totalsms,"clients_name" => $clients_name,"clients_acc" => $clients_acc,"clients_phone" => $clients_phone]);
+    }
+
+    function smsDatatable(Request $req)
+    {
+        $change_db = new login();
+        $change_db->change_db();
+
+        $draw    = (int) $req->input('draw', 1);
+        $start   = max(0, (int) $req->input('start', 0));
+        $length  = max(1, min(100, (int) $req->input('length', 20)));
+        $search  = trim($req->input('search.value', ''));
+        $channel = in_array($req->input('channel'), ['sms', 'whatsapp', 'email'])
+                   ? $req->input('channel') : 'all';
+
+        $orderColIdx = (int) $req->input('order.0.column', 0);
+        $orderDir    = strtoupper($req->input('order.0.dir', 'desc')) === 'ASC' ? 'ASC' : 'DESC';
+        $orderCols   = [
+            's.sms_id',
+            's.date_sent',
+            "COALESCE(c.client_name, s.recipient_phone)",
+            's.sms_content',
+            's.sms_type',
+            's.sms_status',
+        ];
+        $orderBy = $orderCols[$orderColIdx] ?? 's.sms_id';
+
+        $where    = "s.deleted = '0'";
+        $bindings = [];
+
+        if ($channel !== 'all') {
+            $where    .= " AND s.channel = ?";
+            $bindings[] = $channel;
+        }
+
+        if ($search !== '') {
+            $where    .= " AND (c.client_name LIKE ? OR s.sms_content LIKE ? OR s.recipient_phone LIKE ?)";
+            $like      = "%{$search}%";
+            $bindings  = array_merge($bindings, [$like, $like, $like]);
+        }
+
+        $join = "FROM `sms_tables` s
+                 LEFT JOIN `client_tables` c ON c.client_id = s.account_id AND c.deleted = '0'
+                 WHERE {$where}";
+
+        $total    = (int) DB::connection('mysql2')->select(
+            "SELECT COUNT(*) AS total FROM `sms_tables` s WHERE s.deleted = '0'"
+        )[0]->total;
+
+        $filtered = (int) DB::connection('mysql2')->select(
+            "SELECT COUNT(*) AS total {$join}", $bindings
+        )[0]->total;
+
+        $rows = DB::connection('mysql2')->select(
+            "SELECT s.sms_id, s.date_sent, s.sms_content, s.sms_status, s.sms_type,
+                    s.channel, s.account_id, s.recipient_phone,
+                    COALESCE(c.client_name, s.recipient_phone) AS client_name,
+                    c.client_id
+             {$join}
+             ORDER BY {$orderBy} {$orderDir}
+             LIMIT {$length} OFFSET {$start}",
+            $bindings
+        );
+
+        $data = [];
+        foreach ($rows as $i => $row) {
+            $ds        = $row->date_sent ?? '';
+            $formatted = (strlen($ds) >= 12)
+                ? date('d M Y H:i', mktime(
+                    (int)substr($ds,8,2), (int)substr($ds,10,2), 0,
+                    (int)substr($ds,4,2), (int)substr($ds,6,2), (int)substr($ds,0,4)
+                  ))
+                : $ds;
+
+            $statusBadge = $row->sms_status == 1
+                ? '<span class="badge badge-success"> </span>'
+                : '<span class="badge badge-danger"> </span>';
+
+            $ch = $row->channel ?? 'sms';
+            $channelBadge = match($ch) {
+                'whatsapp' => '<span class="badge badge-success"><i class="fa-brands fa-whatsapp"></i> WhatsApp</span>',
+                'email'    => '<span class="badge badge-info"><i class="ft-mail"></i> Email</span>',
+                default    => '<span class="badge badge-primary"><i class="ft-message-square"></i> SMS</span>',
+            };
+
+            $clientLink = $row->client_id
+                ? '<a class="text-secondary" href="/Clients/View/' . $row->client_id . '">' . htmlspecialchars($row->client_name) . '</a>'
+                : htmlspecialchars($row->client_name ?? $row->recipient_phone);
+
+            $body    = $row->sms_content ?? '';
+            $preview = strlen($body) > 80 ? htmlspecialchars(substr($body, 0, 80)) . '&hellip;' : htmlspecialchars($body);
+            $full    = htmlspecialchars($body);
+
+            $viewBtn = "<a href='/sms/View/{$row->sms_id}' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View Message' style='padding:3px'>"
+                     . "<span class='d-inline-block border border-white w-100 text-center' style='border-radius:2px;padding:5px'><i class='ft-eye'></i></span></a>";
+
+            $waBtn = $ch === 'whatsapp'
+                ? " <a href='/whatsapp/chat/{$row->account_id}' class='btn btn-sm btn-success text-bolder' data-toggle='tooltip' title='View WhatsApp Chat' style='padding:3px'>"
+                  . "<span class='d-inline-block border border-white w-100 text-center' style='border-radius:2px;padding:5px'><i class='fa-brands fa-whatsapp'></i></span></a>"
+                : '';
+
+            $resend = "<a href='/sms/resend/{$row->sms_id}' class='text-bolder ml-1' data-toggle='tooltip' title='Re-send'><i class='ft-refresh-ccw'></i></a>";
+            $check  = "<input type='checkbox' class='actions_id' id='actions_id_{$row->sms_id}'>"
+                    . "<input type='hidden' id='actions_value_{$row->sms_id}' value='{$row->sms_id}'>";
+
+            $data[] = [
+                'rownum'      => $check . ' ' . ($start + $i + 1) . ' ' . $resend,
+                'date_sent'   => $formatted . ' ' . $statusBadge . '<br>' . $channelBadge . '<br><small>' . $clientLink . '</small>',
+                'sms_content' => '<span data-toggle="tooltip" data-html="true" title="' . $full . '">' . $preview . '</span>',
+                'sms_type'    => $row->sms_type == 1 ? 'Transaction' : 'Notification',
+                'actions'     => $viewBtn . $waBtn,
+            ];
+        }
+
+        return response()->json([
+            'draw'            => $draw,
+            'recordsTotal'    => $total,
+            'recordsFiltered' => $filtered,
+            'data'            => $data,
+        ]);
     }
 
     function sms_balance(){

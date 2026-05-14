@@ -436,6 +436,25 @@
                                 <textarea name="payment_description" id="payment_description" cols="30" rows="10" class="form-control" placeholder="e.g : Pay using Paybill 202020 Account number 1000.">{{$organization->payment_description ?$organization->payment_description:""}}</textarea>
                               </div>
                             </div>
+
+                            {{-- WhatsApp / SMS Channel Preference --}}
+                            <div class="row mb-3">
+                              <label class="col-md-4 col-lg-3 col-form-label">PREFERRED MESSAGING CHANNEL</label>
+                              <div class="col-md-8 col-lg-9">
+                                <select name="preferred_channel" class="form-control">
+                                  <option value="sms" {{ ($organization->preferred_channel ?? 'sms') == 'sms' ? 'selected' : '' }}>
+                                    SMS
+                                  </option>
+                                  <option value="whatsapp" {{ ($organization->preferred_channel ?? '') == 'whatsapp' ? 'selected' : '' }}>
+                                    WhatsApp
+                                  </option>
+                                </select>
+                                <small class="text-muted">
+                                  Determines which channel is used for automated client notifications (billing reminders, account alerts etc.)
+                                </small>
+                              </div>
+                            </div>
+
                             <div class="text-center">
                               @php
                                   $btnText = "Save Changes";

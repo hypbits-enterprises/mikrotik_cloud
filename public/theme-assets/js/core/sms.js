@@ -50,21 +50,18 @@ window.onload = function() {
             // create the collumn array that will take the row value
             var col = [];
             // console.log(element);
-            col.push(element['account_id']);
-            col.push(element['date_sent']);
-            col.push(element['recipient_phone']);
-            col.push(element['sms_content']);
-            col.push(element['sms_id']);
-            col.push(element['sms_status']);
-            col.push(element['sms_type']);
-
-            // add the clientname in the row list
-            col.push(client_names[index]);
-            console.log(client_names.length);
-            // add the dates also
-            col.push(dates[index]);
-            // var col = element.split(":");
-            col.push(element['account_id']);
+            col.push(element['account_id']);        // 0
+            col.push(element['date_sent']);          // 1
+            col.push(element['recipient_phone']);    // 2
+            col.push(element['sms_content']);        // 3
+            col.push(element['sms_id']);             // 4
+            col.push(element['sms_status']);         // 5
+            col.push(element['sms_type']);           // 6
+            col.push(client_names[index]);           // 7 client name
+            col.push(dates[index]);                  // 8 formatted date
+            col.push(element['account_id']);         // 9
+            col.push(element['channel'] || 'sms');  // 10 channel
+            col.push(element['message_category'] || ''); // 11 category
             rowsColStudents.push(col);
         }
         rowsNCols_original = rowsColStudents;
@@ -336,36 +333,40 @@ function hasJsonStructure(str) {
     }
 }
 
+var activeChannelFilter = 'all';
+
+function channelBadge(channel) {
+    if (channel === 'whatsapp') return "<span class='badge badge-success'>WhatsApp</span>";
+    if (channel === 'email')    return "<span class='badge badge-info'>Email</span>";
+    return "<span class='badge badge-primary'>SMS</span>";
+}
+
+function buildRow(arrays, index, counter) {
+    var message         = (arrays[index][3].length > 100) ? arrays[index][3].substr(0,100)+". . ." : arrays[index][3];
+    var transactiontype = (arrays[index][6] == 1) ? "Transaction" : "Notification";
+    var status          = (arrays[index][5] == "1") ? "<span class='badge badge-success'> </span>" : "<span class='badge badge-danger'> </span>";
+    var channel         = arrays[index][10] || 'sms';
+    var chBadge         = channelBadge(channel);
+    var waLink          = (channel === 'whatsapp') ? "<a href='/whatsapp/chat/"+arrays[index][0]+"' class='btn btn-sm btn-success text-bolder "+readonly+"' data-toggle='tooltip' title='View WhatsApp Chat' style=\"padding: 3px;\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='fa-brands fa-whatsapp'></i></span></a>" : "";
+    var actions         = "<a href='/sms/View/"+arrays[index][4]+"' class='btn btn-sm btn-primary text-bolder "+readonly+"' data-toggle='tooltip' title='View this Message' style=\"padding: 3px;\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i></span></a> "+waLink;
+    return "<tr data-channel='"+channel+"'><th scope='row'><input type='checkbox' class='actions_id' id='actions_id_"+arrays[index][4]+"'><input type='hidden' id='actions_value_"+arrays[index][4]+"' value='"+arrays[index][4]+"'> "+counter+" <a href='/sms/resend/"+arrays[index][4]+"' class='text-bolder' data-toggle='tooltip' title='Re-send this Message'><i class='ft-refresh-ccw'></i></a></th><td>"+arrays[index][8]+" "+status+"<br>"+chBadge+"<br><small><a class='text-secondary' href='/Clients/View/"+arrays[index][0]+"'>{"+arrays[index][7]+"}</a></small></td><td><span data-toggle='tooltip' data-html='true' title='"+arrays[index][3]+"'>"+message+"</span></td><td>"+transactiontype+"</td><td>"+actions+"</td></tr>";
+}
+
 function displayRecord(start, finish, arrays) {
     var total = arrays.length;
-    //the finish value
     var fins = 0;
-    //this is the table header to the start of the tbody
     var tableData = "<table class='table'><thead><tr><th>#</th><th>Date Sent</th><th>Message Body</th><th>Message Type</th><th>Action</th></tr></thead><tbody>";
     if(finish < total) {
         fins = finish;
-        //create a table of the 50 records
         var counter = start+1;
         for (let index = start; index < finish; index++) {
-
-            var message = (arrays[index][3].length > 100) ? arrays[index][3].substr(0,100)+". . .": arrays[index][3];
-            var transactiontype = (arrays[index][6] == 1) ? "Transaction" : "Notification";
-            var status = (arrays[index][5] == "1") ? "<span class='badge badge-success'> </span>":"<span class='badge badge-danger'> </span>";
-            
-            var actions = "<a href='/sms/View/"+arrays[index][4]+"' class='btn btn-sm btn-primary text-bolder "+readonly+"' data-toggle='tooltip' title='View this Message' style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i></span></a>";
-            tableData += "<tr><th scope='row'><input type='checkbox' class='actions_id' id='actions_id_"+arrays[index][4]+"'><input type='hidden' id='actions_value_"+arrays[index][4]+"' value='"+arrays[index][4]+"'> "+counter+"  <a href='/sms/resend/"+arrays[index][4]+"' class='text-bolder' data-toggle='tooltip' title='Re-send this Message'><i class='ft-refresh-ccw'></i></a></th><td>"+arrays[index][8] +" "+status+"<br><small><a class='text-secondary' href='/Clients/View/"+arrays[index][0]+"'>{"+arrays[index][7] +"}</a></small></td><td><span data-toggle='tooltip' data-html='true' title='"+arrays[index][3]+"'>"+message+"</span></td><td>"+transactiontype+"</td><td>"+actions+"</td></tr>";
+            tableData += buildRow(arrays, index, counter);
             counter++;
         }
     }else{
-        //create a table of the 50 records
         var counter = start+1;
         for (let index = start; index < total; index++) {
-            var message = (arrays[index][3].length > 100) ? arrays[index][3].substr(0,100)+". . .": arrays[index][3];
-            var transactiontype = (arrays[index][6] == 1) ? "Transaction" : "Notification";
-            var status = (arrays[index][5] == "1") ? "<span class='badge badge-success'> </span>":"<span class='badge badge-danger'> </span>";
-
-            var actions = "<a href='/sms/View/"+arrays[index][4]+"' class='btn btn-sm btn-primary text-bolder "+readonly+"' data-toggle='tooltip' title='View this Message' style=\"padding: 3px;\" id=\"\" data-toggle=\"tooltip\"><span class=\"d-inline-block border border-white w-100 text-center\" style=\"border-radius: 2px; padding: 5px;\"><i class='ft-eye'></i></span></a>";
-            tableData += "<tr><th scope='row'><input type='checkbox' class='actions_id' id='actions_id_"+arrays[index][4]+"'><input type='hidden' id='actions_value_"+arrays[index][4]+"' value='"+arrays[index][4]+"'> "+counter+"  <a href='/sms/resend/"+arrays[index][4]+"' class='text-bolder' data-toggle='tooltip' title='Re-send this Message'><i class='ft-refresh-ccw'></i></a></th><td>"+arrays[index][8] +" "+status+"<br><small><a class='text-secondary' href='/Clients/View/"+arrays[index][0]+"'>{"+arrays[index][7] +"}</a></small></td><td><span data-toggle='tooltip' data-html='true' title='"+arrays[index][3]+"'>"+message+"</span></td><td>"+transactiontype+"</td><td>"+actions+"</td></tr>";
+            tableData += buildRow(arrays, index, counter);
             counter++;
         }
         fins = total;
@@ -540,3 +541,35 @@ cObj("contain_text_option").onchange =  function () {
         cObj("text_containing_window").classList.add("hide");
     }
 }
+
+// ── Channel Filter Tabs ───────────────────────────────────────────────────────
+document.querySelectorAll('#channelTabs .nav-link').forEach(function(tab) {
+    tab.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelectorAll('#channelTabs .nav-link').forEach(function(t) {
+            t.classList.remove('active');
+        });
+        this.classList.add('active');
+
+        var channel = this.getAttribute('data-channel');
+        activeChannelFilter = channel;
+
+        if (channel === 'all') {
+            rowsColStudents = rowsNCols_original;
+        } else {
+            rowsColStudents = rowsNCols_original.filter(function(row) {
+                return (row[10] || 'sms') === channel;
+            });
+        }
+
+        pagecounttrans = 1;
+        startpage = 0;
+        pagecountTransaction = Math.ceil(rowsColStudents.length / 50);
+        cObj("tot_records").innerText = rowsColStudents.length;
+        cObj("transDataReciever").innerHTML = rowsColStudents.length > 0
+            ? displayRecord(0, 50, rowsColStudents)
+            : "<p class='sm-text text-danger text-bold text-center'><span style='font-size:40px;'><i class='ft-alert-triangle'></i></span><br>No " + channel + " messages found.</p>";
+        hoverEffect();
+        checkedUnchecked();
+    });
+});
