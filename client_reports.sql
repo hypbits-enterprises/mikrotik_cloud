@@ -54,3 +54,26 @@ ALTER TABLE `whatsapp_templates`
     ADD COLUMN IF NOT EXISTS `language` VARCHAR(10) NOT NULL DEFAULT 'en' AFTER `meta_template_id`;
 
 UPDATE sms_tables SET channel = 'email' WHERE recipient_phone LIKE '%@%';
+ALTER TABLE `whatsapp_chats`
+    ADD COLUMN `conversation_id`  VARCHAR(100) NULL AFTER `wa_message_id`,
+    ADD COLUMN `billing_category` VARCHAR(20)  NULL AFTER `conversation_id`,
+    ADD COLUMN `billable`         TINYINT(1)   NULL AFTER `billing_category`,
+    ADD INDEX  `idx_conversation_id` (`conversation_id`);
+
+-- FOR MIKROTIK_CLOUD_MANAGER
+CREATE TABLE `unknown_wa_chats` (
+      `id`              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+      `phone`           VARCHAR(30)     NOT NULL,
+      `wa_message_id`   VARCHAR(100)    DEFAULT NULL,
+      `direction`       ENUM('inbound','outbound') NOT NULL DEFAULT 'inbound',
+      `message`         TEXT            NOT NULL,
+      `delivery_status` VARCHAR(20)     NOT NULL DEFAULT 'received',
+      `date_sent`       VARCHAR(14)     NOT NULL,
+      `deleted`         TINYINT(1)      NOT NULL DEFAULT 0,
+      `created_at`      TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP,
+      `updated_at`      TIMESTAMP       NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (`id`),
+      KEY `idx_phone`         (`phone`),
+      KEY `idx_wa_message_id` (`wa_message_id`),
+      KEY `idx_deleted`       (`deleted`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
