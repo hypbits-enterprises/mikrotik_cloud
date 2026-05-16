@@ -137,20 +137,92 @@ The organisation database used for development and testing is `mikrotik_cloud` (
 
 **Config:** `config/messaging.php` holds WhatsApp settings, max templates, and message categories.
 
-## Session Progress (last updated 2026-05-14)
+### WhatsApp Billing Model
 
-WhatsApp module is complete and confirmed working end-to-end:
-- Inbound messages from Meta are received, routed to the correct org DB, and saved
+Meta charges per **conversation** (a 24-hour window), not per message. Four categories exist, each priced differently: `service`, `utility`, `marketing`, `authentication`.
+
+**Key rules:**
+- Multiple messages within the same 24-hour window share one `conversation_id` — only 1 charge regardless of message count
+- `service` conversations (client messages you first) are free up to 1,000/month per WABA, then billed
+- Business-initiated conversations (template sends) are always billed per conversation
+- Bulk sends: each recipient gets their own conversation window — billing is per recipient, not per send
+- If a service window is already open and you send a template, Meta opens a **separate** conversation for the template category — they do not share windows across categories
+- Meta reports `pricing.billable = false` for free-tier conversations — this must be stored to avoid overbilling
+
+**Billing data flow:**
+1. Meta sends `pricing.billable`, `pricing.category`, and `conversation.id` inside **`sent`** status webhooks only (not `delivered` or `read`)
+2. This system captures those three fields and writes them to `whatsapp_chats` columns: `conversation_id`, `billing_category`, `billable`
+3. **Billing rates are set in `mikrotik_cloud_manager` by the main system admin — individual orgs cannot change them**
+4. The billing/manager system reads `whatsapp_chats` from each org DB and runs:
+
+```sql
+SELECT account_id, billing_category,
+       COUNT(DISTINCT conversation_id)              AS conversations,
+       COUNT(DISTINCT conversation_id) * r.rate     AS cost
+FROM whatsapp_chats wc
+JOIN whatsapp_billing_rates r ON r.category = wc.billing_category
+WHERE wc.billable = 1
+  AND wc.date_sent BETWEEN '20260501000000' AND '20260531235959'
+GROUP BY account_id, billing_category;
+```
+
+**`whatsapp_chats` billing columns (added via ALTER TABLE on each org DB):**
+```sql
+ALTER TABLE `whatsapp_chats`
+  ADD COLUMN `conversation_id`  VARCHAR(100) NULL AFTER `wa_message_id`,
+  ADD COLUMN `billing_category` VARCHAR(20)  NULL AFTER `conversation_id`,
+  ADD COLUMN `billable`         TINYINT(1)   NULL AFTER `billing_category`,
+  ADD INDEX  `idx_conversation_id` (`conversation_id`);
+```
+
+**`whatsapp_billing_rates` table lives in `mikrotik_cloud_manager` (not in org DBs):**
+```sql
+CREATE TABLE `whatsapp_billing_rates` (
+    `id`         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `category`   VARCHAR(20) NOT NULL UNIQUE,  -- service|utility|marketing|authentication
+    `rate`       DECIMAL(10,4) NOT NULL DEFAULT 0.0000,
+    `currency`   VARCHAR(5) NOT NULL DEFAULT 'KES',
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+**Unknown sender inbox:**
+Messages from numbers not registered as clients in any org are saved to `unknown_wa_chats` in `mikrotik_cloud_manager` (primary DB). The UI to manage these is built in the manager system, not here. This system only writes to that table via the webhook handler.
+
+```sql
+CREATE TABLE `unknown_wa_chats` (
+    `id`              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `phone`           VARCHAR(30)  NOT NULL,
+    `wa_message_id`   VARCHAR(100) DEFAULT NULL,
+    `direction`       ENUM('inbound','outbound') NOT NULL DEFAULT 'inbound',
+    `message`         TEXT NOT NULL,
+    `delivery_status` VARCHAR(20) NOT NULL DEFAULT 'received',
+    `date_sent`       VARCHAR(14) NOT NULL,
+    `deleted`         TINYINT(1) NOT NULL DEFAULT 0,
+    `created_at`      TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`      TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    KEY `idx_phone` (`phone`),
+    KEY `idx_wa_message_id` (`wa_message_id`),
+    KEY `idx_deleted` (`deleted`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+## Session Progress (last updated 2026-05-16)
+
+WhatsApp module complete and working end-to-end:
+- Inbound messages routed to correct org DB; unknown numbers saved to `unknown_wa_chats` in primary DB
 - Outbound messages (free-form and template) send successfully
-- Client info modal in chat header shows formatted client details
-- SMS/WhatsApp channel tabs in compose view working
-- adminsms sms.js crash fixed (hidden nav stubs); SMS graph rendering fixed
-- App timezone set to `Africa/Nairobi` — stored times now match EAT
+- Real-time polling: active chat messages every 5s, sidebar contacts every 15s
+- Client info modal shows full profile including wallet balance
+- Variable insert chips in compose area (Name, Phone, Account, Monthly, Wallet, Expiry, Router, Address)
+- Template sends only show Meta-approved templates
+- Sync result shows only locally matched templates
+- Conversation billing fields (`conversation_id`, `billing_category`, `billable`) captured from Meta status webhooks and stored in `whatsapp_chats`
+- Delete conversation feature (soft-deletes all messages for a client)
 
 **Possible next steps:**
-- Display raw webhook payloads in the admin UI (currently only in `laravel.log`)
-- WhatsApp chats: real-time updates via polling or WebSocket instead of full-page reload
 - Template variable preview in the template editor
+- Display raw webhook payloads in the admin UI
 
 ## Git Commit Guidelines
 

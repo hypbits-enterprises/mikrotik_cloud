@@ -41,6 +41,47 @@ class WhatsApp extends Controller
         return view('whatsapp.chats', compact('chats', 'stats', 'templates'));
     }
 
+    // ─── AJAX: Sidebar chats list (for polling) ───────────────────────────────
+
+    public function getChatsJson()
+    {
+        $this->switchDb();
+
+        $chats = DB::connection('mysql2')->select("
+            SELECT m.sms_id, m.account_id, m.sms_content, m.date_sent,
+                   c.client_name, c.clients_contacts, c.client_account,
+                   wa.direction, wa.delivery_status
+            FROM sms_tables m
+            JOIN whatsapp_chats wa ON wa.message_id = m.sms_id
+            JOIN client_tables c ON c.client_id = m.account_id
+            WHERE m.deleted = '0' AND m.channel = 'whatsapp'
+              AND m.sms_id IN (
+                  SELECT MAX(s3.sms_id) FROM sms_tables s3
+                  WHERE s3.channel = 'whatsapp' AND s3.deleted = '0'
+                  GROUP BY s3.account_id
+              )
+            ORDER BY m.sms_id DESC
+            LIMIT 500
+        ");
+
+        return response()->json($chats);
+    }
+
+    // ─── Delete a conversation ────────────────────────────────────────────────
+
+    public function deleteChat($client_id)
+    {
+        $this->switchDb();
+
+        DB::connection('mysql2')->update(
+            "UPDATE `sms_tables` SET `deleted` = '1'
+             WHERE `account_id` = ? AND `channel` = 'whatsapp'",
+            [$client_id]
+        );
+
+        return response()->json(['success' => true]);
+    }
+
     // ─── AJAX: Messages for a client ─────────────────────────────────────────
 
     public function getChatMessages($client_id)
@@ -124,7 +165,6 @@ class WhatsApp extends Controller
         $req->validate([
             'client_id' => 'required|integer',
             'message'   => 'required|string|max:4096',
-            'category'  => 'required|in:service,utility,authentication,marketing',
         ]);
 
         $this->switchDb();
@@ -143,7 +183,7 @@ class WhatsApp extends Controller
         }
 
         $phone  = $this->formatKenyanPhone($client[0]->clients_contacts);
-        $result = $this->sendWhatsAppMessage($phone, $req->message, $req->category);
+        $result = $this->sendWhatsAppMessage($phone, $req->message, 'service');
 
         $status = isset($result['messages'][0]['id']) ? 1 : 0;
         $waId   = $result['messages'][0]['id'] ?? null;
@@ -153,7 +193,7 @@ class WhatsApp extends Controller
             $req->message,
             $phone,
             $status,
-            $req->category,
+            'service',
             'outbound',
             $waId
         );
@@ -252,12 +292,12 @@ class WhatsApp extends Controller
         $this->switchDb();
 
         $template = DB::connection('mysql2')->select(
-            "SELECT * FROM `whatsapp_templates` WHERE `id` = ? AND `is_active` = 1 AND `deleted` = '0'",
+            "SELECT * FROM `whatsapp_templates` WHERE `id` = ? AND `is_active` = 1 AND `deleted` = '0' AND `meta_status` = 'approved'",
             [$req->template_id]
         );
 
         if (empty($template)) {
-            return back()->with('error_wa', 'Template not found.');
+            return back()->with('error_wa', 'Template not found or not approved.');
         }
 
         $template = $template[0];
@@ -661,25 +701,27 @@ class WhatsApp extends Controller
             'PENDING_DELETION' => 'rejected',
         ];
 
-        $updated   = 0;
-        $metaNames = [];
+        $updated    = 0;
+        $matchedNames = [];
         foreach ($result['data'] as $metaTpl) {
-            $metaStatus  = $statusMap[strtoupper($metaTpl['status'] ?? '')] ?? 'pending';
-            $metaNames[] = $metaTpl['name'] . ' [' . strtoupper($metaTpl['status'] ?? '?') . ']';
-            $affected    = DB::connection('mysql2')->update(
+            $metaStatus = $statusMap[strtoupper($metaTpl['status'] ?? '')] ?? 'pending';
+            $affected   = DB::connection('mysql2')->update(
                 "UPDATE `whatsapp_templates`
                  SET `meta_status` = ?, `meta_template_id` = ?, `date_changed` = ?
                  WHERE `template_name` = ? AND `deleted` = '0'",
                 [$metaStatus, $metaTpl['id'], date('YmdHis'), $metaTpl['name']]
             );
-            $updated += $affected;
+            if ($affected > 0) {
+                $matchedNames[] = $metaTpl['name'] . ' [' . strtoupper($metaTpl['status'] ?? '?') . ']';
+                $updated += $affected;
+            }
         }
 
-        $metaList = empty($metaNames)
-            ? 'No templates found on Meta.'
-            : 'Meta has: ' . implode(', ', $metaNames) . '.';
+        $metaList = empty($matchedNames)
+            ? 'No matching local templates were found.'
+            : implode(', ', $matchedNames) . '.';
 
-        return back()->with('success_wa', "Sync complete. {$updated} local template(s) updated. {$metaList}");
+        return back()->with('success_wa', "Sync complete. {$updated} local template(s) updated: {$metaList}");
     }
 
     public function toggleTemplate($id)
@@ -833,14 +875,27 @@ class WhatsApp extends Controller
             ["%{$localPhone}%"]
         );
 
-        $clientId = !empty($client) ? $client[0]->client_id : 0;
-
         $body = $message['text']['body']
             ?? $message['image']['caption']
             ?? '[Media message]';
 
         $waId = $message['id'] ?? null;
         $now  = now()->format('YmdHis');
+
+        // Unknown number — save to the primary DB support inbox and stop
+        if (empty($client)) {
+            DB::table('unknown_wa_chats')->insert([
+                'phone'          => $phone,
+                'wa_message_id'  => $waId,
+                'direction'      => 'inbound',
+                'message'        => $body,
+                'delivery_status'=> 'received',
+                'date_sent'      => $now,
+            ]);
+            return;
+        }
+
+        $clientId = $client[0]->client_id;
 
         $msgId = DB::connection('mysql2')->table('sms_tables')->insertGetId([
             'sms_content'    => $body,
@@ -867,17 +922,50 @@ class WhatsApp extends Controller
 
     private function handleStatusUpdate(array $status)
     {
-        $waId       = $status['id'] ?? null;
-        $newStatus  = $status['status'] ?? null;
+        $waId      = $status['id'] ?? null;
+        $newStatus = $status['status'] ?? null;
 
         if (!$waId || !$newStatus) return;
+
+        // Meta only includes conversation/pricing on the 'sent' status update
+        $convId     = $status['conversation']['id']      ?? null;
+        $billingCat = $status['pricing']['category']     ?? null;
+        $billable   = isset($status['pricing']['billable'])
+                        ? ($status['pricing']['billable'] ? 1 : 0)
+                        : null;
+
+        // Check primary-DB unknown inbox first
+        $unknownUpdate = ['delivery_status' => $newStatus];
+        $affected = DB::table('unknown_wa_chats')
+            ->where('wa_message_id', $waId)
+            ->update($unknownUpdate);
+
+        if ($affected > 0) return;
 
         // Find which org's DB holds this message, then update it there
         $this->resolveOrgByWaMessageId($waId);
 
+        $fields = ['delivery_status = ?'];
+        $bindings = [$newStatus];
+
+        if ($convId !== null) {
+            $fields[]   = 'conversation_id = ?';
+            $bindings[] = $convId;
+        }
+        if ($billingCat !== null) {
+            $fields[]   = 'billing_category = ?';
+            $bindings[] = $billingCat;
+        }
+        if ($billable !== null) {
+            $fields[]   = 'billable = ?';
+            $bindings[] = $billable;
+        }
+
+        $bindings[] = $waId;
+
         DB::connection('mysql2')->update(
-            "UPDATE `whatsapp_chats` SET `delivery_status` = ? WHERE `wa_message_id` = ?",
-            [$newStatus, $waId]
+            'UPDATE `whatsapp_chats` SET ' . implode(', ', $fields) . ' WHERE `wa_message_id` = ?',
+            $bindings
         );
     }
 
@@ -920,7 +1008,7 @@ class WhatsApp extends Controller
     private function fetchTemplates(): array
     {
         return DB::connection('mysql2')->select(
-            "SELECT * FROM `whatsapp_templates` WHERE `is_active` = 1 AND `deleted` = '0' ORDER BY `id` ASC"
+            "SELECT * FROM `whatsapp_templates` WHERE `is_active` = 1 AND `deleted` = '0' AND `meta_status` = 'approved' ORDER BY `id` ASC"
         );
     }
 

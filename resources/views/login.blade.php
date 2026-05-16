@@ -78,6 +78,7 @@
                                                 <option value="" hidden >How to recieve code!</option>
                                                 <option value="SMS">Send SMS</option>
                                                 <option selected value="EMAILS">Send Email</option>
+                                                <option value="WHATSAPP">Send WhatsApp</option>
                                             </select>
                                         </div>
                                         <div class="form-group">

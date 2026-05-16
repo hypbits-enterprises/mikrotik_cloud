@@ -73,6 +73,8 @@ class login extends Controller
                     $sms_status = 0;
                 }
 
+                $channel = 'sms';
+
                 if ($send_code == "SMS" && $sms_status == 1) {
                     $sms_settings = $this->getSmsSettings();
                     if ($sms_settings === null) {
@@ -81,13 +83,13 @@ class login extends Controller
                     }
                     $this->GlobalSendSMS($message, $mobile, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id']);
                     $message_status = 1;
-                }elseif ($send_code == "EMAILS" || ($send_code == "SMS" && $sms_status == 0)) {
+                } elseif ($send_code == "EMAILS" || ($send_code == "SMS" && $sms_status == 0)) {
                     // if the username email is null redirect and show error
                     if ($result[0]->email == null || strlen($result[0]->email) < 1) {
                         session()->flash('error',"Your email has not been set up! Contact your administrator to set it up for you! ".$error_message."");
                         return redirect("/Login");
                     }
-                    
+
                     if (empty(env("EMAIL_HOST")) || empty(env("EMAIL_USERNAME")) || empty(env("EMAIL_PASSWORD"))) {
                         session()->flash('error', "Email is not configured. Please contact your administrator to set up email settings, or use SMS to receive your verification code.");
                         return redirect("/Login");
@@ -97,26 +99,22 @@ class login extends Controller
                     $email_username = "hypbits@gmail.com";
                     $sender_address = $result[0]->email;
                     $mobile = $sender_address;
+                    $channel = 'email';
 
                     // USE PHP MAILER
                     $mail = new PHPMailer(true);
 
                     $mail->isSMTP();
-                    // $mail->SMTPDebug = SMTP::DEBUG_SERVER;
                     $mail->Host = env("EMAIL_HOST");
-                    // $mail->Host = $email_host_addr;
                     $mail->SMTPAuth = true;
                     $mail->Username = env("EMAIL_USERNAME");
                     $mail->Password = env("EMAIL_PASSWORD");
-                    // $mail->Username = $email_username;
-                    // $mail->Password = $email_password;
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     $mail->Port = 587;
                     $message = view('email_templates.login_otp', [
                         'user_data' => $result[0],
                         'otp_password' => $random_no
                     ])->render();
-
 
                     $mail->setFrom($email_username,$sender_name);
                     $mail->addAddress($sender_address);
@@ -131,9 +129,27 @@ class login extends Controller
                         session()->flash('error', "Failed to send email. Please contact your administrator to verify email settings, or use SMS to receive your verification code.");
                         return redirect("/Login");
                     }
-                }
-                $message = "Your verification code is ".$random_no.". It will expire in 5 minutes";
+                } elseif ($send_code == "WHATSAPP") {
+                    $waSettings = $this->getWhatsAppSettings();
+                    if (!$waSettings) {
+                        session()->flash('error', "WhatsApp is not configured. Please contact your administrator or use SMS/Email to receive your verification code.");
+                        return redirect("/Login");
+                    }
 
+                    $waPhone = $this->formatKenyanPhone($mobile);
+                    $waResult = $this->sendWhatsAppTemplate($waPhone, 'verification_code', [(string) $random_no], 'authentication', 'en');
+
+                    if (empty($waResult['messages'][0]['id'])) {
+                        $errDetail = $waResult['error']['message'] ?? 'Unknown error';
+                        session()->flash('error', "WhatsApp failed to send the verification code ({$errDetail}). Please use SMS or Email instead.");
+                        return redirect("/Login");
+                    }
+
+                    $message_status = 1;
+                    $channel = 'whatsapp';
+                }
+
+                $message = "Your verification code is ".$random_no.". It will expire in 5 minutes";
 
                 // save the sms in the database
                 $sms_table = new sms_table();
@@ -143,6 +159,7 @@ class login extends Controller
                 $sms_table->sms_status = $message_status;
                 $sms_table->account_id = "0";
                 $sms_table->sms_type = "2";
+                $sms_table->channel = $channel;
                 $sms_table->save();
 
                 // save the verifcation code in the database
@@ -152,16 +169,17 @@ class login extends Controller
                 $verification_code->date_generated = date("YmdHis",strtotime("5 Minutes"));
                 $verification_code->status = "0";
                 $verification_code->save();
-                
 
-                if ($send_code == "SMS" && $sms_status == 1){
-                    $req->session()->flash("contacts",$contact);
-                }elseif ($send_code == "EMAILS" || ($send_code == "SMS" && $sms_status == 0)) {
+                if ($send_code == "SMS" && $sms_status == 1) {
+                    $req->session()->flash("contacts", $contact);
+                } elseif ($send_code == "EMAILS" || ($send_code == "SMS" && $sms_status == 0)) {
                     $contact = "".$result[0]->email."";
                     if (($send_code == "SMS" && $sms_status == 0)) {
                         $contact .= " --  (You are not allowed to send SMS!)";
                     }
-                    $req->session()->flash("contacts",$contact);
+                    $req->session()->flash("contacts", $contact);
+                } elseif ($send_code == "WHATSAPP") {
+                    $req->session()->flash("contacts", $contact);
                 }
                 // update the last time they logged in;
                 DB::table("admin_tables")->where("admin_id",$result[0]->admin_id)->update(["last_time_login" => date("YmdHis"),"date_changed" => date("YmdHis")]);

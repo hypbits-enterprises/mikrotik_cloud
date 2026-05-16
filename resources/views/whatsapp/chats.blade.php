@@ -333,6 +333,26 @@
         .av-7 { background: #2c7a7b; }
         .av-wa { background: #25d366; }
 
+        /* Variable insert chips */
+        .var-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid #c8e6c9;
+            background: #f1f8f2;
+            color: #2e7d32;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background .15s;
+            user-select: none;
+        }
+        .var-chip:hover { background: #c8e6c9; }
+        .var-chip i { font-size: 0.65rem; }
+
         /* Stats strip */
         .wa-stats-strip {
             display: flex;
@@ -464,6 +484,7 @@
                                    data-account="{{ $chat->client_account }}"
                                    data-color="{{ $color }}"
                                    data-initial="{{ $initial }}"
+                                   data-sms-id="{{ $chat->sms_id }}"
                                    href="#">
                                     <div class="wa-contact-avatar {{ $color }}">{{ $initial }}</div>
                                     <div class="wa-contact-info">
@@ -514,6 +535,11 @@
                                     <a id="header-profile-link" href="#" class="btn btn-sm btn-primary" style="padding:3px 8px;" data-toggle="tooltip" title="View Client Profile">
                                         <i class="ft-user"></i>
                                     </a>
+                                    @if(!$readonly)
+                                    <button id="delete-chat-btn" class="btn btn-sm btn-danger" style="padding:3px 8px;" data-toggle="tooltip" title="Delete Conversation">
+                                        <i class="ft-trash-2"></i>
+                                    </button>
+                                    @endif
                                 </div>
                             </div>
 
@@ -524,16 +550,12 @@
                             <div class="wa-compose" id="chat-compose">
                                 {{-- Free-form (shown/hidden by JS based on window status) --}}
                                 <div id="compose-freeform" style="display:none;">
+                                    {{-- Client variable chips --}}
+                                    <div id="var-chips" style="display:flex;flex-wrap:wrap;gap:4px;padding:4px 0 6px;border-bottom:1px solid #e8e8e8;margin-bottom:6px;"></div>
                                     <div class="compose-row">
-                                        <select id="compose-category" style="width:130px;border-radius:8px;border:1px solid #ddd;padding:5px 8px;font-size:.8rem;background:#fff;">
-                                            <option value="service">Service</option>
-                                            <option value="utility">Utility</option>
-                                            <option value="authentication">Authentication</option>
-                                            <option value="marketing">Marketing</option>
-                                        </select>
                                         <textarea id="compose-text" rows="1" placeholder="Type a message…" {{ $readonly }}></textarea>
                                         <button class="send-btn" id="send-btn" title="Send message" {{ $readonly }}>
-                                            <i class="ft-send" style="font-size:14px;"></i>
+                                            <i class="ft-navigation" style="font-size:14px;"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -625,12 +647,16 @@
     <script src="/theme-assets/js/core/app-lite.js" type="text/javascript"></script>
     <script>
     (function () {
-        var csrfToken    = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        var activeId      = null;
-        var activeColor   = 'av-0';
-        var activeInitial = 'A';
+        var csrfToken       = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        var activeId        = null;
+        var activeColor     = 'av-0';
+        var activeInitial   = 'A';
         var clientTemplates = [];
-        var activeClient  = null;
+        var activeClient    = null;
+        var lastMsgId       = 0;
+        var msgPollTimer    = null;
+        var sidebarTimer    = null;
+        var unreadMap       = {};
 
         // ── Avatar colour helpers ────────────────────────────────────────────
         var COLORS = ['av-0','av-1','av-2','av-3','av-4','av-5','av-6','av-7'];
@@ -664,6 +690,10 @@
         function openChat(clientId) {
             if (activeId === clientId) return;
 
+            // Remove unread dot from this contact
+            var dotEl = document.querySelector('#contact-' + clientId + ' .unread-dot');
+            if (dotEl) dotEl.remove();
+
             // Highlight contact
             document.querySelectorAll('.wa-contact-item').forEach(function (el) {
                 el.classList.remove('active');
@@ -675,18 +705,21 @@
                 activeInitial = contactEl.getAttribute('data-initial') || '?';
             }
 
-            activeId = clientId;
+            activeId  = clientId;
+            lastMsgId = 0;
             showState('loading');
 
             fetch('/whatsapp/messages/' + clientId)
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
                     if (data.error) { showState('welcome'); return; }
+                    lastMsgId = data.messages.length ? data.messages[data.messages.length - 1].sms_id : 0;
                     renderHeader(data.client, data.withinWindow);
                     renderMessages(data.messages, data.client);
                     renderCompose(data.withinWindow, data.templates);
                     showState('chat');
                     scrollDown();
+                    startMsgPoll();
                 })
                 .catch(function () { showState('welcome'); });
         }
@@ -771,6 +804,7 @@
                 ['Account No.', escHtml(c.client_account   || '—')],
                 ['Assignment',  assignHtml],
                 ['Monthly',     c.monthly_payment ? 'KES ' + escHtml(String(c.monthly_payment)) : '—'],
+                ['Wallet',      c.wallet_amount != null ? 'KES ' + escHtml(String(c.wallet_amount)) : '—'],
                 ['Router',      escHtml(c.router_name      || '—')],
                 ['Address',     escHtml(c.client_address   || '—')],
                 ['Expiry',      fmtDatetime(c.next_expiration_date)],
@@ -790,14 +824,52 @@
             $('#clientInfoModal').modal('show');
         }
 
-        // Header click → modal; profile link click → redirect only
+        // Header click → modal; profile link and delete button stop propagation
         document.getElementById('chat-header').addEventListener('click', function (e) {
             if (e.target.closest('#header-profile-link')) return;
+            if (e.target.closest('#delete-chat-btn')) return;
             showClientModal();
         });
         document.getElementById('header-profile-link').addEventListener('click', function (e) {
             e.stopPropagation();
         });
+
+        // ── Delete conversation ───────────────────────────────────────────────
+        var deleteChatBtn = document.getElementById('delete-chat-btn');
+        if (deleteChatBtn) {
+            deleteChatBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                if (!activeId) return;
+                var name = document.getElementById('header-name').textContent || 'this contact';
+                if (!confirm('Delete all messages with ' + name + '? This cannot be undone.')) return;
+
+                var btn = this;
+                btn.disabled = true;
+
+                fetch('/whatsapp/chat/delete/' + activeId, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (!data.success) { alert('Failed to delete conversation.'); return; }
+                    // Remove contact from sidebar
+                    var contactEl = document.getElementById('contact-' + activeId);
+                    if (contactEl) contactEl.remove();
+                    delete unreadMap[activeId];
+                    // Reset active state and show welcome screen
+                    activeId  = null;
+                    lastMsgId = 0;
+                    if (msgPollTimer) { clearInterval(msgPollTimer); msgPollTimer = null; }
+                    showState('welcome');
+                })
+                .catch(function () { alert('Failed to delete conversation.'); })
+                .finally(function () { btn.disabled = false; });
+            });
+        }
 
         // ── Render messages ──────────────────────────────────────────────────
         function renderMessages(messages, client) {
@@ -859,10 +931,55 @@
             container.innerHTML = html;
         }
 
+        // ── Client variable chips ────────────────────────────────────────────
+        function buildVarChips(client) {
+            var container = document.getElementById('var-chips');
+            container.innerHTML = '';
+            if (!client) return;
+
+            var name = toTitle(client.client_name || '');
+            var expiry = client.next_expiration_date || '—';
+            var vars = [
+                { label: 'Name',     icon: 'ft-user',       value: name },
+                { label: 'Phone',    icon: 'ft-phone',       value: client.clients_contacts || '—' },
+                { label: 'Account',  icon: 'ft-hash',        value: client.client_account   || '—' },
+                { label: 'Monthly',  icon: 'ft-dollar-sign', value: client.monthly_payment ? 'KES ' + client.monthly_payment : '—' },
+                { label: 'Wallet',   icon: 'ft-credit-card', value: client.wallet_amount != null ? 'KES ' + client.wallet_amount : '—' },
+                { label: 'Expiry',   icon: 'ft-clock',       value: expiry },
+                { label: 'Router',   icon: 'ft-wifi',        value: client.router_name      || '—' },
+                { label: 'Address',  icon: 'ft-map-pin',     value: client.client_address   || '—' },
+            ];
+
+            vars.forEach(function (v) {
+                if (!v.value || v.value === '—') return;
+                var chip = document.createElement('span');
+                chip.className = 'var-chip';
+                chip.title = 'Insert: ' + v.value;
+                chip.innerHTML = '<i class="' + v.icon + '"></i>' + v.label;
+                chip.addEventListener('click', function () {
+                    insertAtCursor(document.getElementById('compose-text'), v.value);
+                });
+                container.appendChild(chip);
+            });
+        }
+
+        function insertAtCursor(el, text) {
+            el.focus();
+            var start = el.selectionStart;
+            var end   = el.selectionEnd;
+            var val   = el.value;
+            el.value  = val.substring(0, start) + text + val.substring(end);
+            var pos   = start + text.length;
+            el.setSelectionRange(pos, pos);
+            // Trigger auto-expand
+            el.dispatchEvent(new Event('input'));
+        }
+
         // ── Render compose area ───────────────────────────────────────────────
         function renderCompose(withinWindow, templates) {
             clientTemplates = templates || [];
 
+            buildVarChips(activeClient);
             document.getElementById('compose-freeform').style.display       = withinWindow ? '' : 'none';
             document.getElementById('window-closed-notice').style.display   = withinWindow ? 'none' : '';
 
@@ -890,7 +1007,6 @@
         document.getElementById('send-btn').addEventListener('click', function () {
             if (!activeId) return;
             var txt = document.getElementById('compose-text').value.trim();
-            var cat = document.getElementById('compose-category').value;
             if (!txt) return;
 
             this.disabled = true;
@@ -903,13 +1019,14 @@
                     'Accept': 'application/json',
                     'X-CSRF-TOKEN': csrfToken
                 },
-                body: JSON.stringify({ client_id: activeId, message: txt, category: cat })
+                body: JSON.stringify({ client_id: activeId, message: txt })
             })
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (data.success) {
                     document.getElementById('compose-text').value = '';
-                    reloadMessages();
+                    fetchMessages(true);
+                    pollSidebar();
                 } else {
                     alert(data.error || 'Failed to send message.');
                 }
@@ -952,7 +1069,8 @@
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (data.success) {
-                    reloadMessages();
+                    fetchMessages(true);
+                    pollSidebar();
                 } else {
                     alert(data.error || 'Failed to send template.');
                 }
@@ -960,22 +1078,140 @@
             .finally(function () { self.disabled = false; });
         });
 
-        // ── Reload messages for active client ────────────────────────────────
-        function reloadMessages() {
+        // ── Fetch & render messages ──────────────────────────────────────────
+        // forceScroll=true: always scroll to bottom (use after sending)
+        // forceScroll=false: skip render if no new messages, scroll only if near bottom
+        function fetchMessages(forceScroll) {
             if (!activeId) return;
             fetch('/whatsapp/messages/' + activeId)
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
-                    if (!data.error) {
-                        renderMessages(data.messages, data.client);
-                        scrollDown();
-                    }
+                    if (data.error || !data.messages) return;
+                    var msgs  = data.messages;
+                    var newId = msgs.length ? msgs[msgs.length - 1].sms_id : 0;
+                    if (!forceScroll && newId === lastMsgId) return;
+                    lastMsgId = newId;
+                    renderMessages(msgs, data.client);
+                    var el = document.getElementById('chat-messages');
+                    if (forceScroll || el.scrollHeight - el.scrollTop - el.clientHeight < 120) scrollDown();
                 });
         }
 
         function scrollDown() {
             var el = document.getElementById('chat-messages');
             if (el) el.scrollTop = el.scrollHeight;
+        }
+
+        // ── Auto-poll: active chat messages every 5 s ────────────────────────
+        function startMsgPoll() {
+            if (msgPollTimer) clearInterval(msgPollTimer);
+            msgPollTimer = setInterval(function () { fetchMessages(false); }, 5000);
+        }
+
+        // ── Auto-poll: sidebar contacts every 15 s ───────────────────────────
+        function startSidebarPoll() {
+            if (sidebarTimer) clearInterval(sidebarTimer);
+            sidebarTimer = setInterval(pollSidebar, 15000);
+        }
+
+        function chatTimeFromDs(ds) {
+            if (!ds || ds.length < 12) return '';
+            return ds.substr(8, 2) + ':' + ds.substr(10, 2);
+        }
+
+        function pollSidebar() {
+            fetch('/whatsapp/chats-json')
+                .then(function (r) { return r.json(); })
+                .then(function (chats) {
+                    if (!Array.isArray(chats)) return;
+                    chats.forEach(function (chat) {
+                        var id   = String(chat.account_id);
+                        var curr = parseInt(chat.sms_id) || 0;
+                        var prev = unreadMap[id]          || 0;
+                        var el   = document.getElementById('contact-' + id);
+
+                        if (el) {
+                            // Update preview snippet and time
+                            var prevEl = el.querySelector('.wa-contact-preview');
+                            var metaEl = el.querySelector('.wa-contact-meta');
+                            if (prevEl) {
+                                var dirIcon = chat.direction === 'inbound'
+                                    ? '<i class="ft-corner-down-left" style="color:#25d366;font-size:.7rem;"></i> '
+                                    : '<i class="ft-corner-up-right" style="color:#888;font-size:.7rem;"></i> ';
+                                var snippet = (chat.sms_content || '').substr(0, 38)
+                                            + ((chat.sms_content || '').length > 38 ? '…' : '');
+                                prevEl.innerHTML = dirIcon + escHtml(snippet);
+                            }
+                            if (metaEl) {
+                                var dot = metaEl.querySelector('.unread-dot');
+                                metaEl.textContent = chatTimeFromDs(chat.date_sent || '');
+                                if (dot) metaEl.appendChild(dot); // re-attach dot after textContent wipe
+                            }
+                            // Show unread dot if this is NOT the active chat and a new message arrived
+                            if (String(activeId) !== id && curr > prev) {
+                                if (!el.querySelector('.unread-dot')) {
+                                    var dot2 = document.createElement('span');
+                                    dot2.className = 'unread-dot';
+                                    dot2.style.cssText = 'display:inline-block;width:8px;height:8px;background:#25d366;border-radius:50%;margin-left:4px;flex-shrink:0;';
+                                    el.querySelector('.wa-contact-meta').appendChild(dot2);
+                                }
+                                // Bubble the contact to the top
+                                var list = document.getElementById('contacts-list');
+                                list.insertBefore(el, list.firstChild);
+                            }
+                        } else if (curr > 0) {
+                            // Entirely new conversation — add to sidebar
+                            prependContact(chat);
+                        }
+
+                        if (curr > prev) unreadMap[id] = curr;
+                    });
+                });
+        }
+
+        function prependContact(chat) {
+            var id       = String(chat.account_id);
+            var name     = toTitle(chat.client_name || '');
+            var initial  = name.charAt(0).toUpperCase();
+            var color    = colorFor(chat.account_id);
+            var dirIcon  = chat.direction === 'inbound'
+                ? '<i class="ft-corner-down-left" style="color:#25d366;font-size:.7rem;"></i> '
+                : '<i class="ft-corner-up-right" style="color:#888;font-size:.7rem;"></i> ';
+            var snippet  = (chat.sms_content || '').substr(0, 38)
+                         + ((chat.sms_content || '').length > 38 ? '…' : '');
+            var chatTime = chatTimeFromDs(chat.date_sent || '');
+
+            var a = document.createElement('a');
+            a.className = 'wa-contact-item';
+            a.id        = 'contact-' + id;
+            a.setAttribute('data-client-id', id);
+            a.setAttribute('data-name', name);
+            a.setAttribute('data-phone', chat.clients_contacts || '');
+            a.setAttribute('data-account', chat.client_account || '');
+            a.setAttribute('data-color', color);
+            a.setAttribute('data-initial', initial);
+            a.setAttribute('data-sms-id', chat.sms_id || 0);
+            a.href = '#';
+            a.innerHTML =
+                '<div class="wa-contact-avatar ' + color + '">' + escHtml(initial) + '</div>'
+              + '<div class="wa-contact-info">'
+              +   '<p class="wa-contact-name">' + escHtml(name) + '</p>'
+              +   '<p class="wa-contact-preview">' + dirIcon + escHtml(snippet) + '</p>'
+              + '</div>'
+              + '<div class="wa-contact-meta">' + chatTime
+              +   '<span class="unread-dot" style="display:inline-block;width:8px;height:8px;'
+              +   'background:#25d366;border-radius:50%;margin-left:4px;flex-shrink:0;"></span>'
+              + '</div>';
+            a.addEventListener('click', function (e) {
+                e.preventDefault();
+                openChat(id);
+            });
+
+            var list  = document.getElementById('contacts-list');
+            var empty = list.querySelector('.text-center.text-muted');
+            if (empty) empty.remove();
+            list.insertBefore(a, list.firstChild);
+            unreadMap[id] = parseInt(chat.sms_id) || 0;
         }
 
         // ── Contact click ────────────────────────────────────────────────────
@@ -1004,10 +1240,20 @@
             return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
         }
 
+        // ── Seed unreadMap from server-rendered contacts ──────────────────────
+        document.querySelectorAll('.wa-contact-item[data-sms-id]').forEach(function (el) {
+            var id  = el.getAttribute('data-client-id');
+            var sid = parseInt(el.getAttribute('data-sms-id')) || 0;
+            if (id) unreadMap[id] = sid;
+        });
+
         // ── Auto-open from URL ?open=id ───────────────────────────────────────
         var params = new URLSearchParams(window.location.search);
         var openId = params.get('open');
         if (openId) openChat(openId);
+
+        // ── Start sidebar poll ────────────────────────────────────────────────
+        startSidebarPoll();
 
         // ── Session timeout ───────────────────────────────────────────────────
         var milli_seconds = 1200;

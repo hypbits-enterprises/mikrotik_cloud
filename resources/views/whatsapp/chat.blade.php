@@ -364,14 +364,6 @@
                                         <input type="hidden" name="client_id" value="{{ $client->client_id }}">
                                         <div class="compose-body">
                                             <div class="row no-gutters align-items-end" style="gap:6px;">
-                                                <div class="col-md-2 mb-1 mb-md-0">
-                                                    <select name="category" class="form-control form-control-sm">
-                                                        <option value="service">Service</option>
-                                                        <option value="utility">Utility</option>
-                                                        <option value="authentication">Authentication</option>
-                                                        <option value="marketing">Marketing</option>
-                                                    </select>
-                                                </div>
                                                 <div class="col">
                                                     <div class="input-group">
                                                         <textarea name="message" id="free-msg" class="form-control" rows="1"
@@ -465,6 +457,85 @@
 
         var milli_seconds = 1200;
         setInterval(function () { if (milli_seconds-- === 0) window.location.href = '/'; }, 1000);
+
+        // ── Message auto-poll (every 5 s) ─────────────────────────────────────
+        var POLL_CLIENT_ID = {{ $client->client_id }};
+        var lastMsgId = {{ count($messages) ? $messages[count($messages) - 1]->sms_id : 0 }};
+        var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+        function escHtml(s) {
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function fmtDs(ds) {
+            if (!ds || ds.length < 12) return '';
+            var dy = ds.substr(6,2), mo = parseInt(ds.substr(4,2)), hr = ds.substr(8,2), mn = ds.substr(10,2);
+            return dy + ' ' + MONTHS[mo - 1] + ' ' + hr + ':' + mn;
+        }
+
+        function renderThread(messages, client) {
+            var container = document.getElementById('chat-thread');
+            if (!messages || !messages.length) return;
+            var initial = (client.client_name || '?').charAt(0).toUpperCase();
+            var html = '', lastDate = '';
+
+            messages.forEach(function (msg) {
+                var isOut = (msg.direction || 'outbound') === 'outbound';
+                var ds    = msg.date_sent || '';
+                var dateLabel = ds.length >= 8 ? ds.substr(0,4)+'-'+ds.substr(4,2)+'-'+ds.substr(6,2) : '';
+
+                if (dateLabel && dateLabel !== lastDate) {
+                    lastDate = dateLabel;
+                    var d = new Date(dateLabel);
+                    html += '<div class="chat-date-sep">'
+                          + d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear()
+                          + '</div>';
+                }
+
+                var statusIcon = '';
+                if (isOut) {
+                    var s = msg.delivery_status || 'sent';
+                    statusIcon = s === 'read'      ? '<span style="color:#34b7f1">✓✓</span>'
+                               : s === 'delivered' ? '✓✓'
+                               : s === 'failed'    ? '<span class="text-danger">✗</span>'
+                               : '✓';
+                }
+
+                var tplLabel = msg.template_name
+                    ? '<div class="tpl-label"><i class="ft-file-text"></i> ' + escHtml(msg.template_name) + '</div>'
+                    : '';
+
+                html += '<div class="chat ' + (isOut ? '' : 'chat-left') + '">';
+                html += '<div class="chat-avatar"><span class="avatar-circle '
+                      + (isOut ? 'avatar-outbound' : 'avatar-inbound') + '">'
+                      + (isOut ? '<i class="fa-brands fa-whatsapp" style="font-size:16px;"></i>' : escHtml(initial))
+                      + '</span></div>';
+                html += '<div class="chat-body"><div class="chat-content">'
+                      + tplLabel
+                      + '<p>' + escHtml(msg.sms_content) + '</p>'
+                      + '<div class="chat-time"><span>' + fmtDs(ds) + '</span>'
+                      + (isOut ? statusIcon : '') + '</div>'
+                      + '</div></div>';
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        setInterval(function () {
+            fetch('/whatsapp/messages/' + POLL_CLIENT_ID)
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.error || !data.messages || !data.messages.length) return;
+                    var msgs  = data.messages;
+                    var newId = msgs[msgs.length - 1].sms_id;
+                    if (newId === lastMsgId) return;
+                    lastMsgId = newId;
+                    var atBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 120;
+                    renderThread(msgs, data.client);
+                    if (atBottom) thread.scrollTop = thread.scrollHeight;
+                });
+        }, 5000);
     </script>
 </body>
 </html>
