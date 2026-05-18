@@ -77,3 +77,86 @@ CREATE TABLE `unknown_wa_chats` (
       KEY `idx_wa_message_id` (`wa_message_id`),
       KEY `idx_deleted`       (`deleted`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    -- ============================================================
+  -- 1. Add preferred_channel column to organizations
+  -- ============================================================
+  ALTER TABLE `organizations`
+    ADD COLUMN `preferred_channel` VARCHAR(20) NOT NULL DEFAULT 'sms'
+    AFTER `send_sms`;
+
+  -- ============================================================
+  -- 2. Universal WhatsApp automation templates table
+  -- ============================================================
+  CREATE TABLE `whatsapp_automation_templates` (
+    `id`               INT UNSIGNED     NOT NULL AUTO_INCREMENT,
+    `internal_name`    VARCHAR(100)     NOT NULL,
+    `name`             VARCHAR(255)     NOT NULL,
+    `template_name`    VARCHAR(255)     NOT NULL,
+    `category`         VARCHAR(30)      NOT NULL DEFAULT 'utility',
+    `body_text`        TEXT             NOT NULL,
+    `variables`        LONGTEXT         DEFAULT NULL,
+    `is_active`        TINYINT(1)       NOT NULL DEFAULT 1,
+    `meta_status`      VARCHAR(20)      NOT NULL DEFAULT 'not_submitted',
+    `meta_template_id` VARCHAR(100)     DEFAULT NULL,
+    `language`         VARCHAR(10)      NOT NULL DEFAULT 'en',
+    `date_changed`     VARCHAR(20)      DEFAULT NULL,
+    `deleted`          CHAR(1)          NOT NULL DEFAULT '0',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_internal_name` (`internal_name`),
+    KEY `idx_deleted` (`deleted`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+  -- ============================================================
+  -- 3. Insert the 13 automation templates
+  -- ============================================================
+  INSERT INTO `whatsapp_automation_templates` (`internal_name`,`name`,`template_name`,`category`,`body_text`,`variables`,`meta_status`,`language`,`date_changed`) VALUES ('new_client_welcome','New Client 
+  Welcome','new_client_welcome','utility','Welcome {{1}}. Your account has been successfully registered. Monthly payment: {{2}}. Account number: {{3}}. Expires: 
+  {{4}}.','["client_f_name","monthly_fees","acc_no","exp_date"]','not_submitted','en',NULL);
+
+  INSERT INTO `whatsapp_automation_templates` (`internal_name`,`name`,`template_name`,`category`,`body_text`,`variables`,`meta_status`,`language`,`date_changed`) VALUES ('payment_received','Payment 
+  Received','payment_received','utility','Hello {{1}}, we have received your payment of {{2}} on {{3}} at {{4}}. Your new wallet balance is 
+  {{5}}.','["client_f_name","trans_amnt","today","now","client_wallet"]','not_submitted','en',NULL);
+
+  INSERT INTO `whatsapp_automation_templates` (`internal_name`,`name`,`template_name`,`category`,`body_text`,`variables`,`meta_status`,`language`,`date_changed`) VALUES ('payment_wrong_account','Payment Wrong 
+  Account','payment_wrong_account','utility','Payment of {{1}} received on {{2}} at {{3}} could not be matched to an account. Please contact support with your M-Pesa transaction ID for 
+  assistance.','["trans_amnt","today","now"]','not_submitted','en',NULL);
+
+  INSERT INTO `whatsapp_automation_templates` (`internal_name`,`name`,`template_name`,`category`,`body_text`,`variables`,`meta_status`,`language`,`date_changed`) VALUES ('payment_below_minimum','Payment Below 
+  Minimum','payment_below_minimum','utility','Hello {{1}}, we received your payment of {{2}}. The minimum payment required is {{3}}. Your current wallet balance is {{4}}. Please top up to activate your 
+  account.','["client_f_name","trans_amnt","min_amnt","client_wallet"]','not_submitted','en',NULL);
+
+  INSERT INTO `whatsapp_automation_templates` (`internal_name`,`name`,`template_name`,`category`,`body_text`,`variables`,`meta_status`,`language`,`date_changed`) VALUES ('referral_commission','Referral Commission
+   Earned','referral_commission','utility','Hello {{1}}, you have earned a referral commission of {{2}} from {{3}} on {{4}} at {{5}}. Your new wallet balance is
+  {{6}}.','["client_f_name","refferer_trans_amount","refferer_name","today","now","client_wallet"]','not_submitted','en',NULL);
+
+  INSERT INTO `whatsapp_automation_templates` (`internal_name`,`name`,`template_name`,`category`,`body_text`,`variables`,`meta_status`,`language`,`date_changed`) VALUES ('account_renewed','Account 
+  Renewed','account_renewed','utility','Dear {{1}}, your account {{2}} has been renewed and is active until {{3}}. Your new wallet balance is 
+  {{4}}.','["client_f_name","acc_no","exp_date","client_wallet"]','not_submitted','en',NULL);
+
+  INSERT INTO `whatsapp_automation_templates` (`internal_name`,`name`,`template_name`,`category`,`body_text`,`variables`,`meta_status`,`language`,`date_changed`) VALUES ('account_extended','Account 
+  Extended','account_extended','utility','Dear {{1}}, your account {{2}} has been extended and is active until {{3}}. Your new wallet balance is 
+  {{4}}.','["client_f_name","acc_no","exp_date","client_wallet"]','not_submitted','en',NULL);
+
+  INSERT INTO `whatsapp_automation_templates` (`internal_name`,`name`,`template_name`,`category`,`body_text`,`variables`,`meta_status`,`language`,`date_changed`) VALUES ('account_deactivated','Account 
+  Deactivated','account_deactivated','utility','Dear {{1}}, your account {{2}} has been deactivated due to insufficient balance. Your wallet balance is {{3}}. Please make a payment to reactivate your 
+  service.','["client_f_name","acc_no","client_wallet"]','not_submitted','en',NULL);
+
+  INSERT INTO `whatsapp_automation_templates` (`internal_name`,`name`,`template_name`,`category`,`body_text`,`variables`,`meta_status`,`language`,`date_changed`) VALUES ('account_frozen','Account 
+  Frozen','account_frozen','utility','Dear {{1}}, your account {{2}} has been frozen for {{3}} until {{4}}. Your wallet balance as of {{5}} at {{6}} is 
+  {{7}}.','["client_f_name","acc_no","days_frozen","unfreeze_date","today","now","client_wallet"]','not_submitted','en',NULL);
+
+  INSERT INTO `whatsapp_automation_templates` (`internal_name`,`name`,`template_name`,`category`,`body_text`,`variables`,`meta_status`,`language`,`date_changed`) VALUES ('account_freeze_scheduled','Account Freeze
+   Scheduled','account_freeze_scheduled','utility','Dear {{1}}, your account {{2}} is scheduled to be frozen on {{3}} for {{4}} until {{5}}. Your current wallet balance is 
+  {{6}}.','["client_f_name","acc_no","frozen_date","days_frozen","unfreeze_date","client_wallet"]','not_submitted','en',NULL);
+
+  INSERT INTO `whatsapp_automation_templates` (`internal_name`,`name`,`template_name`,`category`,`body_text`,`variables`,`meta_status`,`language`,`date_changed`) VALUES ('account_unfrozen','Account 
+  Unfrozen','account_unfrozen','utility','Welcome back {{1}}, your account {{2}} has been reactivated after the freeze period. Your current wallet balance is 
+  {{3}}.','["client_f_name","acc_no","client_wallet"]','not_submitted','en',NULL);
+
+  INSERT INTO `whatsapp_automation_templates` (`internal_name`,`name`,`template_name`,`category`,`body_text`,`variables`,`meta_status`,`language`,`date_changed`) VALUES ('payment_reminder_day_before','Payment 
+  Reminder - Day Before Expiry','payment_reminder_day_before','utility','Dear {{1}}, your account expires tomorrow. Please make a payment to account {{2}} to avoid service interruption. Current wallet balance: 
+  {{3}}.','["client_f_name","acc_no","client_wallet"]','not_submitted','en',NULL);
+
+  INSERT INTO `whatsapp_automation_templates` (`internal_name`,`name`,`template_name`,`category`,`body_text`,`variables`,`meta_status`,`language`,`date_changed`) VALUES ('payment_reminder_day_after','Payment 
+  Reminder - Day After Expiry','payment_reminder_day_after','utility','Dear {{1}}, your account expired yesterday. Please make a payment to account {{2}} to restore your service. Current wallet balance: 
+  {{3}}.','["client_f_name","acc_no","client_wallet"]','not_submitted','en',NULL);
