@@ -702,30 +702,32 @@ class Transaction extends Controller
                         return $this->formatKenyanPhone($num);
                     }, $phone);
                     $mobile = implode(",", $phone);
-                    // send sms
+                    // send notification
                     $message_contents = $this->get_sms();
                     $message = "";
-                    if ($wallet >= $minimum_payment){
+                    $templateName = 'payment_received';
+                    if ($wallet >= $minimum_payment) {
                         $message = $message_contents[1]->messages[0]->message;
-                    }else {
-                        $message = $message_contents[1]->messages[3]->message;
+                    } else {
+                        $message      = $message_contents[1]->messages[3]->message;
+                        $templateName = 'payment_below_minimum';
                     }
 
                     if ($message) {
-                        // replace false with message above
                         $trans_amount = $jsonMpesaResponse['TransAmount'];
-                        $message = $this->message_content($message,$client_id,$trans_amount);
-                        $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                        $message_status = $result != null ? 1 : 0;
-                        // get the user id of the number from the database
-                        $user_data = [];
-                        $client_id = (count($user_data) > 0) ? $user_data[0]->client_id : 0;
-                        // if the message status is one the message is already sent to the user
+                        $message = $this->message_content($message, $client_id, $trans_amount);
+                        // reflect updated wallet in object for template variable resolution
+                        $user_data[0]->wallet_amount = $wallet;
+                        $orgChannel = $organization[0]->preferred_channel ?? 'sms';
+                        $this->dispatchAutomationMessage($templateName, $message, $mobile, $user_data[0], [
+                            'trans_amount' => $trans_amount,
+                            'min_amount'   => $minimum_payment,
+                        ], $orgChannel);
                         $sms_table = new sms_table();
                         $sms_table->sms_content = $message;
                         $sms_table->date_sent = date("YmdHis");
                         $sms_table->recipient_phone = $mobile;
-                        $sms_table->sms_status = $message_status; // message status
+                        $sms_table->sms_status = "1";
                         $sms_table->account_id = $client_transaction_id;
                         $sms_table->sms_type = $sms_type;
                         $sms_table->save();
@@ -753,30 +755,26 @@ class Transaction extends Controller
                             $payments = json_encode($client_refferal);
                             // update the main client payments
                             DB::connection("mysql2")->table("client_tables")->where('client_account',$jsonMpesaResponse['BillRefNumber'])->update(["reffered_by" => $payments,'date_changed' => date("YmdHis")]);
-                            // send sms
+                            // send referral commission notification
                             $message_contents = $this->get_sms();
                             $message = $message_contents[1]->messages[2]->message;
-                            if ($message) {// replace false with message above
+                            if ($message) {
                                 $trans_amount = $refferal_amount;
                                 $refferer_id = trim($jsonMpesaResponse['BillRefNumber']);
 
-                                // send message to the refferer
-                                $message = $this->message_content($message,$refferer_dets[0]->client_id,$trans_amount,$trans_amount,$refferer_id);
-                                $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                                $message_status = $result != null ? 1 : 0;
-
-                                // get the user id of the number from the database
+                                $message = $this->message_content($message, $refferer_dets[0]->client_id, $trans_amount, $trans_amount, $refferer_id);
                                 $refferer_details = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `client_account` = '".$client_refferal->client_acc."'");
                                 $client_id = (count($refferer_details) > 0) ? $refferer_details[0]->client_id : 0;
-                                if(count($refferer_details) > 0){
-                                    $refferer_details[0]->refferal_amount = $refferal_amount;
-                                }
-                                // if the message status is one the message is already sent to the user
+                                $orgChannel = $organization[0]->preferred_channel ?? 'sms';
+                                $this->dispatchAutomationMessage('referral_commission', $message, $mobile, $refferer_dets[0], [
+                                    'refferer_trans_amount' => $refferal_amount,
+                                    'refferer_name'         => $user_data[0]->client_name ?? '',
+                                ], $orgChannel);
                                 $sms_table = new sms_table();
                                 $sms_table->sms_content = $message;
                                 $sms_table->date_sent = date("YmdHis");
                                 $sms_table->recipient_phone = $mobile;
-                                $sms_table->sms_status = $message_status;
+                                $sms_table->sms_status = "1";
                                 $sms_table->account_id = $client_id;
                                 $sms_table->sms_type = $sms_type;
                                 $sms_table->save();
@@ -798,18 +796,26 @@ class Transaction extends Controller
                     $mobile = $jsonMpesaResponse['MSISDN'];
                     $message_contents = $this->get_sms();
                     $message = $message_contents[1]->messages[1]->message;
-                    if ($message && (session()->has("organization") && session("organization")->send_sms == 1)) {// replace false with message
+                    if ($message && $organization[0]->send_sms == 1) {
                         $trans_amount = $jsonMpesaResponse['TransAmount'];
-                        $message = $this->message_content($message,$client_id,$trans_amount);
-                        $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                        $message_status = $result != null ? 1 : 0;
-                        
-                        // save to the database the transaction made
+                        $fakeClient = (object)[
+                            'client_name'           => '',
+                            'client_account'        => '',
+                            'monthly_payment'       => 0,
+                            'wallet_amount'         => 0,
+                            'min_amount'            => 0,
+                            'next_expiration_date'  => '',
+                            'clients_contacts'      => $mobile,
+                        ];
+                        $orgChannel = $organization[0]->preferred_channel ?? 'sms';
+                        $this->dispatchAutomationMessage('payment_wrong_account', $message, $mobile, $fakeClient, [
+                            'trans_amount' => $trans_amount,
+                        ], $orgChannel);
                         $sms_table = new sms_table();
                         $sms_table->sms_content = $message;
                         $sms_table->date_sent = date("YmdHis");
                         $sms_table->recipient_phone = $mobile;
-                        $sms_table->sms_status = $message_status;
+                        $sms_table->sms_status = "1";
                         $sms_table->account_id = "0";
                         $sms_table->sms_type = "1";
                         $sms_table->save();

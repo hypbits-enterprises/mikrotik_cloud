@@ -112,7 +112,7 @@
                                             <div class="col-md-4">
                                                 <input type="checkbox" name="send_sms" id="send_sms" checked>
                                                 <label for="send_sms" class="form-control-label text-primary"
-                                                    style="font-weight: 800;cursor: pointer;">Send Welcome SMS</label>
+                                                    style="font-weight: 800;cursor: pointer;">Send Welcome {{ ($preferred_channel ?? 'sms') === 'whatsapp' ? 'WhatsApp' : 'SMS' }}</label>
                                             </div>
                                         </div>
                                         <div class="row">

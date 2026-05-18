@@ -737,12 +737,100 @@ class Controller extends BaseController
         }
     }
 
-    function getPreferredChannel(): string
+    function getPreferredChannel(?int $orgId = null): string
     {
-        $row = DB::connection('mysql2')->select(
-            "SELECT `value` FROM `settings` WHERE `keyword` = 'preferred_channel' AND `deleted` = '0' LIMIT 1"
+        $id = $orgId ?? session('organization_id');
+        $row = DB::select(
+            "SELECT `preferred_channel` FROM `organizations` WHERE `organization_id` = ? LIMIT 1",
+            [$id]
         );
-        return !empty($row) ? $row[0]->value : 'sms';
+        return !empty($row) ? ($row[0]->preferred_channel ?: 'sms') : 'sms';
+    }
+
+    function getAutomationTemplate(string $internalName): ?array
+    {
+        $row = DB::select(
+            "SELECT * FROM `mikrotik_cloud_manager`.`whatsapp_automation_templates`
+             WHERE `internal_name` = ? AND `is_active` = 1 AND `deleted` = '0' LIMIT 1",
+            [$internalName]
+        );
+        if (empty($row)) return null;
+        $t = $row[0];
+        return [
+            'template_name' => $t->template_name,
+            'category'      => $t->category,
+            'language'      => $t->language,
+            'variables'     => json_decode($t->variables ?? '[]', true) ?: [],
+        ];
+    }
+
+    function buildTemplateParams(array $variableNames, object $clientData, array $extras = []): array
+    {
+        $expRaw  = $clientData->next_expiration_date ?? '';
+        $expDate = $expRaw
+            ? date('dS-M-Y', strtotime($expRaw)) . ' at ' . date('H:i:s', strtotime($expRaw))
+            : '';
+        $minPay = isset($clientData->monthly_payment, $clientData->min_amount)
+            ? ceil($clientData->monthly_payment * ($clientData->min_amount / 100))
+            : 0;
+
+        $map = [
+            'client_f_name'         => ucfirst(strtolower(explode(' ', $clientData->client_name ?? '')[0])),
+            'client_name'           => $clientData->client_name ?? '',
+            'acc_no'                => $clientData->client_account ?? '',
+            'monthly_fees'          => 'Ksh ' . number_format($clientData->monthly_payment ?? 0),
+            'exp_date'              => $expDate,
+            'client_wallet'         => 'Ksh ' . number_format($clientData->wallet_amount ?? 0),
+            'today'                 => date('dS-M-Y'),
+            'now'                   => date('H:i:s'),
+            'trans_amnt'            => 'Ksh ' . number_format($extras['trans_amount'] ?? 0),
+            'min_amnt'              => 'Ksh ' . number_format($extras['min_amount'] ?? $minPay),
+            'days_frozen'           => ($extras['days_frozen'] ?? '0') . ' Day(s)',
+            'unfreeze_date'         => $extras['unfreeze_date'] ?? '',
+            'frozen_date'           => $extras['frozen_date'] ?? '',
+            'refferer_trans_amount' => 'Ksh ' . number_format($extras['refferer_trans_amount'] ?? 0),
+            'refferer_name'         => $extras['refferer_name'] ?? '',
+        ];
+
+        $params = [];
+        foreach ($variableNames as $varName) {
+            $params[] = $map[$varName] ?? '';
+        }
+        return $params;
+    }
+
+    function dispatchAutomationMessage(
+        string  $internalName,
+        string  $resolvedSms,
+        string  $phone,
+        object  $clientData,
+        array   $extras = [],
+        ?string $channelOverride = null
+    ): bool {
+        $channel = $channelOverride ?? $this->getPreferredChannel();
+
+        if ($channel === 'whatsapp') {
+            $template = $this->getAutomationTemplate($internalName);
+            if (!$template) return false;
+            $params = $this->buildTemplateParams($template['variables'], $clientData, $extras);
+            $result = $this->sendWhatsAppTemplate(
+                $this->formatKenyanPhone($phone),
+                $template['template_name'],
+                $params,
+                $template['category'],
+                $template['language']
+            );
+            return empty($result['error']);
+        }
+
+        $settings = $this->getSmsSettings();
+        if (!$settings) return false;
+        $result = $this->GlobalSendSMS(
+            $resolvedSms, $phone,
+            $settings['sms_api_key'], $settings['sms_sender'],
+            $settings['sms_shortcode'], $settings['sms_partner_id']
+        );
+        return $result !== null;
     }
 
     protected function whatsappApiCall(string $url, string $token, ?string $payload = null, string $method = 'POST'): array

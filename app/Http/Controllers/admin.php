@@ -89,9 +89,6 @@ class admin extends Controller
             $sms_shortcode = count($select) > 0 ? $select[0]->value : "";
             $organization[0]->sms_shortcode = $sms_shortcode;
 
-            // GET PREFERRED CHANNEL
-            $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'preferred_channel'");
-            $organization[0]->preferred_channel = count($select) > 0 ? $select[0]->value : "sms";
 
             return view("account",["admin_data" => $admin_data , "date_time" => $dates2, "delete_trans" => $delete_trans,"delete_sms"=>$delete_sms, "organization" => $organization[0]]);
         }else{
@@ -512,16 +509,11 @@ class admin extends Controller
             $insert = DB::connection("mysql2")->insert("INSERT INTO `settings` (`keyword`, `value`,`status`) VALUES ('sms_api_key','".$req->input("sms_api_key")."','1')");
         }
 
-        // insert or update preferred channel (sms / whatsapp)
+        // save preferred channel (sms / whatsapp) on the main organizations table
         $preferred_channel = in_array($req->input("preferred_channel"), ['sms', 'whatsapp'])
             ? $req->input("preferred_channel")
             : 'sms';
-        $api_link = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'preferred_channel'");
-        if (count($api_link) > 0) {
-            DB::connection("mysql2")->update("UPDATE `settings` SET `value` = '{$preferred_channel}' WHERE `keyword` = 'preferred_channel'");
-        } else {
-            DB::connection("mysql2")->insert("INSERT INTO `settings` (`keyword`, `value`, `status`) VALUES ('preferred_channel', '{$preferred_channel}', '1')");
-        }
+        DB::update("UPDATE `organizations` SET `preferred_channel` = ? WHERE `organization_id` = ?", [$preferred_channel, session("organization_id")]);
 
         $organization = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[session("organization_id")]);
         session()->put("organization",$organization[0]);

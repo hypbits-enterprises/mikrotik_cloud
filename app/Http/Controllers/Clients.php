@@ -720,7 +720,7 @@ $export_text .= "
             array_push($client_username, $value->client_username);
         }
         // return $client_accounts;
-        return view("new_client_static", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "last_client_details" => $last_client_details]);
+        return view("new_client_static", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "last_client_details" => $last_client_details, "preferred_channel" => session('organization')->preferred_channel ?? 'sms']);
     }
 
     function newPPPOEClient(){
@@ -742,7 +742,7 @@ $export_text .= "
             array_push($client_username, $value->client_username);
         }
         // return $client_accounts;
-        return view("new_client_pppoe", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username]);
+        return view("new_client_pppoe", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "preferred_channel" => session('organization')->preferred_channel ?? 'sms']);
     }
 
     function getClientsDatatable(Request $request){
@@ -1903,7 +1903,7 @@ $export_text .= "
             array_push($client_username, $value->client_username);
         }
         // return $client_accounts;
-        return view("newClient", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "last_client_details" => $last_client_details]);
+        return view("newClient", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "last_client_details" => $last_client_details, "preferred_channel" => session('organization')->preferred_channel ?? 'sms']);
     }
 
 
@@ -1927,7 +1927,7 @@ $export_text .= "
             array_push($client_username, $value->client_username);
         }
         // return $client_accounts;
-        return view("newPPOEclient", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username]);
+        return view("newPPOEclient", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "preferred_channel" => session('organization')->preferred_channel ?? 'sms']);
     }
 
     function getSSTPAddress()
@@ -2165,17 +2165,15 @@ $export_text .= "
                     if ($message) {
                         $trans_amount = 0;
                         $message = $this->message_content($message, $client_id, $trans_amount);
-                        $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                        $message_status = $result != null ? 1 : 0;
-                        if($result == null){
-                            session()->flash("error","Your account cannot send sms, contact us for more information!");
+                        $sent = $this->dispatchAutomationMessage('new_client_welcome', $message, $mobile, $user_data[0]);
+                        if (!$sent) {
+                            session()->flash("error", "Your account cannot send sms, contact us for more information!");
                         }
-                        // if the message status is one the message is already sent to the user
                         $sms_table = new sms_table();
                         $sms_table->sms_content = $message;
                         $sms_table->date_sent = date("YmdHis");
                         $sms_table->recipient_phone = $mobile;
-                        $sms_table->sms_status = $message_status;
+                        $sms_table->sms_status = $sent ? 1 : 0;
                         $sms_table->account_id = $client_id;
                         $sms_table->sms_type = $sms_type;
                         $sms_table->save();
@@ -2407,23 +2405,21 @@ $export_text .= "
                     if ($message) {
                         $trans_amount = 0;
                         $message = $this->message_content($message, $client_id, $trans_amount);
-                        $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                        $message_status = $result != null ? 1 : 0;
-                        if($result == null){
-                            session()->flash("error","Your account cannot send sms, contact us for more information!");
+                        $sent = $this->dispatchAutomationMessage('new_client_welcome', $message, $mobile, $user_data[0]);
+                        if (!$sent) {
+                            session()->flash("error", "Your account cannot send sms, contact us for more information!");
                         }
-                        // if the message status is one the message is already sent to the user
                         $sms_table = new sms_table();
                         $sms_table->sms_content = $message;
                         $sms_table->date_sent = date("YmdHis");
                         $sms_table->recipient_phone = $mobile;
-                        $sms_table->sms_status = $message_status;
+                        $sms_table->sms_status = $sent ? 1 : 0;
                         $sms_table->account_id = $client_id;
                         $sms_table->sms_type = $sms_type;
                         $sms_table->save();
                     }
                 }
-                
+
                 session()->flash("success", "Client has been added successfully!");
                 return redirect("/Quick-Register");
             } else {
@@ -2735,17 +2731,15 @@ $export_text .= "
                         if ($message) {
                             $trans_amount = 0;
                             $message = $this->message_content($message, $client_id, $trans_amount);
-                            $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                            $message_status = $result != null ? 1 : 0;
-                            if($result == null){
-                                session()->flash("error","Your account cannot send sms, contact us for more information!");
+                            $sent = $this->dispatchAutomationMessage('new_client_welcome', $message, $mobile, $user_data[0]);
+                            if (!$sent) {
+                                session()->flash("error", "Your account cannot send sms, contact us for more information!");
                             }
-                            // if the message status is one the message is already sent to the user
                             $sms_table = new sms_table();
                             $sms_table->sms_content = $message;
                             $sms_table->date_sent = date("YmdHis");
                             $sms_table->recipient_phone = $mobile;
-                            $sms_table->sms_status = $message_status;
+                            $sms_table->sms_status = $sent ? 1 : 0;
                             $sms_table->account_id = $client_id;
                             $sms_table->sms_type = $sms_type;
                             $sms_table->save();
@@ -3061,17 +3055,15 @@ $export_text .= "
                         if ($message) {
                             $trans_amount = 0;
                             $message = $this->message_content($message, $client_id, $trans_amount);
-                            $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                            $message_status = $result != null ? 1 : 0;
-                            if($result == null){
-                                session()->flash("error","Your account cannot send sms, contact us for more information!");
+                            $sent = $this->dispatchAutomationMessage('new_client_welcome', $message, $mobile, $user_data[0]);
+                            if (!$sent) {
+                                session()->flash("error", "Your account cannot send sms, contact us for more information!");
                             }
-                            // if the message status is one the message is already sent to the user
                             $sms_table = new sms_table();
                             $sms_table->sms_content = $message;
                             $sms_table->date_sent = date("YmdHis");
                             $sms_table->recipient_phone = $mobile;
-                            $sms_table->sms_status = $message_status;
+                            $sms_table->sms_status = $sent ? 1 : 0;
                             $sms_table->account_id = $client_id;
                             $sms_table->sms_type = $sms_type;
                             $sms_table->save();
@@ -4269,24 +4261,24 @@ $export_text .= "
                     $shortcode = $sms_shortcode;
 
 
-                    $client_id = $client_id;
                     $mobile = $client_data[0]->clients_contacts;
                     $sms_type = 2;
                     $message = $new_message;
 
-                    $trans_amount = 0;
-                    $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                    $message_status = $result != null ? 1 : 0;
-                    if($result == null){
-                        session()->flash("error","Your account cannot send sms, contact us for more information!");
+                    $sent = $this->dispatchAutomationMessage('account_frozen', $message, $mobile, $client_data[0], [
+                        'days_frozen'   => $day_frozen == 'Indefinite' ? 'Indefinite' : $day_frozen,
+                        'unfreeze_date' => ($freeze_date === 'Indefinite' || $freeze_date === '00000000000000')
+                                            ? 'Indefinite Date'
+                                            : date('dS M Y \a\t h:iA', strtotime($freeze_date)),
+                    ]);
+                    if (!$sent) {
+                        session()->flash("error", "Your account cannot send sms, contact us for more information!");
                     }
-
-                    // if the message status is one the message is already sent to the user
                     $sms_table = new sms_table();
                     $sms_table->sms_content = $message;
                     $sms_table->date_sent = date("YmdHis");
                     $sms_table->recipient_phone = $mobile;
-                    $sms_table->sms_status = $message_status;
+                    $sms_table->sms_status = $sent ? 1 : 0;
                     $sms_table->account_id = $client_id;
                     $sms_table->sms_type = $sms_type;
                     $sms_table->save();
@@ -4385,24 +4377,25 @@ $export_text .= "
                     $shortcode = $sms_shortcode;
 
 
-                    $client_id = $client_id;
                     $mobile = $client_data[0]->clients_contacts;
                     $sms_type = 2;
                     $message = $new_message;
 
-                    $trans_amount = 0;
-                    $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                    $message_status = $result != null ? 1 : 0;
-                    if($result == null){
-                        session()->flash("error","Your account cannot send sms, contact us for more information!");
+                    $sent = $this->dispatchAutomationMessage('account_freeze_scheduled', $message, $mobile, $client_data[0], [
+                        'days_frozen'   => $day_frozen == 'Indefinite' ? 'Indefinite' : $day_frozen,
+                        'frozen_date'   => date('D dS M Y', strtotime($freezing_date)),
+                        'unfreeze_date' => ($freeze_date === 'Indefinite' || $freeze_date === '00000000000000')
+                                            ? 'Indefinite Date'
+                                            : date('dS M Y \a\t h:iA', strtotime($freeze_date)),
+                    ]);
+                    if (!$sent) {
+                        session()->flash("error", "Your account cannot send sms, contact us for more information!");
                     }
-
-                    // if the message status is one the message is already sent to the user
                     $sms_table = new sms_table();
                     $sms_table->sms_content = $message;
                     $sms_table->date_sent = date("YmdHis");
                     $sms_table->recipient_phone = $mobile;
-                    $sms_table->sms_status = $message_status;
+                    $sms_table->sms_status = $sent ? 1 : 0;
                     $sms_table->account_id = $client_id;
                     $sms_table->sms_type = $sms_type;
                     $sms_table->save();
@@ -4547,24 +4540,19 @@ $export_text .= "
                 $apikey = $sms_api_key;
                 $shortcode = $sms_shortcode;
 
-                // $client_id = $client_id;
                 $mobile = $client[0]->clients_contacts;
                 $sms_type = 2;
                 $message = $new_message;
 
-                $trans_amount = 0;
-                $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-                $message_status = $result != null ? 1 : 0;
-                if($result == null){
-                    session()->flash("error","Your account cannot send sms, contact us for more information!");
+                $sent = $this->dispatchAutomationMessage('account_unfrozen', $message, $mobile, $client[0]);
+                if (!$sent) {
+                    session()->flash("error", "Your account cannot send sms, contact us for more information!");
                 }
-
-                // if the message status is one the message is already sent to the user
                 $sms_table = new sms_table();
                 $sms_table->sms_content = $message;
                 $sms_table->date_sent = date("YmdHis");
                 $sms_table->recipient_phone = $mobile;
-                $sms_table->sms_status = $message_status;
+                $sms_table->sms_status = $sent ? 1 : 0;
                 $sms_table->account_id = $client_id;
                 $sms_table->sms_type = $sms_type;
                 $sms_table->save();
@@ -6562,16 +6550,16 @@ $export_text .= "
             // update the client
             $update = DB::connection("mysql2")->select("UPDATE `client_tables` SET `client_status` = '1', `date_changed` = '".date("YmdHis")."', `next_expiration_date` = ?, `wallet_amount` = ? WHERE `client_id` = ?",[$next_expiry_date,$wallet_balance,$client_id]);
 
-            // activate the user
+            // activate the user — update in-memory object to reflect the post-renewal wallet/expiry
+            $client_data->wallet_amount       = $wallet_balance;
+            $client_data->next_expiration_date = $next_expiry_date;
+            $client_data->client_status       = 1;
             if ($client_data->client_status == 0) {
                 $message_contents = $this->get_sms();
                 $message = $message_contents[2]->messages[0]->message;
                 if (!empty($message)) {
-                    $trans_amount = 0;
-                    $message = $this->message_content($message, $client_id, $trans_amount);
-                    $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-
-                    // if the message status is one the message is already sent to the user
+                    $message = $this->message_content($message, $client_id, 0);
+                    $this->dispatchAutomationMessage('account_renewed', $message, $mobile, $client_data);
                     $sms_table = new sms_table();
                     $sms_table->sms_content = $message;
                     $sms_table->date_sent = date("YmdHis");
@@ -6581,15 +6569,12 @@ $export_text .= "
                     $sms_table->sms_type = "1";
                     $sms_table->save();
                 }
-            }else {
+            } else {
                 $message_contents = $this->get_sms();
                 $message = $message_contents[2]->messages[1]->message;
                 if ($message) {
-                    $trans_amount = 0;
-                    $message = $this->message_content($message, $client_id, $trans_amount);
-                    $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-
-                    // if the message status is one the message is already sent to the user
+                    $message = $this->message_content($message, $client_id, 0);
+                    $this->dispatchAutomationMessage('account_extended', $message, $mobile, $client_data);
                     $sms_table = new sms_table();
                     $sms_table->sms_content = $message;
                     $sms_table->date_sent = date("YmdHis");
@@ -6614,11 +6599,8 @@ $export_text .= "
                         $message_contents = $this->get_sms();
                         $message = $message_contents[2]->messages[2]->message;
                         if ($message) {
-                            $trans_amount = 0;
-                            $message = $this->message_content($message, $client_id, $trans_amount);
-                            $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-
-                            // if the message status is one the message is already sent to the user
+                            $message = $this->message_content($message, $client_id, 0);
+                            $this->dispatchAutomationMessage('account_deactivated', $message, $mobile, $client_data);
                             $sms_table = new sms_table();
                             $sms_table->sms_content = $message;
                             $sms_table->date_sent = date("YmdHis");

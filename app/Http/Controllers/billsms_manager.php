@@ -36,7 +36,7 @@ class billsms_manager extends Controller
             array_push($client_username,$client_data[$index]->username);
             array_push($client_lc_acc,$client_data[$index]->licence_acc_number);
         }
-        return view("newsmsclient", ['client_accounts' => $client_accounts,'client_username' => $client_username, 'client_lc_acc' => $client_lc_acc]);
+        return view("newsmsclient", ['client_accounts' => $client_accounts,'client_username' => $client_username, 'client_lc_acc' => $client_lc_acc, "preferred_channel" => session('organization')->preferred_channel ?? 'sms']);
     }
     function myPackages(){
         $myPackages = DB::connection("mysql2")->select("SELECT * FROM `sms_clients_packages` WHERE `deleted` = '0'");
