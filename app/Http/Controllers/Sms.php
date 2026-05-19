@@ -196,42 +196,57 @@ class Sms extends Controller
                 : $ds;
 
             $statusBadge = $row->sms_status == 1
-                ? '<span class="badge badge-success"> </span>'
-                : '<span class="badge badge-danger"> </span>';
+                ? '<span class="badge badge-pill badge-success"><i class="ft-check"></i> Sent</span>'
+                : '<span class="badge badge-pill badge-danger"><i class="ft-x"></i> Failed</span>';
 
             $ch = $row->channel ?? 'sms';
             $channelBadge = match($ch) {
-                'whatsapp' => '<span class="badge badge-success"><i class="fa-brands fa-whatsapp"></i> WhatsApp</span>',
-                'email'    => '<span class="badge badge-info"><i class="ft-mail"></i> Email</span>',
-                default    => '<span class="badge badge-primary"><i class="ft-message-square"></i> SMS</span>',
+                'whatsapp' => '<span class="badge badge-pill badge-success"><i class="fa-brands fa-whatsapp"></i> WhatsApp</span>',
+                'email'    => '<span class="badge badge-pill badge-info"><i class="ft-mail"></i> Email</span>',
+                default    => '<span class="badge badge-pill badge-primary"><i class="ft-message-square"></i> SMS</span>',
             };
 
             $clientLink = $row->client_id
-                ? '<a class="text-secondary" href="/Clients/View/' . $row->client_id . '">' . htmlspecialchars($row->client_name) . '</a>'
-                : htmlspecialchars($row->client_name ?? $row->recipient_phone);
+                ? '<a class="text-primary" href="/Clients/View/' . $row->client_id . '"><i class="ft-user"></i> ' . htmlspecialchars($row->client_name) . '</a>'
+                : '<span class="text-muted">' . htmlspecialchars($row->client_name ?? $row->recipient_phone) . '</span>';
 
             $body    = $row->sms_content ?? '';
-            $preview = strlen($body) > 80 ? htmlspecialchars(substr($body, 0, 80)) . '&hellip;' : htmlspecialchars($body);
+            $preview = strlen($body) > 90 ? htmlspecialchars(substr($body, 0, 90)) . '&hellip;' : htmlspecialchars($body);
             $full    = htmlspecialchars($body);
 
-            $viewBtn = "<a href='/sms/View/{$row->sms_id}' class='btn btn-sm btn-primary text-bolder' data-toggle='tooltip' title='View Message' style='padding:3px'>"
-                     . "<span class='d-inline-block border border-white w-100 text-center' style='border-radius:2px;padding:5px'><i class='ft-eye'></i></span></a>";
+            $inner = "<span class='d-inline-block border border-white w-100 text-center' style='border-radius:2px;padding:5px'>";
+
+            $viewBtn = "<a href='/sms/View/{$row->sms_id}' class='btn btn-sm btn-primary' data-toggle='tooltip' title='View Message' style='padding:3px'>{$inner}<i class='ft-eye'></i></span></a>";
 
             $waBtn = $ch === 'whatsapp'
-                ? " <a href='/whatsapp/chats?open={$row->account_id}' class='btn btn-sm btn-success text-bolder' data-toggle='tooltip' title='View WhatsApp Chat' style='padding:3px'>"
-                  . "<span class='d-inline-block border border-white w-100 text-center' style='border-radius:2px;padding:5px'><i class='fa-brands fa-whatsapp'></i></span></a>"
+                ? "<a href='/whatsapp/chats?open={$row->account_id}' class='btn btn-sm btn-success' data-toggle='tooltip' title='View WhatsApp Chat' style='padding:3px'>{$inner}<i class='fa-brands fa-whatsapp'></i></span></a>"
                 : '';
 
-            $resend = "<a href='/sms/resend/{$row->sms_id}' class='text-bolder ml-1' data-toggle='tooltip' title='Re-send'><i class='ft-refresh-ccw'></i></a>";
+            $resend = "<a href='/sms/resend/{$row->sms_id}' class='btn btn-sm btn-secondary' data-toggle='tooltip' title='Re-send' style='padding:3px'>{$inner}<i class='ft-refresh-ccw'></i></span></a>";
             $check  = "<input type='checkbox' class='actions_id' id='actions_id_{$row->sms_id}'>"
                     . "<input type='hidden' id='actions_value_{$row->sms_id}' value='{$row->sms_id}'>";
 
+            $typeBadge = $row->sms_type == 1
+                ? '<span class="badge badge-pill badge-warning text-dark"><i class="ft-credit-card"></i> Transaction</span>'
+                : '<span class="badge badge-pill badge-info"><i class="ft-bell"></i> Notification</span>';
+
             $data[] = [
-                'rownum'      => $check . ' ' . ($start + $i + 1) . ' ' . $resend,
-                'date_sent'   => $formatted . ' ' . $statusBadge . '<br>' . $channelBadge . '<br><small>' . $clientLink . '</small>',
-                'sms_content' => '<span data-toggle="tooltip" data-html="true" title="' . $full . '">' . $preview . '</span>',
-                'sms_type'    => $row->sms_type == 1 ? 'Transaction' : 'Notification',
-                'actions'     => $viewBtn . $waBtn,
+                'rownum'      => '<div class="d-flex align-items-center">'
+                               . $check
+                               . '<span class="text-muted small mx-1">' . ($start + $i + 1) . '</span>'
+                               . '</div>',
+                'date_sent'   => '<div style="min-width:140px">'
+                               . '<div class="font-weight-600 text-dark">' . $formatted . '</div>'
+                               . '<div class="mt-1">' . $statusBadge . ' ' . $channelBadge . '</div>'
+                               . '<div class="mt-1 small">' . $clientLink . '</div>'
+                               . '</div>',
+                'sms_content' => '<div style="max-width:380px;word-break:break-word;line-height:1.5">'
+                               . '<span data-toggle="tooltip" data-html="true" title="' . $full . '">' . $preview . '</span>'
+                               . '</div>',
+                'sms_type'    => $typeBadge,
+                'actions'     => '<div class="d-flex align-items-center" style="gap:4px">'
+                               . $viewBtn . $waBtn . $resend
+                               . '</div>',
             ];
         }
 

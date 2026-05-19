@@ -24,6 +24,31 @@
     .hide{
         display: none;
     }
+    #sms_table thead th {
+        background: #f4f5f7;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #5e6778;
+        border-bottom: 2px solid #dee2e6;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+    #sms_table tbody tr {
+        transition: background 0.15s;
+    }
+    #sms_table tbody td {
+        vertical-align: middle;
+        padding: 10px 12px;
+        font-size: 0.88rem;
+    }
+    #sms_table tbody tr:hover td {
+        background: #f0f4ff;
+    }
+    #sms_table .badge-pill {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
     /*the container must be positioned relative:*/
     .autocomplete {
         position: relative;
@@ -386,14 +411,14 @@
 
                                     {{-- DataTable --}}
                                     <div class="table-responsive">
-                                        <table id="sms_table" class="table table-striped table-bordered zero-configuration">
-                                            <thead>
+                                        <table id="sms_table" class="table table-hover table-bordered" style="width:100%">
+                                            <thead class="thead-light">
                                                 <tr>
-                                                    <th>#</th>
-                                                    <th>Date Sent</th>
-                                                    <th>Message</th>
-                                                    <th>Type</th>
-                                                    <th>Actions</th>
+                                                    <th style="width:50px">#</th>
+                                                    <th style="width:170px"><i class="ft-clock mr-1"></i>Date Sent</th>
+                                                    <th><i class="ft-message-square mr-1"></i>Message</th>
+                                                    <th style="width:140px"><i class="ft-tag mr-1"></i>Type</th>
+                                                    <th style="width:100px" class="text-center">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody></tbody>
@@ -583,15 +608,20 @@
                 data: function (d) { d.channel = activeChannel; }
             },
             order: [[0, 'desc']],
-            dom: '<"bottom"l>t<"bottom"ip>',
+            dom: '<"d-flex justify-content-between align-items-center mb-2"lf>t<"d-flex justify-content-between align-items-center mt-2"ip>',
             pageLength: 20,
             lengthMenu: [10, 20, 50, 100],
+            language: {
+                processing: '<div class="text-primary"><i class="ft-loader"></i> Loading…</div>',
+                emptyTable: '<div class="text-center text-muted py-3"><i class="ft-inbox" style="font-size:2rem"></i><br>No messages found</div>',
+                zeroRecords: '<div class="text-center text-muted py-3"><i class="ft-search" style="font-size:2rem"></i><br>No matching messages found</div>'
+            },
             columns: [
-                { data: 'rownum',      orderable: false, searchable: false },
-                { data: 'date_sent' },
-                { data: 'sms_content' },
-                { data: 'sms_type' },
-                { data: 'actions',     orderable: false, searchable: false }
+                { data: 'rownum',      orderable: false, searchable: false, className: 'align-middle' },
+                { data: 'date_sent',   className: 'align-middle' },
+                { data: 'sms_content', className: 'align-middle' },
+                { data: 'sms_type',    className: 'align-middle text-center' },
+                { data: 'actions',     orderable: false, searchable: false, className: 'align-middle text-center' }
             ]
         });
 
@@ -613,10 +643,11 @@
             });
         });
 
-        // Re-init tooltips and bulk-select checkboxes after each draw
+        // Re-init tooltips, bulk-select checkboxes, and hover effect after each draw
         smsTable.on('draw.dt', function () {
             $('[data-toggle="tooltip"]').tooltip();
             checkedUnchecked();
+            hoverEffect();
         });
     }());
     </script>
