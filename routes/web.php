@@ -238,7 +238,6 @@ Route::post("/whatsapp/webhook", [WhatsApp::class, "webhook"]);
 
 // ── WhatsApp (authenticated) ──────────────────────────────────────────────────
 Route::get("/whatsapp/chats", [WhatsApp::class, "index"])->middleware(["checkAccount", "validated"]);
-Route::get("/whatsapp/chat/{client_id}", [WhatsApp::class, "viewChat"])->middleware(["checkAccount", "validated"]);
 Route::get("/whatsapp/messages/{client_id}", [WhatsApp::class, "getChatMessages"])->middleware(["checkAccount", "validated"]);
 Route::get("/whatsapp/chats-json", [WhatsApp::class, "getChatsJson"])->middleware(["checkAccount", "validated"]);
 Route::post("/whatsapp/chat/delete/{client_id}", [WhatsApp::class, "deleteChat"])->middleware(["checkAccount", "validated"]);

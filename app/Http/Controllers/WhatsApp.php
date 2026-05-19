@@ -124,40 +124,6 @@ class WhatsApp extends Controller
         ]);
     }
 
-    // ─── Single Chat Thread ───────────────────────────────────────────────────
-
-    public function viewChat($client_id)
-    {
-        $this->switchDb();
-
-        $client = DB::connection('mysql2')->select(
-            "SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_id` = ?",
-            [$client_id]
-        );
-
-        if (empty($client)) {
-            session()->flash('error', 'Client not found.');
-            return redirect('/whatsapp/chats');
-        }
-
-        $client = $client[0];
-
-        $messages = DB::connection('mysql2')->select("
-            SELECT m.*, wa.direction, wa.delivery_status, wa.wa_message_id,
-                   wa.message_category, wa.template_name, wa.received_at
-            FROM sms_tables m
-            JOIN whatsapp_chats wa ON wa.message_id = m.sms_id
-            WHERE m.deleted = '0' AND m.channel = 'whatsapp'
-              AND m.account_id = ?
-            ORDER BY m.sms_id ASC
-        ", [$client_id]);
-
-        $withinWindow  = $this->isWithin24hrWindow($client_id);
-        $templates     = $this->fetchTemplates();
-
-        return view('whatsapp.chat', compact('client', 'messages', 'withinWindow', 'templates'));
-    }
-
     // ─── Send Free-Form Message (within 24hr window) ──────────────────────────
 
     public function sendMessage(Request $req)

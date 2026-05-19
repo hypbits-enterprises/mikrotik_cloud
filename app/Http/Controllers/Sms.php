@@ -218,7 +218,7 @@ class Sms extends Controller
                      . "<span class='d-inline-block border border-white w-100 text-center' style='border-radius:2px;padding:5px'><i class='ft-eye'></i></span></a>";
 
             $waBtn = $ch === 'whatsapp'
-                ? " <a href='/whatsapp/chat/{$row->account_id}' class='btn btn-sm btn-success text-bolder' data-toggle='tooltip' title='View WhatsApp Chat' style='padding:3px'>"
+                ? " <a href='/whatsapp/chats?open={$row->account_id}' class='btn btn-sm btn-success text-bolder' data-toggle='tooltip' title='View WhatsApp Chat' style='padding:3px'>"
                   . "<span class='d-inline-block border border-white w-100 text-center' style='border-radius:2px;padding:5px'><i class='fa-brands fa-whatsapp'></i></span></a>"
                 : '';
 
