@@ -160,3 +160,20 @@ CREATE TABLE `unknown_wa_chats` (
   INSERT INTO `whatsapp_automation_templates` (`internal_name`,`name`,`template_name`,`category`,`body_text`,`variables`,`meta_status`,`language`,`date_changed`) VALUES ('payment_reminder_day_after','Payment 
   Reminder - Day After Expiry','payment_reminder_day_after','utility','Dear {{1}}, your account expired yesterday. Please make a payment to account {{2}} to restore your service. Current wallet balance: 
   {{3}}.','["client_f_name","acc_no","client_wallet"]','not_submitted','en',NULL);
+
+  -- 1. Create the billing rates table
+  CREATE TABLE IF NOT EXISTS `whatsapp_billing_rates` (
+      `id`          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      `category`    VARCHAR(20)    NOT NULL UNIQUE,
+      `rate`        DECIMAL(10,4)  NOT NULL DEFAULT 0.0000,
+      `currency`    VARCHAR(5)     NOT NULL DEFAULT 'KES',
+      `description` VARCHAR(255)   NULL,
+      `updated_at`  TIMESTAMP      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; 
+  
+  -- 2. Seed default Meta rates (Sub-Saharan Africa, KES at ~130/USD)
+  INSERT IGNORE INTO `whatsapp_billing_rates` (`category`, `rate`, `currency`, `description`) VALUES
+  ('service',        1.2900, 'KES', 'Customer-initiated conversations (first 1,000/month free per WABA)'),
+  ('utility',        1.2900, 'KES', 'Transactional messages (account updates, renewals, billing)'),
+  ('authentication', 1.4700, 'KES', 'OTP and verification messages'),
+  ('marketing',      2.7700, 'KES', 'Promotional and marketing messages');

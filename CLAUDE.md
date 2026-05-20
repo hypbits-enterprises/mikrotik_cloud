@@ -38,6 +38,24 @@ php artisan migrate
 php artisan tinker
 ```
 
+## Two-System Architecture
+
+This project (`mikrotik_cloud`) is the **child/per-organization system**. Each ISP organization uses this system to run their business. The companion parent system is:
+
+- **`mikrotik_cloud_manager`** — located at `/home/hila/Documents/laravel/mikrotik_cloud_manager` (same root folder). This is the master control plane that provisions organizations, sets billing rates, and manages the central database.
+
+### Cross-Project Sync Points
+
+Changes here sometimes require corresponding changes in `mikrotik_cloud_manager`, and vice versa:
+
+- **Database schema changes on org DBs** — any new table or `ALTER TABLE` introduced here must be communicated to `mikrotik_cloud_manager` so it can apply the change across all existing org databases during provisioning or upgrades.
+- **WhatsApp billing rates** — the `whatsapp_billing_rates` table lives in the `mikrotik_cloud_manager` DB. This system reads rates from there; never store or manage rates here.
+- **Unknown sender inbox** — this system's WhatsApp webhook writes unknown senders to `unknown_wa_chats` in the primary `mikrotik_cloud_manager` DB. Do not build management UI for that table here; it belongs in the manager system.
+- **Packages / service tiers** — stored in the central DB (`mikrotik_cloud_manager`) and read by this system for client plan assignments. Package CRUD is managed there, not here.
+- **Organization context** — this system reads its own org record (database name, wallet, expiry, package) from the central DB. That record is created and maintained by `mikrotik_cloud_manager`.
+
+When you introduce a new shared table, a new column on org DBs, or a new config value that the manager needs to display or bill — update `mikrotik_cloud_manager`'s CLAUDE.md and implement the manager-side work there.
+
 ## Architecture Overview
 
 This is an **ISP Management System** for managing MikroTik routers, client accounts, billing, SMS, and payments (M-Pesa). Built on Laravel 8 with a multi-tenant, dual-database architecture.
