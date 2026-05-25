@@ -656,7 +656,7 @@ class Controller extends BaseController
         return $this->whatsappApiCall($url, $settings['access_token'], $payload);
     }
 
-    function sendWhatsAppTemplate(string $to, string $templateName, array $variables, string $category = 'utility', string $language = 'en'): array
+    function sendWhatsAppTemplate(string $to, string $templateName, array $variables, string $category = 'utility', string $language = 'en', array $buttonVariables = []): array
     {
         $settings = $this->getWhatsAppSettings();
         if (!$settings) {
@@ -667,6 +667,16 @@ class Controller extends BaseController
         if (!empty($variables)) {
             $params = array_map(fn($v) => ['type' => 'text', 'text' => (string) $v], $variables);
             $components[] = ['type' => 'body', 'parameters' => $params];
+        }
+
+        // URL buttons require sub_type=url with type=text (not copy_code/coupon_code)
+        foreach ($buttonVariables as $index => $val) {
+            $components[] = [
+                'type'       => 'button',
+                'sub_type'   => 'url',
+                'index'      => (string) $index,
+                'parameters' => [['type' => 'text', 'text' => (string) $val]],
+            ];
         }
 
         $url     = "{$settings['base_url']}/{$settings['api_version']}/{$settings['phone_number_id']}/messages";
@@ -681,7 +691,11 @@ class Controller extends BaseController
             ],
         ]);
 
-        return $this->whatsappApiCall($url, $settings['access_token'], $payload);
+        $result = $this->whatsappApiCall($url, $settings['access_token'], $payload);
+        if (!empty($result['error'])) {
+            \Log::warning('sendWhatsAppTemplate failed', ['template' => $templateName, 'payload' => $payload, 'response' => $result]);
+        }
+        return $result;
     }
 
     function isWithin24hrWindow(int $clientId): bool

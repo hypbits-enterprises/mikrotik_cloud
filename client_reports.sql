@@ -177,3 +177,19 @@ CREATE TABLE `unknown_wa_chats` (
   ('utility',        1.2900, 'KES', 'Transactional messages (account updates, renewals, billing)'),
   ('authentication', 1.4700, 'KES', 'OTP and verification messages'),
   ('marketing',      2.7700, 'KES', 'Promotional and marketing messages');
+  
+  CREATE TABLE IF NOT EXISTS `manager_wa_templates` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `name` varchar(255) NOT NULL,
+    `template_name` varchar(255) NOT NULL,
+    `category` enum('service','utility','authentication','marketing') NOT NULL DEFAULT 'service',
+    `body_text` text NOT NULL,
+    `variables` json DEFAULT (JSON_ARRAY()),
+    `language` varchar(10) NOT NULL DEFAULT 'en',
+    `is_active` tinyint(1) NOT NULL DEFAULT 1,
+    `meta_status` enum('not_submitted','pending','approved','rejected') NOT NULL DEFAULT 'not_submitted',
+    `meta_template_id` varchar(100) DEFAULT NULL,
+    `date_changed` varchar(20) DEFAULT NULL,
+    `deleted` char(1) NOT NULL DEFAULT '0',
+    PRIMARY KEY (`id`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -1090,8 +1090,12 @@
                     var msgs  = data.messages;
                     var newId = msgs.length ? msgs[msgs.length - 1].sms_id : 0;
                     if (!forceScroll && newId === lastMsgId) return;
+                    var hadMessages = lastMsgId > 0;
                     lastMsgId = newId;
                     renderMessages(msgs, data.client);
+                    if (hadMessages && msgs.length && msgs[msgs.length - 1].direction === 'inbound') {
+                        playNotification();
+                    }
                     var el = document.getElementById('chat-messages');
                     if (forceScroll || el.scrollHeight - el.scrollTop - el.clientHeight < 120) scrollDown();
                 });
@@ -1100,6 +1104,25 @@
         function scrollDown() {
             var el = document.getElementById('chat-messages');
             if (el) el.scrollTop = el.scrollHeight;
+        }
+
+        function playNotification() {
+            try {
+                var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                [[880, 0, 0.12], [1100, 0.13, 0.18]].forEach(function (note) {
+                    var osc  = ctx.createOscillator();
+                    var gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.value = note[0];
+                    gain.gain.setValueAtTime(0, ctx.currentTime + note[1]);
+                    gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + note[1] + 0.03);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + note[1] + note[2] + 0.25);
+                    osc.start(ctx.currentTime + note[1]);
+                    osc.stop(ctx.currentTime + note[1] + note[2] + 0.3);
+                });
+            } catch (e) {}
         }
 
         // ── Auto-poll: active chat messages every 5 s ────────────────────────

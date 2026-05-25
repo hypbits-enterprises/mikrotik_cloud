@@ -137,7 +137,7 @@ class login extends Controller
                     }
 
                     $waPhone = $this->formatKenyanPhone($mobile);
-                    $waResult = $this->sendWhatsAppTemplate($waPhone, 'verification_code', [(string) $random_no], 'authentication', 'en');
+                    $waResult = $this->sendWhatsAppTemplate($waPhone, 'verification_code', [(string) $random_no], 'authentication', 'en', [(string) $random_no]);
 
                     if (empty($waResult['messages'][0]['id'])) {
                         $errDetail = $waResult['error']['message'] ?? 'Unknown error';
@@ -287,6 +287,7 @@ class login extends Controller
             $sms_table->sms_status = $message_status;
             $sms_table->account_id = "0";
             $sms_table->sms_type = "2";
+            $sms_table->channel = 'sms';
             $sms_table->save();
 
             // save the verifcation code in the database
@@ -474,14 +475,15 @@ class login extends Controller
             }
 
             // save the sms in the database
-            // $sms_table = new sms_table();
-            // $sms_table->sms_content = $message_2;
-            // $sms_table->date_sent = date("YmdHis");
-            // $sms_table->recipient_phone = $user_data[0]->contacts;
-            // $sms_table->sms_status = $message_status;
-            // $sms_table->account_id = "0";
-            // $sms_table->sms_type = "2";
-            // $sms_table->save();
+            $sms_table = new sms_table();
+            $sms_table->sms_content = $message_2;
+            $sms_table->date_sent = date("YmdHis");
+            $sms_table->recipient_phone = $sender_address;
+            $sms_table->sms_status = $message_status;
+            $sms_table->account_id = "0";
+            $sms_table->sms_type = "2";
+            $sms_table->channel = 'email';
+            $sms_table->save();
             session()->flash("success", "We have sent you a new password to your email, it expires in 5 minutes!");
         } else{
             $sms_settings = $this->getSmsSettings();
