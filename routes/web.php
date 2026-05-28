@@ -240,6 +240,7 @@ Route::post("/whatsapp/webhook", [WhatsApp::class, "webhook"]);
 Route::get("/whatsapp/chats", [WhatsApp::class, "index"])->middleware(["checkAccount", "validated"]);
 Route::get("/whatsapp/messages/{client_id}", [WhatsApp::class, "getChatMessages"])->middleware(["checkAccount", "validated"]);
 Route::get("/whatsapp/chats-json", [WhatsApp::class, "getChatsJson"])->middleware(["checkAccount", "validated"]);
+Route::get("/whatsapp/clients-for-chat", [WhatsApp::class, "getClientsForChat"])->middleware(["checkAccount", "validated"]);
 Route::post("/whatsapp/chat/delete/{client_id}", [WhatsApp::class, "deleteChat"])->middleware(["checkAccount", "validated"]);
 Route::post("/whatsapp/send", [WhatsApp::class, "sendMessage"])->middleware(["checkAccount", "validated"]);
 Route::post("/whatsapp/send-compose", [WhatsApp::class, "sendFromCompose"])->middleware(["checkAccount", "validated"]);

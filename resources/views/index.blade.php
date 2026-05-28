@@ -101,6 +101,18 @@
                                                     <p class="list-group-item-text mb-0">
                                                         <span class="blue-grey lighten-2 font-small-3"> To: <span class="text-primary">{{$fullnames[$i]}}</span> </span>
                                                     </p>
+                                                    @php $ch = $sms_sent[$i]->channel ?? 'sms'; @endphp
+                                                    <p class="list-group-item-text mb-0">
+                                                        <span class="blue-grey lighten-2 font-small-3"> Channel:
+                                                            @if ($ch === 'whatsapp')
+                                                                <span class="badge badge-success">WhatsApp</span>
+                                                            @elseif ($ch === 'email')
+                                                                <span class="badge badge-info">Email</span>
+                                                            @else
+                                                                <span class="badge badge-primary">SMS</span>
+                                                            @endif
+                                                        </span>
+                                                    </p>
                                                 </div>
                                             </a>
                                         @endfor

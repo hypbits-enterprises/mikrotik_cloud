@@ -107,24 +107,38 @@
 
                 <div class="row">
                     {{-- Add / Edit Template Form --}}
+                    @php $atLimit = count($templates) >= $maxTemplates; @endphp
                     <div class="col-md-5">
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title" id="form_title">
-                                    {{ $activeTemplates >= $maxTemplates ? 'Max ' . $maxTemplates . ' active templates reached' : 'Add Template' }}
+                                    @if($atLimit)
+                                        <i class="ft-lock text-danger"></i> Template limit reached
+                                    @else
+                                        Add Template
+                                    @endif
                                 </h4>
-                                <small class="text-muted">{{ $activeTemplates }} / {{ $maxTemplates }} active</small>
+                                <small class="{{ $atLimit ? 'text-danger font-weight-bold' : 'text-muted' }}">
+                                    {{ count($templates) }} / {{ $maxTemplates }} templates used
+                                </small>
                             </div>
                             <div class="card-content collapse show">
                                 <div class="card-body">
-                                    <form method="POST" action="/whatsapp/templates/save" id="tpl_form">
+                                    @if($atLimit)
+                                        <div class="alert alert-warning py-2 mb-0" style="font-size:.85rem;">
+                                            <i class="ft-alert-triangle"></i>
+                                            You have used all <strong>{{ $maxTemplates }}</strong> available templates.
+                                            <strong>Delete</strong> an existing template to create a new one.
+                                        </div>
+                                    @endif
+                                    <form method="POST" action="/whatsapp/templates/save" id="tpl_form" @if($atLimit) style="pointer-events:none;opacity:.5;" @endif>
                                         @csrf
                                         <input type="hidden" name="id" id="tpl_id">
 
                                         <div class="form-group">
                                             <label>Display Name</label>
                                             <input type="text" name="name" id="tpl_name" class="form-control"
-                                                placeholder="e.g. Payment Reminder" required {{ $readonly }}>
+                                                placeholder="e.g. Service Disruption Notice" required {{ $readonly }}>
                                         </div>
 
                                         <div class="form-group">
@@ -132,11 +146,11 @@
                                                 <small class="text-muted">(lowercase letters, numbers and underscores only)</small>
                                             </label>
                                             <input type="text" name="template_name" id="tpl_template_name"
-                                                class="form-control" placeholder="e.g. payment_reminder_yourcompany" required {{ $readonly }}>
+                                                class="form-control" placeholder="e.g. service_disruption_hypbits" required {{ $readonly }}>
                                             <small class="text-info">
                                                 <i class="ft-info"></i>
                                                 Include your company name to avoid conflicts with other businesses on Meta &mdash;
-                                                e.g. <code>payment_reminder_hypbits</code>, <code>expiry_notice_ladybird</code>.
+                                                e.g. <code>service_disruption_hypbits</code>, <code>maintenance_notice_ladybird</code>.
                                             </small>
                                         </div>
 
@@ -187,7 +201,7 @@
                                                 @endforeach
                                             </div>
                                             <textarea name="body_text" id="tpl_body" class="form-control" rows="4"
-                                                placeholder="Hello @{{1}}, your account @{{2}} expires on @{{3}}."
+                                                placeholder="Dear @{{1}}, we are currently experiencing a service disruption in @{{2}}. Our team is working to restore connectivity as soon as possible. We apologize for the inconvenience."
                                                 required {{ $readonly }}></textarea>
 
                                             {{-- Real-time validation output --}}
@@ -218,10 +232,11 @@
                                             @php
                                                 $btnText = "<i class='ft-save'></i> Save Template";
                                                 $otherClasses = "";
-                                                $btn_id = "";
+                                                $btn_id = "save_tpl_btn";
                                                 $otherAttributes = "";
+                                                $saveReadOnly = ($atLimit && !request('id')) ? "disabled" : $readonly;
                                             @endphp
-                                            <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="Save template" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                                            <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="Save template" btnType="success" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$saveReadOnly" />
 
                                             @php
                                                 $btnText = "Clear";
@@ -232,6 +247,90 @@
                                             <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="Clear form" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" readOnly="" />
                                         </div>
                                     </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ISP Example Templates --}}
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title"><i class="ft-zap text-warning"></i> ISP Template Examples</h4>
+                                <small class="text-muted">Click <strong>Use this</strong> to load into the form</small>
+                                <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
+                                <div class="heading-elements">
+                                    <ul class="list-inline mb-0">
+                                        <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-content collapse show">
+                                <div class="card-body py-1" style="font-size:0.82rem;">
+
+                                    <div class="border rounded p-2 mb-2">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <strong>Service Disruption Notice</strong>
+                                                <span class="badge badge-secondary">Utility</span><br>
+                                                <span class="text-muted" style="font-size:.78rem;">
+                                                    Dear <em>@{{1}}</em>, we are currently experiencing a service disruption in <em>@{{2}}</em>. Our team is working to restore connectivity as soon as possible. We apologize for the inconvenience.
+                                                </span>
+                                            </div>
+                                            <button type="button" class="btn btn-primary btn-sm ml-2 flex-shrink-0" style="padding:3px;" onclick="useExample('disruption')"><span class="d-inline-block border border-white w-100" style="border-radius:2px;padding:5px;">Use this</span></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="border rounded p-2 mb-2">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <strong>Scheduled Maintenance Alert</strong>
+                                                <span class="badge badge-secondary">Utility</span><br>
+                                                <span class="text-muted" style="font-size:.78rem;">
+                                                    Dear <em>@{{1}}</em>, we will be carrying out scheduled maintenance on <em>@{{2}}</em>. Your internet service may be temporarily unavailable. We expect to complete by <em>@{{3}}</em>. Thank you for your patience.
+                                                </span>
+                                            </div>
+                                            <button type="button" class="btn btn-primary btn-sm ml-2 flex-shrink-0" style="padding:3px;" onclick="useExample('maintenance')"><span class="d-inline-block border border-white w-100" style="border-radius:2px;padding:5px;">Use this</span></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="border rounded p-2 mb-2">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <strong>Service Restored</strong>
+                                                <span class="badge badge-success">Utility</span><br>
+                                                <span class="text-muted" style="font-size:.78rem;">
+                                                    Dear <em>@{{1}}</em>, we are glad to inform you that internet service has been fully restored in your area. We apologize for the disruption and thank you for your patience.
+                                                </span>
+                                            </div>
+                                            <button type="button" class="btn btn-primary btn-sm ml-2 flex-shrink-0" style="padding:3px;" onclick="useExample('restored')"><span class="d-inline-block border border-white w-100" style="border-radius:2px;padding:5px;">Use this</span></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="border rounded p-2 mb-2">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <strong>Subscription Expiry Reminder</strong>
+                                                <span class="badge badge-warning">Utility</span><br>
+                                                <span class="text-muted" style="font-size:.78rem;">
+                                                    Dear <em>@{{1}}</em>, your internet subscription (Account: <em>@{{2}}</em>) expires on <em>@{{3}}</em>. Renew now to avoid service interruption. Contact us for any assistance.
+                                                </span>
+                                            </div>
+                                            <button type="button" class="btn btn-primary btn-sm ml-2 flex-shrink-0" style="padding:3px;" onclick="useExample('expiry')"><span class="d-inline-block border border-white w-100" style="border-radius:2px;padding:5px;">Use this</span></button>
+                                        </div>
+                                    </div>
+
+                                    <div class="border rounded p-2 mb-2">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <strong>Welcome New Client</strong>
+                                                <span class="badge badge-info">Utility</span><br>
+                                                <span class="text-muted" style="font-size:.78rem;">
+                                                    Welcome <em>@{{1}}</em>! Your internet connection is now active. Your account number is <em>@{{2}}</em> and your monthly plan is KES <em>@{{3}}</em>. Contact us anytime for support.
+                                                </span>
+                                            </div>
+                                            <button type="button" class="btn btn-primary btn-sm ml-2 flex-shrink-0" style="padding:3px;" onclick="useExample('welcome')"><span class="d-inline-block border border-white w-100" style="border-radius:2px;padding:5px;">Use this</span></button>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                         </div>
@@ -398,6 +497,13 @@
         var counter    = document.getElementById('char_counter');
         var validation = document.getElementById('tpl_validation');
 
+        @php
+            $orgName  = session('organization')->organization_name ?? '';
+            $orgSlug  = strtolower(preg_replace('/[^a-z0-9]+/i', '_', trim($orgName)));
+            $orgSlug  = trim($orgSlug, '_');
+        @endphp
+        var ORG_SLUG = '{{ $orgSlug }}';
+
         var varLabels    = @json($availableVars);
         var templateData = @json($templates);
         // Split to prevent Blade from parsing these as template expressions
@@ -563,6 +669,59 @@
             setVarArray(vars);
 
             document.getElementById('form_title').textContent = 'Edit Template';
+            window.scrollTo(0, 0);
+        };
+
+        var ISP_EXAMPLES = {
+            disruption: {
+                name: 'Service Disruption Notice',
+                tplName: 'service_disruption',
+                category: 'utility',
+                body: 'Dear ' + OB + '1' + CB + ', we are currently experiencing a service disruption in ' + OB + '2' + CB + '. Our team is working to restore connectivity as soon as possible. We apologize for the inconvenience.',
+                vars: ['name', 'address']
+            },
+            maintenance: {
+                name: 'Scheduled Maintenance Alert',
+                tplName: 'maintenance_alert',
+                category: 'utility',
+                body: 'Dear ' + OB + '1' + CB + ', we will be carrying out scheduled maintenance on ' + OB + '2' + CB + '. Your internet service may be temporarily unavailable. We expect to complete by ' + OB + '3' + CB + '. Thank you for your patience.',
+                vars: ['name', 'address', 'exp_date']
+            },
+            restored: {
+                name: 'Service Restored',
+                tplName: 'service_restored',
+                category: 'utility',
+                body: 'Dear ' + OB + '1' + CB + ', we are glad to inform you that internet service has been fully restored in your area. We apologize for the disruption and thank you for your patience.',
+                vars: ['name']
+            },
+            expiry: {
+                name: 'Subscription Expiry Reminder',
+                tplName: 'expiry_reminder',
+                category: 'utility',
+                body: 'Dear ' + OB + '1' + CB + ', your internet subscription (Account: ' + OB + '2' + CB + ') expires on ' + OB + '3' + CB + '. Renew now to avoid service interruption. Contact us for any assistance.',
+                vars: ['name', 'account_no', 'exp_date']
+            },
+            welcome: {
+                name: 'Welcome New Client',
+                tplName: 'welcome_new_client',
+                category: 'utility',
+                body: 'Welcome ' + OB + '1' + CB + '! Your internet connection is now active. Your account number is ' + OB + '2' + CB + ' and your monthly plan is KES ' + OB + '3' + CB + '. Contact us anytime for support.',
+                vars: ['name', 'account_no', 'amount']
+            }
+        };
+
+        window.useExample = function(key) {
+            var ex = ISP_EXAMPLES[key];
+            if (!ex) return;
+            var tplName = ORG_SLUG ? ex.tplName + '_' + ORG_SLUG : ex.tplName;
+            document.getElementById('tpl_id').value            = '';
+            document.getElementById('tpl_name').value          = ex.name;
+            document.getElementById('tpl_template_name').value = tplName;
+            document.getElementById('tpl_category').value      = ex.category;
+            document.getElementById('tpl_language').value      = 'en';
+            bodyField.value = ex.body;
+            setVarArray(ex.vars);
+            document.getElementById('form_title').textContent = 'Add Template';
             window.scrollTo(0, 0);
         };
 

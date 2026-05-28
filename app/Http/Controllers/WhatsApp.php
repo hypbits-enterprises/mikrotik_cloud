@@ -67,6 +67,20 @@ class WhatsApp extends Controller
         return response()->json($chats);
     }
 
+    // ─── Clients list for "Start Chat" picker ────────────────────────────────
+
+    public function getClientsForChat()
+    {
+        $this->switchDb();
+
+        $clients = DB::connection('mysql2')->select(
+            "SELECT client_id, client_name, clients_contacts, client_account, client_status
+             FROM client_tables WHERE deleted = '0' ORDER BY client_name ASC"
+        );
+
+        return response()->json($clients);
+    }
+
     // ─── Delete a conversation ────────────────────────────────────────────────
 
     public function deleteChat($client_id)
@@ -507,14 +521,14 @@ class WhatsApp extends Controller
 
         $this->switchDb();
 
-        $activeCount = DB::connection('mysql2')->select(
-            "SELECT COUNT(*) AS total FROM `whatsapp_templates` WHERE `is_active` = 1 AND `deleted` = '0'"
+        $totalCount = DB::connection('mysql2')->select(
+            "SELECT COUNT(*) AS total FROM `whatsapp_templates` WHERE `deleted` = '0'"
         )[0]->total;
 
         $maxTemplates = config('messaging.max_templates', 3);
 
-        if (!$req->id && $activeCount >= $maxTemplates) {
-            return back()->withInput()->with('error_wa', "Maximum of {$maxTemplates} active templates allowed. Deactivate one first.");
+        if (!$req->id && $totalCount >= $maxTemplates) {
+            return back()->withInput()->with('error_wa', "You have reached the limit of {$maxTemplates} templates. Delete an existing template to add a new one.");
         }
 
         $now = date('YmdHis');

@@ -9,6 +9,7 @@
     <link rel="apple-touch-icon" href="/theme-assets/images/logo2.jpeg">
     <link rel="shortcut icon" href="/theme-assets/images/logo2.jpeg">
     <x-css></x-css>
+    <link rel="stylesheet" href="/theme-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css">
     <style>
         /* ── Two-panel chat layout ── */
         .wa-app {
@@ -447,6 +448,12 @@
 
                         {{-- Sidebar header --}}
                         <div class="wa-sidebar-header">
+                            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                                <h6 style="margin:0;flex:1;">Chats</h6>
+                                <button id="start-chat-btn" class="btn btn-sm btn-success" style="border-radius:16px;padding:3px 10px;font-size:.78rem;" data-toggle="tooltip" title="Start a new chat">
+                                    <i class="ft-plus"></i> New Chat
+                                </button>
+                            </div>
                             <input type="text" id="contact-search" class="wa-search" placeholder="&#xf002;  Search contacts…">
                         </div>
 
@@ -594,6 +601,35 @@
 
                     </div>{{-- /.card-body --}}
 
+{{-- ══ Start Chat Modal ══ --}}
+<div class="modal fade" id="startChatModal" tabindex="-1" role="dialog" aria-labelledby="startChatModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="startChatModalLabel">
+                    <i class="fa-brands fa-whatsapp text-success"></i> Start a Chat
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-2">
+                <table id="clients-picker-table" class="table table-hover table-sm" style="width:100%;cursor:pointer;">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Account</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 {{-- ══ Client Info Modal ══ --}}
 <div class="modal fade" id="clientInfoModal" tabindex="-1" role="dialog" aria-labelledby="clientInfoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document" style="max-width:420px;">
@@ -645,6 +681,8 @@
     <script src="/theme-assets/vendors/js/vendors.min.js" type="text/javascript"></script>
     <script src="/theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
     <script src="/theme-assets/js/core/app-lite.js" type="text/javascript"></script>
+    <script src="/theme-assets/vendors/js/tables/jquery.dataTables.min.js" type="text/javascript"></script>
+    <script src="/theme-assets/vendors/js/tables/datatable/dataTables.bootstrap4.min.js" type="text/javascript"></script>
     <script>
     (function () {
         var csrfToken       = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -1274,6 +1312,90 @@
         var params = new URLSearchParams(window.location.search);
         var openId = params.get('open');
         if (openId) openChat(openId);
+
+        // ── Start Chat picker ─────────────────────────────────────────────────
+        var pickerTable = null;
+
+        function startChatWithClient(clientId, clientName, clientPhone, clientAccount) {
+            $('#startChatModal').modal('hide');
+
+            var color   = colorFor(clientId);
+            var initial = (clientName || '?').charAt(0).toUpperCase();
+
+            // Add to sidebar if not already present
+            if (!document.getElementById('contact-' + clientId)) {
+                var a = document.createElement('a');
+                a.className = 'wa-contact-item';
+                a.id        = 'contact-' + clientId;
+                a.setAttribute('data-client-id', clientId);
+                a.setAttribute('data-name',    clientName);
+                a.setAttribute('data-phone',   clientPhone);
+                a.setAttribute('data-account', clientAccount);
+                a.setAttribute('data-color',   color);
+                a.setAttribute('data-initial', initial);
+                a.setAttribute('data-sms-id',  '0');
+                a.href = '#';
+                a.innerHTML =
+                    '<div class="wa-contact-avatar ' + color + '">' + escHtml(initial) + '</div>'
+                  + '<div class="wa-contact-info">'
+                  +   '<p class="wa-contact-name">' + escHtml(toTitle(clientName)) + '</p>'
+                  +   '<p class="wa-contact-preview" style="color:#aaa;font-style:italic;">No messages yet</p>'
+                  + '</div>'
+                  + '<div class="wa-contact-meta"></div>';
+                a.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    openChat(clientId);
+                });
+                var list  = document.getElementById('contacts-list');
+                var empty = list.querySelector('.text-center.text-muted');
+                if (empty) empty.remove();
+                list.insertBefore(a, list.firstChild);
+            }
+
+            openChat(clientId);
+        }
+
+        document.getElementById('start-chat-btn').addEventListener('click', function () {
+            $('#startChatModal').modal('show');
+        });
+
+        $('#startChatModal').on('shown.bs.modal', function () {
+            if (pickerTable) {
+                pickerTable.ajax.reload(null, false);
+                return;
+            }
+            pickerTable = $('#clients-picker-table').DataTable({
+                ajax: {
+                    url: '/whatsapp/clients-for-chat',
+                    dataSrc: ''
+                },
+                pageLength: 10,
+                lengthChange: false,
+                columns: [
+                    { data: 'client_name',       render: function (v) { return escHtml(toTitle(v || '')); } },
+                    { data: 'clients_contacts',  render: function (v) { return escHtml(v || '—'); } },
+                    { data: 'client_account',    render: function (v) { return escHtml(v || '—'); } },
+                    { data: 'client_status',     render: function (v) {
+                        return v == 1
+                            ? '<span class="badge badge-success">Active</span>'
+                            : '<span class="badge badge-danger">Inactive</span>';
+                    }}
+                ],
+                language: { search: 'Search:', emptyTable: 'No clients found.' },
+                order: [[0, 'asc']]
+            });
+
+            $('#clients-picker-table tbody').on('click', 'tr', function () {
+                var data = pickerTable.row(this).data();
+                if (!data) return;
+                startChatWithClient(
+                    String(data.client_id),
+                    data.client_name    || '',
+                    data.clients_contacts || '',
+                    data.client_account || ''
+                );
+            });
+        });
 
         // ── Start sidebar poll ────────────────────────────────────────────────
         startSidebarPoll();
