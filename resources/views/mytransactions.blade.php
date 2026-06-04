@@ -263,12 +263,8 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="table-responsive" id="transDataReciever">
-                                        <div class="container text-center my-2">
-                                            <img class=" mx-auto fa-beat-fade"  width="100" alt="Your Logo Appear Here"
-                                                src="{{session("organization_logo") != null ? session("organization_logo") :'/theme-assets/images/logoplaceholder.svg'}}" />
-                                        </div>
-                                        {{-- <table class="table">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered" id="transactions_table">
                                             <thead>
                                                 <tr>
                                                     <th>#</th>
@@ -278,71 +274,9 @@
                                                     <th>Action</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <th scope="row">1</th>
-                                                    <td>PKLJKJKHUJ <span class="badge badge-success"> </span></td>
-                                                    <td>0743551250</td>
-                                                    <td>Kes 1,000</td>
-                                                    <td><a href="#" class="btn btn-sm btn-primary text-bolder"
-                                                            data-toggle="tooltip" title="View this transaction"><i
-                                                                class="ft-eye"></i></a></td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">2</th>
-                                                    <td>OOJKUKJUIJ <span class="badge badge-danger"> </span></td>
-                                                    <td>0743551223</td>
-                                                    <td>Kes 3,000</td>
-                                                    <td><a href="#" class="btn btn-sm btn-primary text-bolder"
-                                                            data-toggle="tooltip" title="View this transaction"><i
-                                                                class="ft-eye"></i></a></td>
-                                                </tr>
-                                                <tr>
-                                                    <th scope="row">3</th>
-                                                    <td>PIKJJHIUHKJ <span class="badge badge-success"> </span></td>
-                                                    <td>0713620727</td>
-                                                    <td>Kes 3,000</td>
-                                                    <td><a href="#" class="btn btn-sm btn-primary text-bolder"
-                                                            data-toggle="tooltip" title="View this transaction"><i
-                                                                class="ft-eye"></i></a></td>
-                                                </tr>
-                                            </tbody>
-                                        </table> --}}
+                                            <tbody></tbody>
+                                        </table>
                                     </div>
-                                    <nav aria-label="Page navigation example" id="tablefooter">
-                                        <ul class="pagination" id="datatable_paginate">
-                                            <li class="page-item" id="tofirstNav">
-                                                <a class="page-link" href="#" aria-label="Fisrt">
-                                                    <span aria-hidden="true">&laquo; &laquo;</span>
-                                                    <span class="sr-only">First</span>
-                                                </a>
-                                            </li>
-                                            <li class="page-item" id="toprevNac">
-                                                <a class="page-link" href="#" aria-label="Previous">
-                                                    <span aria-hidden="true">&laquo;</span>
-                                                    <span class="sr-only">Previous</span>
-                                                </a>
-                                            </li>
-                                            <li class="page-item"><button disabled class="page-link"
-                                                    id="pagenumNav">Page: 1</button></li>
-                                            <li class="page-item">
-                                                <a class="page-link" href="#" aria-label="Next" id="tonextNav">
-                                                    <span aria-hidden="true">&raquo;</span>
-                                                    <span class="sr-only">Next</span>
-                                                </a>
-                                            </li>
-                                            <li class="page-item">
-                                                <a class="page-link" href="#" aria-label="Last Page"
-                                                    id="tolastNav">
-                                                    <span aria-hidden="true">&raquo;&raquo;</span>
-                                                    <span class="sr-only">Next</span>
-                                                </a>
-                                            </li>
-                                        </ul>
-                                        <p class="card-text text-xxs">Showing from <span class="text-primary"
-                                                id="startNo">1</span> to <span class="text-secondary"
-                                                id="finishNo">10</span> records of <span id="tot_records">56</span></p>
-                                    </nav>
                                 </div>
                             </div>
                         </div>
@@ -371,31 +305,18 @@
 
     <!-- BEGIN VENDOR JS-->
     <script src="theme-assets/vendors/js/vendors.min.js" type="text/javascript"></script>
-    <!-- BEGIN VENDOR JS-->
-    <!-- BEGIN PAGE VENDOR JS-->
-
-    <!-- END PAGE VENDOR JS-->
+    <script src="//cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <!-- BEGIN CHAMELEON  JS-->
     <script src="theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
     <script src="theme-assets/js/core/app-lite.js" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- END CHAMELEON  JS-->
-    <!-- BEGIN PAGE LEVEL JS-->
-    {{--  --}}
-    <!-- END PAGE LEVEL JS-->
 
     {{-- GET THE TRANSACTION DATA --}}
     <script>
-        var router_data = @json($transaction_data ?? '');
-        var today = @json($today ?? '');
-        // console.log(today);
-        var account_names = @json($account_name ?? '');
-        var transaction_date = @json($trans_dates ?? '');
-
         var client_names = @json($clients_name ?? '');
         var client_contacts = @json($clients_phone ?? '');
         var client_account = @json($clients_acc ?? '');
-        var readonly = @json($readonly ?? '');
         var collection_stats = @json($collections ?? '');
     </script>
 

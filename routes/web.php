@@ -197,6 +197,7 @@ Route::get("/activatePayment/{userid}", [Clients::class, "actPay"]);
 
 //TRANSACTIONS SECTION
 Route::get("/Transactions", [Transaction::class, "getTransactions"])->middleware(["checkAccount", "validated"]);
+Route::get("/Transactions/datatable", [Transaction::class, "getTransactionsDatatable"])->middleware(["checkAccount", "validated"]);
 Route::get("/Transactions/View/{trans_id}", [Transaction::class, "transDetails"])->middleware(["checkAccount", "validated"]);
 Route::get("/Assign/Transaction/{trans_id}/Client/{client_id}", [Transaction::class, "assignTransaction"])->middleware(["checkAccount", "validated"]);
 Route::get("/confirmTransfer/{user_id}/{transaction_id}", [Transaction::class, "confirmTransfer"])->middleware(["checkAccount", "validated"]);
@@ -282,7 +283,7 @@ Route::get("/Payment/mpesa/{mpesaid}", [Clients_data::class, "confirm_mpesa"])->
 Route::view("/Credentials", "clients.credential")->middleware(["clientValidate"]);
 Route::post("/changePassword", [Clients_data::class, "change_password"])->middleware(["clientValidate"]);
 Route::get("/Payment/stkpush_init", [Transaction::class, "stkpush"])->middleware(["clientValidate"]);
-Route::post("/Payment/stkpush", [Transaction::class, "initiate_stk"])->middleware(["clientValidate"]);
+Route::post("/Payment/stkpush", [Transaction::class, "initiate_stk"])->middleware(["validated"]);
 
 // get ip addresses
 Route::get("/ipAddress/{routerid}", [Clients::class, "getIpaddresses"]);

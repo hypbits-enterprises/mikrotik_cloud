@@ -727,7 +727,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="container">
-                        <form action="/update_client_comment" method="post" class="form-control-group">
+                        <div action="#" class="form-control-group">
                             @csrf
                             <h6 class="text-center">Initiate Payment</h6>
                             <p><b>Note</b> This will only work if we have done M-Pesa Integration</p>
@@ -761,7 +761,7 @@
                                     <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_initiate_payment_modal_2" :readOnly="$readonly" />
                                 </div>
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">

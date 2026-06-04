@@ -387,6 +387,87 @@ class Transaction extends Controller
         // return $collections;
         return view("mytransactions",["collections" => $collections, "dailStats" => $dailStats, "weeklyStats" => $weeklyStats, "monthlyStats" => $monthlyStats, "transaction_data" => $transaction_data, "today" => $sums,"week" => $week,"month" => $months,"twoweeks" => $twoWeek ,"account_name" => $account_names,"trans_dates" => $dates_infor,"clients_name" => $clients_name,"clients_acc" => $clients_acc,"clients_phone" => $clients_phone]);
     }
+
+    function getTransactionsDatatable(Request $request){
+        $change_db = new login();
+        $change_db->change_db();
+
+        $start  = intval($request->input('start', 0));
+        $length = intval($request->input('length', 20));
+        $draw   = intval($request->input('draw', 1));
+
+        $order_col_index = $request->input('order.0.column', 0);
+        $order_dir = in_array($request->input('order.0.dir'), ['asc', 'desc']) ? $request->input('order.0.dir') : 'desc';
+        $col_map = [0 => 't.transaction_id', 1 => 't.transaction_mpesa_id', 2 => 't.transaction_account', 3 => 't.transacion_amount'];
+        $order_col = $col_map[$order_col_index] ?? 't.transaction_id';
+
+        $search = $request->input('search.value', '');
+        $where = "WHERE t.deleted = '0'";
+        if (!empty($search)) {
+            $safe = addslashes($search);
+            $where .= " AND (t.transaction_mpesa_id LIKE '%$safe%' OR t.transaction_account LIKE '%$safe%' OR t.fullnames LIKE '%$safe%' OR t.phone_transacting LIKE '%$safe%' OR c.client_name LIKE '%$safe%')";
+        }
+
+        $total_q = DB::connection("mysql2")->select("SELECT COUNT(*) AS cnt FROM transaction_tables t LEFT JOIN client_tables c ON c.client_id = t.transaction_acc_id AND c.deleted = '0' WHERE t.deleted = '0'");
+        $total = $total_q[0]->cnt ?? 0;
+
+        $filtered_q = DB::connection("mysql2")->select("SELECT COUNT(*) AS cnt FROM transaction_tables t LEFT JOIN client_tables c ON c.client_id = t.transaction_acc_id AND c.deleted = '0' $where");
+        $filtered = $filtered_q[0]->cnt ?? 0;
+
+        $rows = DB::connection("mysql2")->select("SELECT t.transaction_id, t.transaction_mpesa_id, t.transaction_account, t.transacion_amount, t.transaction_date, t.transaction_status, t.transaction_acc_id, t.phone_transacting, t.fullnames, c.client_name, c.client_id FROM transaction_tables t LEFT JOIN client_tables c ON c.client_id = t.transaction_acc_id AND c.deleted = '0' $where ORDER BY $order_col $order_dir LIMIT $start, $length");
+
+        $disabled = '';
+        if (session("block_edits") === "true") {
+            $disabled = 'disabled';
+        } else {
+            $privs = session("priviledges");
+            if (is_string($privs) && json_decode($privs)) {
+                foreach (json_decode($privs) as $p) {
+                    if (($p->option ?? '') === 'Transactions' && !empty($p->readonly)) {
+                        $disabled = 'disabled';
+                        break;
+                    }
+                }
+            }
+        }
+        $data = [];
+        foreach ($rows as $i => $row) {
+            $status_badge = $row->transaction_status == 1
+                ? "<span class='badge badge-success'> </span>"
+                : "<span class='badge badge-danger'> </span>";
+
+            $date_raw = $row->transaction_date;
+            $d = mktime(
+                substr($date_raw,8,2), substr($date_raw,10,2), substr($date_raw,12,2),
+                substr($date_raw,4,2), substr($date_raw,6,2), substr($date_raw,0,4)
+            );
+            $date_str = date("d M Y H:i", $d);
+
+            $client_link = $row->client_id
+                ? "<small><a href='/Clients/View/{$row->client_id}' class='text-secondary'>{{$row->client_name}}</a></small>"
+                : "";
+            $client_name = $row->client_name ? htmlspecialchars(ucwords(strtolower($row->client_name))) : '<span class="text-muted">—</span>';
+
+            $actions = "<a href='/Transactions/View/{$row->transaction_id}' class='btn btn-sm btn-primary text-bolder {$disabled}' data-toggle='tooltip' title='View transaction' style='padding:3px;background-color:rgb(105,103,206);transition:background-color 0.3s;'><span class='d-inline-block border border-white w-100 text-center' style='border-radius:2px;padding:5px;background-color:rgba(0,0,0,0);color:rgb(255,255,255);border-color:rgb(255,255,255);transition:color 0.3s,background-color 0.3s,border-color 0.3s;'><i class='ft-eye'></i> View</span></a>"
+                     . " <a class='btn btn-sm btn-info ml-1 text-bolder {$disabled}' target='_blank' href='/Print-Reciept/{$row->transaction_id}' data-toggle='tooltip' title='Print receipt' style='padding:3px;background-color:rgb(40,175,208);transition:background-color 0.3s;'><span class='d-inline-block border border-white w-100 text-center' style='border-radius:2px;padding:5px;background-color:rgba(0,0,0,0);color:rgb(255,255,255);border-color:rgb(255,255,255);transition:color 0.3s,background-color 0.3s,border-color 0.3s;'><i class='ft-printer'></i></span></a>";
+
+            $data[] = [
+                'rownum'     => $start + $i + 1,
+                'mpesa_id'   => "{$row->transaction_mpesa_id} {$status_badge}<br><small>{$date_str}</small>",
+                'account'    => "{$row->transaction_account} {$client_link}",
+                'amount'     => 'Kes ' . number_format($row->transacion_amount, 2),
+                'actions'    => $actions,
+            ];
+        }
+
+        return response()->json([
+            'draw'            => $draw,
+            'recordsTotal'    => $total,
+            'recordsFiltered' => $filtered,
+            'data'            => $data,
+        ]);
+    }
+
     function transDetails($trans_id){
         // change db
         $change_db = new login();
