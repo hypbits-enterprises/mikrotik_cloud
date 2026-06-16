@@ -772,9 +772,17 @@ class WhatsApp extends Controller
             return response()->json(['status' => 'ok']);
         }
 
+        $ownPhoneNumberId = config('messaging.whatsapp.phone_number_id');
+
         foreach ($payload['entry'] as $entry) {
             foreach ($entry['changes'] ?? [] as $change) {
                 $value = $change['value'] ?? [];
+
+                // Only process events destined for our registered WABA number
+                $incomingPhoneNumberId = $value['metadata']['phone_number_id'] ?? null;
+                if ($incomingPhoneNumberId && $incomingPhoneNumberId !== $ownPhoneNumberId) {
+                    continue;
+                }
 
                 foreach ($value['messages'] ?? [] as $message) {
                     $this->handleInboundMessage($message, $value['contacts'][0] ?? null);
