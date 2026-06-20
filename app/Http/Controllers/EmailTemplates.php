@@ -32,6 +32,7 @@ Expiry Date: <strong>[exp_date]</strong></p>
 Account: <strong>[account_number]</strong><br>
 Wallet Balance: <strong>[wallet_balance]</strong><br>
 Expiry Date: <strong>[exp_date]</strong></p>
+<p>[receipt]</p>
 <p>Best regards,<br><strong>[org_name]</strong></p>',
         ],
         'payment_below_minimum' => [
@@ -190,6 +191,7 @@ Expiry Date: <strong>[exp_date]</strong></p>
             '[unfreeze_date]'  => 'Unfreeze Date',
             '[freeze_date]'    => 'Freeze Date',
             '[org_name]'       => 'Organisation Name',
+            '[receipt]'        => 'Attach PDF Receipt',
         ];
 
         return view('email_tpl_edit', compact('template', 'variables'));

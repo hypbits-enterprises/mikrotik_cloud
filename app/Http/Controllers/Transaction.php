@@ -803,6 +803,9 @@ class Transaction extends Controller
                         $this->dispatchAutomationMessage($templateName, $message, $mobile, $user_data[0], [
                             'trans_amount' => $trans_amount,
                             'min_amount'   => $minimum_payment,
+                            'mpesa_ref'    => $jsonMpesaResponse['TransID'],
+                            'trans_date'   => $jsonMpesaResponse['TransTime'],
+                            'org_data'     => $organization[0],
                         ], $orgChannel);
                         $sms_table = new sms_table();
                         $sms_table->sms_content = $message;

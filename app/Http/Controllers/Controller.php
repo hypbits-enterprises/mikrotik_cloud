@@ -833,9 +833,69 @@ class Controller extends BaseController
             '[unfreeze_date]'  => $extras['unfreeze_date'] ?? '',
             '[freeze_date]'    => $extras['frozen_date'] ?? $extras['unfreeze_date'] ?? '',
             '[org_name]'       => $orgName,
+            '[receipt]'        => 'Please find your payment receipt attached.',
         ];
 
         return str_replace(array_keys($map), array_values($map), $template);
+    }
+
+    protected function buildReceiptPdf(object $clientData, array $extras): ?string
+    {
+        try {
+            $org = $extras['org_data'] ?? session('organization');
+            if (!$org) return null;
+
+            $pdf = new \App\Classes\reports\RECEIPT("P", "mm", "A4");
+            $pdf->AddFont('century_gothic', '', 'century_gothic.php');
+            $pdf->AddFont('century_gothic', 'B', 'century_gothic_bold.php');
+            $pdf->AddFont('century_gothic', 'I', 'Century Gothic Italic.php');
+            $pdf->AddFont('century_gothic', 'BI', 'Century Gothic Bold Italic.php');
+            $pdf->setCompayLogo($org->organization_logo ?? null);
+            $pdf->set_company_name(strtoupper($org->organization_name ?? 'ISP'));
+            $pdf->set_company_contact($org->organization_main_contact ?? '');
+            $pdf->set_company_email($org->organization_email ?? '');
+            $pdf->set_company_address($org->organization_address ?? '');
+            $pdf->set_document_title($org->organization_name ?? 'ISP');
+            $pdf->SetTextColor(25, 25, 25);
+
+            $rawDate  = $extras['trans_date'] ?? date('YmdHis');
+            $dt       = \DateTime::createFromFormat('YmdHis', $rawDate);
+            $payment  = (object)[
+                'transaction_date'     => $dt ? $dt->format('Y-m-d H:i:s') : date('Y-m-d H:i:s'),
+                'transaction_mpesa_id' => $extras['mpesa_ref'] ?? '',
+                'transacion_amount'    => $extras['trans_amount'] ?? 0,
+            ];
+
+            $pdf->set_client_data($clientData);
+            $pdf->set_payment_data($payment);
+            $pdf->AddPage();
+            $pdf->Image(public_path("theme-assets/images/paid_stamp.png"), 80, 120, 60);
+
+            $amount = $extras['trans_amount'] ?? 0;
+            $pdf->Cell(20, 5, "Qty", 0, 0, "L");
+            $pdf->Cell(100, 5, "Description Of Service", 0, 0, "L");
+            $pdf->Cell(35, 5, "Transaction Code", 0, 0, "L");
+            $pdf->Cell(30, 5, "Total", 0, 1, "L");
+
+            $pdf->Cell(20, 8, "1", 1, 0, "L");
+            $pdf->Cell(100, 8, "Internet Service - " . ($clientData->max_upload_download ?? ''), 1, 0, "L");
+            $pdf->Cell(35, 8, ($extras['mpesa_ref'] ?? '-') . " ", 1, 0, "L");
+            $pdf->Cell(30, 8, "Kes " . number_format($amount), 1, 1, "L");
+
+            $pdf->Cell(20, 8, "", 0, 0, "L");
+            $pdf->Cell(70, 8, "", 0, 0, "L");
+            $pdf->Cell(65, 8, "Discount", 0, 0, "R");
+            $pdf->Cell(30, 8, "Kes " . number_format(0, 2), 1, 1, "L");
+
+            $pdf->Cell(20, 8, "", 0, 0, "L");
+            $pdf->Cell(70, 8, "", 0, 0, "L");
+            $pdf->Cell(65, 8, "Total", 0, 0, "R");
+            $pdf->Cell(30, 8, "Kes " . number_format($amount, 2), 1, 1, "L");
+
+            return $pdf->Output('S');
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     function dispatchAutomationMessage(
@@ -868,7 +928,8 @@ class Controller extends BaseController
             $email = $clientData->client_email ?? null;
             if (!$email) return false;
             try {
-                $orgName = session('organization')->name ?? 'Your ISP';
+                $orgObj  = $extras['org_data'] ?? session('organization');
+                $orgName = $orgObj->organization_name ?? 'Your ISP';
 
                 // Use org-configured SMTP if available, otherwise fall back to system .env
                 $esSetting = DB::connection('mysql2')->table('settings')->where('keyword', 'email_settings')->first();
@@ -887,23 +948,29 @@ class Controller extends BaseController
                     return false;
                 }
 
-                $tplRow  = DB::connection('mysql2')->table('email_templates')->where('name', $internalName)->first();
+                $tplRow   = DB::connection('mysql2')->table('email_templates')->where('name', $internalName)->first();
+                $defaults = \App\Http\Controllers\EmailTemplates::getDefaults();
+
                 if ($tplRow) {
-                    $subject = $this->resolveEmailVariables($tplRow->subject, $clientData, $extras, $orgName);
-                    $body    = $this->resolveEmailVariables($tplRow->html_body, $clientData, $extras, $orgName);
-                    \Mail::to($email)->send(new \App\Mail\AutomationEmail($subject, $body));
+                    $rawSubject = $tplRow->subject;
+                    $rawBody    = $tplRow->html_body;
+                } elseif (isset($defaults[$internalName])) {
+                    $rawSubject = $defaults[$internalName]['subject'];
+                    $rawBody    = $defaults[$internalName]['body'];
                 } else {
-                    $defaults = \App\Http\Controllers\EmailTemplates::getDefaults();
-                    if (isset($defaults[$internalName])) {
-                        $subject = $this->resolveEmailVariables($defaults[$internalName]['subject'], $clientData, $extras, $orgName);
-                        $body    = $this->resolveEmailVariables($defaults[$internalName]['body'], $clientData, $extras, $orgName);
-                        \Mail::to($email)->send(new \App\Mail\AutomationEmail($subject, $body));
-                    } else {
-                        \Mail::raw($resolvedSms, function ($m) use ($email, $orgName) {
-                            $m->to($email)->subject('Message from ' . $orgName);
-                        });
-                    }
+                    \Mail::raw($resolvedSms, function ($m) use ($email, $orgName) {
+                        $m->to($email)->subject('Message from ' . $orgName);
+                    });
+                    return true;
                 }
+
+                $hasReceipt = str_contains($rawBody, '[receipt]');
+                $pdfBytes   = $hasReceipt ? $this->buildReceiptPdf($clientData, $extras) : null;
+                $pdfName    = 'receipt_' . ($clientData->client_account ?? 'unknown') . '_' . date('dMY') . '.pdf';
+
+                $subject = $this->resolveEmailVariables($rawSubject, $clientData, $extras, $orgName);
+                $body    = $this->resolveEmailVariables($rawBody, $clientData, $extras, $orgName);
+                \Mail::to($email)->send(new \App\Mail\AutomationEmail($subject, $body, $pdfBytes, $pdfName));
                 return true;
             } catch (\Exception $e) {
                 return false;
