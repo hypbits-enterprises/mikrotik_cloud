@@ -68,7 +68,7 @@
                                             <thead>
                                                 <tr>
                                                     <th>Template</th>
-                                                    <th>Subject</th>
+                                                    <th>Description</th>
                                                     <th>Last Modified</th>
                                                     <th>Action</th>
                                                 </tr>
@@ -80,7 +80,7 @@
                                                         <strong>{{ $tpl['label'] }}</strong><br>
                                                         <small class="text-muted">{{ $tpl['name'] }}</small>
                                                     </td>
-                                                    <td>{{ $tpl['subject'] }}</td>
+                                                    <td><small class="text-muted">{{ $tpl['description'] }}</small></td>
                                                     <td>
                                                         @if($tpl['updated_at'])
                                                             {{ date('d M Y H:i', strtotime($tpl['updated_at'])) }}

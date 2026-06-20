@@ -65,6 +65,13 @@
                                         <a href="/email-templates" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Back to list</a>
                                     </div>
 
+                                    @if($template['description'])
+                                    <div class="alert alert-info mb-3" role="alert">
+                                        <strong><i class="ft-info mr-1"></i> When is this sent?</strong>
+                                        {{ $template['description'] }}
+                                    </div>
+                                    @endif
+
                                     {{-- Variable chips --}}
                                     <div class="mb-3">
                                         <label class="form-control-label font-weight-bold">Insert Variable</label><br>

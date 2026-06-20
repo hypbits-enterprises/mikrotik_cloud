@@ -12,7 +12,8 @@ class EmailTemplates extends Controller
 
     private const DEFAULTS = [
         'new_client_welcome' => [
-            'label'   => 'New Client Welcome',
+            'label'       => 'New Client Welcome',
+            'description' => 'Sent when a new client account is created in the system.',
             'subject' => 'Welcome to [org_name] – Your Account is Ready',
             'body'    => '<p>Dear <strong>[client_name]</strong>,</p>
 <p>Welcome to <strong>[org_name]</strong>! Your internet account has been created successfully.</p>
@@ -24,7 +25,8 @@ Expiry Date: <strong>[exp_date]</strong></p>
 <p>Best regards,<br><strong>[org_name]</strong></p>',
         ],
         'payment_received' => [
-            'label'   => 'Payment Received',
+            'label'       => 'Payment Received',
+            'description' => 'Sent when an M-Pesa payment is received and the client wallet is credited successfully.',
             'subject' => 'Payment Received – [org_name]',
             'body'    => '<p>Dear <strong>[client_name]</strong>,</p>
 <p>We have received your payment of <strong>[trans_amount]</strong>. Thank you!</p>
@@ -36,7 +38,8 @@ Expiry Date: <strong>[exp_date]</strong></p>
 <p>Best regards,<br><strong>[org_name]</strong></p>',
         ],
         'payment_below_minimum' => [
-            'label'   => 'Payment Below Minimum',
+            'label'       => 'Payment Below Minimum',
+            'description' => 'Sent when a payment is received but is less than the minimum amount required to activate or renew the account.',
             'subject' => 'Payment Received – Below Minimum Threshold',
             'body'    => '<p>Dear <strong>[client_name]</strong>,</p>
 <p>We have received your payment of <strong>[trans_amount]</strong>. However, your payment is below the minimum required amount of <strong>[min_amount]</strong>.</p>
@@ -46,7 +49,8 @@ Expiry Date: <strong>[exp_date]</strong></p>
 <p>Best regards,<br><strong>[org_name]</strong></p>',
         ],
         'payment_wrong_account' => [
-            'label'   => 'Payment – Wrong Account',
+            'label'       => 'Payment – Wrong Account',
+            'description' => 'Sent when a payment references an account number that does not exist in the system.',
             'subject' => 'Payment Received for Unrecognised Account',
             'body'    => '<p>Dear Customer,</p>
 <p>We have received a payment of <strong>[trans_amount]</strong> referencing an account number that does not exist in our system.</p>
@@ -54,7 +58,8 @@ Expiry Date: <strong>[exp_date]</strong></p>
 <p>Best regards,<br><strong>[org_name]</strong></p>',
         ],
         'account_renewed' => [
-            'label'   => 'Account Renewed',
+            'label'       => 'Account Renewed',
+            'description' => 'Sent when a client\'s account is successfully renewed after their wallet reaches the required minimum.',
             'subject' => 'Your Account Has Been Renewed – [org_name]',
             'body'    => '<p>Dear <strong>[client_name]</strong>,</p>
 <p>Your internet account has been renewed successfully.</p>
@@ -65,7 +70,8 @@ Expiry Date: <strong>[exp_date]</strong></p>
 <p>Best regards,<br><strong>[org_name]</strong></p>',
         ],
         'account_extended' => [
-            'label'   => 'Account Extended',
+            'label'       => 'Account Extended',
+            'description' => 'Sent when a client\'s expiry date is manually extended by an admin without a new payment.',
             'subject' => 'Your Account Has Been Extended – [org_name]',
             'body'    => '<p>Dear <strong>[client_name]</strong>,</p>
 <p>Your internet account has been extended.</p>
@@ -75,7 +81,8 @@ Expiry Date: <strong>[exp_date]</strong></p>
 <p>Best regards,<br><strong>[org_name]</strong></p>',
         ],
         'account_deactivated' => [
-            'label'   => 'Account Deactivated',
+            'label'       => 'Account Deactivated',
+            'description' => 'Sent when a client\'s account is deactivated — typically because their expiry date has passed and their wallet is insufficient.',
             'subject' => 'Account Deactivated – [org_name]',
             'body'    => '<p>Dear <strong>[client_name]</strong>,</p>
 <p>Your internet account (<strong>[account_number]</strong>) has been deactivated.</p>
@@ -83,7 +90,8 @@ Expiry Date: <strong>[exp_date]</strong></p>
 <p>Best regards,<br><strong>[org_name]</strong></p>',
         ],
         'account_frozen' => [
-            'label'   => 'Account Frozen',
+            'label'       => 'Account Frozen',
+            'description' => 'Sent when a client\'s account is frozen for a holiday or vacation hold, suspending service temporarily.',
             'subject' => 'Your Account Has Been Frozen – [org_name]',
             'body'    => '<p>Dear <strong>[client_name]</strong>,</p>
 <p>Your internet account (<strong>[account_number]</strong>) has been frozen for <strong>[days_frozen]</strong>.</p>
@@ -92,7 +100,8 @@ Expiry Date: <strong>[exp_date]</strong></p>
 <p>Best regards,<br><strong>[org_name]</strong></p>',
         ],
         'account_freeze_scheduled' => [
-            'label'   => 'Account Freeze Scheduled',
+            'label'       => 'Account Freeze Scheduled',
+            'description' => 'Sent as advance notice when a future account freeze has been scheduled, giving the client time to plan.',
             'subject' => 'Upcoming Account Freeze Notice – [org_name]',
             'body'    => '<p>Dear <strong>[client_name]</strong>,</p>
 <p>This is a notice that your account (<strong>[account_number]</strong>) is scheduled to be frozen on <strong>[freeze_date]</strong> for <strong>[days_frozen]</strong>.</p>
@@ -101,7 +110,8 @@ Expiry Date: <strong>[exp_date]</strong></p>
 <p>Best regards,<br><strong>[org_name]</strong></p>',
         ],
         'account_unfrozen' => [
-            'label'   => 'Account Unfrozen',
+            'label'       => 'Account Unfrozen',
+            'description' => 'Sent when a previously frozen account is restored to active service, either automatically on the unfreeze date or manually by an admin.',
             'subject' => 'Your Account Has Been Reactivated – [org_name]',
             'body'    => '<p>Dear <strong>[client_name]</strong>,</p>
 <p>Great news! Your internet account (<strong>[account_number]</strong>) has been unfrozen and is now active.</p>
@@ -110,7 +120,8 @@ Expiry Date: <strong>[exp_date]</strong></p>
 <p>Best regards,<br><strong>[org_name]</strong></p>',
         ],
         'referral_commission' => [
-            'label'   => 'Referral Commission',
+            'label'       => 'Referral Commission',
+            'description' => 'Sent to a client when a commission is credited to their wallet for referring a new client who made a payment.',
             'subject' => 'Referral Commission Credited – [org_name]',
             'body'    => '<p>Dear <strong>[client_name]</strong>,</p>
 <p>A referral commission of <strong>[trans_amount]</strong> has been credited to your wallet.</p>
@@ -119,7 +130,8 @@ Expiry Date: <strong>[exp_date]</strong></p>
 <p>Best regards,<br><strong>[org_name]</strong></p>',
         ],
         'payment_reminder_day_before' => [
-            'label'   => 'Payment Reminder – Day Before Expiry',
+            'label'       => 'Payment Reminder – Day Before Expiry',
+            'description' => 'Sent automatically the day before a client\'s account is due to expire, prompting them to renew.',
             'subject' => 'Your Account Expires Tomorrow – [org_name]',
             'body'    => '<p>Dear <strong>[client_name]</strong>,</p>
 <p>Your internet account (<strong>[account_number]</strong>) expires <strong>tomorrow</strong>.</p>
@@ -128,7 +140,8 @@ Expiry Date: <strong>[exp_date]</strong></p>
 <p>Best regards,<br><strong>[org_name]</strong></p>',
         ],
         'payment_reminder_day_after' => [
-            'label'   => 'Payment Reminder – Day After Expiry',
+            'label'       => 'Payment Reminder – Day After Expiry',
+            'description' => 'Sent automatically the day after a client\'s account has expired, reminding them to pay and restore service.',
             'subject' => 'Your Account Has Expired – [org_name]',
             'body'    => '<p>Dear <strong>[client_name]</strong>,</p>
 <p>Your internet account (<strong>[account_number]</strong>) expired <strong>yesterday</strong>.</p>
@@ -149,10 +162,11 @@ Expiry Date: <strong>[exp_date]</strong></p>
         foreach (self::DEFAULTS as $name => $def) {
             $row = $rows->get($name);
             $templates[] = [
-                'name'       => $name,
-                'label'      => $def['label'],
-                'subject'    => $row ? $row->subject : $def['subject'],
-                'updated_at' => $row ? $row->updated_at : null,
+                'name'        => $name,
+                'label'       => $def['label'],
+                'description' => $def['description'] ?? '',
+                'subject'     => $row ? $row->subject : $def['subject'],
+                'updated_at'  => $row ? $row->updated_at : null,
             ];
         }
 
@@ -172,10 +186,11 @@ Expiry Date: <strong>[exp_date]</strong></p>
         $def = self::DEFAULTS[$name];
 
         $template = [
-            'name'    => $name,
-            'label'   => $def['label'],
-            'subject' => $row ? $row->subject : $def['subject'],
-            'body'    => $row ? $row->html_body : $def['body'],
+            'name'        => $name,
+            'label'       => $def['label'],
+            'description' => $def['description'] ?? '',
+            'subject'     => $row ? $row->subject : $def['subject'],
+            'body'        => $row ? $row->html_body : $def['body'],
         ];
 
         $variables = [
