@@ -187,6 +187,15 @@ CREATE TABLE `unknown_wa_chats` (
     ADD COLUMN IF NOT EXISTS `preferred_channel` VARCHAR(20)  NULL AFTER `client_email`
       COMMENT 'sms | whatsapp | email — NULL means inherit the org-level default';
 
+  CREATE TABLE IF NOT EXISTS `email_templates` (
+    `id`         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `name`       VARCHAR(50)   NOT NULL UNIQUE COMMENT 'internal name matching dispatchAutomationMessage internalName',
+    `label`      VARCHAR(100)  NOT NULL,
+    `subject`    VARCHAR(255)  NOT NULL,
+    `html_body`  LONGTEXT      NOT NULL,
+    `updated_at` TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
   CREATE TABLE IF NOT EXISTS `manager_wa_templates` (
     `id` int NOT NULL AUTO_INCREMENT,
     `name` varchar(255) NOT NULL,

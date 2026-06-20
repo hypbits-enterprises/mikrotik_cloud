@@ -15,6 +15,7 @@ use App\Http\Controllers\mpesa_api;
 use App\Http\Controllers\Router_Cloud;
 use App\Http\Controllers\SharedTables;
 use App\Http\Controllers\WhatsApp;
+use App\Http\Controllers\EmailTemplates;
 use Symfony\Component\Mime\Crypto\SMime;
 
 /*
@@ -258,6 +259,12 @@ Route::get("/whatsapp/templates/delete/{id}", [WhatsApp::class, "deleteTemplate"
 Route::get("/whatsapp/templates/toggle/{id}", [WhatsApp::class, "toggleTemplate"])->middleware(["checkAccount", "validated"]);
 Route::get("/whatsapp/templates/submit/{id}", [WhatsApp::class, "submitToMeta"])->middleware(["checkAccount", "validated"]);
 Route::get("/whatsapp/templates/sync", [WhatsApp::class, "syncMetaStatus"])->middleware(["checkAccount", "validated"]);
+
+// email templates
+Route::get("/email-templates", [EmailTemplates::class, "index"])->middleware(["checkAccount", "validated"]);
+Route::get("/email-templates/{name}/edit", [EmailTemplates::class, "edit"])->middleware(["checkAccount", "validated"]);
+Route::post("/email-templates/{name}", [EmailTemplates::class, "save"])->middleware(["checkAccount", "validated"]);
+Route::get("/email-templates/reset/{name}", [EmailTemplates::class, "reset"])->middleware(["checkAccount", "validated"]);
 
 // accounts and profile
 Route::get("/Accounts", [admin::class, "getAdmin"])->middleware(["checkAccount", "validated"]);

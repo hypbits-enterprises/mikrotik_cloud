@@ -813,6 +813,31 @@ class Controller extends BaseController
         return $params;
     }
 
+    protected function resolveEmailVariables(string $template, object $clientData, array $extras = [], string $orgName = ''): string
+    {
+        $expRaw  = $clientData->next_expiration_date ?? '';
+        $expDate = $expRaw
+            ? date('dS M Y', strtotime($expRaw)) . ' at ' . date('H:i', strtotime($expRaw))
+            : '';
+
+        $map = [
+            '[client_name]'    => $clientData->client_name ?? '',
+            '[client_f_name]'  => ucfirst(strtolower(explode(' ', $clientData->client_name ?? ' ')[0])),
+            '[account_number]' => $clientData->client_account ?? '',
+            '[monthly_fees]'   => 'Ksh ' . number_format($clientData->monthly_payment ?? 0),
+            '[exp_date]'       => $expDate,
+            '[wallet_balance]' => 'Ksh ' . number_format($clientData->wallet_amount ?? 0),
+            '[trans_amount]'   => 'Ksh ' . number_format($extras['trans_amount'] ?? 0),
+            '[min_amount]'     => 'Ksh ' . number_format($extras['min_amount'] ?? 0),
+            '[days_frozen]'    => ($extras['days_frozen'] ?? '0') . ' Day(s)',
+            '[unfreeze_date]'  => $extras['unfreeze_date'] ?? '',
+            '[freeze_date]'    => $extras['frozen_date'] ?? $extras['unfreeze_date'] ?? '',
+            '[org_name]'       => $orgName,
+        ];
+
+        return str_replace(array_keys($map), array_values($map), $template);
+    }
+
     function dispatchAutomationMessage(
         string  $internalName,
         string  $resolvedSms,
@@ -844,9 +869,16 @@ class Controller extends BaseController
             if (!$email) return false;
             try {
                 $orgName = session('organization')->name ?? 'Your ISP';
-                \Mail::raw($resolvedSms, function ($m) use ($email, $orgName) {
-                    $m->to($email)->subject('Message from ' . $orgName);
-                });
+                $tplRow  = DB::connection('mysql2')->table('email_templates')->where('name', $internalName)->first();
+                if ($tplRow) {
+                    $subject = $this->resolveEmailVariables($tplRow->subject, $clientData, $extras, $orgName);
+                    $body    = $this->resolveEmailVariables($tplRow->html_body, $clientData, $extras, $orgName);
+                    \Mail::to($email)->send(new \App\Mail\AutomationEmail($subject, $body));
+                } else {
+                    \Mail::raw($resolvedSms, function ($m) use ($email, $orgName) {
+                        $m->to($email)->subject('Message from ' . $orgName);
+                    });
+                }
                 return true;
             } catch (\Exception $e) {
                 return false;
