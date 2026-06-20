@@ -221,6 +221,8 @@
                                         @endphp
                                         <x-button-link btnType="secondary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
                                         {{-- <a href="/sms/system_sms" class="btn btn-secondary text-bolder {{$readonly}}">Customize SMS</a> --}}
+                                        @php $btnText = "Email Templates"; $otherClasses = ""; $btnLink = "/email-templates"; @endphp
+                                        <x-button-link btnType="info" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
 
                                         @php
                                             $btnText = "<i class=\"ft-file-text\" ></i> SMS Reports";

@@ -18,30 +18,32 @@
     @php
         $priviledges = session("priviledges");
         $readonly = readOnly($priviledges, "SMS");
-        $btnText = ""; $otherClasses = "";
+        $btnText = ""; $otherClasses = ""; $btnLink = ""; $otherAttributes = "";
     @endphp
 
     <div class="app-content content">
         <div class="content-wrapper">
+            <div class="content-wrapper-before"></div>
             <div class="content-header row">
-                <div class="content-header-left col-md-6 col-12 mb-2">
-                    <h3 class="content-header-title">Edit: {{ $template['label'] }}</h3>
-                    <div class="row breadcrumbs-top">
-                        <div class="breadcrumb-wrapper col-12">
+                <div class="content-header-left col-md-4 col-12 mb-2">
+                    <h3 class="content-header-title"><i class="ft-mail"></i> {{ $template['label'] }}</h3>
+                </div>
+                <div class="content-header-right col-md-8 col-12">
+                    <div class="breadcrumbs-top float-md-right">
+                        <div class="breadcrumb-wrapper mr-1">
                             <ol class="breadcrumb">
-                                <li class="breadcrumb-item"><a href="/Dashboard">Home</a></li>
+                                <li class="breadcrumb-item"><a href="/Dashboard">Dashboard</a></li>
+                                <li class="breadcrumb-item"><a href="/sms">SMS</a></li>
                                 <li class="breadcrumb-item"><a href="/email-templates">Email Templates</a></li>
                                 <li class="breadcrumb-item active">{{ $template['label'] }}</li>
                             </ol>
                         </div>
                     </div>
                 </div>
-                <div class="content-header-right col-md-6 col-12 d-flex align-items-center justify-content-end mb-2">
-                    <x-button-link href="/email-templates" btnText="Back" btnType="secondary" btnSize="sm" :readOnly="false" />
-                </div>
             </div>
 
             <div class="content-body">
+
                 @if(session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         {{ session('success') }}
@@ -54,12 +56,14 @@
                         <div class="card">
                             <div class="card-header">
                                 <h4 class="card-title">{{ $template['label'] }}</h4>
-                                <p class="card-text text-muted mb-0">
-                                    Click a variable chip to insert it at the cursor position in the editor.
-                                </p>
+                                <p class="card-text text-muted mb-0">Click a variable chip to insert it at the cursor position in the editor.</p>
                             </div>
                             <div class="card-content">
                                 <div class="card-body">
+
+                                    <div class="mb-2">
+                                        <a href="/email-templates" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Back to list</a>
+                                    </div>
 
                                     {{-- Variable chips --}}
                                     <div class="mb-3">
@@ -73,8 +77,14 @@
                                         @endforeach
                                     </div>
 
-                                    <form action="/email-templates/{{ $template['name'] }}" method="POST">
+                                    <form action="/email-templates/{{ $template['name'] }}" method="POST" onsubmit="tinymce.triggerSave()">
                                         @csrf
+
+                                        @if($errors->any())
+                                            <div class="alert alert-danger">
+                                                @foreach($errors->all() as $error)<p class="mb-0">{{ $error }}</p>@endforeach
+                                            </div>
+                                        @endif
 
                                         <div class="form-group">
                                             <label for="subject" class="form-control-label">Subject Line</label>
@@ -91,8 +101,15 @@
                                         </div>
 
                                         <div class="d-flex justify-content-end">
-                                            <x-button-link href="/email-templates" btnText="Cancel" btnType="secondary" btnSize="sm" :readOnly="false" otherClasses="mr-1" />
-                                            <x-button btnText="Save Template" btnType="primary" btnSize="sm" type="submit" :readOnly="$readonly" />
+                                            @php
+                                                $btnText = "Cancel";
+                                                $otherClasses = "mr-1";
+                                                $btnLink = "/email-templates";
+                                                $otherAttributes = "";
+                                            @endphp
+                                            <x-button-link btnType="secondary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" readOnly="" />
+                                            @php $btnText = "Save Template"; $otherClasses = ""; @endphp
+                                            <x-button btnText="{{ $btnText }}" btnType="primary" btnSize="sm" type="submit" :readOnly="$readonly" />
                                         </div>
                                     </form>
 
@@ -101,13 +118,20 @@
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
 
-    <x-footer></x-footer>
-    <x-js></x-js>
+    <footer style="margin-bottom:0%!important" class="footer footer-static footer-light navbar-border navbar-shadow">
+        <div class="clearfix blue-grey lighten-2 text-sm-center mb-0 px-2">
+            <span class="float-md-left d-block d-md-inline-block"><?php echo date('Y'); ?> &copy; Copyright Hypbits Enterprises</span>
+        </div>
+    </footer>
 
+    <script src="/theme-assets/vendors/js/vendors.min.js" type="text/javascript"></script>
+    <script src="/theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
+    <script src="/theme-assets/js/core/app-lite.js" type="text/javascript"></script>
     <script src="/theme-assets/vendors/js/editors/tinymce/tinymce.min.js"></script>
     <script>
       tinymce.init({
@@ -136,12 +160,6 @@
                   subj.focus();
               }
           });
-      });
-
-      document.querySelector('form').addEventListener('submit', function() {
-          if (window._tinyEditor) {
-              window._tinyEditor.save();
-          }
       });
 
       var milli_seconds = 1200;

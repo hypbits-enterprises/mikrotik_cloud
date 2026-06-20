@@ -458,6 +458,49 @@
                               </div>
                             </div>
 
+                            {{-- Email Settings --}}
+                            @php $es = $organization->email_settings ?? []; @endphp
+                            <div class="row mb-1 mt-2">
+                              <div class="col-12"><h6 class="font-weight-bold text-muted border-bottom pb-1">EMAIL SETTINGS</h6></div>
+                            </div>
+                            <div class="row mb-2">
+                              <div class="col-md-6">
+                                <label class="form-control-label">SMTP HOST</label>
+                                <input type="text" name="email_host" class="form-control" value="{{ $es['host'] ?? '' }}" placeholder="e.g. smtp.gmail.com">
+                              </div>
+                              <div class="col-md-3">
+                                <label class="form-control-label">PORT</label>
+                                <input type="number" name="email_port" class="form-control" value="{{ $es['port'] ?? 587 }}" placeholder="587">
+                              </div>
+                              <div class="col-md-3">
+                                <label class="form-control-label">ENCRYPTION</label>
+                                <select name="email_encryption" class="form-control">
+                                  <option value="tls" {{ ($es['encryption'] ?? 'tls') === 'tls' ? 'selected' : '' }}>TLS (STARTTLS)</option>
+                                  <option value="ssl" {{ ($es['encryption'] ?? '') === 'ssl' ? 'selected' : '' }}>SSL</option>
+                                  <option value="none" {{ ($es['encryption'] ?? '') === 'none' ? 'selected' : '' }}>None</option>
+                                </select>
+                              </div>
+                            </div>
+                            <div class="row mb-2">
+                              <div class="col-md-4">
+                                <label class="form-control-label">FROM NAME</label>
+                                <input type="text" name="email_from_name" class="form-control" value="{{ $es['from_name'] ?? '' }}" placeholder="Your company name">
+                              </div>
+                              <div class="col-md-4">
+                                <label class="form-control-label">USERNAME / EMAIL ADDRESS</label>
+                                <input type="email" name="email_username" class="form-control" value="{{ $es['username'] ?? '' }}" placeholder="you@example.com">
+                              </div>
+                              <div class="col-md-4">
+                                <label class="form-control-label">PASSWORD / APP PASSWORD</label>
+                                <input type="password" name="email_password" class="form-control" value="{{ $es['password'] ?? '' }}" placeholder="Leave blank to keep current">
+                              </div>
+                            </div>
+                            <div class="row mb-3">
+                              <div class="col-12">
+                                <small class="text-muted">If left blank, the system default email is used. Required when preferred channel is set to Email.</small>
+                              </div>
+                            </div>
+
                             <div class="text-center">
                               @php
                                   $btnText = "Save Changes";
@@ -466,7 +509,6 @@
                                   $otherAttributes = "";
                               @endphp
                               <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="secondary" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
-                              {{-- <button type="submit" {{$readonly}} class="btn btn-primary">Save Changes</button> --}}
                             </div>
                           </form><!-- End Profile Edit Form -->
         

@@ -89,6 +89,9 @@ class admin extends Controller
             $sms_shortcode = count($select) > 0 ? $select[0]->value : "";
             $organization[0]->sms_shortcode = $sms_shortcode;
 
+            $select = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'email_settings'");
+            $email_settings = count($select) > 0 ? json_decode($select[0]->value, true) : [];
+            $organization[0]->email_settings = $email_settings;
 
             return view("account",["admin_data" => $admin_data , "date_time" => $dates2, "delete_trans" => $delete_trans,"delete_sms"=>$delete_sms, "organization" => $organization[0]]);
         }else{
@@ -509,11 +512,27 @@ class admin extends Controller
             $insert = DB::connection("mysql2")->insert("INSERT INTO `settings` (`keyword`, `value`,`status`) VALUES ('sms_api_key','".$req->input("sms_api_key")."','1')");
         }
 
-        // save preferred channel (sms / whatsapp) on the main organizations table
-        $preferred_channel = in_array($req->input("preferred_channel"), ['sms', 'whatsapp'])
+        // save preferred channel on the main organizations table
+        $preferred_channel = in_array($req->input("preferred_channel"), ['sms', 'whatsapp', 'email'])
             ? $req->input("preferred_channel")
             : 'sms';
         DB::update("UPDATE `organizations` SET `preferred_channel` = ? WHERE `organization_id` = ?", [$preferred_channel, session("organization_id")]);
+
+        // save email settings as JSON in org settings table
+        $email_settings = json_encode([
+            'host'       => trim($req->input('email_host', '')),
+            'port'       => (int) $req->input('email_port', 587),
+            'encryption' => in_array($req->input('email_encryption'), ['tls', 'ssl', 'none']) ? $req->input('email_encryption') : 'tls',
+            'username'   => trim($req->input('email_username', '')),
+            'password'   => trim($req->input('email_password', '')),
+            'from_name'  => trim($req->input('email_from_name', '')),
+        ]);
+        $existing = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `keyword` = 'email_settings'");
+        if (count($existing) > 0) {
+            DB::connection("mysql2")->update("UPDATE `settings` SET `value` = ? WHERE `keyword` = 'email_settings'", [$email_settings]);
+        } else {
+            DB::connection("mysql2")->insert("INSERT INTO `settings` (`keyword`, `value`, `status`) VALUES ('email_settings', ?, '1')", [$email_settings]);
+        }
 
         $organization = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[session("organization_id")]);
         session()->put("organization",$organization[0]);

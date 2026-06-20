@@ -8,6 +8,8 @@ use App\Http\Controllers\login;
 
 class EmailTemplates extends Controller
 {
+    public static function getDefaults(): array { return self::DEFAULTS; }
+
     private const DEFAULTS = [
         'new_client_welcome' => [
             'label'   => 'New Client Welcome',
@@ -113,6 +115,24 @@ Expiry Date: <strong>[exp_date]</strong></p>
 <p>A referral commission of <strong>[trans_amount]</strong> has been credited to your wallet.</p>
 <p><strong>Wallet Balance:</strong> [wallet_balance]</p>
 <p>Thank you for referring new clients to us!</p>
+<p>Best regards,<br><strong>[org_name]</strong></p>',
+        ],
+        'payment_reminder_day_before' => [
+            'label'   => 'Payment Reminder – Day Before Expiry',
+            'subject' => 'Your Account Expires Tomorrow – [org_name]',
+            'body'    => '<p>Dear <strong>[client_name]</strong>,</p>
+<p>Your internet account (<strong>[account_number]</strong>) expires <strong>tomorrow</strong>.</p>
+<p>Please make a payment to avoid service interruption.</p>
+<p><strong>Wallet Balance:</strong> [wallet_balance]</p>
+<p>Best regards,<br><strong>[org_name]</strong></p>',
+        ],
+        'payment_reminder_day_after' => [
+            'label'   => 'Payment Reminder – Day After Expiry',
+            'subject' => 'Your Account Has Expired – [org_name]',
+            'body'    => '<p>Dear <strong>[client_name]</strong>,</p>
+<p>Your internet account (<strong>[account_number]</strong>) expired <strong>yesterday</strong>.</p>
+<p>Please make a payment to restore your service.</p>
+<p><strong>Wallet Balance:</strong> [wallet_balance]</p>
 <p>Best regards,<br><strong>[org_name]</strong></p>',
         ],
     ];

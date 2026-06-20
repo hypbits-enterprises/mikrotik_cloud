@@ -869,15 +869,40 @@ class Controller extends BaseController
             if (!$email) return false;
             try {
                 $orgName = session('organization')->name ?? 'Your ISP';
+
+                // Use org-configured SMTP if available, otherwise fall back to system .env
+                $esSetting = DB::connection('mysql2')->table('settings')->where('keyword', 'email_settings')->first();
+                $es = $esSetting ? json_decode($esSetting->value, true) : [];
+                if (!empty($es['host']) && !empty($es['username']) && !empty($es['password'])) {
+                    config([
+                        'mail.mailers.smtp.host'       => $es['host'],
+                        'mail.mailers.smtp.port'       => $es['port'] ?? 587,
+                        'mail.mailers.smtp.encryption' => ($es['encryption'] ?? 'tls') === 'none' ? null : ($es['encryption'] ?? 'tls'),
+                        'mail.mailers.smtp.username'   => $es['username'],
+                        'mail.mailers.smtp.password'   => $es['password'],
+                        'mail.from.address'            => $es['username'],
+                        'mail.from.name'               => $es['from_name'] ?? $orgName,
+                    ]);
+                } elseif (empty(env('EMAIL_HOST')) || empty(env('EMAIL_USERNAME')) || empty(env('EMAIL_PASSWORD'))) {
+                    return false;
+                }
+
                 $tplRow  = DB::connection('mysql2')->table('email_templates')->where('name', $internalName)->first();
                 if ($tplRow) {
                     $subject = $this->resolveEmailVariables($tplRow->subject, $clientData, $extras, $orgName);
                     $body    = $this->resolveEmailVariables($tplRow->html_body, $clientData, $extras, $orgName);
                     \Mail::to($email)->send(new \App\Mail\AutomationEmail($subject, $body));
                 } else {
-                    \Mail::raw($resolvedSms, function ($m) use ($email, $orgName) {
-                        $m->to($email)->subject('Message from ' . $orgName);
-                    });
+                    $defaults = \App\Http\Controllers\EmailTemplates::getDefaults();
+                    if (isset($defaults[$internalName])) {
+                        $subject = $this->resolveEmailVariables($defaults[$internalName]['subject'], $clientData, $extras, $orgName);
+                        $body    = $this->resolveEmailVariables($defaults[$internalName]['body'], $clientData, $extras, $orgName);
+                        \Mail::to($email)->send(new \App\Mail\AutomationEmail($subject, $body));
+                    } else {
+                        \Mail::raw($resolvedSms, function ($m) use ($email, $orgName) {
+                            $m->to($email)->subject('Message from ' . $orgName);
+                        });
+                    }
                 }
                 return true;
             } catch (\Exception $e) {
