@@ -929,7 +929,7 @@ class Controller extends BaseController
             if (!$email) return false;
             try {
                 $orgObj  = $extras['org_data'] ?? session('organization');
-                $orgName = $orgObj->organization_name ?? 'Your ISP';
+                $orgName = $orgObj ? ($orgObj->organization_name ?? 'Your ISP') : 'Your ISP';
 
                 // Use org-configured SMTP if available, otherwise fall back to system .env
                 $esSetting = DB::connection('mysql2')->table('settings')->where('keyword', 'email_settings')->first();
