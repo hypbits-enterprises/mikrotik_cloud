@@ -769,7 +769,7 @@
                             <input type="hidden" name="clients_id" value="{{ $clients_data[0]->client_id }}">
                             <label for="preferred_channel_edit" class="form-control-label">Preferred Channel</label>
                             <select name="preferred_channel" id="preferred_channel_edit" class="form-control">
-                                <option value="" {{ ($clients_data[0]->preferred_channel ?? '') == '' ? 'selected' : '' }}>Org default</option>
+                                <option value="" {{ ($clients_data[0]->preferred_channel ?? '') == '' ? 'selected' : '' }}>Org default ({{ ucfirst(session('organization')->preferred_channel ?? 'sms') }})</option>
                                 <option value="sms" {{ ($clients_data[0]->preferred_channel ?? '') == 'sms' ? 'selected' : '' }}>SMS</option>
                                 <option value="whatsapp" {{ ($clients_data[0]->preferred_channel ?? '') == 'whatsapp' ? 'selected' : '' }}>WhatsApp</option>
                                 <option value="email" {{ ($clients_data[0]->preferred_channel ?? '') == 'email' ? 'selected' : '' }}>Email</option>

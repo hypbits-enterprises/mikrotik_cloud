@@ -439,7 +439,7 @@
 
                             {{-- WhatsApp / SMS Channel Preference --}}
                             <div class="row mb-3">
-                              <label class="col-md-4 col-lg-3 col-form-label">PREFERRED MESSAGING CHANNEL</label>
+                              <label class="col-md-4 col-lg-3 col-form-label">PREFERRED MESSAGING CHANNEL ({{ ucfirst($organization->preferred_channel ?? 'sms') }})</label>
                               <div class="col-md-8 col-lg-9">
                                 <select name="preferred_channel" class="form-control">
                                   <option value="sms" {{ ($organization->preferred_channel ?? 'sms') == 'sms' ? 'selected' : '' }}>
@@ -447,6 +447,9 @@
                                   </option>
                                   <option value="whatsapp" {{ ($organization->preferred_channel ?? '') == 'whatsapp' ? 'selected' : '' }}>
                                     WhatsApp
+                                  </option>
+                                  <option value="email" {{ ($organization->preferred_channel ?? '') == 'email' ? 'selected' : '' }}>
+                                    Email
                                   </option>
                                 </select>
                                 <small class="text-muted">

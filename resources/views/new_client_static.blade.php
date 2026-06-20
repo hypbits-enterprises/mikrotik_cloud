@@ -112,7 +112,7 @@
                                             <div class="col-md-4">
                                                 <input type="checkbox" name="send_sms" id="send_sms" checked>
                                                 <label for="send_sms" class="form-control-label text-primary"
-                                                    style="font-weight: 800;cursor: pointer;">Send Welcome {{ ($preferred_channel ?? 'sms') === 'whatsapp' ? 'WhatsApp' : 'SMS' }}</label>
+                                                    style="font-weight: 800;cursor: pointer;">Send Welcome <span id="welcome_channel_label">{{ ($preferred_channel ?? 'sms') === 'whatsapp' ? 'WhatsApp' : (($preferred_channel ?? 'sms') === 'email' ? 'Email' : 'SMS') }}</span></label>
                                             </div>
                                         </div>
                                         <div class="row">
@@ -143,8 +143,8 @@
                                                     onpaste="return pasted(event,'location_coordinates');">
                                             </div>
                                         </div>
-                                        <div class="row">
-                                            <div class="col-md-3 form-group">
+                                        <div class="row mb-3">
+                                            <div class="col-md-4 form-group">
                                                 <label for="client_phone" class="form-control-label">Client`s Phone
                                                     number <span class="text-danger">*</span> </label>
                                                 <input type="number" name="client_phone" id="client_phone"
@@ -152,23 +152,23 @@
                                                     placeholder="Client valid phone number" required
                                                     value="{{ session('client_phone') ? session('client_phone') : '' }}">
                                             </div>
-                                            <div class="col-md-3 form-group">
+                                            <div class="col-md-4 form-group">
                                                 <label for="client_email" class="form-control-label">Client`s Email</label>
                                                 <input type="email" name="client_email" id="client_email"
                                                     class="form-control rounded-lg p-1"
                                                     placeholder="client@example.com"
                                                     value="{{ session('client_email') ?? '' }}">
                                             </div>
-                                            <div class="col-md-3 form-group">
+                                            <div class="col-md-4 form-group">
                                                 <label for="preferred_channel" class="form-control-label">Preferred Channel</label>
-                                                <select name="preferred_channel" id="preferred_channel" class="form-control">
+                                                <select name="preferred_channel" id="preferred_channel" class="form-control" onchange="updateWelcomeLabel(this.value)">
                                                     <option value="">Org default ({{ ucfirst($preferred_channel ?? 'sms') }})</option>
                                                     <option value="sms">SMS</option>
                                                     <option value="whatsapp">WhatsApp</option>
                                                     <option value="email">Email</option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-4">
                                                 <label for="client_acc_number" class="form-control-label">Client`s
                                                     Account Number <span class="text-danger">*</span> {<span
                                                         class="primary">{{ $client_accounts[0] ?? '' }}</span>}
@@ -179,7 +179,7 @@
                                                     placeholder="Client account no ex HYP001" required
                                                     value="{{ session('client_acc_number') ? session('client_acc_number') : '' }}">
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-4">
                                                 <label for="client_monthly_pay" class="form-control-label">Client`s
                                                     Monthly Payment <span class="text-danger">*</span> </label>
                                                 <input type="number" name="client_monthly_pay" id="client_monthly_pay"
@@ -187,7 +187,7 @@
                                                     placeholder="Client`s Monthly Payment" required
                                                     value="{{ session('client_monthly_pay') ? session('client_monthly_pay') : '' }}">
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-4">
                                                 <label for="minimum_payment" class="form-control-label">Client`s Minimum Payment <span class="text-danger">*</span> </label>
                                                 <select name="minimum_payment" id="minimum_payment" class="form-control" required>
                                                     <option hidden>Select Minimum Payment </option>
@@ -460,6 +460,13 @@
           }
           milli_seconds--;
       }, 1000);
+    </script>
+    <script>
+      var _orgWelch = '{{ ($preferred_channel ?? 'sms') === 'whatsapp' ? 'WhatsApp' : (($preferred_channel ?? 'sms') === 'email' ? 'Email' : 'SMS') }}';
+      function updateWelcomeLabel(v) {
+          var m = { 'sms': 'SMS', 'whatsapp': 'WhatsApp', 'email': 'Email' };
+          document.getElementById('welcome_channel_label').textContent = m[v] || _orgWelch;
+      }
     </script>
 </body>
 
