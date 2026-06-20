@@ -1642,7 +1642,283 @@
     <script src="/theme-assets/js/core/app-lite.js" type="text/javascript"></script>
     <!-- END CHAMELEON  JS-->
     <script src="/theme-assets/js/core/custom_sms.js" type="text/javascript"></script>
+
+    {{-- Floating variable panel --}}
+    <div id="sms-var-panel" class="svp-collapsed svp-side-right">
+        <div id="sms-var-tab" title="Toggle variables panel">
+            <i class="ft-tag"></i>
+            <span class="svp-label">VARS</span>
+        </div>
+        <div id="sms-var-inner">
+            <div class="svp-header">
+                <strong style="font-size:11px"><i class="ft-tag mr-1"></i>Variables</strong>
+                <div style="font-size:10px;color:#6c757d;margin-top:1px">Click to insert at cursor</div>
+            </div>
+            <div class="svp-body">
+                <div class="svp-group">
+                    <div class="svp-group-title">Client</div>
+                    <span class="sms-chip badge badge-info mr-1 mb-1" data-var="[client_name]">[client_name]</span>
+                    <span class="sms-chip badge badge-info mr-1 mb-1" data-var="[client_f_name]">[client_f_name]</span>
+                    <span class="sms-chip badge badge-info mr-1 mb-1" data-var="[exp_date]">[exp_date]</span>
+                    <span class="sms-chip badge badge-info mr-1 mb-1" data-var="[reg_date]">[reg_date]</span>
+                    <span class="sms-chip badge badge-info mr-1 mb-1" data-var="[monthly_fees]">[monthly_fees]</span>
+                    <span class="sms-chip badge badge-info mr-1 mb-1" data-var="[client_phone]">[client_phone]</span>
+                    <span class="sms-chip badge badge-info mr-1 mb-1" data-var="[acc_no]">[acc_no]</span>
+                    <span class="sms-chip badge badge-info mr-1 mb-1" data-var="[client_wallet]">[client_wallet]</span>
+                    <span class="sms-chip badge badge-info mr-1 mb-1" data-var="[username]">[username]</span>
+                    <span class="sms-chip badge badge-info mr-1 mb-1" data-var="[password]">[password]</span>
+                    <span class="sms-chip badge badge-info mr-1 mb-1" data-var="[client_addr]">[client_addr]</span>
+                    <span class="sms-chip badge badge-info mr-1 mb-1" data-var="[today]">[today]</span>
+                    <span class="sms-chip badge badge-info mr-1 mb-1" data-var="[now]">[now]</span>
+                </div>
+                <div class="svp-group d-none" id="svp-billing">
+                    <div class="svp-group-title svp-title-billing">Billing only</div>
+                    <span class="sms-chip badge badge-warning mr-1 mb-1" data-var="[trans_amnt]">[trans_amnt]</span>
+                    <span class="sms-chip badge badge-warning mr-1 mb-1" data-var="[min_amnt]">[min_amnt]</span>
+                    <span class="sms-chip badge badge-warning mr-1 mb-1" data-var="[sms_rate]">[sms_rate]</span>
+                    <span class="sms-chip badge badge-warning mr-1 mb-1" data-var="[sms_balance]">[sms_balance]</span>
+                </div>
+                <div class="svp-group d-none" id="svp-freeze">
+                    <div class="svp-group-title svp-title-freeze">Freeze only</div>
+                    <span class="sms-chip badge badge-success mr-1 mb-1" data-var="[unfreeze_date]">[unfreeze_date]</span>
+                    <span class="sms-chip badge badge-success mr-1 mb-1" data-var="[days_frozen]">[days_frozen]</span>
+                    <span class="sms-chip badge badge-success mr-1 mb-1" data-var="[frozen_date]">[frozen_date]</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+      #sms-var-panel {
+          position: fixed;
+          top: 50%;
+          transform: translateY(-50%);
+          z-index: 1050;
+          max-height: 320px;
+          display: flex;
+          flex-direction: row;
+      }
+      /* Right side — tab on left, inner expands left */
+      #sms-var-panel.svp-side-right { right: 0; left: auto; }
+      #sms-var-panel.svp-side-right #sms-var-tab  { border-radius: 6px 0 0 6px; box-shadow: -2px 2px 8px rgba(0,0,0,0.18); }
+      #sms-var-panel.svp-side-right #sms-var-inner { box-shadow: -3px 0 14px rgba(0,0,0,0.1); }
+      /* Left side — tab on left, inner expands right (left set dynamically by JS) */
+      #sms-var-panel.svp-side-left  { right: auto; }
+      #sms-var-panel.svp-side-left  #sms-var-tab  { border-radius: 0 6px 6px 0; box-shadow: 2px 2px 8px rgba(0,0,0,0.18); }
+      #sms-var-panel.svp-side-left  #sms-var-inner { box-shadow: 3px 0 14px rgba(0,0,0,0.1); }
+      /* Collapse: shrink the inner panel width, tab stays anchored */
+      #sms-var-inner {
+          width: 158px;
+          max-width: 158px;
+          overflow: hidden;
+          transition: max-width 0.25s ease;
+          background: #fff;
+          border: 1px solid #dee2e6;
+          border-left: none;
+          display: flex;
+          flex-direction: column;
+      }
+      #sms-var-panel.svp-collapsed #sms-var-inner { max-width: 0; }
+      #sms-var-tab {
+          width: 32px;
+          flex-shrink: 0;
+          background: #007bff;
+          color: #fff;
+          cursor: pointer;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 5px;
+          padding: 10px 0;
+          user-select: none;
+          transition: background 0.15s;
+      }
+      #sms-var-tab:hover { background: #0056b3; }
+      #sms-var-tab i { font-size: 13px; }
+      .svp-label {
+          writing-mode: vertical-rl;
+          text-orientation: mixed;
+          font-size: 8px;
+          font-weight: 700;
+          letter-spacing: 1.5px;
+      }
+      .svp-header {
+          padding: 6px 10px 5px;
+          border-bottom: 1px solid #e9ecef;
+          background: #f8f9fa;
+          flex-shrink: 0;
+      }
+      .svp-body {
+          padding: 7px 10px;
+          overflow-y: auto;
+          flex: 1;
+      }
+      .svp-group { margin-bottom: 1px; }
+      .svp-group-title {
+          font-size: 9px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.6px;
+          color: #6c757d;
+          margin: 7px 0 4px;
+      }
+      .svp-group:first-child .svp-group-title { margin-top: 0; }
+      .svp-title-billing { color: #856404; }
+      .svp-title-freeze  { color: #155724; }
+      .sms-chip {
+          cursor: pointer !important;
+          font-size: 9px !important;
+          padding: 2px 5px !important;
+          line-height: 1.4 !important;
+          user-select: none;
+          transition: opacity 0.15s;
+          display: inline-block;
+      }
+      .sms-chip:hover { opacity: 0.72; }
+      code.sms-chip {
+          background: #e9ecef;
+          color: #495057;
+          padding: 2px 4px !important;
+          font-size: 11px !important;
+          border-radius: 3px;
+      }
+      code.sms-chip:hover { background: #17a2b8 !important; color: #fff; }
+    </style>
+
     <script>
+      (function () {
+          var panel   = document.getElementById('sms-var-panel');
+          var tab     = document.getElementById('sms-var-tab');
+          var billing = document.getElementById('svp-billing');
+          var freeze  = document.getElementById('svp-freeze');
+          var lastTA  = null, lastStart = 0, lastEnd = 0;
+
+          // Read the card-body bounds to stay inside the content area
+          function getCardBounds() {
+              var c = document.querySelector('.card-body');
+              return c ? c.getBoundingClientRect() : { left: 0, right: window.innerWidth };
+          }
+
+          // Side switching — panel moves to opposite side from the mouse, anchored inside the card
+          var currentSide = 'right', switchTimer = null;
+          function setSide(side) {
+              if (side === currentSide) return;
+              currentSide = side;
+              var b = getCardBounds();
+              if (side === 'right') {
+                  panel.style.left  = 'auto';
+                  panel.style.right = Math.max(0, Math.round(window.innerWidth - b.right)) + 'px';
+              } else {
+                  panel.style.right = 'auto';
+                  panel.style.left  = Math.round(b.left) + 'px';
+              }
+              panel.classList.remove('svp-side-right', 'svp-side-left');
+              panel.classList.add('svp-side-' + side);
+          }
+          // Apply initial position
+          (function () { var b = getCardBounds(); panel.style.right = Math.max(0, Math.round(window.innerWidth - b.right)) + 'px'; }());
+
+          document.addEventListener('mousemove', function (e) {
+              if (panel.matches(':hover')) return;
+              clearTimeout(switchTimer);
+              switchTimer = setTimeout(function () {
+                  if (panel.matches(':hover')) return;
+                  setSide(e.clientX < window.innerWidth / 2 ? 'right' : 'left');
+              }, 400);
+          });
+
+          // Manual toggle via the tab handle
+          tab.addEventListener('click', function () {
+              panel.classList.toggle('svp-collapsed');
+          });
+
+          // Map textarea ID to its tag section
+          function getSection(ta) {
+              var m = ta.id.match(/message_contents_(\d+)/);
+              if (!m) return 'general';
+              var n = parseInt(m[1]);
+              return n >= 17 ? 'freeze' : n >= 12 ? 'billing' : 'general';
+          }
+
+          // Show section-specific chip group; hide others
+          function applySection(section) {
+              billing.classList.add('d-none');
+              freeze.classList.add('d-none');
+              if (section === 'billing') billing.classList.remove('d-none');
+              else if (section === 'freeze') freeze.classList.remove('d-none');
+          }
+
+          // Open panel and update context when a textarea is focused
+          document.addEventListener('focusin', function (e) {
+              if (e.target.tagName !== 'TEXTAREA') return;
+              lastTA    = e.target;
+              lastStart = e.target.selectionStart;
+              lastEnd   = e.target.selectionEnd;
+              applySection(getSection(e.target));
+              panel.classList.remove('svp-collapsed');
+          });
+
+          // Keep cursor position in sync while typing / clicking inside the textarea
+          function savePos(e) {
+              if (e.target === lastTA) {
+                  lastStart = e.target.selectionStart;
+                  lastEnd   = e.target.selectionEnd;
+              }
+          }
+          document.addEventListener('keyup',   savePos);
+          document.addEventListener('mouseup', savePos);
+
+          // Collapse when focus leaves a textarea, unless the panel is hovered or another textarea gains focus
+          document.addEventListener('focusout', function (e) {
+              if (e.target.tagName !== 'TEXTAREA') return;
+              setTimeout(function () {
+                  if (document.activeElement && document.activeElement.tagName === 'TEXTAREA') return;
+                  if (panel.contains(document.activeElement)) return;
+                  if (panel.matches(':hover')) return;
+                  panel.classList.add('svp-collapsed');
+              }, 160);
+          });
+
+          // Chip click — insert variable at saved cursor position
+          document.addEventListener('click', function (e) {
+              var chip = e.target.closest('.sms-chip');
+              if (!chip) return;
+              var tag = chip.getAttribute('data-var') || chip.textContent.trim();
+              if (!tag) return;
+
+              var ta = lastTA;
+              if (!ta) {
+                  var all = document.querySelectorAll('textarea.form-control');
+                  for (var i = 0; i < all.length; i++) {
+                      if (all[i].offsetParent !== null) { ta = all[i]; break; }
+                  }
+              }
+              if (!ta) return;
+
+              var start = (ta === lastTA) ? lastStart : ta.value.length;
+              var end   = (ta === lastTA) ? lastEnd   : ta.value.length;
+              ta.value  = ta.value.slice(0, start) + tag + ta.value.slice(end);
+              var pos   = start + tag.length;
+              ta.focus();
+              ta.setSelectionRange(pos, pos);
+              lastTA = ta; lastStart = pos; lastEnd = pos;
+
+              chip.style.outline = '2px solid #28a745';
+              setTimeout(function () { chip.style.outline = ''; }, 380);
+          });
+
+          // Make existing <code> reference tags in the tables also clickable
+          document.querySelectorAll('code').forEach(function (el) {
+              var tag = el.textContent.trim();
+              if (/^\[.+\]$/.test(tag)) {
+                  el.classList.add('sms-chip');
+                  el.setAttribute('data-var', tag);
+                  el.title = 'Click to insert at cursor';
+              }
+          });
+      }());
+
       var milli_seconds = 1200;
       setInterval(() => {
           if (milli_seconds == 0) {
@@ -1651,7 +1927,7 @@
           milli_seconds--;
       }, 1000);
     </script>
-    
+
 </body>
 
 </html>
