@@ -178,6 +178,15 @@ CREATE TABLE `unknown_wa_chats` (
   ('authentication', 1.4700, 'KES', 'OTP and verification messages'),
   ('marketing',      2.7700, 'KES', 'Promotional and marketing messages');
   
+  -- ============================================================
+  -- Pass 1: Per-client preferred communication channel + email
+  -- Run on every org database (mysql2)
+  -- ============================================================
+  ALTER TABLE `client_tables`
+    ADD COLUMN IF NOT EXISTS `client_email`      VARCHAR(255) NULL AFTER `clients_contacts`,
+    ADD COLUMN IF NOT EXISTS `preferred_channel` VARCHAR(20)  NULL AFTER `client_email`
+      COMMENT 'sms | whatsapp | email — NULL means inherit the org-level default';
+
   CREATE TABLE IF NOT EXISTS `manager_wa_templates` (
     `id` int NOT NULL AUTO_INCREMENT,
     `name` varchar(255) NOT NULL,

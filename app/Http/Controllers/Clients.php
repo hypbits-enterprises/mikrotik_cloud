@@ -1963,6 +1963,8 @@ $export_text .= "
         $client_name = $req->input('client_name');
         $client_address = $req->input('client_address');
         $client_phone = $req->input('client_phone');
+        $client_email = $req->input('client_email');
+        $preferred_channel = $req->input('preferred_channel') ?: null;
         $client_monthly_pay = $req->input('client_monthly_pay');
         $pppoe_profile = $req->input('pppoe_profile');
         $router_name = $req->input('router_name');
@@ -2123,6 +2125,8 @@ $export_text .= "
                 $clients_table->router_name = $router_name;
                 $clients_table->comment = $req->input('comments');
                 $clients_table->clients_contacts = $client_phone;
+                $clients_table->client_email = $client_email;
+                $clients_table->preferred_channel = $preferred_channel;
                 $clients_table->client_status = "1";
                 $clients_table->payments_status = "1";
                 $clients_table->clients_reg_date = date("YmdHis");
@@ -2205,6 +2209,8 @@ $export_text .= "
         $client_name = $req->input('client_name');
         $client_address = $req->input('client_address');
         $client_phone = $req->input('client_phone');
+        $client_email = $req->input('client_email');
+        $preferred_channel = $req->input('preferred_channel') ?: null;
         $client_monthly_pay = $req->input('client_monthly_pay');
         $pppoe_profile = $req->input('pppoe_profile');
         $router_name = $req->input('router_name');
@@ -2363,6 +2369,8 @@ $export_text .= "
                 $clients_table->router_name = $router_name;
                 $clients_table->comment = $req->input('comments');
                 $clients_table->clients_contacts = $client_phone;
+                $clients_table->client_email = $client_email;
+                $clients_table->preferred_channel = $preferred_channel;
                 $clients_table->client_status = "1";
                 $clients_table->payments_status = "1";
                 $clients_table->clients_reg_date = date("YmdHis");
@@ -2446,6 +2454,8 @@ $export_text .= "
         $client_name = $req->input('client_name');
         $client_address = $req->input('client_address');
         $client_phone = $req->input('client_phone');
+        $client_email = $req->input('client_email');
+        $preferred_channel = $req->input('preferred_channel') ?: null;
         $client_monthly_pay = $req->input('client_monthly_pay');
         $client_network = $req->input('client_network');
         $client_gw = $req->input('client_gw');
@@ -2688,6 +2698,8 @@ $export_text .= "
                     $clients_table->router_name = $router_name;
                     $clients_table->comment = $req->input('comments');
                     $clients_table->clients_contacts = $client_phone;
+                    $clients_table->client_email = $client_email;
+                    $clients_table->preferred_channel = $preferred_channel;
                     $clients_table->client_status = "1";
                     $clients_table->payments_status = "1";
                     $clients_table->clients_reg_date = date("YmdHis");
@@ -2775,6 +2787,8 @@ $export_text .= "
         $client_name = $req->input('client_name');
         $client_address = $req->input('client_address');
         $client_phone = $req->input('client_phone');
+        $client_email = $req->input('client_email');
+        $preferred_channel = $req->input('preferred_channel') ?: null;
         $client_monthly_pay = $req->input('client_monthly_pay');
         $client_network = $req->input('client_network');
         $client_gw = $req->input('client_gw');
@@ -3013,6 +3027,8 @@ $export_text .= "
                     $clients_table->router_name = $router_name;
                     $clients_table->comment = $req->input('comments');
                     $clients_table->clients_contacts = $client_phone;
+                    $clients_table->client_email = $client_email;
+                    $clients_table->preferred_channel = $preferred_channel;
                     $clients_table->client_status = "1";
                     $clients_table->payments_status = "1";
                     $clients_table->clients_reg_date = date("YmdHis");
@@ -4710,6 +4726,57 @@ $export_text .= "
         return redirect("Clients/View/" . $client_id);
     }
 
+    function change_client_email(Request $req)
+    {
+        $change_db = new login();
+        $change_db->change_db();
+
+        $client_id = $req->input('clients_id');
+        $client_email = trim($req->input('client_email'));
+
+        if ($client_email !== '' && !filter_var($client_email, FILTER_VALIDATE_EMAIL)) {
+            session()->flash("error", "The email address provided is not valid.");
+            return redirect("Clients/View/" . $client_id);
+        }
+
+        DB::connection("mysql2")->table('client_tables')
+            ->where('client_id', $client_id)
+            ->update([
+                'client_email' => $client_email ?: null,
+                'date_changed' => date("YmdHis")
+            ]);
+
+        $this->log(":Client email updated to ($client_email) by " . session('Usernames') . "!");
+        session()->flash("success", "Client email has been successfully updated!");
+        return redirect("Clients/View/" . $client_id);
+    }
+
+    function change_client_channel(Request $req)
+    {
+        $change_db = new login();
+        $change_db->change_db();
+
+        $client_id = $req->input('clients_id');
+        $channel = $req->input('preferred_channel');
+        $allowed = ['sms', 'whatsapp', 'email', ''];
+
+        if (!in_array($channel, $allowed)) {
+            session()->flash("error", "Invalid communication channel selected.");
+            return redirect("Clients/View/" . $client_id);
+        }
+
+        DB::connection("mysql2")->table('client_tables')
+            ->where('client_id', $client_id)
+            ->update([
+                'preferred_channel' => $channel ?: null,
+                'date_changed' => date("YmdHis")
+            ]);
+
+        $this->log(":Client preferred channel updated to ($channel) by " . session('Usernames') . "!");
+        session()->flash("success", "Client preferred channel has been successfully updated!");
+        return redirect("Clients/View/" . $client_id);
+    }
+
     // update user
     function updateClients(Request $req)
     {
@@ -5054,6 +5121,8 @@ $export_text .= "
                             'router_name' => $router_name,
                             'client_interface' => $interface_name,
                             'clients_contacts' => $client_phone,
+                            'client_email' => $req->input('client_email'),
+                            'preferred_channel' => $req->input('preferred_channel') ?: null,
                             'location_coordinates' => $location_coordinates,
                             'client_address' => $req->input('client_address'),
                             'date_changed' => date("YmdHis")
@@ -5273,6 +5342,8 @@ $export_text .= "
                                 'client_profile' => $pppoe_profile,
                                 'comment' => $req->input('comments'),
                                 'clients_contacts' => $client_phone,
+                                'client_email' => $req->input('client_email'),
+                                'preferred_channel' => $req->input('preferred_channel') ?: null,
                                 'location_coordinates' => $location_coordinates,
                                 'client_address' => $client_address,
                                 'date_changed' => date("YmdHis")

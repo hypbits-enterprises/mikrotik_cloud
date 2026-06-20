@@ -152,6 +152,22 @@
                                                     placeholder="Client valid phone number" required
                                                     value="{{ session('client_phone') ? session('client_phone') : '' }}">
                                             </div>
+                                            <div class="col-md-3 form-group">
+                                                <label for="client_email" class="form-control-label">Client`s Email</label>
+                                                <input type="email" name="client_email" id="client_email"
+                                                    class="form-control rounded-lg p-1"
+                                                    placeholder="client@example.com"
+                                                    value="{{ session('client_email') ?? '' }}">
+                                            </div>
+                                            <div class="col-md-3 form-group">
+                                                <label for="preferred_channel" class="form-control-label">Preferred Channel</label>
+                                                <select name="preferred_channel" id="preferred_channel" class="form-control">
+                                                    <option value="" {{ ($preferred_channel ?? '') == '' ? 'selected' : '' }}>Org default ({{ ucfirst($preferred_channel ?? 'sms') }})</option>
+                                                    <option value="sms" {{ ($preferred_channel ?? '') == 'sms' ? 'selected' : '' }}>SMS</option>
+                                                    <option value="whatsapp" {{ ($preferred_channel ?? '') == 'whatsapp' ? 'selected' : '' }}>WhatsApp</option>
+                                                    <option value="email" {{ ($preferred_channel ?? '') == 'email' ? 'selected' : '' }}>Email</option>
+                                                </select>
+                                            </div>
                                             <div class="col-md-3">
                                                 <label for="client_acc_number" class="form-control-label">Client`s
                                                     Account Number <span class="text-danger">*</span> {<span

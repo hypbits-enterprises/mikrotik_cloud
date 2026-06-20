@@ -150,6 +150,22 @@
                                                     placeholder="Client valid phone number" required
                                                     value="{{ session('client_phone') ? session('client_phone') : '' }}">
                                             </div>
+                                            <div class="col-lg-3 form-group">
+                                                <label for="client_email" class="form-control-label">Client`s Email</label>
+                                                <input type="email" name="client_email" id="client_email"
+                                                    class="form-control rounded-lg p-1"
+                                                    placeholder="client@example.com"
+                                                    value="{{ session('client_email') ?? '' }}">
+                                            </div>
+                                            <div class="col-lg-3 form-group">
+                                                <label for="preferred_channel" class="form-control-label">Preferred Channel</label>
+                                                <select name="preferred_channel" id="preferred_channel" class="form-control">
+                                                    <option value="">Org default ({{ ucfirst($preferred_channel ?? 'sms') }})</option>
+                                                    <option value="sms">SMS</option>
+                                                    <option value="whatsapp">WhatsApp</option>
+                                                    <option value="email">Email</option>
+                                                </select>
+                                            </div>
                                             <div class="col-lg-3">
                                                 <label for="client_acc_number" class="form-control-label">Clients
                                                     Account Number <span class="text-danger">*</span> {<span

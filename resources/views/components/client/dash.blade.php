@@ -714,6 +714,84 @@
         </div>
     </div>
 
+    {{-- UPDATE EMAIL --}}
+    <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="update_email_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabelEmail" aria-modal="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info white">
+                    <h4 class="modal-title white" id="myModalLabelEmail">Update "{{ucwords(strtolower($clients_data[0]->client_name))}}" Email Address.</h4>
+                    <button id="close_update_email_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container">
+                        <form action="/change_client_email" method="post" class="form-control-group">
+                            @csrf
+                            <h6 class="text-center">Update Email Address</h6>
+                            <input type="hidden" name="clients_id" value="{{ $clients_data[0]->client_id }}">
+                            <label for="client_email_edit" class="form-control-label">Email Address</label>
+                            <input type="email" name="client_email" id="client_email_edit" class="form-control"
+                                value="{{ $clients_data[0]->client_email ?? '' }}" placeholder="client@example.com">
+                            <div class="row w-100 mt-1">
+                                <div class="col-md-6">
+                                    @php $btnText = "<i class=\"fas fa-save\"></i> Save"; $otherClasses = "w-100 my-1"; @endphp
+                                    <x-button :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="" :readOnly="$readonly" />
+                                </div>
+                                <div class="col-md-6">
+                                    @php $btnText = "<i class=\"fas fa-x\"></i> Cancel"; @endphp
+                                    <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_update_email_modal_2" :readOnly="$readonly" />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+    </div>
+
+    {{-- UPDATE PREFERRED CHANNEL --}}
+    <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="update_channel_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabelChannel" aria-modal="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info white">
+                    <h4 class="modal-title white" id="myModalLabelChannel">Update "{{ucwords(strtolower($clients_data[0]->client_name))}}" Preferred Channel.</h4>
+                    <button id="close_update_channel_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container">
+                        <form action="/change_client_channel" method="post" class="form-control-group">
+                            @csrf
+                            <h6 class="text-center">Update Preferred Channel</h6>
+                            <input type="hidden" name="clients_id" value="{{ $clients_data[0]->client_id }}">
+                            <label for="preferred_channel_edit" class="form-control-label">Preferred Channel</label>
+                            <select name="preferred_channel" id="preferred_channel_edit" class="form-control">
+                                <option value="" {{ ($clients_data[0]->preferred_channel ?? '') == '' ? 'selected' : '' }}>Org default</option>
+                                <option value="sms" {{ ($clients_data[0]->preferred_channel ?? '') == 'sms' ? 'selected' : '' }}>SMS</option>
+                                <option value="whatsapp" {{ ($clients_data[0]->preferred_channel ?? '') == 'whatsapp' ? 'selected' : '' }}>WhatsApp</option>
+                                <option value="email" {{ ($clients_data[0]->preferred_channel ?? '') == 'email' ? 'selected' : '' }}>Email</option>
+                            </select>
+                            <div class="row w-100 mt-1">
+                                <div class="col-md-6">
+                                    @php $btnText = "<i class=\"fas fa-save\"></i> Save"; $otherClasses = "w-100 my-1"; @endphp
+                                    <x-button :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="" :readOnly="$readonly" />
+                                </div>
+                                <div class="col-md-6">
+                                    @php $btnText = "<i class=\"fas fa-x\"></i> Cancel"; @endphp
+                                    <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_update_channel_modal_2" :readOnly="$readonly" />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+    </div>
+
     {{-- Initiate Payement --}}
     <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="initiate_payment_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel110" style="padding-right: 17px;" aria-modal="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -983,6 +1061,42 @@
         <tr>
             <td>
                 <div class="row">
+                    <div class="col-sm-7"><strong>Email Address:</strong> <br>@if($clients_data[0]->client_email ?? null){{ $clients_data[0]->client_email }}@else<span class="text-muted">Not set</span>@endif</div>
+                    <div class="col-sm-5">
+                        @php
+                            $btnText = "<i class=\"fas fa-pen\"></i> Edit";
+                            $otherClasses = "w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                            $btn_id = "edit_email";
+                        @endphp
+                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="row">
+                    <div class="col-sm-7">
+                        <strong>Preferred Channel:</strong> <br>
+                        @php
+                            $ch = $clients_data[0]->preferred_channel ?? null;
+                            $chLabel = $ch ? ucfirst($ch) : 'Org default';
+                            $chBadge = $ch === 'whatsapp' ? 'badge-success' : ($ch === 'email' ? 'badge-info' : 'badge-secondary');
+                        @endphp
+                        <span class="badge {{ $chBadge }}">{{ $chLabel }}</span>
+                    </div>
+                    <div class="col-sm-5">
+                        @php
+                            $btnText = "<i class=\"fas fa-pen\"></i> Edit";
+                            $otherClasses = "w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                            $btn_id = "edit_channel";
+                        @endphp
+                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="row">
                     <div class="col-md-7">
                         <strong>Comment:</strong> <br><p>{{isset($clients_data[0]->comment) ? ucwords(strtolower($clients_data[0]->comment)) : "No comments set!"}} </p>
                     </div>
@@ -1000,7 +1114,7 @@
             <td>
                 <div class="row">
                     <div class="col-md-7">
-                        <strong>Initiate Payment:</strong> 
+                        <strong>Initiate Payment:</strong>
                         @if (date("Ymd") < 20250920)
                             <span class="badge bg-info text-center fa-beat-fade">New</span>
                         @endif <br><p>Use STK push to make it easier for the client to pay!</p>

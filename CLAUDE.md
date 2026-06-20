@@ -38,23 +38,26 @@ php artisan migrate
 php artisan tinker
 ```
 
-## Two-System Architecture
+## Three-System Architecture
 
-This project (`mikrotik_cloud`) is the **child/per-organization system**. Each ISP organization uses this system to run their business. The companion parent system is:
+This project (`mikrotik_cloud`) is the **child/per-organization system**. Each ISP organization uses this system to run their business. It is one of three tightly linked systems:
 
-- **`mikrotik_cloud_manager`** — located at `/home/hila/Documents/laravel/mikrotik_cloud_manager` (same root folder). This is the master control plane that provisions organizations, sets billing rates, and manages the central database.
+- **`mikrotik_cloud_manager`** — located at `/home/hila/Documents/laravel/mikrotik_cloud_manager`. This is the master control plane that provisions organizations, sets billing rates, and manages the central database.
+- **`crontab`** — located at `/opt/lampp/htdocs/crontab`. This is a standalone PHP cron job system that runs background tasks affecting **both** `mikrotik_cloud` and `mikrotik_cloud_manager`. It is not a Laravel project — it is plain PHP served by LAMPP/Apache. Its own `CLAUDE.md` documents the scripts and conventions in detail.
 
 ### Cross-Project Sync Points
 
-Changes here sometimes require corresponding changes in `mikrotik_cloud_manager`, and vice versa:
+Changes here sometimes require corresponding changes in the other two systems:
 
-- **Database schema changes on org DBs** — any new table or `ALTER TABLE` introduced here must be communicated to `mikrotik_cloud_manager` so it can apply the change across all existing org databases during provisioning or upgrades.
+- **Database schema changes on org DBs** — any new table or `ALTER TABLE` introduced here must be communicated to `mikrotik_cloud_manager` so it can apply the change across all existing org databases during provisioning or upgrades. The `crontab` scripts also query org DB tables directly (`client_tables`, `settings`, `sms_tables`, etc.) — if you add or rename columns those scripts may need updating too.
+- **SMS templates / message variables** — the `crontab` system reads message templates from the `settings` table (`keyword='Messages'`) and substitutes variables like `[client_name]`, `[exp_date]`, etc. Any new template variable added here should also be added to `shared_functions.php` in `crontab`.
+- **Client activation/deactivation** — `activate_deactivate_clients.php` and `freeze_clients.php` in `crontab` are the canonical source of truth for toggling client status on the MikroTik router. This system triggers them via the `https://billing.hypbits.com/activate/{client_id}/{db_name}` API; do not duplicate that logic here.
 - **WhatsApp billing rates** — the `whatsapp_billing_rates` table lives in the `mikrotik_cloud_manager` DB. This system reads rates from there; never store or manage rates here.
 - **Unknown sender inbox** — this system's WhatsApp webhook writes unknown senders to `unknown_wa_chats` in the primary `mikrotik_cloud_manager` DB. Do not build management UI for that table here; it belongs in the manager system.
 - **Packages / service tiers** — stored in the central DB (`mikrotik_cloud_manager`) and read by this system for client plan assignments. Package CRUD is managed there, not here.
 - **Organization context** — this system reads its own org record (database name, wallet, expiry, package) from the central DB. That record is created and maintained by `mikrotik_cloud_manager`.
 
-When you introduce a new shared table, a new column on org DBs, or a new config value that the manager needs to display or bill — update `mikrotik_cloud_manager`'s CLAUDE.md and implement the manager-side work there.
+When you introduce a new shared table, a new column on org DBs, or a new config value that the manager needs to display or bill — update `mikrotik_cloud_manager`'s CLAUDE.md and implement the manager-side work there. When changes affect background job behaviour (expiry, freeze, activation, SMS sending), also check and update the relevant `crontab` scripts.
 
 ## Architecture Overview
 

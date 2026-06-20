@@ -821,7 +821,9 @@ class Controller extends BaseController
         array   $extras = [],
         ?string $channelOverride = null
     ): bool {
-        $channel = $channelOverride ?? $this->getPreferredChannel();
+        $channel = $channelOverride
+            ?? ($clientData->preferred_channel ?: null)
+            ?? $this->getPreferredChannel();
 
         if ($channel === 'whatsapp') {
             $template = $this->getAutomationTemplate($internalName);
@@ -835,6 +837,20 @@ class Controller extends BaseController
                 $template['language']
             );
             return empty($result['error']);
+        }
+
+        if ($channel === 'email') {
+            $email = $clientData->client_email ?? null;
+            if (!$email) return false;
+            try {
+                $orgName = session('organization')->name ?? 'Your ISP';
+                \Mail::raw($resolvedSms, function ($m) use ($email, $orgName) {
+                    $m->to($email)->subject('Message from ' . $orgName);
+                });
+                return true;
+            } catch (\Exception $e) {
+                return false;
+            }
         }
 
         $settings = $this->getSmsSettings();

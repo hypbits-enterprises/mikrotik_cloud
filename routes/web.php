@@ -147,8 +147,11 @@ Route::get("/TransactionSync", [Clients::class, "synctrans"])->middleware(["chec
 Route::post("/changeWallet", [Clients::class, "changeWalletBal"]);
 // change the clients phone number
 Route::post("/change_client_phone", [Clients::class, "change_phone_number"]);
-// cchange monthly payments
+// change monthly payments
 Route::post("/change_client_monthly_payment", [Clients::class, "change_client_monthly_payment"]);
+// change client email and preferred channel
+Route::post("/change_client_email", [Clients::class, "change_client_email"]);
+Route::post("/change_client_channel", [Clients::class, "change_client_channel"]);
 //export my clients
 Route::get("/Clients/Export", [export_client::class, "exportClients"])->middleware(["checkAccount", "validated"]);
 // get detailed router information in order to export

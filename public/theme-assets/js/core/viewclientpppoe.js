@@ -405,6 +405,28 @@ cObj("close_update_comments_modal_2").onclick = function () {
     hideModal("update_comments_modal");
 }
 
+/** UPDATE CLIENT EMAIL */
+cObj("edit_email").onclick = function () {
+    showModal("update_email_modal");
+}
+cObj("close_update_email_modal_1").onclick = function () {
+    hideModal("update_email_modal");
+}
+cObj("close_update_email_modal_2").onclick = function () {
+    hideModal("update_email_modal");
+}
+
+/** UPDATE PREFERRED CHANNEL */
+cObj("edit_channel").onclick = function () {
+    showModal("update_channel_modal");
+}
+cObj("close_update_channel_modal_1").onclick = function () {
+    hideModal("update_channel_modal");
+}
+cObj("close_update_channel_modal_2").onclick = function () {
+    hideModal("update_channel_modal");
+}
+
 
 var notseen = 1;
 cObj("display_secret").onclick = function () {
