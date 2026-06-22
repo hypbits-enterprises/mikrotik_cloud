@@ -2169,17 +2169,25 @@ $export_text .= "
                     if ($message) {
                         $trans_amount = 0;
                         $message = $this->message_content($message, $client_id, $trans_amount);
-                        $sent = $this->dispatchAutomationMessage('new_client_welcome', $message, $mobile, $user_data[0]);
+                        $channel = $user_data[0]->preferred_channel ?: $this->getPreferredChannel();
+                        $sent = $this->dispatchAutomationMessage('new_client_welcome', $message, $mobile, $user_data[0], [], $channel);
                         if (!$sent) {
                             session()->flash("error", "Your account cannot send sms, contact us for more information!");
                         }
                         $sms_table = new sms_table();
-                        $sms_table->sms_content = $message;
+                        if ($channel === 'email') {
+                            $emailContent = $this->resolveEmailContent('new_client_welcome', $user_data[0]);
+                            $sms_table->email_subject = $emailContent['subject'] ?? null;
+                            $sms_table->sms_content   = $emailContent['body'] ?? '';
+                        } else {
+                            $sms_table->sms_content = $message;
+                        }
                         $sms_table->date_sent = date("YmdHis");
                         $sms_table->recipient_phone = $mobile;
                         $sms_table->sms_status = $sent ? 1 : 0;
                         $sms_table->account_id = $client_id;
                         $sms_table->sms_type = $sms_type;
+                        $sms_table->channel = $channel;
                         $sms_table->save();
                     }
                 }
@@ -2413,17 +2421,25 @@ $export_text .= "
                     if ($message) {
                         $trans_amount = 0;
                         $message = $this->message_content($message, $client_id, $trans_amount);
-                        $sent = $this->dispatchAutomationMessage('new_client_welcome', $message, $mobile, $user_data[0]);
+                        $channel = $user_data[0]->preferred_channel ?: $this->getPreferredChannel();
+                        $sent = $this->dispatchAutomationMessage('new_client_welcome', $message, $mobile, $user_data[0], [], $channel);
                         if (!$sent) {
                             session()->flash("error", "Your account cannot send sms, contact us for more information!");
                         }
                         $sms_table = new sms_table();
-                        $sms_table->sms_content = $message;
+                        if ($channel === 'email') {
+                            $emailContent = $this->resolveEmailContent('new_client_welcome', $user_data[0]);
+                            $sms_table->email_subject = $emailContent['subject'] ?? null;
+                            $sms_table->sms_content   = $emailContent['body'] ?? '';
+                        } else {
+                            $sms_table->sms_content = $message;
+                        }
                         $sms_table->date_sent = date("YmdHis");
                         $sms_table->recipient_phone = $mobile;
                         $sms_table->sms_status = $sent ? 1 : 0;
                         $sms_table->account_id = $client_id;
                         $sms_table->sms_type = $sms_type;
+                        $sms_table->channel = $channel;
                         $sms_table->save();
                     }
                 }
@@ -2743,17 +2759,25 @@ $export_text .= "
                         if ($message) {
                             $trans_amount = 0;
                             $message = $this->message_content($message, $client_id, $trans_amount);
-                            $sent = $this->dispatchAutomationMessage('new_client_welcome', $message, $mobile, $user_data[0]);
+                            $channel = $user_data[0]->preferred_channel ?: $this->getPreferredChannel();
+                            $sent = $this->dispatchAutomationMessage('new_client_welcome', $message, $mobile, $user_data[0], [], $channel);
                             if (!$sent) {
                                 session()->flash("error", "Your account cannot send sms, contact us for more information!");
                             }
                             $sms_table = new sms_table();
-                            $sms_table->sms_content = $message;
+                            if ($channel === 'email') {
+                                $emailContent = $this->resolveEmailContent('new_client_welcome', $user_data[0]);
+                                $sms_table->email_subject = $emailContent['subject'] ?? null;
+                                $sms_table->sms_content   = $emailContent['body'] ?? '';
+                            } else {
+                                $sms_table->sms_content = $message;
+                            }
                             $sms_table->date_sent = date("YmdHis");
                             $sms_table->recipient_phone = $mobile;
                             $sms_table->sms_status = $sent ? 1 : 0;
                             $sms_table->account_id = $client_id;
                             $sms_table->sms_type = $sms_type;
+                            $sms_table->channel = $channel;
                             $sms_table->save();
                         }
                     }
@@ -3071,17 +3095,25 @@ $export_text .= "
                         if ($message) {
                             $trans_amount = 0;
                             $message = $this->message_content($message, $client_id, $trans_amount);
-                            $sent = $this->dispatchAutomationMessage('new_client_welcome', $message, $mobile, $user_data[0]);
+                            $channel = $user_data[0]->preferred_channel ?: $this->getPreferredChannel();
+                            $sent = $this->dispatchAutomationMessage('new_client_welcome', $message, $mobile, $user_data[0], [], $channel);
                             if (!$sent) {
                                 session()->flash("error", "Your account cannot send sms, contact us for more information!");
                             }
                             $sms_table = new sms_table();
-                            $sms_table->sms_content = $message;
+                            if ($channel === 'email') {
+                                $emailContent = $this->resolveEmailContent('new_client_welcome', $user_data[0]);
+                                $sms_table->email_subject = $emailContent['subject'] ?? null;
+                                $sms_table->sms_content   = $emailContent['body'] ?? '';
+                            } else {
+                                $sms_table->sms_content = $message;
+                            }
                             $sms_table->date_sent = date("YmdHis");
                             $sms_table->recipient_phone = $mobile;
                             $sms_table->sms_status = $sent ? 1 : 0;
                             $sms_table->account_id = $client_id;
                             $sms_table->sms_type = $sms_type;
+                            $sms_table->channel = $channel;
                             $sms_table->save();
                         }
                     }
@@ -4281,22 +4313,31 @@ $export_text .= "
                     $sms_type = 2;
                     $message = $new_message;
 
-                    $sent = $this->dispatchAutomationMessage('account_frozen', $message, $mobile, $client_data[0], [
+                    $freezeExtras = [
                         'days_frozen'   => $day_frozen == 'Indefinite' ? 'Indefinite' : $day_frozen,
                         'unfreeze_date' => ($freeze_date === 'Indefinite' || $freeze_date === '00000000000000')
                                             ? 'Indefinite Date'
                                             : date('dS M Y \a\t h:iA', strtotime($freeze_date)),
-                    ]);
+                    ];
+                    $channel = $client_data[0]->preferred_channel ?: $this->getPreferredChannel();
+                    $sent = $this->dispatchAutomationMessage('account_frozen', $message, $mobile, $client_data[0], $freezeExtras, $channel);
                     if (!$sent) {
                         session()->flash("error", "Your account cannot send sms, contact us for more information!");
                     }
                     $sms_table = new sms_table();
-                    $sms_table->sms_content = $message;
+                    if ($channel === 'email') {
+                        $emailContent = $this->resolveEmailContent('account_frozen', $client_data[0], $freezeExtras);
+                        $sms_table->email_subject = $emailContent['subject'] ?? null;
+                        $sms_table->sms_content   = $emailContent['body'] ?? '';
+                    } else {
+                        $sms_table->sms_content = $message;
+                    }
                     $sms_table->date_sent = date("YmdHis");
                     $sms_table->recipient_phone = $mobile;
                     $sms_table->sms_status = $sent ? 1 : 0;
                     $sms_table->account_id = $client_id;
                     $sms_table->sms_type = $sms_type;
+                    $sms_table->channel = $channel;
                     $sms_table->save();
                 }
             }
@@ -4397,23 +4438,32 @@ $export_text .= "
                     $sms_type = 2;
                     $message = $new_message;
 
-                    $sent = $this->dispatchAutomationMessage('account_freeze_scheduled', $message, $mobile, $client_data[0], [
+                    $schedExtras = [
                         'days_frozen'   => $day_frozen == 'Indefinite' ? 'Indefinite' : $day_frozen,
                         'frozen_date'   => date('D dS M Y', strtotime($freezing_date)),
                         'unfreeze_date' => ($freeze_date === 'Indefinite' || $freeze_date === '00000000000000')
                                             ? 'Indefinite Date'
                                             : date('dS M Y \a\t h:iA', strtotime($freeze_date)),
-                    ]);
+                    ];
+                    $channel = $client_data[0]->preferred_channel ?: $this->getPreferredChannel();
+                    $sent = $this->dispatchAutomationMessage('account_freeze_scheduled', $message, $mobile, $client_data[0], $schedExtras, $channel);
                     if (!$sent) {
                         session()->flash("error", "Your account cannot send sms, contact us for more information!");
                     }
                     $sms_table = new sms_table();
-                    $sms_table->sms_content = $message;
+                    if ($channel === 'email') {
+                        $emailContent = $this->resolveEmailContent('account_freeze_scheduled', $client_data[0], $schedExtras);
+                        $sms_table->email_subject = $emailContent['subject'] ?? null;
+                        $sms_table->sms_content   = $emailContent['body'] ?? '';
+                    } else {
+                        $sms_table->sms_content = $message;
+                    }
                     $sms_table->date_sent = date("YmdHis");
                     $sms_table->recipient_phone = $mobile;
                     $sms_table->sms_status = $sent ? 1 : 0;
                     $sms_table->account_id = $client_id;
                     $sms_table->sms_type = $sms_type;
+                    $sms_table->channel = $channel;
                     $sms_table->save();
                 }
             }
@@ -4560,17 +4610,25 @@ $export_text .= "
                 $sms_type = 2;
                 $message = $new_message;
 
-                $sent = $this->dispatchAutomationMessage('account_unfrozen', $message, $mobile, $client[0]);
+                $channel = $client[0]->preferred_channel ?: $this->getPreferredChannel();
+                $sent = $this->dispatchAutomationMessage('account_unfrozen', $message, $mobile, $client[0], [], $channel);
                 if (!$sent) {
                     session()->flash("error", "Your account cannot send sms, contact us for more information!");
                 }
                 $sms_table = new sms_table();
-                $sms_table->sms_content = $message;
+                if ($channel === 'email') {
+                    $emailContent = $this->resolveEmailContent('account_unfrozen', $client[0]);
+                    $sms_table->email_subject = $emailContent['subject'] ?? null;
+                    $sms_table->sms_content   = $emailContent['body'] ?? '';
+                } else {
+                    $sms_table->sms_content = $message;
+                }
                 $sms_table->date_sent = date("YmdHis");
                 $sms_table->recipient_phone = $mobile;
                 $sms_table->sms_status = $sent ? 1 : 0;
                 $sms_table->account_id = $client_id;
                 $sms_table->sms_type = $sms_type;
+                $sms_table->channel = $channel;
                 $sms_table->save();
             }
         }
@@ -4643,7 +4701,37 @@ $export_text .= "
 
         $txt = ":Client ( $client_name ) wallet balance has been changed to Kes $wallet_amount by " . session('Usernames') . "" . "!";
         $this->log($txt);
-        // end of log file
+
+        if ($req->input('send_payment_msg') === 'on') {
+            $message_contents = $this->get_sms();
+            $raw = $message_contents[1]->messages[0]->message ?? null;
+            if ($raw) {
+                $mobile  = $client[0]->clients_contacts;
+                $message = $this->message_content($raw, $client_id, $wallet_amount);
+                $channel = $client[0]->preferred_channel ?: $this->getPreferredChannel();
+                $sent    = $this->dispatchAutomationMessage('payment_received', $message, $mobile, $client[0], [
+                    'trans_amount' => $wallet_amount,
+                ], $channel);
+                $sms_table = new sms_table();
+                if ($channel === 'email') {
+                    $emailContent = $this->resolveEmailContent('payment_received', $client[0], [
+                        'trans_amount' => $wallet_amount,
+                    ]);
+                    $sms_table->email_subject = $emailContent['subject'] ?? null;
+                    $sms_table->sms_content   = $emailContent['body'] ?? '';
+                } else {
+                    $sms_table->sms_content = $message;
+                }
+                $sms_table->date_sent     = date('YmdHis');
+                $sms_table->recipient_phone = $mobile;
+                $sms_table->sms_status    = $sent ? 1 : 0;
+                $sms_table->account_id    = $client_id;
+                $sms_table->sms_type      = 1;
+                $sms_table->channel       = $channel;
+                $sms_table->save();
+            }
+        }
+
         session()->flash("success", "Wallet balance has been successfully changed!");
         return redirect("Clients/View/" . $client_id);
     }
@@ -6630,14 +6718,22 @@ $export_text .= "
                 $message = $message_contents[2]->messages[0]->message;
                 if (!empty($message)) {
                     $message = $this->message_content($message, $client_id, 0);
-                    $this->dispatchAutomationMessage('account_renewed', $message, $mobile, $client_data);
+                    $channel = $client_data->preferred_channel ?: $this->getPreferredChannel();
+                    $sent = $this->dispatchAutomationMessage('account_renewed', $message, $mobile, $client_data, [], $channel);
                     $sms_table = new sms_table();
-                    $sms_table->sms_content = $message;
+                    if ($channel === 'email') {
+                        $emailContent = $this->resolveEmailContent('account_renewed', $client_data);
+                        $sms_table->email_subject = $emailContent['subject'] ?? null;
+                        $sms_table->sms_content   = $emailContent['body'] ?? '';
+                    } else {
+                        $sms_table->sms_content = $message;
+                    }
                     $sms_table->date_sent = date("YmdHis");
                     $sms_table->recipient_phone = $mobile;
-                    $sms_table->sms_status = "1";
+                    $sms_table->sms_status = $sent ? "1" : "0";
                     $sms_table->account_id = $client_id;
                     $sms_table->sms_type = "1";
+                    $sms_table->channel = $channel;
                     $sms_table->save();
                 }
             } else {
@@ -6645,14 +6741,22 @@ $export_text .= "
                 $message = $message_contents[2]->messages[1]->message;
                 if ($message) {
                     $message = $this->message_content($message, $client_id, 0);
-                    $this->dispatchAutomationMessage('account_extended', $message, $mobile, $client_data);
+                    $channel = $client_data->preferred_channel ?: $this->getPreferredChannel();
+                    $sent = $this->dispatchAutomationMessage('account_extended', $message, $mobile, $client_data, [], $channel);
                     $sms_table = new sms_table();
-                    $sms_table->sms_content = $message;
+                    if ($channel === 'email') {
+                        $emailContent = $this->resolveEmailContent('account_extended', $client_data);
+                        $sms_table->email_subject = $emailContent['subject'] ?? null;
+                        $sms_table->sms_content   = $emailContent['body'] ?? '';
+                    } else {
+                        $sms_table->sms_content = $message;
+                    }
                     $sms_table->date_sent = date("YmdHis");
                     $sms_table->recipient_phone = $mobile;
-                    $sms_table->sms_status = "1";
+                    $sms_table->sms_status = $sent ? "1" : "0";
                     $sms_table->account_id = $client_id;
                     $sms_table->sms_type = "1";
+                    $sms_table->channel = $channel;
                     $sms_table->save();
                 }
             }
@@ -6671,14 +6775,22 @@ $export_text .= "
                         $message = $message_contents[2]->messages[2]->message;
                         if ($message) {
                             $message = $this->message_content($message, $client_id, 0);
-                            $this->dispatchAutomationMessage('account_deactivated', $message, $mobile, $client_data);
+                            $channel = $client_data->preferred_channel ?: $this->getPreferredChannel();
+                            $sent = $this->dispatchAutomationMessage('account_deactivated', $message, $mobile, $client_data, [], $channel);
                             $sms_table = new sms_table();
-                            $sms_table->sms_content = $message;
+                            if ($channel === 'email') {
+                                $emailContent = $this->resolveEmailContent('account_deactivated', $client_data);
+                                $sms_table->email_subject = $emailContent['subject'] ?? null;
+                                $sms_table->sms_content   = $emailContent['body'] ?? '';
+                            } else {
+                                $sms_table->sms_content = $message;
+                            }
                             $sms_table->date_sent = date("YmdHis");
                             $sms_table->recipient_phone = $mobile;
-                            $sms_table->sms_status = "1";
+                            $sms_table->sms_status = $sent ? "1" : "0";
                             $sms_table->account_id = $client_id;
                             $sms_table->sms_type = "1";
+                            $sms_table->channel = $channel;
                             $sms_table->save();
                         }
                     }

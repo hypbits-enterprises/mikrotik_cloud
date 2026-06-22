@@ -448,8 +448,11 @@ class Transaction extends Controller
                 : "";
             $client_name = $row->client_name ? htmlspecialchars(ucwords(strtolower($row->client_name))) : '<span class="text-muted">—</span>';
 
+            $printBtn = $row->client_id
+                ? " <a class='btn btn-sm btn-info ml-1 text-bolder {$disabled}' target='_blank' href='/Print-Reciept/{$row->transaction_id}' data-toggle='tooltip' title='Print receipt' style='padding:3px;background-color:rgb(40,175,208);transition:background-color 0.3s;'><span class='d-inline-block border border-white w-100 text-center' style='border-radius:2px;padding:5px;background-color:rgba(0,0,0,0);color:rgb(255,255,255);border-color:rgb(255,255,255);transition:color 0.3s,background-color 0.3s,border-color 0.3s;'><i class='ft-printer'></i></span></a>"
+                : "";
             $actions = "<a href='/Transactions/View/{$row->transaction_id}' class='btn btn-sm btn-primary text-bolder {$disabled}' data-toggle='tooltip' title='View transaction' style='padding:3px;background-color:rgb(105,103,206);transition:background-color 0.3s;'><span class='d-inline-block border border-white w-100 text-center' style='border-radius:2px;padding:5px;background-color:rgba(0,0,0,0);color:rgb(255,255,255);border-color:rgb(255,255,255);transition:color 0.3s,background-color 0.3s,border-color 0.3s;'><i class='ft-eye'></i> View</span></a>"
-                     . " <a class='btn btn-sm btn-info ml-1 text-bolder {$disabled}' target='_blank' href='/Print-Reciept/{$row->transaction_id}' data-toggle='tooltip' title='Print receipt' style='padding:3px;background-color:rgb(40,175,208);transition:background-color 0.3s;'><span class='d-inline-block border border-white w-100 text-center' style='border-radius:2px;padding:5px;background-color:rgba(0,0,0,0);color:rgb(255,255,255);border-color:rgb(255,255,255);transition:color 0.3s,background-color 0.3s,border-color 0.3s;'><i class='ft-printer'></i></span></a>";
+                     . $printBtn;
 
             $data[] = [
                 'rownum'     => $start + $i + 1,
@@ -809,9 +812,20 @@ class Transaction extends Controller
                             'org_data'     => $organization[0],
                         ], $channel);
                         $sms_table = new sms_table();
-                        $sms_table->sms_content = $channel === 'email'
-                            ? '[Email] ' . ucwords(str_replace('_', ' ', $templateName)) . ' — ' . ($user_data[0]->client_email ?? $mobile)
-                            : $message;
+                        if ($channel === 'email') {
+                            $orgName   = $organization[0]->organization_name ?? 'Your ISP';
+                            $emailContent = $this->resolveEmailContent($templateName, $user_data[0], [
+                                'trans_amount' => $trans_amount,
+                                'min_amount'   => $minimum_payment,
+                                'mpesa_ref'    => $jsonMpesaResponse['TransID'],
+                                'trans_date'   => $jsonMpesaResponse['TransTime'],
+                                'org_data'     => $organization[0],
+                            ], $orgName);
+                            $sms_table->email_subject = $emailContent['subject'] ?? null;
+                            $sms_table->sms_content   = $emailContent['body'] ?? '';
+                        } else {
+                            $sms_table->sms_content = $message;
+                        }
                         $sms_table->date_sent = date("YmdHis");
                         $sms_table->recipient_phone = $mobile;
                         $sms_table->sms_status = $sent ? "1" : "0";
@@ -855,15 +869,22 @@ class Transaction extends Controller
                                 $client_id = (count($refferer_details) > 0) ? $refferer_details[0]->client_id : 0;
                                 $refChannel = $refferer_dets[0]->preferred_channel
                                     ?: $this->getPreferredChannel($organization[0]->organization_id);
-                                $this->dispatchAutomationMessage('referral_commission', $message, $mobile, $refferer_dets[0], [
+                                $refExtras = [
                                     'refferer_trans_amount' => $refferal_amount,
                                     'refferer_name'         => $user_data[0]->client_name ?? '',
-                                ], $refChannel);
+                                ];
+                                $sent = $this->dispatchAutomationMessage('referral_commission', $message, $mobile, $refferer_dets[0], $refExtras, $refChannel);
                                 $sms_table = new sms_table();
-                                $sms_table->sms_content = $message;
+                                if ($refChannel === 'email') {
+                                    $refEmailContent = $this->resolveEmailContent('referral_commission', $refferer_dets[0], $refExtras);
+                                    $sms_table->email_subject = $refEmailContent['subject'] ?? null;
+                                    $sms_table->sms_content   = $refEmailContent['body'] ?? '';
+                                } else {
+                                    $sms_table->sms_content = $message;
+                                }
                                 $sms_table->date_sent = date("YmdHis");
                                 $sms_table->recipient_phone = $mobile;
-                                $sms_table->sms_status = "1";
+                                $sms_table->sms_status = $sent ? "1" : "0";
                                 $sms_table->account_id = $client_id;
                                 $sms_table->sms_type = $sms_type;
                                 $sms_table->channel = $refChannel;
@@ -903,7 +924,15 @@ class Transaction extends Controller
                             'trans_amount' => $trans_amount,
                         ], $unknownChannel);
                         $sms_table = new sms_table();
-                        $sms_table->sms_content = $message;
+                        if ($unknownChannel === 'email') {
+                            $wrongEmailContent = $this->resolveEmailContent('payment_wrong_account', $fakeClient, [
+                                'trans_amount' => $trans_amount,
+                            ]);
+                            $sms_table->email_subject = $wrongEmailContent['subject'] ?? null;
+                            $sms_table->sms_content   = $wrongEmailContent['body'] ?? '';
+                        } else {
+                            $sms_table->sms_content = $message;
+                        }
                         $sms_table->date_sent = date("YmdHis");
                         $sms_table->recipient_phone = $mobile;
                         $sms_table->sms_status = "1";
@@ -1043,19 +1072,26 @@ class Transaction extends Controller
             if ($message) {
                 $trans_amount = $new_wallet_balance;
                 $message = $this->message_content($message,$refferer_dets[0]->client_id,$trans_amount);
-                $sent = $this->dispatchAutomationMessage('referral_commission', $message, $mobile, $refferer_dets[0], [
-                    'refferer_trans_amount' => $refferal_amount,
-                ]);
+                $refExtras2 = ['refferer_trans_amount' => $refferal_amount];
+                $refChannel2 = $refferer_dets[0]->preferred_channel ?: $this->getPreferredChannel();
+                $sent = $this->dispatchAutomationMessage('referral_commission', $message, $mobile, $refferer_dets[0], $refExtras2, $refChannel2);
                 $sms_type = 1;
                 $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `client_account` = '".$client_refferal->client_acc."'");
                 $client_id = (count($user_data) > 0) ? $user_data[0]->client_id : 0;
                 $sms_table = new sms_table();
-                $sms_table->sms_content = $message;
+                if ($refChannel2 === 'email') {
+                    $refEmailContent2 = $this->resolveEmailContent('referral_commission', $refferer_dets[0], $refExtras2);
+                    $sms_table->email_subject = $refEmailContent2['subject'] ?? null;
+                    $sms_table->sms_content   = $refEmailContent2['body'] ?? '';
+                } else {
+                    $sms_table->sms_content = $message;
+                }
                 $sms_table->date_sent = date("YmdHis");
                 $sms_table->recipient_phone = $mobile;
                 $sms_table->sms_status = $sent ? 1 : 0;
                 $sms_table->account_id = $client_id;
                 $sms_table->sms_type = $sms_type;
+                $sms_table->channel = $refChannel2;
                 $sms_table->save();
             }
         }

@@ -54,6 +54,8 @@ ALTER TABLE `whatsapp_templates`
     ADD COLUMN IF NOT EXISTS `language` VARCHAR(10) NOT NULL DEFAULT 'en' AFTER `meta_template_id`;
 
 UPDATE sms_tables SET channel = 'email' WHERE recipient_phone LIKE '%@%';
+ALTER TABLE `sms_tables`
+    ADD COLUMN IF NOT EXISTS `email_subject` VARCHAR(255) NULL AFTER `sms_content`;
 ALTER TABLE `whatsapp_chats`
     ADD COLUMN `conversation_id`  VARCHAR(100) NULL AFTER `wa_message_id`,
     ADD COLUMN `billing_category` VARCHAR(20)  NULL AFTER `conversation_id`,
@@ -211,3 +213,8 @@ CREATE TABLE `unknown_wa_chats` (
     `deleted` char(1) NOT NULL DEFAULT '0',
     PRIMARY KEY (`id`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+  INSERT INTO `settings` (`keyword`, `value`, `status`)
+  VALUES
+  ('whatsapp_phone_id',    '1214829225041140', 1),
+  ('whatsapp_access_token','EAAcGbHZBMyLkBRszSjZA0GVRCZBL7WH28056nRh3UBoOr7cddT73nfPQwDWllV0rmCaUIz9QG20zPsZCl0PEFSkazDfXo875md0ZBhrcADTCdEOSd3yFIpKwAiXUp13b9hZCADyhxL6lwc9xawhaBPfM46MZBfK52vqt4ZAn2BIY5LROIOK34BjzCRs7oRDDUljH7QZDZD', 1) ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);

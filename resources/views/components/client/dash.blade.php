@@ -454,6 +454,10 @@
                                 value="{{ $clients_data[0]->client_id }}">
                             <label for="wallet_amounts" class="form-control-label" id="">New Wallet Amount</label>
                             <input type="number" required name="wallet_amounts" id="wallet_amounts" class="form-control" value="{{$clients_data[0]->wallet_amount}}" placeholder="New wallet amounts">
+                            <div class="mt-1 mb-1">
+                                <input type="checkbox" name="send_payment_msg" id="send_payment_msg_wallet">
+                                <label for="send_payment_msg_wallet" class="ml-1">Send payment received message to client</label>
+                            </div>
                             <div class="row w-100">
                                 <div class="col-md-6">
                                     @php

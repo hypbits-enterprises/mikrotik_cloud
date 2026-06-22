@@ -175,7 +175,7 @@ class Sms extends Controller
         )[0]->total;
 
         $rows = DB::connection('mysql2')->select(
-            "SELECT s.sms_id, s.date_sent, s.sms_content, s.sms_status, s.sms_type,
+            "SELECT s.sms_id, s.date_sent, s.sms_content, s.email_subject, s.sms_status, s.sms_type,
                     s.channel, s.account_id, s.recipient_phone,
                     COALESCE(c.client_name, s.recipient_phone) AS client_name,
                     c.client_id
@@ -211,8 +211,13 @@ class Sms extends Controller
                 : '<span class="text-muted">' . htmlspecialchars($row->client_name ?? $row->recipient_phone) . '</span>';
 
             $body    = $row->sms_content ?? '';
-            $preview = strlen($body) > 90 ? htmlspecialchars(substr($body, 0, 90)) . '&hellip;' : htmlspecialchars($body);
-            $full    = htmlspecialchars($body);
+            if ($ch === 'email' && !empty($row->email_subject)) {
+                $preview = '<strong>' . htmlspecialchars($row->email_subject) . '</strong>';
+                $full    = htmlspecialchars($body);
+            } else {
+                $preview = strlen($body) > 90 ? htmlspecialchars(substr($body, 0, 90)) . '&hellip;' : htmlspecialchars($body);
+                $full    = htmlspecialchars($body);
+            }
 
             $inner = "<span class='d-inline-block border border-white w-100 text-center' style='border-radius:2px;padding:5px'>";
 

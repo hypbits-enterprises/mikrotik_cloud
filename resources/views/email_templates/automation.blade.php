@@ -30,28 +30,6 @@
   <table role="presentation" style="border-collapse:collapse;table-layout:fixed;border-spacing:0;vertical-align:top;min-width:320px;margin:0 auto;background-color:#ffffff;width:100%" cellpadding="0" cellspacing="0">
   <tbody><tr style="vertical-align:top"><td style="word-break:break-word;border-collapse:collapse!important;vertical-align:top">
 
-  {{-- Logo header --}}
-  <div class="u-row-container" style="padding:0;background-color:#ffffff">
-    <div class="u-row" style="margin:0 auto;min-width:320px;max-width:600px;overflow-wrap:break-word;word-wrap:break-word;word-break:break-word;background-color:transparent">
-      <div style="border-collapse:collapse;display:table;width:100%;background-color:transparent">
-        <div class="u-col u-col-100" style="max-width:320px;min-width:600px;display:table-cell;vertical-align:top">
-          <div style="background-color:#ffffff;height:100%;width:100%!important">
-            <div style="padding:20px 0 10px">
-              <table role="presentation" cellpadding="0" cellspacing="0" width="100%" border="0"><tbody><tr>
-                <td style="padding-right:0;padding-left:0" align="center">
-                  <a href="https://billing.hypbits.com/" target="_blank" style="color:#0000ee;text-decoration:underline">
-                    <img align="center" border="0" src="https://billing.hypbits.com/theme-assets/images/email_logo.jpg"
-                         alt="Logo" style="outline:none;text-decoration:none;clear:both;display:inline-block!important;border:none;height:auto;float:none;width:45%;max-width:270px" width="270">
-                  </a>
-                </td>
-              </tr></tbody></table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   {{-- Body content --}}
   <div class="u-row-container" style="padding:0;background-color:transparent">
     <div class="u-row" style="margin:0 auto;min-width:320px;max-width:600px;overflow-wrap:break-word;word-wrap:break-word;word-break:break-word;background-color:transparent">

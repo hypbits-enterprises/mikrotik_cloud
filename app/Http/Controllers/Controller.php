@@ -815,6 +815,27 @@ class Controller extends BaseController
         return $params;
     }
 
+    public function resolveEmailContent(string $internalName, object $clientData, array $extras = [], string $orgName = ''): ?array
+    {
+        $tplRow   = DB::connection('mysql2')->table('email_templates')->where('name', $internalName)->first();
+        $defaults = \App\Http\Controllers\EmailTemplates::getDefaults();
+
+        if ($tplRow) {
+            $rawSubject = $tplRow->subject;
+            $rawBody    = $tplRow->html_body;
+        } elseif (isset($defaults[$internalName])) {
+            $rawSubject = $defaults[$internalName]['subject'];
+            $rawBody    = $defaults[$internalName]['body'];
+        } else {
+            return null;
+        }
+
+        return [
+            'subject' => $this->resolveEmailVariables($rawSubject, $clientData, $extras, $orgName),
+            'body'    => strip_tags($this->resolveEmailVariables($rawBody, $clientData, $extras, $orgName)),
+        ];
+    }
+
     protected function resolveEmailVariables(string $template, object $clientData, array $extras = [], string $orgName = ''): string
     {
         $expRaw  = $clientData->next_expiration_date ?? '';
