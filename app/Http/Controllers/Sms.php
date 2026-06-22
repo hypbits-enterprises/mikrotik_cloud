@@ -230,6 +230,14 @@ class Sms extends Controller
                 ? '<span class="badge badge-pill badge-warning text-dark"><i class="ft-credit-card"></i> Transaction</span>'
                 : '<span class="badge badge-pill badge-info"><i class="ft-bell"></i> Notification</span>';
 
+            if ($ch === 'sms') {
+                $msgLen = mb_strlen($body);
+                $units  = $msgLen <= 160 ? 1 : (int) ceil($msgLen / 153);
+                $unitsBadge = '<span class="badge badge-pill badge-secondary">' . $units . ' unit' . ($units > 1 ? 's' : '') . '</span>';
+            } else {
+                $unitsBadge = '<span class="text-muted small">—</span>';
+            }
+
             $data[] = [
                 'rownum'      => '<div class="d-flex align-items-center">'
                                . $check
@@ -244,6 +252,7 @@ class Sms extends Controller
                                . '<span data-toggle="tooltip" data-html="true" title="' . $full . '">' . $preview . '</span>'
                                . '</div>',
                 'sms_type'    => $typeBadge,
+                'sms_units'   => $unitsBadge,
                 'actions'     => '<div class="d-flex align-items-center" style="gap:4px">'
                                . $viewBtn . $waBtn . $resend
                                . '</div>',

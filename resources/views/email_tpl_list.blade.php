@@ -60,8 +60,10 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <div class="mb-2">
-                                        @php $btnText = '<i class="fas fa-arrow-left"></i> Back to SMS'; $btnLink = "/sms"; $otherClasses = ""; $otherAttributes = ""; @endphp
+                                        @php $btnText = '<i class="fas fa-arrow-left"></i> Back to SMS'; $btnLink = "/sms"; $otherClasses = "mr-1"; $otherAttributes = ""; @endphp
                                         <x-button-link btnType="secondary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" btnId="" />
+                                        @php $btnText = '<i class="ft-settings"></i> Email Settings'; $btnLink = "/email-templates/settings"; $otherClasses = ""; @endphp
+                                        <x-button-link btnType="primary" btnSize="sm" toolTip="Configure SMTP settings for email notifications" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" btnId="" />
                                     </div>
                                     <div class="table-responsive">
                                         <table class="table table-hover mb-0">

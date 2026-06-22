@@ -222,7 +222,7 @@
                                         <x-button-link btnType="secondary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
                                         {{-- <a href="/sms/system_sms" class="btn btn-secondary text-bolder {{$readonly}}">Customize SMS</a> --}}
                                         @php $btnText = "Email Templates"; $otherClasses = ""; $btnLink = "/email-templates"; @endphp
-                                        <x-button-link btnType="info" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
+                                        <x-button-link btnType="secondary" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
 
                                         @php
                                             $btnText = "<i class=\"ft-file-text\" ></i> SMS Reports";
@@ -419,7 +419,8 @@
                                                     <th style="width:50px">#</th>
                                                     <th style="width:170px"><i class="ft-clock mr-1"></i>Date Sent</th>
                                                     <th><i class="ft-message-square mr-1"></i>Message</th>
-                                                    <th style="width:140px"><i class="ft-tag mr-1"></i>Type</th>
+                                                    <th style="width:100px"><i class="ft-tag mr-1"></i>Type</th>
+                                                    <th style="width:80px" class="text-center"><i class="ft-layers mr-1"></i>Units</th>
                                                     <th style="width:100px" class="text-center">Actions</th>
                                                 </tr>
                                             </thead>
@@ -623,6 +624,7 @@
                 { data: 'date_sent',   className: 'align-middle' },
                 { data: 'sms_content', className: 'align-middle' },
                 { data: 'sms_type',    className: 'align-middle text-center' },
+                { data: 'sms_units',   orderable: false, searchable: false, className: 'align-middle text-center' },
                 { data: 'actions',     orderable: false, searchable: false, className: 'align-middle text-center' }
             ]
         });

@@ -262,6 +262,8 @@ Route::get("/whatsapp/templates/sync", [WhatsApp::class, "syncMetaStatus"])->mid
 
 // email templates
 Route::get("/email-templates", [EmailTemplates::class, "index"])->middleware(["checkAccount", "validated"]);
+Route::get("/email-templates/settings", [EmailTemplates::class, "settings"])->middleware(["checkAccount", "validated"]);
+Route::post("/email-templates/settings", [EmailTemplates::class, "saveSettings"])->middleware(["checkAccount", "validated"]);
 Route::get("/email-templates/{name}/edit", [EmailTemplates::class, "edit"])->middleware(["checkAccount", "validated"]);
 Route::post("/email-templates/{name}", [EmailTemplates::class, "save"])->middleware(["checkAccount", "validated"]);
 Route::get("/email-templates/reset/{name}", [EmailTemplates::class, "reset"])->middleware(["checkAccount", "validated"]);

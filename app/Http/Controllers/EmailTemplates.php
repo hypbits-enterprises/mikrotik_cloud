@@ -262,4 +262,48 @@ Expiry Date: <strong>[exp_date]</strong></p>
         session()->flash('success', self::DEFAULTS[$name]['label'] . ' template reset to default.');
         return redirect('/email-templates');
     }
+
+    public function settings()
+    {
+        $change_db = new login();
+        $change_db->change_db();
+
+        $row = DB::connection('mysql2')->table('settings')->where('keyword', 'email_settings')->first();
+        $es  = $row ? json_decode($row->value, true) : [];
+
+        return view('email_tpl_settings', ['es' => $es]);
+    }
+
+    public function saveSettings(Request $req)
+    {
+        $change_db = new login();
+        $change_db->change_db();
+
+        $current = [];
+        $row = DB::connection('mysql2')->table('settings')->where('keyword', 'email_settings')->first();
+        if ($row) {
+            $current = json_decode($row->value, true) ?? [];
+        }
+
+        $password = trim($req->input('email_password', ''));
+
+        $es = json_encode([
+            'host'       => trim($req->input('email_host', '')),
+            'port'       => (int) $req->input('email_port', 587),
+            'encryption' => in_array($req->input('email_encryption'), ['tls', 'ssl', 'none'])
+                                ? $req->input('email_encryption') : 'tls',
+            'username'   => trim($req->input('email_username', '')),
+            'password'   => $password !== '' ? $password : ($current['password'] ?? ''),
+            'from_name'  => trim($req->input('email_from_name', '')),
+        ]);
+
+        if ($row) {
+            DB::connection('mysql2')->table('settings')->where('keyword', 'email_settings')->update(['value' => $es]);
+        } else {
+            DB::connection('mysql2')->table('settings')->insert(['keyword' => 'email_settings', 'value' => $es, 'status' => '1']);
+        }
+
+        session()->flash('success', 'Email settings saved successfully.');
+        return redirect('/email-templates/settings');
+    }
 }

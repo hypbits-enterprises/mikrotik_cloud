@@ -9,6 +9,8 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class Controller extends BaseController
 {
@@ -437,13 +439,13 @@ class Controller extends BaseController
         $response = \curl_exec($ch);
         \curl_close($ch);
         $res = json_decode($response);
-        // return $res;
+        if (!$res || empty($res->responses)) {
+            return null;
+        }
         $values = $res->responses[0];
-        foreach ($values as  $key => $value) {
-            // echo $key;
+        foreach ($values as $key => $value) {
             if ($key == "response-code") {
                 if ($value == "200") {
-                    // if its 200 the message is sent delete the
                     $message_status = 1;
                 }
             }
@@ -944,7 +946,10 @@ class Controller extends BaseController
                         'mail.from.address'            => $es['username'],
                         'mail.from.name'               => $es['from_name'] ?? $orgName,
                     ]);
+                    // Force the mail manager to rebuild the transport with the new settings
+                    app('mail.manager')->purge('smtp');
                 } elseif (empty(env('EMAIL_HOST')) || empty(env('EMAIL_USERNAME')) || empty(env('EMAIL_PASSWORD'))) {
+                    Log::warning("AutomationEmail [{$internalName}]: no SMTP config available for {$email}");
                     return false;
                 }
 
@@ -958,7 +963,7 @@ class Controller extends BaseController
                     $rawSubject = $defaults[$internalName]['subject'];
                     $rawBody    = $defaults[$internalName]['body'];
                 } else {
-                    \Mail::raw($resolvedSms, function ($m) use ($email, $orgName) {
+                    Mail::raw($resolvedSms, function ($m) use ($email, $orgName) {
                         $m->to($email)->subject('Message from ' . $orgName);
                     });
                     return true;
@@ -970,9 +975,10 @@ class Controller extends BaseController
 
                 $subject = $this->resolveEmailVariables($rawSubject, $clientData, $extras, $orgName);
                 $body    = $this->resolveEmailVariables($rawBody, $clientData, $extras, $orgName);
-                \Mail::to($email)->send(new \App\Mail\AutomationEmail($subject, $body, $pdfBytes, $pdfName));
+                Mail::to($email)->send(new \App\Mail\AutomationEmail($subject, $body, $pdfBytes, $pdfName));
                 return true;
             } catch (\Exception $e) {
+                Log::error("AutomationEmail [{$internalName}] failed for {$email}: " . $e->getMessage());
                 return false;
             }
         }
