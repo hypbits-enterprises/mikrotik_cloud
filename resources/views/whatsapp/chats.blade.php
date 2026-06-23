@@ -692,6 +692,7 @@
         var clientTemplates = [];
         var activeClient    = null;
         var lastMsgId       = 0;
+        var currentWindow   = null;
         var msgPollTimer    = null;
         var sidebarTimer    = null;
         var unreadMap       = {};
@@ -743,8 +744,9 @@
                 activeInitial = contactEl.getAttribute('data-initial') || '?';
             }
 
-            activeId  = clientId;
-            lastMsgId = 0;
+            activeId      = clientId;
+            lastMsgId     = 0;
+            currentWindow = null;
             showState('loading');
 
             fetch('/whatsapp/messages/' + clientId)
@@ -752,6 +754,7 @@
                 .then(function (data) {
                     if (data.error) { showState('welcome'); return; }
                     lastMsgId = data.messages.length ? data.messages[data.messages.length - 1].sms_id : 0;
+                    currentWindow = data.withinWindow;
                     renderHeader(data.client, data.withinWindow);
                     renderMessages(data.messages, data.client);
                     renderCompose(data.withinWindow, data.templates);
@@ -1127,10 +1130,16 @@
                     if (data.error || !data.messages) return;
                     var msgs  = data.messages;
                     var newId = msgs.length ? msgs[msgs.length - 1].sms_id : 0;
-                    if (!forceScroll && newId === lastMsgId) return;
+                    var windowChanged = data.withinWindow !== currentWindow;
+                    if (!forceScroll && newId === lastMsgId && !windowChanged) return;
                     var hadMessages = lastMsgId > 0;
                     lastMsgId = newId;
                     renderMessages(msgs, data.client);
+                    if (windowChanged) {
+                        currentWindow = data.withinWindow;
+                        renderCompose(data.withinWindow, data.templates || clientTemplates);
+                        renderHeader(data.client, data.withinWindow);
+                    }
                     if (hadMessages && msgs.length && msgs[msgs.length - 1].direction === 'inbound') {
                         playNotification();
                     }

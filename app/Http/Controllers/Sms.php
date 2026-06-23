@@ -340,7 +340,10 @@ class Sms extends Controller
             array_push($client_account,$value->client_account);
         }
         $router_data = DB::connection("mysql2")->select("SELECT * FROM `remote_routers` WHERE `deleted`= '0'");
-        return view("compose",["client_names" => $client_names,"client_contacts" => $client_contacts,"client_account" => $client_account,"router_infor" => $router_data]);
+        $wa_templates = DB::connection("mysql2")->select(
+            "SELECT * FROM `whatsapp_templates` WHERE `is_active` = 1 AND `deleted` = '0' AND `meta_status` = 'approved' ORDER BY `id` ASC"
+        );
+        return view("compose",["client_names" => $client_names,"client_contacts" => $client_contacts,"client_account" => $client_account,"router_infor" => $router_data, "wa_templates" => $wa_templates]);
     }
     function sendsms(Request $req){
         // change db

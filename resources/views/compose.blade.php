@@ -168,15 +168,21 @@
                                             <input type="hidden" name="channel" id="channel_input" value="sms">
                                         </div>
 
-                                        {{-- WhatsApp: message category --}}
-                                        <div class="col-md-6 mb-1 d-none" id="wa_category_row">
-                                            <label class="form-control-label">Message Category</label>
-                                            <select name="message_category" class="form-control">
-                                                <option value="service">Service (within 24hr window)</option>
-                                                <option value="utility">Utility</option>
-                                                <option value="authentication">Authentication</option>
-                                                <option value="marketing">Marketing</option>
-                                            </select>
+                                        {{-- WhatsApp: approved template selector --}}
+                                        <div class="col-md-12 mb-1 d-none" id="wa_template_row">
+                                            <label class="form-control-label"><i class="fa-brands fa-whatsapp text-success"></i> Select Template</label>
+                                            @if(count($wa_templates ?? []) > 0)
+                                                <select name="template_id" id="wa_template_select" class="form-control">
+                                                    <option value="">— Select an approved template —</option>
+                                                    @foreach($wa_templates as $tpl)
+                                                        <option value="{{ $tpl->id }}">{{ $tpl->name }} ({{ ucfirst($tpl->category) }})</option>
+                                                    @endforeach
+                                                </select>
+                                            @else
+                                                <p class="text-muted mb-0" style="font-size:.85rem;">
+                                                    No approved templates yet. <a href="/whatsapp/templates">Manage templates</a>
+                                                </p>
+                                            @endif
                                         </div>
 
                                         <div class="col-md-6">
@@ -212,10 +218,9 @@
                                                     placeholder="Phone number, Account Number, Name">
                                             </div>
                                         </div>
-                                        <div class="col-md-12 my-1">
+                                        <div class="col-md-12 my-1" id="sms_message_row">
                                             <label for="messages" class="form-control-label">Write Message
                                                 <small id="sms_hint">(162 characters cost 1 unit of SMS)</small>
-                                                <small id="wa_hint" class="d-none text-success">(WhatsApp — up to 4096 characters)</small>
                                             </label>
                                             <textarea name="messages" class="form-control" id="messages" cols="30" rows="2" placeholder="Write your message here"
                                                 required>{{ isset($messages) ? $messages : '' }}</textarea>
@@ -249,10 +254,14 @@
                                             document.getElementById('channel_input').value = channel;
                                             document.getElementById('tab-channel-sms').classList.toggle('active', isSms);
                                             document.getElementById('tab-channel-whatsapp').classList.toggle('active', !isSms);
-                                            document.getElementById('wa_category_row').classList.toggle('d-none', isSms);
+                                            document.getElementById('wa_template_row').classList.toggle('d-none', isSms);
+                                            document.getElementById('sms_message_row').classList.toggle('d-none', !isSms);
                                             document.getElementById('sms_hint').classList.toggle('d-none', !isSms);
-                                            document.getElementById('wa_hint').classList.toggle('d-none', isSms);
                                             document.getElementById('compose-form').action = isSms ? '/sendsms' : '/whatsapp/send-compose';
+                                            // Swap required so HTML5 validation fires on the right field
+                                            document.getElementById('messages').required = isSms;
+                                            var tplSel = document.getElementById('wa_template_select');
+                                            if (tplSel) tplSel.required = !isSms;
                                         }
                                     </script>
                                 </div>

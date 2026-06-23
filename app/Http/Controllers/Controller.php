@@ -719,25 +719,66 @@ class Controller extends BaseController
         return $last[0]->received_at >= $cutoff;
     }
 
+    protected function logWhatsAppMessage(
+        int $clientId,
+        string $body,
+        string $phone,
+        int $status,
+        string $category,
+        string $direction,
+        ?string $waId = null,
+        ?string $templateName = null
+    ): void {
+        $now = now()->format('YmdHis');
+
+        $msgId = DB::connection('mysql2')->table('sms_tables')->insertGetId([
+            'sms_content'      => $body,
+            'date_sent'        => $now,
+            'recipient_phone'  => $phone,
+            'sms_status'       => $status,
+            'account_id'       => $clientId,
+            'sms_type'         => 2,
+            'channel'          => 'whatsapp',
+            'message_category' => $category,
+            'deleted'          => '0',
+        ]);
+
+        DB::connection('mysql2')->table('whatsapp_chats')->insert([
+            'message_id'       => $msgId,
+            'direction'        => $direction,
+            'wa_message_id'    => $waId,
+            'message_category' => $category,
+            'template_name'    => $templateName,
+            'delivery_status'  => $status ? 'sent' : 'failed',
+            'window_open'      => $this->isWithin24hrWindow($clientId) ? 1 : 0,
+            'received_at'      => $direction === 'inbound' ? $now : null,
+        ]);
+    }
+
     function notifyClient($client, string $message, ?string $templateName = null): void
     {
         $channel = $this->getPreferredChannel();
 
-        $phone = is_object($client) ? $client->clients_contacts : ($client['clients_contacts'] ?? null);
+        $phone    = is_object($client) ? $client->clients_contacts : ($client['clients_contacts'] ?? null);
+        $clientId = is_object($client) ? ($client->client_id ?? 0) : ($client['client_id'] ?? 0);
         if (!$phone) return;
 
         if ($channel === 'whatsapp') {
             if ($templateName) {
-                $clientId = is_object($client) ? $client->client_id : ($client['client_id'] ?? 0);
                 $withinWindow = $this->isWithin24hrWindow($clientId);
 
                 if (!$withinWindow) {
-                    // Template send for clients outside window — callers must pass template name
-                    $this->sendWhatsAppMessage($this->formatKenyanPhone($phone), $message, 'utility');
+                    $waPhone = $this->formatKenyanPhone($phone);
+                    $result  = $this->sendWhatsAppMessage($waPhone, $message, 'utility');
+                    $waId    = $result['messages'][0]['id'] ?? null;
+                    $this->logWhatsAppMessage($clientId, $message, $waPhone, $waId ? 1 : 0, 'utility', 'outbound', $waId);
                     return;
                 }
             }
-            $this->sendWhatsAppMessage($this->formatKenyanPhone($phone), $message, 'utility');
+            $waPhone = $this->formatKenyanPhone($phone);
+            $result  = $this->sendWhatsAppMessage($waPhone, $message, 'utility');
+            $waId    = $result['messages'][0]['id'] ?? null;
+            $this->logWhatsAppMessage($clientId, $message, $waPhone, $waId ? 1 : 0, 'utility', 'outbound', $waId);
         } else {
             $smsSettings = $this->getSmsSettings();
             if ($smsSettings) {
@@ -936,15 +977,14 @@ class Controller extends BaseController
         if ($channel === 'whatsapp') {
             $template = $this->getAutomationTemplate($internalName);
             if (!$template) return false;
-            $params = $this->buildTemplateParams($template['variables'], $clientData, $extras);
-            $result = $this->sendWhatsAppTemplate(
-                $this->formatKenyanPhone($phone),
-                $template['template_name'],
-                $params,
-                $template['category'],
-                $template['language']
-            );
-            return empty($result['error']);
+            $params   = $this->buildTemplateParams($template['variables'], $clientData, $extras);
+            $waPhone  = $this->formatKenyanPhone($phone);
+            $result   = $this->sendWhatsAppTemplate($waPhone, $template['template_name'], $params, $template['category'], $template['language']);
+            $success  = empty($result['error']);
+            $waId     = $result['messages'][0]['id'] ?? null;
+            $clientId = $clientData->client_id ?? 0;
+            $this->logWhatsAppMessage($clientId, $resolvedSms, $waPhone, $success ? 1 : 0, $template['category'], 'outbound', $waId, $template['template_name']);
+            return $success;
         }
 
         if ($channel === 'email') {

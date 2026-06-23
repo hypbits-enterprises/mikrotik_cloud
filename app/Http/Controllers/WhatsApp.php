@@ -329,15 +329,25 @@ class WhatsApp extends Controller
 
         $selectRecipient = $req->input('select_recipient');
         $rawPhone        = $req->input('phone_number') ?: $req->input('phone_numbers', '');
-        $message         = $req->input('messages', '');
-        $category        = $req->input('message_category', 'service');
+        $templateId      = (int) $req->input('template_id');
 
-        if (empty($message)) {
-            return redirect('/sms/compose')->with('error_sms', 'Please write a message before sending.');
+        if (!$templateId) {
+            return redirect('/sms/compose')->with('error_sms', 'Please select a template before sending.');
         }
 
-        // Resolve phone numbers from recipient selection
-        $phones = [];
+        $template = DB::connection('mysql2')->select(
+            "SELECT * FROM `whatsapp_templates` WHERE `id` = ? AND `is_active` = 1 AND `deleted` = '0' AND `meta_status` = 'approved'",
+            [$templateId]
+        );
+
+        if (empty($template)) {
+            return redirect('/sms/compose')->with('error_sms', 'Selected template not found or not approved.');
+        }
+        $template = $template[0];
+
+        // Resolve phone numbers and build a phone→client map where possible
+        $phones    = [];
+        $clientMap = [];
 
         if ($selectRecipient == '1' || $selectRecipient == '5') {
             $cleaned = str_replace(' ', '', $rawPhone);
@@ -347,28 +357,28 @@ class WhatsApp extends Controller
             $phones = explode(',', $cleaned);
         } elseif ($selectRecipient == '2') {
             $clients = DB::connection('mysql2')->select(
-                "SELECT `clients_contacts` FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = 1"
+                "SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = 1"
             );
             if (empty($clients)) {
                 return redirect('/sms/compose')->with('error_sms', 'No active clients at the moment.');
             }
-            $phones = array_map(fn($c) => $c->clients_contacts, $clients);
+            foreach ($clients as $c) { $phones[] = $c->clients_contacts; $clientMap[$c->clients_contacts] = $c; }
         } elseif ($selectRecipient == '3') {
             $clients = DB::connection('mysql2')->select(
-                "SELECT `clients_contacts` FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = 0"
+                "SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `client_status` = 0"
             );
             if (empty($clients)) {
                 return redirect('/sms/compose')->with('error_sms', 'No inactive clients at the moment.');
             }
-            $phones = array_map(fn($c) => $c->clients_contacts, $clients);
+            foreach ($clients as $c) { $phones[] = $c->clients_contacts; $clientMap[$c->clients_contacts] = $c; }
         } elseif ($selectRecipient == '4') {
             $clients = DB::connection('mysql2')->select(
-                "SELECT `clients_contacts` FROM `client_tables` WHERE `deleted` = '0'"
+                "SELECT * FROM `client_tables` WHERE `deleted` = '0'"
             );
             if (empty($clients)) {
                 return redirect('/sms/compose')->with('error_sms', 'No clients to send messages at the moment.');
             }
-            $phones = array_map(fn($c) => $c->clients_contacts, $clients);
+            foreach ($clients as $c) { $phones[] = $c->clients_contacts; $clientMap[$c->clients_contacts] = $c; }
         } else {
             return redirect('/sms/compose')->with('error_sms', 'Please select a recipient option.');
         }
@@ -380,18 +390,24 @@ class WhatsApp extends Controller
             $phone = trim($phone);
             if ($phone === '') continue;
 
-            $waPhone = $this->formatKenyanPhone($phone);
-            $result  = $this->sendWhatsAppMessage($waPhone, $message, $category);
-            $status  = isset($result['messages'][0]['id']) ? 1 : 0;
-            $waId    = $result['messages'][0]['id'] ?? null;
+            $client = $clientMap[$phone] ?? null;
+            if (!$client) {
+                $rows   = DB::connection('mysql2')->select(
+                    "SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `clients_contacts` = ?",
+                    [$phone]
+                );
+                $client = $rows[0] ?? null;
+            }
 
-            $clientRow = DB::connection('mysql2')->select(
-                "SELECT `client_id` FROM `client_tables` WHERE `deleted` = '0' AND `clients_contacts` = ?",
-                [$phone]
-            );
-            $clientId = !empty($clientRow) ? $clientRow[0]->client_id : 0;
+            $variables = $client ? $this->resolveTemplateVariables($template, $client) : [];
+            $waPhone   = $this->formatKenyanPhone($phone);
+            $result    = $this->sendWhatsAppTemplate($waPhone, $template->template_name, $variables, $template->category);
+            $status    = isset($result['messages'][0]['id']) ? 1 : 0;
+            $waId      = $result['messages'][0]['id'] ?? null;
+            $body      = $this->interpolateTemplate($template->body_text, $variables);
+            $clientId  = $client->client_id ?? 0;
 
-            $this->logWhatsAppMessage($clientId, $message, $waPhone, $status, $category, 'outbound', $waId);
+            $this->logWhatsAppMessage($clientId, $body, $waPhone, $status, $template->category, 'outbound', $waId, $template->template_name);
 
             $status ? $sent++ : $failed++;
         }
@@ -858,8 +874,9 @@ class WhatsApp extends Controller
         // Find which org this sender belongs to, then stay on that DB
         $this->resolveOrgByPhone($localPhone);
 
+        // If the phone is shared by multiple clients, use whichever was registered first
         $client = DB::connection('mysql2')->select(
-            "SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `clients_contacts` LIKE ?",
+            "SELECT * FROM `client_tables` WHERE `deleted` = '0' AND `clients_contacts` LIKE ? ORDER BY `client_id` ASC LIMIT 1",
             ["%{$localPhone}%"]
         );
 
@@ -955,42 +972,6 @@ class WhatsApp extends Controller
             'UPDATE `whatsapp_chats` SET ' . implode(', ', $fields) . ' WHERE `wa_message_id` = ?',
             $bindings
         );
-    }
-
-    private function logWhatsAppMessage(
-        int $clientId,
-        string $body,
-        string $phone,
-        int $status,
-        string $category,
-        string $direction,
-        ?string $waId = null,
-        ?string $templateName = null
-    ) {
-        $now = now()->format('YmdHis');
-
-        $msgId = DB::connection('mysql2')->table('sms_tables')->insertGetId([
-            'sms_content'      => $body,
-            'date_sent'        => $now,
-            'recipient_phone'  => $phone,
-            'sms_status'       => $status,
-            'account_id'       => $clientId,
-            'sms_type'         => 2,
-            'channel'          => 'whatsapp',
-            'message_category' => $category,
-            'deleted'          => '0',
-        ]);
-
-        DB::connection('mysql2')->table('whatsapp_chats')->insert([
-            'message_id'       => $msgId,
-            'direction'        => $direction,
-            'wa_message_id'    => $waId,
-            'message_category' => $category,
-            'template_name'    => $templateName,
-            'delivery_status'  => $status ? 'sent' : 'failed',
-            'window_open'      => $this->isWithin24hrWindow($clientId) ? 1 : 0,
-            'received_at'      => $direction === 'inbound' ? $now : null,
-        ]);
     }
 
     private function fetchTemplates(): array
