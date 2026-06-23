@@ -94,11 +94,11 @@ INSERT IGNORE INTO `whatsapp_billing_rates` (`category`, `rate`, `currency`, `de
 
 -- B-1. sms_tables — add channel, message_category, and email_subject columns
 ALTER TABLE `sms_tables`
-    ADD COLUMN IF NOT EXISTS `channel`        VARCHAR(20)  NOT NULL DEFAULT 'sms'
+    ADD COLUMN `channel`        VARCHAR(20)  NOT NULL DEFAULT 'sms'
       COMMENT 'sms | whatsapp | email' AFTER `sms_type`,
-    ADD COLUMN IF NOT EXISTS `message_category` VARCHAR(30) NULL DEFAULT NULL
+    ADD COLUMN `message_category` VARCHAR(30) NULL DEFAULT NULL
       COMMENT 'service | utility | authentication | marketing' AFTER `channel`,
-    ADD COLUMN IF NOT EXISTS `email_subject`  VARCHAR(255) NULL AFTER `sms_content`;
+    ADD COLUMN `email_subject`  VARCHAR(255) NULL AFTER `sms_content`;
 
 -- B-2. Backfill sms_tables channel values
 UPDATE `sms_tables` SET `channel` = 'sms'   WHERE `channel` = '' OR `channel` IS NULL;
@@ -125,13 +125,6 @@ CREATE TABLE IF NOT EXISTS `whatsapp_chats` (
   INDEX `idx_conversation_id` (`conversation_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- B-3a. (If whatsapp_chats already exists) add billing columns
-ALTER TABLE `whatsapp_chats`
-    ADD COLUMN IF NOT EXISTS `conversation_id`  VARCHAR(100) NULL AFTER `wa_message_id`,
-    ADD COLUMN IF NOT EXISTS `billing_category` VARCHAR(20)  NULL AFTER `conversation_id`,
-    ADD COLUMN IF NOT EXISTS `billable`         TINYINT(1)   NULL AFTER `billing_category`;
-ALTER TABLE `whatsapp_chats`
-    ADD INDEX IF NOT EXISTS `idx_conversation_id` (`conversation_id`);
 
 -- B-4. Create whatsapp_templates table (org-level template store)
 CREATE TABLE IF NOT EXISTS `whatsapp_templates` (
@@ -150,17 +143,11 @@ CREATE TABLE IF NOT EXISTS `whatsapp_templates` (
   `deleted`          CHAR(1)       NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- B-4a. (If whatsapp_templates already exists) add missing columns
-ALTER TABLE `whatsapp_templates`
-    ADD COLUMN IF NOT EXISTS `meta_status`      VARCHAR(20)  NOT NULL DEFAULT 'not_submitted' AFTER `is_active`,
-    ADD COLUMN IF NOT EXISTS `meta_template_id` VARCHAR(100) NULL AFTER `meta_status`,
-    ADD COLUMN IF NOT EXISTS `language`         VARCHAR(10)  NOT NULL DEFAULT 'en' AFTER `meta_template_id`;
 
 -- B-5. Add client_email and preferred_channel to client_tables
 ALTER TABLE `client_tables`
-  ADD COLUMN IF NOT EXISTS `client_email`      VARCHAR(255) NULL AFTER `clients_contacts`,
-  ADD COLUMN IF NOT EXISTS `preferred_channel` VARCHAR(20)  NULL AFTER `client_email`
-    COMMENT 'sms | whatsapp | email — NULL means inherit the org-level default';
+  ADD COLUMN `client_email`      VARCHAR(255) NULL AFTER `clients_contacts`,
+  ADD COLUMN `preferred_channel` VARCHAR(20)  NULL AFTER `client_email`;
 
 -- B-6. Create email_templates table
 CREATE TABLE IF NOT EXISTS `email_templates` (
