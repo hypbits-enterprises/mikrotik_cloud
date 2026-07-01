@@ -50,7 +50,7 @@
 <script>
     window.addEventListener('load', function () {
         document.getElementById('changelogDismissBtn').addEventListener('click', function () {
-            $.post('{{ route('changelog.acknowledge') }}', { _token: '{{ csrf_token() }}' }, function () {
+            $.post('/changelog/acknowledge', { _token: '{{ csrf_token() }}' }, function () {
                 $('#changelogModal').modal('hide');
             });
         });
