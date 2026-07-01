@@ -154,6 +154,14 @@
                                     href="#"><i class="ft-check-square"></i> Mark all Read </a></div>
                         </div>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="#" title="What's New" onclick="$('#changelogModal').modal('show'); return false;">
+                            <i class="ficon ft-zap {{ session('show_changelog') ? 'text-warning' : '' }}"></i>
+                            @if(session('show_changelog'))
+                                <span class="badge badge-pill badge-sm badge-warning badge-up badge-glow">!</span>
+                            @endif
+                        </a>
+                    </li>
                     <li class="dropdown dropdown-user nav-item"><a
                             class="dropdown-toggle nav-link dropdown-user-link" href="#" data-toggle="dropdown">
                             <span class="avatar avatar-online"> <img style="width: 100px; height: 40px;"
@@ -178,6 +186,7 @@
         </div>
     </div>
 </nav>
+@include('changelog')
 <!-- ////////////////////////////////////////////////////////////////////////////-->
 @php
     $privilleged = session("priviledges");

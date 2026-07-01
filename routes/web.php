@@ -70,6 +70,7 @@ Route::view("/Client-Verify", "clients.client-verify");
 //login controller router
 Route::post("/process_login", [login::class, "processLogin"])->name("process_login");
 Route::post("/verifycode", [Login::class, "processVerification"])->name("verify_code");//
+Route::post("/changelog/acknowledge", [Login::class, "acknowledgeChangelog"])->name("changelog.acknowledge")->middleware(["checkAccount", "validated"]);
 Route::post("/forgot_password", [login::class, "forgot_password"])->name("forgot_password");
 Route::post("/client_reset_password", [login::class, "client_reset_password"])->name("client_reset_password");
 Route::post("/reset_my_password", [login::class, "reset_my_password"])->name("reset_my_password");

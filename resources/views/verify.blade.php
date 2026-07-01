@@ -105,10 +105,12 @@
                                     <form class="user" action="{{url()->route("verify_code")}}" method="POST">
                                         @csrf
                                         <div class="form-group">
+                                            @if(session('setup_warning'))
+                                                <p class="text-warning text-bolder">{{session('setup_warning')}}</p>
+                                            @endif
                                             @if(session('error'))
                                                 <p class="text-danger text-bolder">{{session('error')}}</p>
                                             @endif
-                                            
                                         </div>
                                         <div class="form-group">
                                             <input type="number" name="verification_code" class="form-control form-control-user text-center"

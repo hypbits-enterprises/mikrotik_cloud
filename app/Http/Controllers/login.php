@@ -84,20 +84,15 @@ class login extends Controller
                     $this->GlobalSendSMS($message, $mobile, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id']);
                     $message_status = 1;
                 } elseif ($send_code == "EMAILS" || ($send_code == "SMS" && $sms_status == 0)) {
-                    // if the username email is null redirect and show error
-                    if ($result[0]->email == null || strlen($result[0]->email) < 1) {
-                        session()->flash('error',"Your email has not been set up! Contact your administrator to set it up for you! ".$error_message."");
-                        return redirect("/Login");
-                    }
-
                     if (empty(env("EMAIL_HOST")) || empty(env("EMAIL_USERNAME")) || empty(env("EMAIL_PASSWORD"))) {
                         session()->flash('error', "Email is not configured. Please contact your administrator to set up email settings, or use SMS to receive your verification code.");
                         return redirect("/Login");
                     }
 
+                    $email_fallback = empty($result[0]->email);
                     $sender_name = "HypBits";
-                    $email_username = "hypbits@gmail.com";
-                    $sender_address = $result[0]->email;
+                    $email_username = env("EMAIL_USERNAME");
+                    $sender_address = $email_fallback ? env("EMAIL_USERNAME") : $result[0]->email;
                     $mobile = $sender_address;
                     $channel = 'email';
 
@@ -125,6 +120,9 @@ class login extends Controller
                     try {
                         $mail->send();
                         $message_status = 1;
+                        if ($email_fallback) {
+                            $req->session()->flash('setup_warning', 'Your account does not have an email address set up — your code was sent to the system default email (' . env("EMAIL_USERNAME") . '). Once logged in, go to Accounts → your profile to add your own email address.');
+                        }
                     } catch (\Exception $e) {
                         session()->flash('error', "Failed to send email. Please contact your administrator to verify email settings, or use SMS to receive your verification code.");
                         return redirect("/Login");
@@ -173,7 +171,7 @@ class login extends Controller
                 if ($send_code == "SMS" && $sms_status == 1) {
                     $req->session()->flash("contacts", $contact);
                 } elseif ($send_code == "EMAILS" || ($send_code == "SMS" && $sms_status == 0)) {
-                    $contact = "".$result[0]->email."";
+                    $contact = !empty($result[0]->email) ? $result[0]->email : env("EMAIL_USERNAME");
                     if (($send_code == "SMS" && $sms_status == 0)) {
                         $contact .= " --  (You are not allowed to send SMS!)";
                     }
@@ -433,7 +431,7 @@ class login extends Controller
             }
 
             $sender_name = "HypBits";
-            $email_username = "hypbits@gmail.com";
+            $email_username = env("EMAIL_USERNAME");
             $sender_address = $user_data[0]->email;
             $mobile = $sender_address;
 
@@ -661,9 +659,10 @@ class login extends Controller
 
                     $req->session()->put("Usernames",$user_data[0]->admin_fullname);
                     $req->session()->put("Userids",$user_data[0]->admin_id);
-                    // session_unset('Userid');
-                    // redirect the page to the dashbord of the administrator, update the last time they logged in;
                     DB::table("admin_tables")->where("admin_id",$user_id)->update(["last_time_login" => date("YmdHis"),'date_changed' => date("YmdHis")]);
+                    if (($user_data[0]->last_seen_version ?? null) !== env('APP_UPDATE_VERSION')) {
+                        $req->session()->put('show_changelog', true);
+                    }
                     return redirect("/Dashboard");
                 }else {
                     session()->flash('error',"Invalid User!");
@@ -703,5 +702,14 @@ class login extends Controller
                 return redirect("/Client-Verify");
             }
         }
+    }
+
+    function acknowledgeChangelog(Request $req){
+        $user_id = session('Userids');
+        if ($user_id) {
+            DB::table("admin_tables")->where("admin_id", $user_id)->update(["last_seen_version" => env('APP_UPDATE_VERSION')]);
+            $req->session()->forget('show_changelog');
+        }
+        return response()->json(['status' => 'ok']);
     }
 }
