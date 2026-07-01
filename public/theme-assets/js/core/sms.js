@@ -495,7 +495,7 @@ function checkName(keyword) {
 
 // get the sms balance
 cObj("show_sms_balance_btn").onclick = function () {
-    sendDataGet("GET","/sms_balance/",cObj("show_sms_balance"),cObj("show_sms_loader"));
+    sendDataGet("GET","/sms_balance",cObj("show_sms_balance"),cObj("show_sms_loader"));
 }
 
 cObj("sms_reports_btn").onclick = function () {
