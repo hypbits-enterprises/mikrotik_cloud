@@ -918,6 +918,8 @@ class WhatsApp extends Controller
             'message_id'       => $msgId,
             'direction'        => 'inbound',
             'wa_message_id'    => $waId,
+            'billing_category' => 'service',
+            'billable'         => 0, // receiving a message is never charged
             'message_category' => 'service',
             'delivery_status'  => 'received',
             'window_open'      => 1,
@@ -932,13 +934,6 @@ class WhatsApp extends Controller
 
         if (!$waId || !$newStatus) return;
 
-        // Meta only includes conversation/pricing on the 'sent' status update
-        $convId     = $status['conversation']['id']      ?? null;
-        $billingCat = $status['pricing']['category']     ?? null;
-        $billable   = isset($status['pricing']['billable'])
-                        ? ($status['pricing']['billable'] ? 1 : 0)
-                        : null;
-
         // Check primary-DB unknown inbox first
         $unknownUpdate = ['delivery_status' => $newStatus];
         $affected = DB::table('unknown_wa_chats')
@@ -947,30 +942,16 @@ class WhatsApp extends Controller
 
         if ($affected > 0) return;
 
-        // Find which org's DB holds this message, then update it there
+        // Find which org's DB holds this message, then update it there.
+        // Billing (conversation_id/billing_category/billable) is decided at send time in
+        // logWhatsAppMessage() and is not touched here — Meta's webhook is unreliable and
+        // overwriting a self-assigned conversation_id for just one row in a window would
+        // break the grouping of the rest of that window's messages.
         $this->resolveOrgByWaMessageId($waId);
 
-        $fields = ['delivery_status = ?'];
-        $bindings = [$newStatus];
-
-        if ($convId !== null) {
-            $fields[]   = 'conversation_id = ?';
-            $bindings[] = $convId;
-        }
-        if ($billingCat !== null) {
-            $fields[]   = 'billing_category = ?';
-            $bindings[] = $billingCat;
-        }
-        if ($billable !== null) {
-            $fields[]   = 'billable = ?';
-            $bindings[] = $billable;
-        }
-
-        $bindings[] = $waId;
-
         DB::connection('mysql2')->update(
-            'UPDATE `whatsapp_chats` SET ' . implode(', ', $fields) . ' WHERE `wa_message_id` = ?',
-            $bindings
+            'UPDATE `whatsapp_chats` SET delivery_status = ? WHERE `wa_message_id` = ?',
+            [$newStatus, $waId]
         );
     }
 

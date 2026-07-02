@@ -719,6 +719,41 @@ class Controller extends BaseController
         return $last[0]->received_at >= $cutoff;
     }
 
+    // Determine billing for an outbound WhatsApp message at send time, without depending
+    // on Meta's status webhook. A 'service' (freeform) reply sent while the customer's
+    // 24hr window is open is free; anything else opens (or reuses) a paid conversation
+    // window for this client, so multiple sends within 24hrs aren't double-charged.
+    private function resolveOutboundBilling(int $clientId, string $category): array
+    {
+        if ($category === 'service' && $this->isWithin24hrWindow($clientId)) {
+            return ['billable' => 0, 'billing_category' => $category, 'conversation_id' => null];
+        }
+
+        $cutoff = date('YmdHis', strtotime('-24 hours'));
+        $openPaid = DB::connection('mysql2')->select("
+            SELECT wc.conversation_id, wc.billing_category FROM whatsapp_chats wc
+            JOIN sms_tables s ON s.sms_id = wc.message_id
+            WHERE s.account_id = ? AND s.channel = 'whatsapp'
+              AND wc.direction = 'outbound' AND wc.billable = 1 AND s.deleted = '0'
+              AND s.date_sent >= ?
+            ORDER BY s.date_sent DESC LIMIT 1
+        ", [$clientId, $cutoff]);
+
+        if (!empty($openPaid)) {
+            return [
+                'billable'         => 0,
+                'billing_category' => $openPaid[0]->billing_category,
+                'conversation_id'  => $openPaid[0]->conversation_id,
+            ];
+        }
+
+        return [
+            'billable'         => 1,
+            'billing_category' => $category,
+            'conversation_id'  => 'local_' . $clientId . '_' . now()->format('YmdHis'),
+        ];
+    }
+
     protected function logWhatsAppMessage(
         int $clientId,
         string $body,
@@ -743,14 +778,22 @@ class Controller extends BaseController
             'deleted'          => '0',
         ]);
 
+        $windowOpen = $this->isWithin24hrWindow($clientId);
+        $billing = $direction === 'outbound'
+            ? $this->resolveOutboundBilling($clientId, $category)
+            : ['billable' => 0, 'billing_category' => $category, 'conversation_id' => null];
+
         DB::connection('mysql2')->table('whatsapp_chats')->insert([
             'message_id'       => $msgId,
             'direction'        => $direction,
             'wa_message_id'    => $waId,
+            'conversation_id'  => $billing['conversation_id'],
+            'billing_category' => $billing['billing_category'],
+            'billable'         => $billing['billable'],
             'message_category' => $category,
             'template_name'    => $templateName,
             'delivery_status'  => $status ? 'sent' : 'failed',
-            'window_open'      => $this->isWithin24hrWindow($clientId) ? 1 : 0,
+            'window_open'      => $windowOpen ? 1 : 0,
             'received_at'      => $direction === 'inbound' ? $now : null,
         ]);
     }
