@@ -245,6 +245,26 @@ WhatsApp module complete and working end-to-end:
 - Template variable preview in the template editor
 - Display raw webhook payloads in the admin UI
 
+## TEMPORARY: Login OTP forced to SMS-only (delete this section once reverted)
+
+**Trigger phrase:** when the user says "revert email and whatsapp on login," undo every change listed below, then delete this entire section from CLAUDE.md.
+
+**Why this exists:** Email OTP is being flagged as spam by DigitalOcean and WhatsApp OTP is not yet reliable, so login OTP was temporarily forced to SMS-only, routed through one shared "Hypbits" SMS account instead of each org's own SMS config, bypassing the per-org `send_sms` restriction. This is intended to be reverted once WhatsApp and email are sorted out.
+
+**Changes to undo, file by file:**
+
+1. `resources/views/login.blade.php` — the `send_code` select: uncomment the `EMAILS` and `WHATSAPP` `<option>` tags, and restore `selected` on the `EMAILS` option (remove `selected` from `SMS`).
+2. `app/Http/Controllers/Controller.php` — delete the `getHypbitsSmsOverride()` method (added directly after `getSmsSettings()`).
+3. `app/Http/Controllers/login.php`, admin login branch (`processLogin()`, `authority == "admin"`):
+   - Uncomment the `if($organization_details[0]->send_sms == 0){ ... $sms_status = 0; }` block.
+   - Change `$this->getHypbitsSmsOverride()` back to `$this->getSmsSettings()`.
+4. `app/Http/Controllers/login.php`, client login branch (`processLogin()`, `authority == "client"`):
+   - Uncomment the `if($organization_data->send_sms == 0){ ... return redirect("/Client-Login"); }` early-decline block.
+   - Change `$this->getHypbitsSmsOverride()` back to `$this->getSmsSettings()`.
+5. `.env` — the `HYPBITS_SMS_*` keys can be left in place (unused once the code above is reverted) or removed; not required for the revert to work.
+
+Note: `resources/views/clients/client-login.blade.php` was not changed (its `send_code` selector was already hidden/SMS-only before this temporary change) — nothing to revert there.
+
 ## Git Commit Guidelines
 
 - Commit messages must be plain text describing the change only.

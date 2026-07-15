@@ -68,15 +68,18 @@ class login extends Controller
                 // check if the organization is allowed to send sms
                 $sms_status = 1;
                 $error_message = "";
-                if($organization_details[0]->send_sms == 0){
-                    $error_message = "\"You are not allowed to send SMS!\" ";
-                    $sms_status = 0;
-                }
+                // TEMPORARY: org-level send_sms restriction bypassed while all login OTP is
+                // forced through the shared Hypbits SMS account. Revert by restoring the check below.
+                // if($organization_details[0]->send_sms == 0){
+                //     $error_message = "\"You are not allowed to send SMS!\" ";
+                //     $sms_status = 0;
+                // }
 
                 $channel = 'sms';
 
                 if ($send_code == "SMS" && $sms_status == 1) {
-                    $sms_settings = $this->getSmsSettings();
+                    // TEMPORARY: all admin login OTP forced through the shared Hypbits SMS account. See getHypbitsSmsOverride().
+                    $sms_settings = $this->getHypbitsSmsOverride();
                     if ($sms_settings === null) {
                         session()->flash('error', "SMS is not configured. Please contact your administrator to set up SMS settings, or use Email to receive your verification code.");
                         return redirect("/Login");
@@ -239,11 +242,13 @@ class login extends Controller
                 return redirect("/Client-Login");
             }
 
+            // TEMPORARY: org-level send_sms restriction bypassed while all login OTP is
+            // forced through the shared Hypbits SMS account. Revert by restoring the check below.
             // DECLINE LOGIN FOR ORGANIZATIONS THAT DONT HAVE SMS ENABLED
-            if($organization_data->send_sms == 0){
-                session()->flash('error',"Your organization has not enabled SMS! Contact your administrator for more details!");
-                return redirect("/Client-Login");
-            }
+            // if($organization_data->send_sms == 0){
+            //     session()->flash('error',"Your organization has not enabled SMS! Contact your administrator for more details!");
+            //     return redirect("/Client-Login");
+            // }
 
             // set the session right data
             session()->put("Userid",$client_data->client_id);
@@ -259,7 +264,8 @@ class login extends Controller
             $contacts = $client_data->clients_contacts;
             $contact = substr($contacts,0,4)."XXXX".substr($contacts,8);
 
-            $sms_settings = $this->getSmsSettings();
+            // TEMPORARY: all client login OTP forced through the shared Hypbits SMS account. See getHypbitsSmsOverride().
+            $sms_settings = $this->getHypbitsSmsOverride();
             if ($sms_settings === null) {
                 session()->flash('error', "SMS is not configured for your organization. Please contact your administrator to set up SMS settings.");
                 return redirect("/Client-Login");

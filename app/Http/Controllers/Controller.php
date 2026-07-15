@@ -610,6 +610,18 @@ class Controller extends BaseController
         ];
     }
 
+    // TEMPORARY: forces every org's login OTP through the single Hypbits SMS account
+    // while WhatsApp/email OTP are unavailable. Used only by login.php OTP call sites.
+    // Revert by deleting this method and restoring the getSmsSettings() calls it replaced.
+    function getHypbitsSmsOverride() {
+        return [
+            'sms_sender'     => env('HYPBITS_SMS_SENDER'),
+            'sms_api_key'    => env('HYPBITS_SMS_API_KEY'),
+            'sms_partner_id' => env('HYPBITS_SMS_PARTNER_ID'),
+            'sms_shortcode'  => env('HYPBITS_SMS_SHORTCODE'),
+        ];
+    }
+
     function isJson($string): bool
     {
         if (!is_string($string)) {
