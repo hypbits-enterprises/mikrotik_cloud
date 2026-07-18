@@ -84,7 +84,9 @@ class login extends Controller
                         session()->flash('error', "SMS is not configured. Please contact your administrator to set up SMS settings, or use Email to receive your verification code.");
                         return redirect("/Login");
                     }
-                    $this->GlobalSendSMS($message, $mobile, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id']);
+                    // TEMPORARY: bypass GlobalSendSMS's own org send_sms check too, since the shared
+                    // Hypbits account is used regardless of the org's SMS status. See revert notes above.
+                    $this->GlobalSendSMS($message, $mobile, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id'], true);
                     $message_status = 1;
                 } elseif ($send_code == "EMAILS" || ($send_code == "SMS" && $sms_status == 0)) {
                     if (empty(env("EMAIL_HOST")) || empty(env("EMAIL_USERNAME")) || empty(env("EMAIL_PASSWORD"))) {
@@ -275,7 +277,9 @@ class login extends Controller
             $random_no = rand(1000,9999);
             $mobile = $contacts; // Bulk messages can be comma separated
             $message = "Your verification code is ".$random_no.". It will expire in 5 minutes";
-            $resulted = $this->GlobalSendSMS($message, $mobile, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id']);
+            // TEMPORARY: bypass GlobalSendSMS's own org send_sms check too, since the shared
+            // Hypbits account is used regardless of the org's SMS status. See revert notes above.
+            $resulted = $this->GlobalSendSMS($message, $mobile, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id'], true);
             $message_status = $resulted != null ? 1 : 0;
             if($resulted == null){
                 session()->flash("error","There is an issue with SMS, use email instead!");

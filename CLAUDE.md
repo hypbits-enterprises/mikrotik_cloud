@@ -254,14 +254,18 @@ WhatsApp module complete and working end-to-end:
 **Changes to undo, file by file:**
 
 1. `resources/views/login.blade.php` — the `send_code` select: uncomment the `EMAILS` and `WHATSAPP` `<option>` tags, and restore `selected` on the `EMAILS` option (remove `selected` from `SMS`).
-2. `app/Http/Controllers/Controller.php` — delete the `getHypbitsSmsOverride()` method (added directly after `getSmsSettings()`).
+2. `app/Http/Controllers/Controller.php` — delete the `getHypbitsSmsOverride()` method (added directly after `getSmsSettings()`). Also revert `GlobalSendSMS()`: remove the `$bypassOrgSendSmsCheck = false` parameter and restore the unconditional `if((session()->has("organization") && session("organization")->send_sms == 0)){ return null; }` check.
 3. `app/Http/Controllers/login.php`, admin login branch (`processLogin()`, `authority == "admin"`):
    - Uncomment the `if($organization_details[0]->send_sms == 0){ ... $sms_status = 0; }` block.
    - Change `$this->getHypbitsSmsOverride()` back to `$this->getSmsSettings()`.
+   - Remove the trailing `true` bypass argument from the `GlobalSendSMS(...)` call.
 4. `app/Http/Controllers/login.php`, client login branch (`processLogin()`, `authority == "client"`):
    - Uncomment the `if($organization_data->send_sms == 0){ ... return redirect("/Client-Login"); }` early-decline block.
    - Change `$this->getHypbitsSmsOverride()` back to `$this->getSmsSettings()`.
+   - Remove the trailing `true` bypass argument from the `GlobalSendSMS(...)` call.
 5. `.env` — the `HYPBITS_SMS_*` keys can be left in place (unused once the code above is reverted) or removed; not required for the revert to work.
+
+**Note:** `GlobalSendSMS()` had its own independent `session("organization")->send_sms == 0` check (separate from the one in `login.php`) that was missed in the initial temporary change — it silently blocked login OTP for orgs with SMS disabled even though the shared Hypbits account was supposed to bypass that restriction. Fixed by adding the `$bypassOrgSendSmsCheck` parameter, passed as `true` only from the two login OTP call sites.
 
 Note: `resources/views/clients/client-login.blade.php` was not changed (its `send_code` selector was already hidden/SMS-only before this temporary change) — nothing to revert there.
 

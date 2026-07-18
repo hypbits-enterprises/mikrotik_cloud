@@ -453,8 +453,8 @@ class Controller extends BaseController
         return $values;
     }
 
-    function GlobalSendSMS($message, $phone_number, $apiKey, $smsSender, $shortcode, $partnerID) {
-        if ((session()->has("organization") && session("organization")->send_sms == 0)) {
+    function GlobalSendSMS($message, $phone_number, $apiKey, $smsSender, $shortcode, $partnerID, $bypassOrgSendSmsCheck = false) {
+        if (!$bypassOrgSendSmsCheck && (session()->has("organization") && session("organization")->send_sms == 0)) {
             return null;
         }
 
