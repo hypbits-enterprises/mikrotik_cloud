@@ -245,29 +245,74 @@ WhatsApp module complete and working end-to-end:
 - Template variable preview in the template editor
 - Display raw webhook payloads in the admin UI
 
-## TEMPORARY: Login OTP forced to SMS-only (delete this section once reverted)
+## Login OTP Channel Modes
 
-**Trigger phrase:** when the user says "revert email and whatsapp on login," undo every change listed below, then delete this entire section from CLAUDE.md.
+Login OTP has two known-good modes. The system currently runs in **Mode A (default, multi-channel)**, restored on 2026-07-20. Mode B was used temporarily while DigitalOcean was flagging email OTP as spam and WhatsApp OTP was unreliable. Both are documented here so either can be switched to on request without re-deriving the diff.
 
-**Why this exists:** Email OTP is being flagged as spam by DigitalOcean and WhatsApp OTP is not yet reliable, so login OTP was temporarily forced to SMS-only, routed through one shared "Hypbits" SMS account instead of each org's own SMS config, bypassing the per-org `send_sms` restriction. This is intended to be reverted once WhatsApp and email are sorted out.
+### Mode A — Default: SMS/Email/WhatsApp, per-org SMS config, per-org `send_sms` enforced (current)
 
-**Changes to undo, file by file:**
+1. `resources/views/login.blade.php` — `send_code` select offers all three options, `EMAILS` is `selected`:
+```blade
+<option value="SMS">Send SMS</option>
+<option selected value="EMAILS">Send Email</option>
+<option value="WHATSAPP">Send WhatsApp</option>
+```
+2. `app/Http/Controllers/Controller.php` — `GlobalSendSMS()` takes no bypass parameter and always enforces the org check:
+```php
+function GlobalSendSMS($message, $phone_number, $apiKey, $smsSender, $shortcode, $partnerID) {
+    if((session()->has("organization") && session("organization")->send_sms == 0)){
+        return null;
+    }
+    ...
+}
+```
+No `getHypbitsSmsOverride()` method exists on `Controller.php`.
+3. `app/Http/Controllers/login.php`, admin branch (`processLogin()`, `authority == "admin"`): the `send_sms == 0` check runs and sets `$sms_status = 0`; SMS uses `$this->getSmsSettings()`; `GlobalSendSMS(...)` is called with no trailing bypass argument.
+4. `app/Http/Controllers/login.php`, client branch (`processLogin()`, `authority == "client"`): the `send_sms == 0` early-decline block runs and redirects to `/Client-Login` when disabled; SMS uses `$this->getSmsSettings()`; `GlobalSendSMS(...)` is called with no trailing bypass argument.
 
-1. `resources/views/login.blade.php` — the `send_code` select: uncomment the `EMAILS` and `WHATSAPP` `<option>` tags, and restore `selected` on the `EMAILS` option (remove `selected` from `SMS`).
-2. `app/Http/Controllers/Controller.php` — delete the `getHypbitsSmsOverride()` method (added directly after `getSmsSettings()`). Also revert `GlobalSendSMS()`: remove the `$bypassOrgSendSmsCheck = false` parameter and restore the unconditional `if((session()->has("organization") && session("organization")->send_sms == 0)){ return null; }` check.
-3. `app/Http/Controllers/login.php`, admin login branch (`processLogin()`, `authority == "admin"`):
-   - Uncomment the `if($organization_details[0]->send_sms == 0){ ... $sms_status = 0; }` block.
-   - Change `$this->getHypbitsSmsOverride()` back to `$this->getSmsSettings()`.
-   - Remove the trailing `true` bypass argument from the `GlobalSendSMS(...)` call.
-4. `app/Http/Controllers/login.php`, client login branch (`processLogin()`, `authority == "client"`):
-   - Uncomment the `if($organization_data->send_sms == 0){ ... return redirect("/Client-Login"); }` early-decline block.
-   - Change `$this->getHypbitsSmsOverride()` back to `$this->getSmsSettings()`.
-   - Remove the trailing `true` bypass argument from the `GlobalSendSMS(...)` call.
-5. `.env` — the `HYPBITS_SMS_*` keys can be left in place (unused once the code above is reverted) or removed; not required for the revert to work.
+### Mode B — Hypbits SMS-only override (email/WhatsApp hidden, org `send_sms` bypassed)
 
-**Note:** `GlobalSendSMS()` had its own independent `session("organization")->send_sms == 0` check (separate from the one in `login.php`) that was missed in the initial temporary change — it silently blocked login OTP for orgs with SMS disabled even though the shared Hypbits account was supposed to bypass that restriction. Fixed by adding the `$bypassOrgSendSmsCheck` parameter, passed as `true` only from the two login OTP call sites.
+**Trigger phrase to switch to this mode:** "force login OTP to SMS-only" or similar. **Trigger phrase to switch back to Mode A:** "revert email and whatsapp on login."
 
-Note: `resources/views/clients/client-login.blade.php` was not changed (its `send_code` selector was already hidden/SMS-only before this temporary change) — nothing to revert there.
+**Why this mode exists:** a fallback for when email OTP is being spam-flagged or WhatsApp OTP is unreliable — routes every org's login OTP through one shared "Hypbits" SMS account instead of each org's own SMS config, bypassing the per-org `send_sms` restriction so it can't block delivery of the fallback channel.
+
+**Changes to apply, file by file:**
+
+1. `resources/views/login.blade.php` — comment out the `EMAILS` and `WHATSAPP` `<option>` tags, move `selected` onto the `SMS` option:
+```blade
+<option selected value="SMS">Send SMS</option>
+{{-- Email OTP temporarily hidden: DigitalOcean is flagging our SMTP sends as spam. Backend flow left intact. --}}
+{{-- <option value="EMAILS">Send Email</option> --}}
+{{-- WhatsApp OTP temporarily hidden. Backend flow left intact. --}}
+{{-- <option value="WHATSAPP">Send WhatsApp</option> --}}
+```
+2. `app/Http/Controllers/Controller.php` — add a `$bypassOrgSendSmsCheck = false` parameter to `GlobalSendSMS()` and gate the org check on it:
+```php
+function GlobalSendSMS($message, $phone_number, $apiKey, $smsSender, $shortcode, $partnerID, $bypassOrgSendSmsCheck = false) {
+    if (!$bypassOrgSendSmsCheck && (session()->has("organization") && session("organization")->send_sms == 0)) {
+        return null;
+    }
+    ...
+}
+```
+Add a new method directly after `getSmsSettings()`:
+```php
+function getHypbitsSmsOverride() {
+    return [
+        'sms_sender'     => env('HYPBITS_SMS_SENDER'),
+        'sms_api_key'    => env('HYPBITS_SMS_API_KEY'),
+        'sms_partner_id' => env('HYPBITS_SMS_PARTNER_ID'),
+        'sms_shortcode'  => env('HYPBITS_SMS_SHORTCODE'),
+    ];
+}
+```
+3. `app/Http/Controllers/login.php`, admin branch (`processLogin()`, `authority == "admin"`): comment out the `send_sms == 0` block so `$sms_status` always stays `1`; swap `$this->getSmsSettings()` to `$this->getHypbitsSmsOverride()`; add a trailing `true` bypass argument to the `GlobalSendSMS(...)` call.
+4. `app/Http/Controllers/login.php`, client branch (`processLogin()`, `authority == "client"`): comment out the `send_sms == 0` early-decline block; swap `$this->getSmsSettings()` to `$this->getHypbitsSmsOverride()`; add a trailing `true` bypass argument to the `GlobalSendSMS(...)` call.
+5. `.env` — requires `HYPBITS_SMS_SENDER`, `HYPBITS_SMS_API_KEY`, `HYPBITS_SMS_PARTNER_ID`, `HYPBITS_SMS_SHORTCODE` to be set.
+
+**Note:** `GlobalSendSMS()`'s own independent `send_sms == 0` check must be bypassed too (not just the one in `login.php`), otherwise orgs with SMS disabled silently get no OTP even though the shared Hypbits account is supposed to ignore that restriction. That's what the `$bypassOrgSendSmsCheck` parameter is for — pass `true` only from the two login OTP call sites, never from other `GlobalSendSMS()` callers.
+
+`resources/views/clients/client-login.blade.php` is unaffected by either mode — its `send_code` selector is already hidden/SMS-only independent of this toggle.
 
 ## Git Commit Guidelines
 

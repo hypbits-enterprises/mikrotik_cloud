@@ -453,8 +453,8 @@ class Controller extends BaseController
         return $values;
     }
 
-    function GlobalSendSMS($message, $phone_number, $apiKey, $smsSender, $shortcode, $partnerID, $bypassOrgSendSmsCheck = false) {
-        if (!$bypassOrgSendSmsCheck && (session()->has("organization") && session("organization")->send_sms == 0)) {
+    function GlobalSendSMS($message, $phone_number, $apiKey, $smsSender, $shortcode, $partnerID) {
+        if((session()->has("organization") && session("organization")->send_sms == 0)){
             return null;
         }
 
@@ -607,18 +607,6 @@ class Controller extends BaseController
             'sms_api_key'    => $api_key_row[0]->value,
             'sms_partner_id' => $partner_id_row[0]->value,
             'sms_shortcode'  => $shortcode_row[0]->value,
-        ];
-    }
-
-    // TEMPORARY: forces every org's login OTP through the single Hypbits SMS account
-    // while WhatsApp/email OTP are unavailable. Used only by login.php OTP call sites.
-    // Revert by deleting this method and restoring the getSmsSettings() calls it replaced.
-    function getHypbitsSmsOverride() {
-        return [
-            'sms_sender'     => env('HYPBITS_SMS_SENDER'),
-            'sms_api_key'    => env('HYPBITS_SMS_API_KEY'),
-            'sms_partner_id' => env('HYPBITS_SMS_PARTNER_ID'),
-            'sms_shortcode'  => env('HYPBITS_SMS_SHORTCODE'),
         ];
     }
 

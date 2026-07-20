@@ -68,25 +68,20 @@ class login extends Controller
                 // check if the organization is allowed to send sms
                 $sms_status = 1;
                 $error_message = "";
-                // TEMPORARY: org-level send_sms restriction bypassed while all login OTP is
-                // forced through the shared Hypbits SMS account. Revert by restoring the check below.
-                // if($organization_details[0]->send_sms == 0){
-                //     $error_message = "\"You are not allowed to send SMS!\" ";
-                //     $sms_status = 0;
-                // }
+                if($organization_details[0]->send_sms == 0){
+                    $error_message = "\"You are not allowed to send SMS!\" ";
+                    $sms_status = 0;
+                }
 
                 $channel = 'sms';
 
                 if ($send_code == "SMS" && $sms_status == 1) {
-                    // TEMPORARY: all admin login OTP forced through the shared Hypbits SMS account. See getHypbitsSmsOverride().
-                    $sms_settings = $this->getHypbitsSmsOverride();
+                    $sms_settings = $this->getSmsSettings();
                     if ($sms_settings === null) {
                         session()->flash('error', "SMS is not configured. Please contact your administrator to set up SMS settings, or use Email to receive your verification code.");
                         return redirect("/Login");
                     }
-                    // TEMPORARY: bypass GlobalSendSMS's own org send_sms check too, since the shared
-                    // Hypbits account is used regardless of the org's SMS status. See revert notes above.
-                    $this->GlobalSendSMS($message, $mobile, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id'], true);
+                    $this->GlobalSendSMS($message, $mobile, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id']);
                     $message_status = 1;
                 } elseif ($send_code == "EMAILS" || ($send_code == "SMS" && $sms_status == 0)) {
                     if (empty(env("EMAIL_HOST")) || empty(env("EMAIL_USERNAME")) || empty(env("EMAIL_PASSWORD"))) {
@@ -244,13 +239,11 @@ class login extends Controller
                 return redirect("/Client-Login");
             }
 
-            // TEMPORARY: org-level send_sms restriction bypassed while all login OTP is
-            // forced through the shared Hypbits SMS account. Revert by restoring the check below.
             // DECLINE LOGIN FOR ORGANIZATIONS THAT DONT HAVE SMS ENABLED
-            // if($organization_data->send_sms == 0){
-            //     session()->flash('error',"Your organization has not enabled SMS! Contact your administrator for more details!");
-            //     return redirect("/Client-Login");
-            // }
+            if($organization_data->send_sms == 0){
+                session()->flash('error',"Your organization has not enabled SMS! Contact your administrator for more details!");
+                return redirect("/Client-Login");
+            }
 
             // set the session right data
             session()->put("Userid",$client_data->client_id);
@@ -266,8 +259,7 @@ class login extends Controller
             $contacts = $client_data->clients_contacts;
             $contact = substr($contacts,0,4)."XXXX".substr($contacts,8);
 
-            // TEMPORARY: all client login OTP forced through the shared Hypbits SMS account. See getHypbitsSmsOverride().
-            $sms_settings = $this->getHypbitsSmsOverride();
+            $sms_settings = $this->getSmsSettings();
             if ($sms_settings === null) {
                 session()->flash('error', "SMS is not configured for your organization. Please contact your administrator to set up SMS settings.");
                 return redirect("/Client-Login");
@@ -277,9 +269,7 @@ class login extends Controller
             $random_no = rand(1000,9999);
             $mobile = $contacts; // Bulk messages can be comma separated
             $message = "Your verification code is ".$random_no.". It will expire in 5 minutes";
-            // TEMPORARY: bypass GlobalSendSMS's own org send_sms check too, since the shared
-            // Hypbits account is used regardless of the org's SMS status. See revert notes above.
-            $resulted = $this->GlobalSendSMS($message, $mobile, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id'], true);
+            $resulted = $this->GlobalSendSMS($message, $mobile, $sms_settings['sms_api_key'], $sms_settings['sms_sender'], $sms_settings['sms_shortcode'], $sms_settings['sms_partner_id']);
             $message_status = $resulted != null ? 1 : 0;
             if($resulted == null){
                 session()->flash("error","There is an issue with SMS, use email instead!");

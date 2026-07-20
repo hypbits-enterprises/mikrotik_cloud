@@ -76,11 +76,9 @@
                                         <div class="form-group">
                                             <select name="send_code" id="send_code" class="form-control" required>
                                                 <option value="" hidden >How to recieve code!</option>
-                                                <option selected value="SMS">Send SMS</option>
-                                                {{-- Email OTP temporarily hidden: DigitalOcean is flagging our SMTP sends as spam. Backend flow left intact. --}}
-                                                {{-- <option value="EMAILS">Send Email</option> --}}
-                                                {{-- WhatsApp OTP temporarily hidden. Backend flow left intact. --}}
-                                                {{-- <option value="WHATSAPP">Send WhatsApp</option> --}}
+                                                <option value="SMS">Send SMS</option>
+                                                <option selected value="EMAILS">Send Email</option>
+                                                <option value="WHATSAPP">Send WhatsApp</option>
                                             </select>
                                         </div>
                                         <div class="form-group">
