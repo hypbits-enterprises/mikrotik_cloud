@@ -720,7 +720,7 @@ $export_text .= "
             array_push($client_username, $value->client_username);
         }
         // return $client_accounts;
-        return view("new_client_static", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "last_client_details" => $last_client_details, "preferred_channel" => session('organization')->preferred_channel ?? 'sms']);
+        return view("new_client_static", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "last_client_details" => $last_client_details, "preferred_channel" => session('organization')->preferred_channel ?? 'sms', "regions" => $this->getRegionsList()]);
     }
 
     function newPPPOEClient(){
@@ -742,7 +742,7 @@ $export_text .= "
             array_push($client_username, $value->client_username);
         }
         // return $client_accounts;
-        return view("new_client_pppoe", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "preferred_channel" => session('organization')->preferred_channel ?? 'sms']);
+        return view("new_client_pppoe", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "preferred_channel" => session('organization')->preferred_channel ?? 'sms', "regions" => $this->getRegionsList()]);
     }
 
     function getClientsDatatable(Request $request){
@@ -1903,7 +1903,7 @@ $export_text .= "
             array_push($client_username, $value->client_username);
         }
         // return $client_accounts;
-        return view("newClient", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "last_client_details" => $last_client_details, "preferred_channel" => session('organization')->preferred_channel ?? 'sms']);
+        return view("newClient", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "last_client_details" => $last_client_details, "preferred_channel" => session('organization')->preferred_channel ?? 'sms', "regions" => $this->getRegionsList()]);
     }
 
 
@@ -1927,7 +1927,7 @@ $export_text .= "
             array_push($client_username, $value->client_username);
         }
         // return $client_accounts;
-        return view("newPPOEclient", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "preferred_channel" => session('organization')->preferred_channel ?? 'sms']);
+        return view("newPPOEclient", ['router_data' => $router_data, "client_accounts" => $client_accounts, "client_username" => $client_username, "preferred_channel" => session('organization')->preferred_channel ?? 'sms', "regions" => $this->getRegionsList()]);
     }
 
     function getSSTPAddress()
@@ -1965,6 +1965,7 @@ $export_text .= "
         $client_phone = $req->input('client_phone');
         $client_email = $req->input('client_email');
         $preferred_channel = $req->input('preferred_channel') ?: null;
+        $region = $req->input('region') ?: null;
         $client_monthly_pay = $req->input('client_monthly_pay');
         $pppoe_profile = $req->input('pppoe_profile');
         $router_name = $req->input('router_name');
@@ -2127,6 +2128,7 @@ $export_text .= "
                 $clients_table->clients_contacts = $client_phone;
                 $clients_table->client_email = $client_email;
                 $clients_table->preferred_channel = $preferred_channel;
+                $clients_table->region = $region;
                 $clients_table->client_status = "1";
                 $clients_table->payments_status = "1";
                 $clients_table->clients_reg_date = date("YmdHis");
@@ -2219,6 +2221,7 @@ $export_text .= "
         $client_phone = $req->input('client_phone');
         $client_email = $req->input('client_email');
         $preferred_channel = $req->input('preferred_channel') ?: null;
+        $region = $req->input('region') ?: null;
         $client_monthly_pay = $req->input('client_monthly_pay');
         $pppoe_profile = $req->input('pppoe_profile');
         $router_name = $req->input('router_name');
@@ -2379,6 +2382,7 @@ $export_text .= "
                 $clients_table->clients_contacts = $client_phone;
                 $clients_table->client_email = $client_email;
                 $clients_table->preferred_channel = $preferred_channel;
+                $clients_table->region = $region;
                 $clients_table->client_status = "1";
                 $clients_table->payments_status = "1";
                 $clients_table->clients_reg_date = date("YmdHis");
@@ -2472,6 +2476,7 @@ $export_text .= "
         $client_phone = $req->input('client_phone');
         $client_email = $req->input('client_email');
         $preferred_channel = $req->input('preferred_channel') ?: null;
+        $region = $req->input('region') ?: null;
         $client_monthly_pay = $req->input('client_monthly_pay');
         $client_network = $req->input('client_network');
         $client_gw = $req->input('client_gw');
@@ -2716,6 +2721,7 @@ $export_text .= "
                     $clients_table->clients_contacts = $client_phone;
                     $clients_table->client_email = $client_email;
                     $clients_table->preferred_channel = $preferred_channel;
+                    $clients_table->region = $region;
                     $clients_table->client_status = "1";
                     $clients_table->payments_status = "1";
                     $clients_table->clients_reg_date = date("YmdHis");
@@ -2813,6 +2819,7 @@ $export_text .= "
         $client_phone = $req->input('client_phone');
         $client_email = $req->input('client_email');
         $preferred_channel = $req->input('preferred_channel') ?: null;
+        $region = $req->input('region') ?: null;
         $client_monthly_pay = $req->input('client_monthly_pay');
         $client_network = $req->input('client_network');
         $client_gw = $req->input('client_gw');
@@ -3053,6 +3060,7 @@ $export_text .= "
                     $clients_table->clients_contacts = $client_phone;
                     $clients_table->client_email = $client_email;
                     $clients_table->preferred_channel = $preferred_channel;
+                    $clients_table->region = $region;
                     $clients_table->client_status = "1";
                     $clients_table->payments_status = "1";
                     $clients_table->clients_reg_date = date("YmdHis");
@@ -3714,10 +3722,12 @@ $export_text .= "
             );
 
 
+            $regions = $this->getRegionsList();
+
             if ($assignment == "static") {
-                return view("clientInfor", ["client_status" => $client_status, "bandwidth_stats" => $bandwidth_stats_data, "daily_stats" => $daily_stats, "monthly_stats" => $monthly_stats, "last_client_details" => $last_client_details, "invoices" => $invoices, "invoice_id" => $code ,"pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
+                return view("clientInfor", ["client_status" => $client_status, "bandwidth_stats" => $bandwidth_stats_data, "daily_stats" => $daily_stats, "monthly_stats" => $monthly_stats, "last_client_details" => $last_client_details, "invoices" => $invoices, "invoice_id" => $code ,"pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list, "regions" => $regions]);
             } elseif ($assignment == "pppoe") {
-                return view("clientInforPppoe", ["client_status" => $client_status, "bandwidth_stats" => $bandwidth_stats_data, "daily_stats" => $daily_stats, "monthly_stats" => $monthly_stats, "last_client_details" => $last_client_details, "invoices" => $invoices, "invoice_id" => $code ,"pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list]);
+                return view("clientInforPppoe", ["client_status" => $client_status, "bandwidth_stats" => $bandwidth_stats_data, "daily_stats" => $daily_stats, "monthly_stats" => $monthly_stats, "last_client_details" => $last_client_details, "invoices" => $invoices, "invoice_id" => $code ,"pending_issues" => $pending_issues, "client_issues" => $client_issues, 'clients_data' => $clients_data, 'router_data' => $router_data, "expire_date" => $expire_date, "registration_date" => $reg_date, "freeze_date" => $freeze_date, "clients_names" => $clients_name, "clients_account" => $clients_acc_no, "clients_contacts" => $clients_phone, "client_refferal" => $client_refferal, "reffer_details" => $reffer_details, "refferal_payment" => $payment_histoty, "reffered_list" => $reffered_list, "regions" => $regions]);
             } else {
                 session()->flash("error_clients", "Invalid Assignment!!");
                 return redirect("/Clients");
@@ -4862,6 +4872,37 @@ $export_text .= "
 
         $this->log(":Client preferred channel updated to ($channel) by " . session('Usernames') . "!");
         session()->flash("success", "Client preferred channel has been successfully updated!");
+        return redirect("Clients/View/" . $client_id);
+    }
+
+    function change_client_region(Request $req)
+    {
+        $change_db = new login();
+        $change_db->change_db();
+
+        $client_id = $req->input('clients_id');
+        $region = trim($req->input('region'));
+
+        if (strlen($region) > 0) {
+            $allowed_regions = array_map(function ($r) {
+                return $r->name;
+            }, $this->getRegionsList());
+
+            if (!in_array($region, $allowed_regions)) {
+                session()->flash("error", "Invalid region selected.");
+                return redirect("Clients/View/" . $client_id);
+            }
+        }
+
+        DB::connection("mysql2")->table('client_tables')
+            ->where('client_id', $client_id)
+            ->update([
+                'region' => $region ?: null,
+                'date_changed' => date("YmdHis")
+            ]);
+
+        $this->log(":Client region updated to ($region) by " . session('Usernames') . "!");
+        session()->flash("success", "Client region has been successfully updated!");
         return redirect("Clients/View/" . $client_id);
     }
 

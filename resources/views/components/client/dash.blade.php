@@ -796,6 +796,47 @@
         </div>
     </div>
 
+    {{-- UPDATE REGION --}}
+    <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="update_region_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabelRegion" aria-modal="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info white">
+                    <h4 class="modal-title white" id="myModalLabelRegion">Update "{{ucwords(strtolower($clients_data[0]->client_name))}}" Region.</h4>
+                    <button id="close_update_region_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container">
+                        <form action="/change_client_region" method="post" class="form-control-group">
+                            @csrf
+                            <h6 class="text-center">Update Region</h6>
+                            <input type="hidden" name="clients_id" value="{{ $clients_data[0]->client_id }}">
+                            <label for="region_edit" class="form-control-label">Region</label>
+                            <select name="region" id="region_edit" class="form-control">
+                                <option value="" {{ ($clients_data[0]->region ?? '') == '' ? 'selected' : '' }}>Not set</option>
+                                @foreach (($regions ?? []) as $region)
+                                    <option value="{{ $region->name }}" {{ ($clients_data[0]->region ?? '') == $region->name ? 'selected' : '' }}>{{ $region->name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="row w-100 mt-1">
+                                <div class="col-md-6">
+                                    @php $btnText = "<i class=\"fas fa-save\"></i> Save"; $otherClasses = "w-100 my-1"; @endphp
+                                    <x-button :btnText="$btnText" btnType="info" type="submit" btnSize="sm" :otherClasses="$otherClasses" btnId="" :readOnly="$readonly" />
+                                </div>
+                                <div class="col-md-6">
+                                    @php $btnText = "<i class=\"fas fa-x\"></i> Cancel"; @endphp
+                                    <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" btnId="close_update_region_modal_2" :readOnly="$readonly" />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer"></div>
+            </div>
+        </div>
+    </div>
+
     {{-- Initiate Payement --}}
     <div class="modal fade text-left hide" style="background-color: rgba(0, 0, 0, 0.5);" id="initiate_payment_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel110" style="padding-right: 17px;" aria-modal="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -1097,6 +1138,29 @@
                     </div>
                 </div>
             </td>
+        </tr>
+        <tr>
+            <td>
+                <div class="row">
+                    <div class="col-sm-7">
+                        <strong>Region:</strong> <br>
+                        @if ($clients_data[0]->region ?? null)
+                            <span class="badge badge-secondary">{{ $clients_data[0]->region }}</span>
+                        @else
+                            <span class="text-muted">Not set</span>
+                        @endif
+                    </div>
+                    <div class="col-sm-5">
+                        @php
+                            $btnText = "<i class=\"fas fa-pen\"></i> Edit";
+                            $otherClasses = "w-100 ".($clients_data[0]->validated == 0 ? "d-none" : "");
+                            $btn_id = "edit_region";
+                        @endphp
+                        <x-button :btnText="$btnText" btnType="secondary" type="button" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
+                    </div>
+                </div>
+            </td>
+            <td></td>
         </tr>
         <tr>
             <td>

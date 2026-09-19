@@ -166,7 +166,16 @@
                                                     <option value="email">Email</option>
                                                 </select>
                                             </div>
-                                            <div class="col-lg-4">
+                                            <div class="col-lg-3 form-group">
+                                                <label for="region" class="form-control-label">Region</label>
+                                                <select name="region" id="region" class="form-control">
+                                                    <option value="">Not set</option>
+                                                    @foreach (($regions ?? []) as $region)
+                                                        <option value="{{ $region->name }}">{{ $region->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-lg-3">
                                                 <label for="client_acc_number" class="form-control-label">Clients
                                                     Account Number <span class="text-danger">*</span> {<span
                                                         class="primary">{{ $client_accounts[0] ?? '' }}</span>}
@@ -177,7 +186,7 @@
                                                     placeholder="Client account no ex HYP001" required
                                                     value="{{ session('client_acc_number') ? session('client_acc_number') : '' }}">
                                             </div>
-                                            <div class="col-lg-4">
+                                            <div class="col-lg-3">
                                                 <label for="client_monthly_pay" class="form-control-label">Clients
                                                     Monthly Payment <span class="text-danger">*</span> </label>
                                                 <input type="number" name="client_monthly_pay" id="client_monthly_pay"
@@ -185,7 +194,7 @@
                                                     placeholder="Client Monthly Payment" required
                                                     value="{{ session('client_monthly_pay') ? session('client_monthly_pay') : '' }}">
                                             </div>
-                                            <div class="col-lg-4">
+                                            <div class="col-lg-3">
                                                 <label for="minimum_payment" class="form-control-label">Client`s Minimum Payment <span class="text-danger">*</span> </label>
                                                 <select name="minimum_payment" id="minimum_payment" class="form-control" required>
                                                     <option hidden>Select Minimum Payment </option>

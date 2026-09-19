@@ -18,7 +18,8 @@ class Dash extends Component
     public $router_data;
     public $last_client_details;
     public $client_refferal;
-    public function __construct($clientData, $readonly, $registrationDate, $expireDate, $routerData, $lastClientDetails, $clientRefferal)
+    public $regions;
+    public function __construct($clientData, $readonly, $registrationDate, $expireDate, $routerData, $lastClientDetails, $clientRefferal, $regions = [])
     {
         $this->clients_data = $clientData;
         $this->readonly = $readonly;
@@ -27,6 +28,7 @@ class Dash extends Component
         $this->router_data = $routerData;
         $this->last_client_details = $lastClientDetails;
         $this->client_refferal =$clientRefferal;
+        $this->regions = $regions;
     }
 
     /**

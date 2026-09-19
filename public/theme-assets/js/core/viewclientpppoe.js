@@ -427,6 +427,17 @@ cObj("close_update_channel_modal_2").onclick = function () {
     hideModal("update_channel_modal");
 }
 
+/** UPDATE REGION */
+cObj("edit_region").onclick = function () {
+    showModal("update_region_modal");
+}
+cObj("close_update_region_modal_1").onclick = function () {
+    hideModal("update_region_modal");
+}
+cObj("close_update_region_modal_2").onclick = function () {
+    hideModal("update_region_modal");
+}
+
 
 var notseen = 1;
 cObj("display_secret").onclick = function () {

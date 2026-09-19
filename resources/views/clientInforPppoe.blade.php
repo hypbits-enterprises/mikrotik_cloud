@@ -150,7 +150,7 @@
                                             @endforeach
                                         </ul>
                                     @endif
-                                    <x-client.dash :clientRefferal="$client_refferal" :lastClientDetails="$last_client_details" :routerData="$router_data" :expireDate="$expire_date" :registrationDate="$registration_date" :readonly="$readonly" :clientData="$clients_data"/>
+                                    <x-client.dash :clientRefferal="$client_refferal" :lastClientDetails="$last_client_details" :routerData="$router_data" :expireDate="$expire_date" :registrationDate="$registration_date" :readonly="$readonly" :clientData="$clients_data" :regions="$regions ?? []"/>
                                 </div>
                             </div>
                         </div>

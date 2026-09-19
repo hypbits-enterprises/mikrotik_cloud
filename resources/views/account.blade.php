@@ -101,6 +101,13 @@
                                       @endphp
                                       <x-button-link btnType="info" btnSize="sm" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
                                     {{-- <a href="/SharedTables" class="btn btn-info {{$readonly}} {{$view}}"><i class="ft-wind"></i> Shared Tables</a> --}}
+                                      @php
+                                          $btnText = "<i class=\"ft-map-pin\"></i> Regions";
+                                          $otherClasses = $readonly." ".$view;
+                                          $btnLink = "/Regions";
+                                          $otherAttributes = "";
+                                      @endphp
+                                      <x-button-link btnType="secondary" btnSize="sm" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
                                 </div>
                             </div>
                         </div>

@@ -96,8 +96,18 @@ Three middleware classes guard routes:
 | `admin.php` (23KB) | Admin/organization user management |
 | `SharedTables.php` (26KB) | Cross-organization shared data tables |
 | `billsms_manager.php` (28KB) | Automated billing SMS workflows |
+| `Region.php` | Region CRUD — groups clients by place of origin, used for targeted messaging |
 
 Controllers do not extend a resource base class — `Controller.php` (the base) provides shared utility methods like `getPPPSecrets($router_id)` and `convertBits($bits, $type)`.
+
+### Regions
+
+Regions let an org group clients by place of origin (town, estate, zone) for targeted messaging. Reachable from `/Accounts` → the "Regions" button next to "Shared Tables" (not in the main sidebar menu — it's a setup-once admin tool, same placement rationale as Shared Tables/Manage Admin). This is the first of what's expected to be several similar small admin config screens living in that same account-page card.
+
+- **Region list storage** — follows the same convention as expense categories (`Expenses.php`'s `addExpenseCategory`): a JSON array `[{"name":..., "index":...}]` stored in the org DB's `settings` table under `keyword = 'Regions'`. No dedicated `regions` table. `Controller::getRegionsList()` is the shared read helper.
+- **Client assignment** — `client_tables.region` (`VARCHAR(150) NULL`, added via `ALTER TABLE` on the `mikrotik_cloud` dev DB) stores the region name directly as text, matching the existing convention of storing names rather than foreign keys (e.g. `router_name`). Set from the client view page (`clientInfor.blade.php` / `clientInforPppoe.blade.php`, via the shared `components/client/dash.blade.php` "Region" row) through its own small endpoint `POST /change_client_region` → `Clients::change_client_region()`, mirroring `change_client_channel()` — it does **not** go through the large `updateClients()` method. Renaming a region in `/Regions` cascades the new name to every client already assigned to it; deleting a region clears `client_tables.region` for affected clients rather than touching the client records themselves.
+- **Not yet wired**: the "add new client" forms (`new_client_static.blade.php`, `new_client_pppoe.blade.php`, quick-register variants) don't have a region field yet — region is currently only settable after a client exists, from their profile page.
+- **Cross-system sync needed**: the `client_tables.region` column was added directly to the `mikrotik_cloud` dev DB via `ALTER TABLE` and is **not yet propagated** — per the Cross-Project Sync Points above, `mikrotik_cloud_manager` needs to apply the same `ALTER TABLE client_tables ADD COLUMN region VARCHAR(150) NULL AFTER preferred_channel;` to all existing org DBs during provisioning/upgrade before this feature works for orgs other than the dev DB.
 
 ### MikroTik RouterOS Integration
 

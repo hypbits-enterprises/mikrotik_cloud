@@ -574,6 +574,17 @@ cObj("close_update_channel_modal_2").onclick = function () {
     hideModal("update_channel_modal");
 }
 
+/** UPDATE REGION */
+cObj("edit_region").onclick = function () {
+    showModal("update_region_modal");
+}
+cObj("close_update_region_modal_1").onclick = function () {
+    hideModal("update_region_modal");
+}
+cObj("close_update_region_modal_2").onclick = function () {
+    hideModal("update_region_modal");
+}
+
 // MODAL FOR A NEW INVOICE
 cObj("new_invoice").onclick = function() {
     showModal("generate_client_invoice");

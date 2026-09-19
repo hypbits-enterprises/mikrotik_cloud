@@ -14,6 +14,7 @@ use App\Http\Controllers\Expenses;
 use App\Http\Controllers\mpesa_api;
 use App\Http\Controllers\Router_Cloud;
 use App\Http\Controllers\SharedTables;
+use App\Http\Controllers\Region;
 use App\Http\Controllers\WhatsApp;
 use App\Http\Controllers\EmailTemplates;
 use Symfony\Component\Mime\Crypto\SMime;
@@ -154,6 +155,7 @@ Route::post("/change_client_monthly_payment", [Clients::class, "change_client_mo
 // change client email and preferred channel
 Route::post("/change_client_email", [Clients::class, "change_client_email"]);
 Route::post("/change_client_channel", [Clients::class, "change_client_channel"]);
+Route::post("/change_client_region", [Clients::class, "change_client_region"]);
 //export my clients
 Route::get("/Clients/Export", [export_client::class, "exportClients"])->middleware(["checkAccount", "validated"]);
 // get detailed router information in order to export
@@ -418,6 +420,11 @@ Route::get("/SharedTables/Edit/{table_id}/Name/{table_name}/Record/{record_no}",
 Route::post("/SharedTables/UpdateRecords", [SharedTables::class, "UpdateRecords"]);
 Route::get("/SharedTables/Delete/{table_id}/Name/{table_name}", [SharedTables::class, "deleteTable"])->middleware(["checkAccount", "validated"]);
 Route::get("/SharedTables/Delete/{table_id}/Name/{link_table_name}/Record/{rows_id}", [SharedTables::class, "deleteRecord"])->middleware(["checkAccount", "validated"]);
+
+Route::get("/Regions", [Region::class, "openRegions"])->middleware(["checkAccount", "validated"]);
+Route::post("/Regions/Add", [Region::class, "addRegion"])->middleware(["checkAccount", "validated"]);
+Route::post("/Regions/Update", [Region::class, "updateRegion"])->middleware(["checkAccount", "validated"]);
+Route::get("/Regions/Delete/{region_index}", [Region::class, "deleteRegion"])->middleware(["checkAccount", "validated"]);
 
 
 // MPESA URL REGISTRATION

@@ -620,6 +620,16 @@ class Controller extends BaseController
         return json_last_error() === JSON_ERROR_NONE;
     }
 
+    // regions list, stored the same way expense categories are: a JSON array in `settings`
+    function getRegionsList() {
+        $row = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'Regions'");
+        if (count($row) == 0 || !$this->isJson($row[0]->value)) {
+            return [];
+        }
+        $data = json_decode($row[0]->value);
+        return is_array($data) ? $data : [];
+    }
+
     // ─── WhatsApp Helpers ─────────────────────────────────────────────────────
 
     function getWhatsAppSettings(): ?array
