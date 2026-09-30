@@ -238,6 +238,34 @@ CREATE TABLE `unknown_wa_chats` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
+## Bulk Message Sending Agent (schema added 2026-09-30, agent itself not yet built)
+
+Today, bulk SMS/WhatsApp sends (via the audience-builder on `/sms/compose` and `/whatsapp/bulk`) send synchronously inline within the HTTP request — one blocking API call per recipient in a `foreach` loop. For a large filtered audience this risks hitting `max_execution_time`/request timeouts partway through a send.
+
+The plan is to move sending to an external agent, invoked by URL (design deferred to a future session), that claims and sends queued messages using a concurrency-safe claim pattern so multiple concurrent agent invocations never send the same message twice:
+
+- Each message row starts with `processing_id = 0` (unclaimed) and `sent_status = 0` (not yet sent).
+- An agent invocation claims a batch in **one atomic statement**: `UPDATE ... SET processing_id = :new_id WHERE processing_id = 0 LIMIT :n`, where `:new_id` is the current highest `processing_id` in the table plus one. The atomicity of that single UPDATE — not the uniqueness of `:new_id` — is what prevents double-claims: if two agent calls run concurrently, whichever UPDATE executes first wins those rows, and the second UPDATE's `WHERE processing_id = 0` no longer matches them. This must never be done as a `SELECT` (find unclaimed rows) followed by a separate `UPDATE` — that two-step form has a race window where two concurrent calls could both select and then both send the same rows.
+- Only after a row is claimed does the agent actually send it, then sets `sent_status = 1` on success. A crashed/slow run leaves a row claimed-but-unsent (`processing_id` set, `sent_status` still 0) rather than losing track of it — retry/reset logic for that case is part of the agent design, not yet decided.
+
+**Columns added** (`ALTER TABLE` directly on the `mikrotik_cloud` dev DB, same convention as the `region` column):
+```sql
+ALTER TABLE `sms_tables`
+  ADD COLUMN `processing_id` INT(11) NOT NULL DEFAULT 0 AFTER `sms_status`,
+  ADD COLUMN `sent_status` INT(11) NOT NULL DEFAULT 0 AFTER `processing_id`,
+  ADD INDEX `idx_processing_id` (`processing_id`);
+
+ALTER TABLE `whatsapp_chats`
+  ADD COLUMN `processing_id` INT(10) UNSIGNED NOT NULL DEFAULT 0 AFTER `delivery_status`,
+  ADD COLUMN `sent_status` TINYINT(1) NOT NULL DEFAULT 0 AFTER `processing_id`,
+  ADD INDEX `idx_processing_id` (`processing_id`);
+```
+Note `sms_tables.sms_status` and `whatsapp_chats.delivery_status` already exist and are set synchronously today by the current direct-send code path — `sent_status` is a deliberately separate column the future agent will own, not a replacement for them.
+
+**Cross-system sync needed**: like `region`, these columns were added directly to the `mikrotik_cloud` dev DB only and are **not yet propagated** — `mikrotik_cloud_manager` needs to apply the same two `ALTER TABLE` statements above to all existing org DBs during provisioning/upgrade before the agent can work for orgs other than the dev DB.
+
+**Not yet done**: no code writes or reads these columns yet (no INSERT sets them, no controller claims/updates them) — the columns exist ahead of the agent's logic, which is designed and implemented in a future session.
+
 ## Session Progress (last updated 2026-05-16)
 
 WhatsApp module complete and working end-to-end:
