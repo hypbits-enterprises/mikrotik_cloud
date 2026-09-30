@@ -16,6 +16,7 @@ use App\Http\Controllers\Router_Cloud;
 use App\Http\Controllers\SharedTables;
 use App\Http\Controllers\Region;
 use App\Http\Controllers\WhatsApp;
+use App\Http\Controllers\Audience;
 use App\Http\Controllers\EmailTemplates;
 use Symfony\Component\Mime\Crypto\SMime;
 
@@ -238,7 +239,9 @@ Route::get("/sms/system_sms", [Sms::class, "customsms"])->middleware(["checkAcco
 Route::post("/save_sms_content", [Sms::class, "save_sms_content"]);
 Route::get("/sms_balance", [Sms::class, "sms_balance"])->middleware(["checkAccount", "validated"]);
 Route::get("/sms/resend/{sms_id}", [Sms::class, "resend_sms"])->middleware(["checkAccount", "validated"]);
-Route::post("/sendsms_routers", [Sms::class, "sendsms_routers"]);
+
+// ── Shared audience builder (compose page + WhatsApp bulk page) ──────────────
+Route::post("/audience/preview", [Audience::class, "preview"])->middleware(["checkAccount", "validated"]);
 
 // ── WhatsApp (public webhook — no auth middleware) ────────────────────────────
 Route::get("/whatsapp/webhook", [WhatsApp::class, "verifyWebhook"]);

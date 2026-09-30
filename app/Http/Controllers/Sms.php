@@ -343,7 +343,8 @@ class Sms extends Controller
         $wa_templates = DB::connection("mysql2")->select(
             "SELECT * FROM `whatsapp_templates` WHERE `is_active` = 1 AND `deleted` = '0' AND `meta_status` = 'approved' ORDER BY `id` ASC"
         );
-        return view("compose",["client_names" => $client_names,"client_contacts" => $client_contacts,"client_account" => $client_account,"router_infor" => $router_data, "wa_templates" => $wa_templates]);
+        $audience_options = $this->getAudienceFilterOptions();
+        return view("compose",["client_names" => $client_names,"client_contacts" => $client_contacts,"client_account" => $client_account,"router_infor" => $router_data, "wa_templates" => $wa_templates, "audience_options" => $audience_options]);
     }
     function sendsms(Request $req){
         // change db
@@ -362,6 +363,46 @@ class Sms extends Controller
         // start with the numbers
         $sms_type = 2;
         // return $req->input();
+
+        // Filtered audience from the shared audience-builder: send one personalized
+        // message per recipient instead of a single bulk call, since each recipient's
+        // [tags] resolve to their own data.
+        if ($select_recipient == "filtered") {
+            $organization_dets = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[session("organization")->organization_id]);
+            if ($organization_dets[0]->send_sms == 0) {
+                session()->flash("error_sms", "You are not allowed to send SMS!");
+                return redirect("/sms/compose");
+            }
+            if ($sms_sender == "") {
+                session()->flash("error_sms", "Sender not defined!");
+                return redirect("/sms/compose");
+            }
+
+            $filters = $req->only(['client_status', 'router_id', 'region', 'assignment', 'client_profile', 'preferred_channel', 'payments_status']);
+            $clients = $this->getFilteredAudience($filters);
+            if (count($clients) == 0) {
+                session()->flash("error_sms", "No clients match the selected filters.");
+                return redirect("/sms/compose");
+            }
+
+            foreach ($clients as $client) {
+                $personalized = $this->substituteClientTags($messages, $client);
+                $phone = $client->clients_contacts;
+                $result = $this->GlobalSendSMS($personalized, $phone, $sms_api_key, $sms_sender, $sms_shortcode, $sms_partner_id);
+
+                $sms_table = new sms_table();
+                $sms_table->sms_content = $personalized;
+                $sms_table->date_sent = date("YmdHis");
+                $sms_table->recipient_phone = $phone;
+                $sms_table->sms_status = $result != null ? 1 : 0;
+                $sms_table->account_id = $client->client_id;
+                $sms_table->sms_type = $sms_type;
+                $sms_table->save();
+            }
+
+            session()->flash("message_success", "Message has been sent to " . count($clients) . " client(s).");
+            return redirect("/sms/compose");
+        }
 
         // from the 1
         // send sms
@@ -528,157 +569,6 @@ class Sms extends Controller
         }else{
             return redirect("/sms/compose");
         }
-    }
-    function sendsms_routers(Request $req){
-        // change db
-        $change_db = new login();
-        $change_db->change_db();
-
-        // return $req->input();
-        $sms_settings = $this->getSmsSettings();
-        $sms_sender = $sms_settings !== null ? $sms_settings['sms_sender'] : '';
-        $sms_api_key = $sms_settings !== null ? $sms_settings['sms_api_key'] : '';
-        $sms_partner_id = $sms_settings !== null ? $sms_settings['sms_partner_id'] : '';
-        $sms_shortcode = $sms_settings !== null ? $sms_settings['sms_shortcode'] : '';
-        // GET THE VALUES
-        $select_client_group = $req->input('select_client_group');
-        $messages = $req->input('messages');
-        $select_router = $req->input('select_router');
-        // start with the numbers
-        $sms_type = 2;
-        // return $req->input();
-        $router_name = "Null";
-        $router_in = DB::connection("mysql2")->select("SELECT * FROM `router_tables` WHERE `deleted`= '0' AND `router_id` = '$select_router'");
-        if (count($router_in) > 0) {
-            $router_name = $router_in[0]->router_name;
-        }
-
-
-        // from the 1
-        // send sms
-        $send_sms = 0;
-        if ($select_client_group == "0") {
-            // send to active clients
-            // get the number of the active clients
-            $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `client_status` = 0 AND `router_name` = '$select_router'");
-            if (count($client_data) > 0) {
-                $phone_number = "";
-                // we proceed and get the client data
-                for ($i=0; $i < count($client_data); $i++) { 
-                    //get the phone of the clients
-                    $phone_number.=$client_data[$i]->clients_contacts.",";
-                }
-                $phone_number = substr($phone_number,0,(strlen($phone_number)-1));
-                // return $phone_number;
-                $send_sms = 1;
-            }else{
-                session()->flash("error_sms","No in-active clients on selected router.");
-                return redirect("/sms/compose");
-            }
-        }elseif ($select_client_group == "1") {
-            // send to active clients
-            // get the number of the active clients
-            $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `client_status` = 1 AND `router_name` = '$select_router'");
-            if (count($client_data) > 0) {
-                $phone_number = "";
-                // we proceed and get the client data
-                for ($i=0; $i < count($client_data); $i++) { 
-                    //get the phone of the clients
-                    $phone_number.=$client_data[$i]->clients_contacts.",";
-                }
-                $phone_number = substr($phone_number,0,(strlen($phone_number)-1));
-                // return $phone_number;
-                $send_sms = 1;
-            }else{
-                session()->flash("error_sms","No Active clients on selected router.");
-                return redirect("/sms/compose");
-            }
-        }elseif ($select_client_group == "all") {
-            // send to active clients
-            // get the number of the active clients
-            $client_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `router_name` = '$select_router'");
-            if (count($client_data) > 0) {
-                $phone_number = "";
-                // we proceed and get the client data
-                for ($i=0; $i < count($client_data); $i++) { 
-                    //get the phone of the clients
-                    $phone_number.=$client_data[$i]->clients_contacts.",";
-                }
-                $phone_number = substr($phone_number,0,(strlen($phone_number)-1));
-                // return $phone_number;
-                $send_sms = 1;
-            }else{
-                session()->flash("error_sms","You have no clients to send messages on the selected router");
-                return redirect("/sms/compose");
-            }
-        }
-        
-        $organization_dets = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[session("organization")->organization_id]);
-        // check if the organization is allowed to send sms
-        if($organization_dets[0]->send_sms == 0){
-            session()->flash("error_sms", "You are not allowed to send SMS!");
-            $send_sms = 0;
-        }
-
-        if ($sms_sender == "") {
-            session()->flash("error_sms", "Sender not defined!");
-            $send_sms = 0;
-        }
-
-        // message status
-        if ($send_sms == 1) {
-            // if send sms is 1 we send  the sms
-            $partnerID = $sms_partner_id;
-            $apikey = $sms_api_key;
-            $shortcode = $sms_shortcode;
-            
-            $mobile = $phone_number; // Bulk messages can be comma separated
-            $message = $messages;
-            $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-            $message_status = $result != null ? 1 : 0;
-            if($result == null){
-                session()->flash("error_sms","Your account cannot send sms, contact us for more information!");
-                return redirect("/sms/compose");
-            }
-
-            // check if the phone numbers are connected as an array
-            $client_phone = explode(",",$phone_number);
-            if (count($client_phone) > 1) {
-                for ($i=0; $i < count($client_phone); $i++) { 
-                    // get the user id of the number from the database
-                    $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND  `clients_contacts` = '$client_phone[$i]'");
-                    $client_id = (count($user_data) > 0) ? $user_data[0]->client_id : 0;
-                    // if the message status is one the message is already sent to the user
-                    $sms_table = new sms_table();
-                    $sms_table->sms_content = $messages;
-                    $sms_table->date_sent = date("YmdHis");
-                    $sms_table->recipient_phone = $client_phone[$i];
-                    $sms_table->sms_status = $message_status;
-                    $sms_table->account_id = $client_id;
-                    $sms_table->sms_type = $sms_type;
-                    $sms_table->save();
-                    // save the clients data one by one
-                }
-            }else {
-                // get the user id of the number from the database
-                $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `clients_contacts` = '$phone_number'");
-                $client_id = (count($user_data) > 0) ? $user_data[0]->client_id : 0;
-                // if the message status is one the message is already sent to the user
-                $sms_table = new sms_table();
-                $sms_table->sms_content = $messages;
-                $sms_table->date_sent = date("YmdHis");
-                $sms_table->recipient_phone = $phone_number;
-                $sms_table->sms_status = $message_status;
-                $sms_table->account_id = $client_id;
-                $sms_table->sms_type = $sms_type;
-                $sms_table->save();
-                // save the clients data one by one
-            }
-            session()->flash("message_success","Message has been successfully sent to the client");
-            return redirect("/sms/compose");
-        }
-        // session()->flash("message_success","Message has been successfully sent to the client");
-        return redirect("/sms/compose");
     }
     function customsms(){
         // change db

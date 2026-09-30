@@ -19,5 +19,15 @@ select_recipient.onchange = function () {
         var number_lists = document.getElementById("select_clients");
         number_lists.classList.add("d-none");
     }
-    
+
+    var audienceRow = document.getElementById("audience_filter_row");
+    if (audienceRow) {
+        if (this.value == "filtered") {
+            audienceRow.classList.remove("d-none");
+            var panel = document.getElementById("audience_builder");
+            if (panel && panel.refreshAudienceCount) panel.refreshAudienceCount();
+        } else {
+            audienceRow.classList.add("d-none");
+        }
+    }
 }

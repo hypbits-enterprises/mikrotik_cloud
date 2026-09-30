@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
     <title>Hypbits - Bulk WhatsApp Send</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="apple-touch-icon" href="/theme-assets/images/logo2.jpeg">
     <link rel="shortcut icon" href="/theme-assets/images/logo2.jpeg">
     <x-css></x-css>
@@ -122,12 +123,7 @@
 
                                             <div class="form-group">
                                                 <label>Send To</label>
-                                                <select name="client_group" class="form-control" required {{ $readonly }}>
-                                                    <option value="" hidden>Select client group</option>
-                                                    <option value="active">All Active Clients</option>
-                                                    <option value="inactive">All Inactive Clients</option>
-                                                    <option value="all">All Clients</option>
-                                                </select>
+                                                <x-audience-builder :routers="$audience_options['routers']" :regions="$audience_options['regions']" :profiles="$audience_options['profiles']" idPrefix="wa_bulk_audience" :readOnly="$readonly" />
                                             </div>
 
                                             <div class="alert alert-warning py-1">
@@ -206,6 +202,7 @@
     <script src="/theme-assets/vendors/js/vendors.min.js" type="text/javascript"></script>
     <script src="/theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
     <script src="/theme-assets/js/core/app-lite.js" type="text/javascript"></script>
+    <script src="//cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script>
         document.getElementById('template_select').addEventListener('change', function() {
             var opt = this.options[this.selectedIndex];

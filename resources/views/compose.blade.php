@@ -10,6 +10,7 @@
     <meta name="keywords"
         content="admin template, Client template, dashboard template, gradient admin template, responsive client template, webapp, eCommerce dashboard, analytic dashboard">
     <meta name="author" content="ThemeSelect">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Hypbits - {{ isset($messages) ? 'Resend Message' : 'Write Message' }}</title>
     <link rel="apple-touch-icon" href="/theme-assets/images/logo2.jpeg">
     <link rel="shortcut icon" href="/theme-assets/images/logo2.jpeg">
@@ -23,6 +24,23 @@
     .hide{
         display: none;
     }
+    .var-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 2px 8px;
+        border-radius: 12px;
+        border: 1px solid #c8e6c9;
+        background: #f1f8f2;
+        color: #2e7d32;
+        font-size: 0.7rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background .15s;
+        user-select: none;
+    }
+    .var-chip:hover { background: #c8e6c9; }
 </style>
 
 
@@ -194,9 +212,7 @@
                                                 <option {{ isset($messages) ? 'selected' : '' }} value="1">Insert
                                                     Number</option>
                                                 <option value="5">Select Client</option>
-                                                <option value="2">Send to all active clients</option>
-                                                <option value="3">Send to all in-active clients</option>
-                                                <option value="4">Send to all clients</option>
+                                                <option value="filtered">Filter Clients</option>
                                             </select>
                                         </div>
                                         <div class="col-md-6  {{ isset($messages) ? '' : 'd-none' }}"
@@ -211,17 +227,23 @@
                                         <div class="col-md-6 d-none" id="select_clients">
                                             <label for="select_recipient" id="phone_number2" name=""
                                                 class="form-control-label">Type Customer
-                                                Name, Account No or Phone number</label>
+                                                Name, Account No or Phone number
+                                                <small class="text-muted">(pick one, then keep typing after the comma to add another)</small></label>
                                             <div class="autocomplete">
                                                 <input id="myInput" type="text" class="form-control"
                                                     name="phone_number"
                                                     placeholder="Phone number, Account Number, Name">
                                             </div>
                                         </div>
+                                        <div class="col-md-12 d-none" id="audience_filter_row">
+                                            <label class="form-control-label">Filter Your Audience</label>
+                                            <x-audience-builder :routers="$audience_options['routers']" :regions="$audience_options['regions']" :profiles="$audience_options['profiles']" idPrefix="audience" :readOnly="$readonly" />
+                                        </div>
                                         <div class="col-md-12 my-1" id="sms_message_row">
                                             <label for="messages" class="form-control-label">Write Message
                                                 <small id="sms_hint">(162 characters cost 1 unit of SMS)</small>
                                             </label>
+                                            <div id="sms-var-chips" style="display:flex;flex-wrap:wrap;gap:4px;padding:2px 0 6px;"></div>
                                             <textarea name="messages" class="form-control" id="messages" cols="30" rows="2" placeholder="Write your message here"
                                                 required>{{ isset($messages) ? $messages : '' }}</textarea>
                                         </div>
@@ -263,6 +285,40 @@
                                             var tplSel = document.getElementById('wa_template_select');
                                             if (tplSel) tplSel.required = !isSms;
                                         }
+
+                                        // Tag chips: insert [bracket] tokens (same convention used for billing
+                                        // SMS elsewhere in the app); resolved per-recipient at send time.
+                                        (function () {
+                                            var chipsEl = document.getElementById('sms-var-chips');
+                                            var textarea = document.getElementById('messages');
+                                            var tags = [
+                                                { label: 'Name',    icon: 'ft-user',        token: '[client_name]' },
+                                                { label: 'Phone',   icon: 'ft-phone',        token: '[client_phone]' },
+                                                { label: 'Account', icon: 'ft-hash',         token: '[acc_no]' },
+                                                { label: 'Monthly', icon: 'ft-dollar-sign',  token: '[monthly_fees]' },
+                                                { label: 'Wallet',  icon: 'ft-credit-card',  token: '[client_wallet]' },
+                                                { label: 'Expiry',  icon: 'ft-clock',        token: '[exp_date]' },
+                                                { label: 'Address', icon: 'ft-map-pin',      token: '[client_addr]' },
+                                                { label: 'Region',  icon: 'ft-map',          token: '[region]' },
+                                                { label: 'Username',icon: 'ft-user-check',   token: '[username]' },
+                                            ];
+                                            tags.forEach(function (t) {
+                                                var chip = document.createElement('span');
+                                                chip.className = 'var-chip';
+                                                chip.title = 'Insert: ' + t.token;
+                                                chip.innerHTML = '<i class="' + t.icon + '"></i>' + t.label;
+                                                chip.addEventListener('click', function () {
+                                                    textarea.focus();
+                                                    var start = textarea.selectionStart;
+                                                    var end = textarea.selectionEnd;
+                                                    var val = textarea.value;
+                                                    textarea.value = val.substring(0, start) + t.token + val.substring(end);
+                                                    var pos = start + t.token.length;
+                                                    textarea.setSelectionRange(pos, pos);
+                                                });
+                                                chipsEl.appendChild(chip);
+                                            });
+                                        })();
                                     </script>
                                 </div>
                             </div>
@@ -271,120 +327,6 @@
                 </div>
             </div>
             <!-- Basic Tables end -->
-            {{-- send for the routers --}}
-            <div class="content-body {{ isset($messages) ? 'd-none' : '' }}">
-                <!-- Basic Tables start -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header">
-                                <h4 class="card-title">Send Message to clients per router
-                                </h4>
-                                <a class="heading-elements-toggle"><i class="la la-ellipsis-v font-medium-3"></i></a>
-                                <div class="heading-elements">
-                                    <ul class="list-inline mb-0">
-                                        <li><a data-action="collapse"><i class="ft-minus"></i></a></li>
-                                        {{-- <li><a data-action="reload"><i class="ft-rotate-cw"></i></a></li> --}}
-                                        <li><a data-action="expand"><i class="ft-maximize"></i></a></li>
-                                        <!-- <li><a data-action="close"><i class="ft-x"></i></a></li> -->
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="card-content collapse show">
-                                <div class="card-body">
-                                    @if (session('success'))
-                                        <p class="text-success">{{ session('success') }}</p>
-                                    @endif
-                                    @php
-                                        $btnText = "<i class='fas fa-arrow-left'></i> Back to list";
-                                        $otherClasses = "";
-                                        $btnLink = "/sms";
-                                        $otherAttributes = "";
-                                    @endphp
-                                    <x-button-link btnType="secondary" btnSize="sm" toolTip="Back to SMS list" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" readOnly="" />
-                                    @if ($errors->any())
-                                        <h6 style="color: orangered">Errors</h6>
-                                        <ul class="text-danger" style="color: orangered">
-                                            @foreach ($errors->all() as $item)
-                                                <li>{{ $item }}</li>
-                                            @endforeach
-                                        </ul>
-                                    @endif
-
-                                    @if (session('error_sms'))
-                                        <p class="text-danger">{{ session('error_sms') }}</p>
-                                    @endif
-                                    @if (session('message_success'))
-                                        <p class="text-success">{{ session('message_success') }}</p>
-                                    @endif
-
-                                </div>
-                                <div class="card-body">
-                                    {{-- write a message --}}
-                                    <form class="row" method="POST" action="/sendsms_routers">
-                                        @csrf
-                                        <div class="col-md-6">
-                                            <label for="select_router" class="form-control-label">Select
-                                                Router</label>
-                                                @if (isset($router_infor))
-                                                    <select name="select_router" id="select_router"
-                                                        class="form-control" required>
-                                                        <option value="" hidden>Select an option</option>
-                                                    @for ($i = 0; $i < count($router_infor); $i++)
-                                                        <option value="{{$router_infor[$i]->router_id}}" >{{$router_infor[$i]->router_name}}</option>
-                                                        {{-- {{"<option value=".$router_infor[$i]->router_id." >".$router_infor[$i]->router_id."</option>"}} --}}
-                                                    @endfor
-                                                    </select>
-                                                @else
-                                                    <p class="text-secondary">No routers found! Please add a router to proceed</p>
-                                                @endif
-                                        </div>
-                                        <div class="col-md-6"
-                                            id="number_lists">
-                                            <label for="select_client_group" class="form-control-label">Client Group</label>
-                                            <select name="select_client_group" id="select_client_group" class="form-control" required>
-                                                <option value="" hidden>Select an option</option>
-                                                <option value="0">In-Active</option>
-                                                <option value="1">Active</option>
-                                                <option value="all">All</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-12 my-1">
-                                            <label for="messages" class="form-control-label">Write Message <small>(162
-                                                    characters cost 1 unit of sms)</small></label>
-                                            <textarea name="messages" class="form-control" id="messages" cols="30" rows="2" placeholder="Write your message here"
-                                                required>{{ isset($messages) ? $messages : '' }}</textarea>
-                                        </div>
-                                        <div class="col-md-6 my-1">
-                                            @php
-                                                $btnText = "<i class=\"fa-solid fa-paper-plane\"></i> Send Message";
-                                                $otherClasses = "".$readonly;
-                                                $btn_id = "";
-                                                $otherAttributes = "";
-                                            @endphp
-                                            <x-button :otherAttributes="$otherAttributes" :btnText="$btnText" toolTip="" btnType="primary" type="submit" btnSize="sm" :otherClasses="$otherClasses" :btnId="$btn_id" :readOnly="$readonly" />
-                                            {{-- <button {{$readonly}} type="submit" class="btn btn-primary"><i
-                                                    class="fa-solid fa-paper-plane"></i> Send Message</button> --}}
-                                        </div>
-                                        <div class="col-md-6 my-1">
-                                            @php
-                                                $btnText = "<i class=\"fas fa-x\"></i> Cancel";
-                                                $otherClasses = "";
-                                                $btnLink = "/sms";
-                                                $otherAttributes = "";
-                                            @endphp
-                                            <x-button-link btnType="danger" btnSize="sm" toolTip="" :otherAttributes="$otherAttributes" :btnText="$btnText" :btnLink="$btnLink" :otherClasses="$otherClasses" :readOnly="$readonly" />
-                                            {{-- <a href="/sms" class="btn btn-danger"><i class="fa-solid fa-xmark"></i>
-                                                Cancel</a> --}}
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {{-- end of send for the routers --}}
         </div>
     </div>
     </div>
@@ -406,7 +348,7 @@
     <script src="/theme-assets/vendors/js/vendors.min.js" type="text/javascript"></script>
     <!-- BEGIN VENDOR JS-->
     <!-- BEGIN PAGE VENDOR JS-->
-
+    <script src="//cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <!-- END PAGE VENDOR JS-->
     <!-- BEGIN CHAMELEON  JS-->
     <script src="/theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
@@ -431,120 +373,6 @@
         }
     </script>
     <script>
-        function autocomplete(inp, arr, arr2, arr3) {
-            /*the autocomplete function takes two arguments,
-            the text field element and an array of possible autocompleted values:*/
-            var currentFocus;
-            /*execute a function when someone writes in the text field:*/
-            inp.addEventListener("input", function(e) {
-                var a, b, i, val = this.value;
-                /*close any already open lists of autocompleted values*/
-                closeAllLists();
-                if (!val) {
-                    return false;
-                }
-                currentFocus = -1;
-                /*create a DIV element that will contain the items (values):*/
-                a = document.createElement("DIV");
-                a.setAttribute("id", this.id + "autocomplete-list");
-                a.setAttribute("class", "autocomplete-items");
-                a.style.maxHeight = "250px";
-                a.style.overflowY = "auto";
-                a.style.overflowX = "hidden";
-                /*append the DIV element as a child of the autocomplete container:*/
-                this.parentNode.appendChild(a);
-                /*for each item in the array...*/
-                var counter = 0;
-                for (i = 0; i < arr.length; i++) {
-                    if (counter > 10) {
-                        break;
-                    }
-                    /*check if the item starts with the same letters as the text field value:*/
-                    if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase() ||
-                        arr2[i].substr(0, val.length).toUpperCase() == val.toUpperCase() ||
-                        arr3[i].substr(0, val.length).toUpperCase() == val.toUpperCase()
-                    ) {
-                        /*create a DIV element for each matching element:*/
-                        b = document.createElement("DIV");
-                        /*make the matching letters bold:*/
-                        b.innerHTML = /**"<strong>" +*/ arr3[i] + " (" + arr[i] + ") - " + arr2[
-                            i] /**.substr(0, val.length)*/ /**+ "</strong>"*/ ;
-                        // b.innerHTML += arr[i].substr(val.length);
-                        /*insert a input field that will hold the current array item's value:*/
-                        b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
-                        /*execute a function when someone clicks on the item value (DIV element):*/
-                        b.addEventListener("click", function(e) {
-                            /*insert the value for the autocomplete text field:*/
-                            inp.value = this.getElementsByTagName("input")[0].value;
-                            /*close the list of autocompleted values,
-                            (or any other open lists of autocompleted values:*/
-                            closeAllLists();
-                        });
-                        a.appendChild(b);
-                        counter++;
-                    }
-                    console.log(counter);
-                }
-            });
-            /*execute a function presses a key on the keyboard:*/
-            inp.addEventListener("keydown", function(e) {
-                var x = document.getElementById(this.id + "autocomplete-list");
-                if (x) x = x.getElementsByTagName("div");
-                if (e.keyCode == 40) {
-                    /*If the arrow DOWN key is pressed,
-                    increase the currentFocus variable:*/
-                    currentFocus++;
-                    /*and and make the current item more visible:*/
-                    addActive(x);
-                } else if (e.keyCode == 38) { //up
-                    /*If the arrow UP key is pressed,
-                    decrease the currentFocus variable:*/
-                    currentFocus--;
-                    /*and and make the current item more visible:*/
-                    addActive(x);
-                } else if (e.keyCode == 13) {
-                    /*If the ENTER key is pressed, prevent the form from being submitted,*/
-                    e.preventDefault();
-                    if (currentFocus > -1) {
-                        /*and simulate a click on the "active" item:*/
-                        if (x) x[currentFocus].click();
-                    }
-                }
-            });
-
-            function addActive(x) {
-                /*a function to classify an item as "active":*/
-                if (!x) return false;
-                /*start by removing the "active" class on all items:*/
-                removeActive(x);
-                if (currentFocus >= x.length) currentFocus = 0;
-                if (currentFocus < 0) currentFocus = (x.length - 1);
-                /*add class "autocomplete-active":*/
-                x[currentFocus].classList.add("autocomplete-active");
-            }
-
-            function removeActive(x) {
-                /*a function to remove the "active" class from all autocomplete items:*/
-                for (var i = 0; i < x.length; i++) {
-                    x[i].classList.remove("autocomplete-active");
-                }
-            }
-
-            function closeAllLists(elmnt) {
-                /*close all autocomplete lists in the document,
-                except the one passed as an argument:*/
-                var x = document.getElementsByClassName("autocomplete-items");
-                for (var i = 0; i < x.length; i++) {
-                    if (elmnt != x[i] && elmnt != inp) {
-                        x[i].parentNode.removeChild(x[i]);
-                    }
-                }
-            }
-            /*execute a function when someone clicks in the document:*/
-            document.addEventListener("click", function(e) {
-                closeAllLists(e.target);
-            });
-        }
         function autocomplete2(inp, arr, arr2, arr3) {
             /*the autocomplete function takes two arguments,
             the text field element and an array of possible autocompleted values:*/
@@ -607,6 +435,11 @@
                             /*close the list of autocompleted values,
                             (or any other open lists of autocompleted values:*/
                             closeAllLists();
+                            /*return focus to the text field instead of leaving it on the
+                            clicked suggestion, and put the cursor at the end so typing
+                            continues right after the inserted value:*/
+                            inp.focus();
+                            inp.setSelectionRange(inp.value.length, inp.value.length);
                         });
                         a.appendChild(b);
                         counter++;
@@ -678,7 +511,7 @@
         var countries = client_contacts;
 
         /*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/
-        autocomplete(document.getElementById("myInput"), client_contacts, client_account, client_names);
+        autocomplete2(document.getElementById("myInput"), client_contacts, client_account, client_names);
         autocomplete2(document.getElementById("phone_numbers"), client_contacts, client_account, client_names);
     </script>
     <script>

@@ -259,14 +259,14 @@ class WhatsApp extends Controller
     {
         $this->switchDb();
         $templates = $this->fetchTemplates();
-        return view('whatsapp.bulk', compact('templates'));
+        $audience_options = $this->getAudienceFilterOptions();
+        return view('whatsapp.bulk', compact('templates', 'audience_options'));
     }
 
     public function sendBulk(Request $req)
     {
         $req->validate([
-            'template_id'    => 'required|integer',
-            'client_group'   => 'required|in:active,inactive,all',
+            'template_id' => 'required|integer',
         ]);
 
         $this->switchDb();
@@ -282,15 +282,12 @@ class WhatsApp extends Controller
 
         $template = $template[0];
 
-        $statusFilter = match($req->client_group) {
-            'active'   => "AND `client_status` = 1",
-            'inactive' => "AND `client_status` = 0",
-            default    => "",
-        };
+        $filters = $req->only(['client_status', 'router_id', 'region', 'assignment', 'client_profile', 'preferred_channel', 'payments_status']);
+        $clients = $this->getFilteredAudience($filters);
 
-        $clients = DB::connection('mysql2')->select(
-            "SELECT * FROM `client_tables` WHERE `deleted` = '0' {$statusFilter}"
-        );
+        if (empty($clients)) {
+            return back()->with('error_wa', 'No clients match the selected filters.');
+        }
 
         $sent = 0;
         $failed = 0;
@@ -377,6 +374,13 @@ class WhatsApp extends Controller
             );
             if (empty($clients)) {
                 return redirect('/sms/compose')->with('error_sms', 'No clients to send messages at the moment.');
+            }
+            foreach ($clients as $c) { $phones[] = $c->clients_contacts; $clientMap[$c->clients_contacts] = $c; }
+        } elseif ($selectRecipient == 'filtered') {
+            $filters = $req->only(['client_status', 'router_id', 'region', 'assignment', 'client_profile', 'preferred_channel', 'payments_status']);
+            $clients = $this->getFilteredAudience($filters);
+            if (empty($clients)) {
+                return redirect('/sms/compose')->with('error_sms', 'No clients match the selected filters.');
             }
             foreach ($clients as $c) { $phones[] = $c->clients_contacts; $clientMap[$c->clients_contacts] = $c; }
         } else {

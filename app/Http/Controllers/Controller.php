@@ -309,9 +309,19 @@ class Controller extends BaseController
         $response = \curl_exec($ch);
         \curl_close($ch);
 
-        return $response;
+        // HostPinnacle returns e.g. {"status":"success","statusCode":"200","reason":"success",...}
+        // on failure status/statusCode reflect the actual error (see SMSApi/info/responsecodes)
+        $decoded = json_decode($response, true);
+        $success = is_array($decoded)
+            && (strtolower($decoded['status'] ?? '') === 'success' || ($decoded['statusCode'] ?? '') == '200');
+
+        if (!$success) {
+            \Log::warning('sendHostPinnacleSMS failed', ['response' => $response]);
+        }
+
+        return $success;
     }
-    
+
 
     function sendBlessedTextsSMS($message, $phone, $apiKey, $senderId) {
         $url = "https://sms.blessedtexts.com/api/sms/v1/sendsms";
@@ -347,16 +357,18 @@ class Controller extends BaseController
         curl_close($ch);
 
         if ($response === false) {
-            return ["success" => false, "response" => "cURL error: {$error}"];
+            \Log::warning('sendBlessedTextsSMS failed', ['error' => $error]);
+            return false;
         }
 
         $decoded = json_decode($response, true);
+        $success = $this->isSuccessfulSmsGatewayResponse($httpCode, $decoded);
 
-        return [
-            "success"  => $httpCode >= 200 && $httpCode < 300,
-            "status"   => $httpCode,
-            "response" => $decoded ?: $response,
-        ];
+        if (!$success) {
+            \Log::warning('sendBlessedTextsSMS failed', ['status' => $httpCode, 'response' => $decoded ?: $response]);
+        }
+
+        return $success;
     }
 
     function sendTalkSasaSms($message, $phone, $apiKey, $senderId)
@@ -394,23 +406,46 @@ class Controller extends BaseController
         curl_close($ch);
 
         if ($response === false) {
-            return ["success" => false, "response" => "cURL error: {$error}"];
+            \Log::warning('sendTalkSasaSms failed', ['error' => $error]);
+            return false;
         }
 
         $decoded = json_decode($response, true);
+        $success = $this->isSuccessfulSmsGatewayResponse($httpCode, $decoded);
 
-        return [
-            "success"  => $httpCode >= 200 && $httpCode < 300,
-            "status"   => $httpCode,
-            "response" => $decoded ?: $response,
-        ];
+        if (!$success) {
+            \Log::warning('sendTalkSasaSms failed', ['status' => $httpCode, 'response' => $decoded ?: $response]);
+        }
+
+        return $success;
+    }
+
+    // Shared success check for the newer REST gateways (BlessedTexts, TalkSasa): both
+    // return HTTP 200 on the happy path, but neither is documented to guarantee that on
+    // every rejection (insufficient balance, invalid sender id, etc), so a 2xx status is
+    // treated as success only when the body doesn't carry an explicit failure marker.
+    function isSuccessfulSmsGatewayResponse($httpCode, $decoded) {
+        if ($httpCode < 200 || $httpCode >= 300) {
+            return false;
+        }
+        if (!is_array($decoded)) {
+            return true;
+        }
+        if (isset($decoded['success']) && $decoded['success'] === false) {
+            return false;
+        }
+        $status = strtolower((string) ($decoded['status'] ?? ''));
+        if (in_array($status, ['error', 'failed', 'fail'], true)) {
+            return false;
+        }
+        return true;
     }
 
 
     function sendAfrokattSMS($message, $phone_number, $apikey, $shortcode) {
         $client_phone = explode(",",$phone_number);
-        $message_status = 0;
-        foreach ($client_phone as $key => $phone) {
+        $success = false;
+        foreach ($client_phone as $phone) {
             $phone = $this->formatKenyanPhone($phone);
             $finalURL = "https://account.afrokatt.com/sms/api?action=send-sms&api_key=".urlencode($apikey)."&to=".$phone."&from=".$shortcode."&sms=".urlencode($message)."&unicode=1";
             $ch = \curl_init();
@@ -420,14 +455,13 @@ class Controller extends BaseController
             $response = \curl_exec($ch);
             \curl_close($ch);
             $res = json_decode($response);
-            $values = $res->code;
-            if (isset($res->code)) {
-                if($res->code == "200"){
-                    $message_status = 1;
-                }
+            if (isset($res->code) && $res->code == "200") {
+                $success = true;
+            } else {
+                \Log::warning('sendAfrokattSMS failed', ['phone' => $phone, 'response' => $response]);
             }
         }
-        return $message_status;
+        return $success;
     }
 
     function sendCelcomSMS($message, $mobile, $apikey, $shortcode, $partnerID) {
@@ -438,19 +472,21 @@ class Controller extends BaseController
         \curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         $response = \curl_exec($ch);
         \curl_close($ch);
-        $res = json_decode($response);
-        if (!$res || empty($res->responses)) {
-            return null;
+        $res = json_decode($response, true);
+        if (!$res || empty($res['responses'])) {
+            \Log::warning('sendCelcomSMS failed', ['response' => $response]);
+            return false;
         }
-        $values = $res->responses[0];
-        foreach ($values as $key => $value) {
-            if ($key == "response-code") {
-                if ($value == "200") {
-                    $message_status = 1;
-                }
-            }
+        // Celcom's docs use the key "respose-code" (their own typo); check both spellings
+        $values = $res['responses'][0];
+        $responseCode = $values['respose-code'] ?? $values['response-code'] ?? null;
+        $success = $responseCode == 200;
+
+        if (!$success) {
+            \Log::warning('sendCelcomSMS failed', ['response' => $values]);
         }
-        return $values;
+
+        return $success;
     }
 
     function GlobalSendSMS($message, $phone_number, $apiKey, $smsSender, $shortcode, $partnerID) {
@@ -628,6 +664,88 @@ class Controller extends BaseController
         }
         $data = json_decode($row[0]->value);
         return is_array($data) ? $data : [];
+    }
+
+    // ─── Audience / Bulk Messaging Helpers ───────────────────────────────────
+
+    // Shared client filter used by the audience builder (compose page, WhatsApp bulk
+    // page) and its live preview endpoint. `$filters` keys map 1:1 to client_tables
+    // columns except `router_id`, which matches against `client_tables.router_name`
+    // (that column actually stores `remote_routers.router_id` — see CLAUDE.md /
+    // Clients.php convention). Any key left out or set to '' is treated as "Any".
+    // Also exposes the resolved `router_display_name` (the actual router name, not
+    // the raw FK) for use in the audience preview table.
+    function getFilteredAudience(array $filters): array {
+        $columnForFilter = [
+            'client_status'    => 'client_tables.client_status',
+            'router_id'         => 'client_tables.router_name',
+            'region'            => 'client_tables.region',
+            'assignment'        => 'client_tables.assignment',
+            'client_profile'    => 'client_tables.client_profile',
+            'preferred_channel' => 'client_tables.preferred_channel',
+            'payments_status'   => 'client_tables.payments_status',
+        ];
+
+        $where = ["client_tables.deleted = '0'"];
+        $bindings = [];
+        foreach ($columnForFilter as $filterKey => $column) {
+            if (isset($filters[$filterKey]) && $filters[$filterKey] !== '') {
+                $where[] = "{$column} = ?";
+                $bindings[] = $filters[$filterKey];
+            }
+        }
+
+        $sql = "SELECT client_tables.*, remote_routers.router_name AS router_display_name
+                FROM client_tables
+                LEFT JOIN remote_routers ON remote_routers.router_id = client_tables.router_name
+                WHERE " . implode(' AND ', $where);
+        return DB::connection('mysql2')->select($sql, $bindings);
+    }
+
+    // Dropdown option lists for the audience builder: routers, regions, and the
+    // distinct PPPoE packages/profiles currently in use.
+    function getAudienceFilterOptions(): array {
+        $routers = DB::connection('mysql2')->select(
+            "SELECT `router_id`, `router_name` FROM `remote_routers` WHERE `deleted` = '0' ORDER BY `router_name` ASC"
+        );
+        $profiles = DB::connection('mysql2')->select(
+            "SELECT DISTINCT `client_profile` FROM `client_tables`
+             WHERE `deleted` = '0' AND `client_profile` IS NOT NULL AND `client_profile` != ''
+             ORDER BY `client_profile` ASC"
+        );
+
+        return [
+            'routers'  => $routers,
+            'regions'  => $this->getRegionsList(),
+            'profiles' => array_map(fn($p) => $p->client_profile, $profiles),
+        ];
+    }
+
+    // Per-recipient personalization for free-text bulk sends (SMS / WhatsApp
+    // free-form). Reuses the same `[bracket]` tokens already used for billing/
+    // notification messages in Clients.php, Transaction.php and billsms_manager.php
+    // (`[client_name]`, `[client_addr]`, `[client_phone]`, `[acc_no]`, `[client_wallet]`,
+    // `[monthly_fees]`, `[exp_date]`, `[username]`) so composed messages stay consistent
+    // with the rest of the app. `[region]` is new here — if crontab's billing messages
+    // ever need it too, shared_functions.php there must get the same token added.
+    function substituteClientTags(string $text, $client): string {
+        $fullName = $client->client_name ?? '';
+        $expRaw   = $client->next_expiration_date ?? '';
+        $expDate  = $expRaw ? date('dS-M-Y', strtotime($expRaw)) : '';
+
+        $map = [
+            '[client_name]'   => ucwords(strtolower($fullName)),
+            '[client_addr]'   => $client->client_address ?? '',
+            '[client_phone]'  => $client->clients_contacts ?? '',
+            '[acc_no]'        => $client->client_account ?? '',
+            '[client_wallet]' => 'Ksh ' . number_format($client->wallet_amount ?? 0),
+            '[monthly_fees]'  => 'Ksh ' . number_format($client->monthly_payment ?? 0),
+            '[exp_date]'      => $expDate,
+            '[username]'      => $client->client_username ?? '',
+            '[region]'        => $client->region ?? '',
+        ];
+
+        return str_replace(array_keys($map), array_values($map), $text);
     }
 
     // ─── WhatsApp Helpers ─────────────────────────────────────────────────────
@@ -1104,7 +1222,7 @@ class Controller extends BaseController
             $settings['sms_api_key'], $settings['sms_sender'],
             $settings['sms_shortcode'], $settings['sms_partner_id']
         );
-        return $result !== null;
+        return $result === true;
     }
 
     protected function whatsappApiCall(string $url, string $token, ?string $payload = null, string $method = 'POST'): array
