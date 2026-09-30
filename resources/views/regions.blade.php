@@ -113,19 +113,46 @@
                                         <p class="text-success">{{ session('region_success') }}</p>
                                     @endif
 
-                                    <form action="/Regions/Add" method="post" class="row w-100 mx-0 mb-2">
-                                        @csrf
-                                        <div class="col-md-6 form-group">
-                                            <input type="text" name="region_name" class="form-control" placeholder="New region name (e.g. Kasarani)" required {{ $readonly }}>
+                                    <div class="row w-100 mx-0 mb-2">
+                                        <div class="col-md-6 form-group mb-md-0">
+                                            <input type="text" id="region_search" class="form-control" placeholder="Search regions...">
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-6 text-md-right">
                                             @php
                                                 $btnText = "<i class=\"ft-plus\"></i> Add Region";
-                                                $otherClasses = "w-100";
+                                                $otherClasses = "";
                                             @endphp
-                                            <x-button :btnText="$btnText" btnType="primary" type="submit" btnSize="md" :otherClasses="$otherClasses" btnId="" :readOnly="$readonly" />
+                                            <x-button :btnText="$btnText" btnType="primary" type="button" btnSize="md" :otherClasses="$otherClasses" btnId="open_add_region_btn" :readOnly="$readonly" />
                                         </div>
-                                    </form>
+                                    </div>
+
+                                    <div class="modal fade text-left hide" id="add_region_modal" tabindex="-1" role="dialog" aria-modal="true" style="background-color: rgba(0, 0, 0, 0.5);">
+                                        <div class="modal-dialog modal-dialog-centered" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header bg-primary white">
+                                                    <h4 class="modal-title white">Add a New Region</h4>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="close_add_region_modal">
+                                                        <span aria-hidden="true">×</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Regions let you group clients by where they're based — a town, an estate, a zone, whatever makes sense for your ISP. Pick a short, clear name (e.g. "Kasarani" or "Zone 3"); you'll be able to assign it to clients from their profile page, and use it later to target messages by area. You can rename or delete it any time without affecting the clients already assigned.</p>
+                                                    <form action="/Regions/Add" method="post">
+                                                        @csrf
+                                                        <div class="form-group">
+                                                            <label class="form-control-label">Region Name</label>
+                                                            <input type="text" name="region_name" class="form-control" placeholder="e.g. Kasarani" required {{ $readonly }}>
+                                                        </div>
+                                                        @php
+                                                            $btnText = "<i class=\"ft-plus\"></i> Add Region";
+                                                            $otherClasses = "w-100";
+                                                        @endphp
+                                                        <x-button :btnText="$btnText" btnType="primary" type="submit" btnSize="md" :otherClasses="$otherClasses" btnId="" :readOnly="$readonly" />
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <div class="table-responsive">
                                         <table class="table">
@@ -139,7 +166,7 @@
                                             </thead>
                                             <tbody>
                                                 @forelse ($regions as $region)
-                                                    <tr>
+                                                    <tr class="region-row" data-region-name="{{ strtolower($region->name) }}">
                                                         <th scope="row">{{ $loop->iteration }}</th>
                                                         <td>{{ $region->name }}</td>
                                                         <td><span class="badge badge-info">{{ $region_counts[$region->name] ?? 0 }}</span></td>
@@ -223,11 +250,12 @@
                                                     </tr>
                                                 @empty
                                                     <tr>
-                                                        <td colspan="4" class="text-center text-muted">No regions have been created yet. Add one above to get started.</td>
+                                                        <td colspan="4" class="text-center text-muted">No regions have been created yet. Click "Add Region" above to get started.</td>
                                                     </tr>
                                                 @endforelse
                                             </tbody>
                                         </table>
+                                        <p id="region_search_no_results" class="text-center text-muted" hidden>No regions match your search.</p>
                                     </div>
                                 </div>
                             </div>
@@ -255,6 +283,30 @@
     <script src="/theme-assets/js/core/bootstrap.bundle.min.js"></script>
 
     <script>
+        document.getElementById('open_add_region_btn').onclick = function () {
+            $('#add_region_modal').modal('show');
+        };
+        document.getElementById('close_add_region_modal').onclick = function () {
+            $('#add_region_modal').modal('hide');
+        };
+        @if ($errors->any() || session('region_error'))
+            $('#add_region_modal').modal('show');
+        @endif
+
+        document.getElementById('region_search').addEventListener('keyup', function () {
+            var term = this.value.trim().toLowerCase();
+            var rows = document.querySelectorAll('.region-row');
+            var visibleCount = 0;
+            rows.forEach(function (row) {
+                var matches = row.getAttribute('data-region-name').indexOf(term) !== -1;
+                row.hidden = !matches;
+                if (matches) {
+                    visibleCount++;
+                }
+            });
+            document.getElementById('region_search_no_results').hidden = (visibleCount !== 0 || rows.length === 0);
+        });
+
         @foreach ($regions as $region)
             document.getElementById('edit_region_btn_{{ $region->index }}').onclick = function () {
                 $('#edit_region_modal_{{ $region->index }}').modal('show');
