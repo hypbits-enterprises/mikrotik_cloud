@@ -493,7 +493,6 @@ class Controller extends BaseController
         if((session()->has("organization") && session("organization")->send_sms == 0)){
             return null;
         }
-
         if ($smsSender == "hostpinnacle") {
             return $this->sendHostPinnacleSMS($message, $phone_number, $apiKey, $partnerID, $shortcode);
         } elseif ($smsSender == "afrokatt") {
@@ -728,7 +727,14 @@ class Controller extends BaseController
     // `[monthly_fees]`, `[exp_date]`, `[username]`) so composed messages stay consistent
     // with the rest of the app. `[region]` is new here — if crontab's billing messages
     // ever need it too, shared_functions.php there must get the same token added.
+    // Pass `null` for a recipient that isn't a client: every tag is blanked out so
+    // they receive the plain text instead of literal `[client_name]` etc.
     function substituteClientTags(string $text, $client): string {
+        if ($client === null) {
+            $tags = ['[client_name]', '[client_addr]', '[client_phone]', '[acc_no]', '[client_wallet]', '[monthly_fees]', '[exp_date]', '[username]', '[region]'];
+            return str_replace($tags, '', $text);
+        }
+
         $fullName = $client->client_name ?? '';
         $expRaw   = $client->next_expiration_date ?? '';
         $expDate  = $expRaw ? date('dS-M-Y', strtotime($expRaw)) : '';

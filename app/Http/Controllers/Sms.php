@@ -512,64 +512,72 @@ class Sms extends Controller
         }
 
         if ($sms_sender == "") {
-            $send_sms == 0;
+            session()->flash("error_sms", "Sender not defined!");
+            $send_sms = 0;
         }
 
         // message status
         if ($send_sms == 1) {
-            // if send sms is 1 we send  the sms
-            $partnerID = $sms_partner_id;
-            $apikey = $sms_api_key;
-            $shortcode = $sms_shortcode;
-            
-            $mobile = $phone_number; // Bulk messages can be comma separated
-            $message = $messages;
-            $result = $this->GlobalSendSMS($message, $mobile, $apikey, $sms_sender, $shortcode, $partnerID);
-            $message_status = $result != null ? 1 : 0;
-            if($result == null){
+            // Send one message per number so each recipient's [tags] resolve to their
+            // own client data. Numbers that don't belong to any client get the tags
+            // blanked out and receive the plain text.
+            $clients_by_phone = $this->getClientsByPhoneKey();
+            $client_phones = array_values(array_filter(explode(",", $phone_number), function ($phone) {
+                return trim($phone) != "";
+            }));
+
+            $sent_count = 0;
+            foreach ($client_phones as $phone) {
+                $phone = trim($phone);
+                $client = $clients_by_phone[$this->phoneKey($phone)] ?? null;
+                $personalized = $this->substituteClientTags($messages, $client);
+                $result = $this->GlobalSendSMS($personalized, $phone, $sms_api_key, $sms_sender, $sms_shortcode, $sms_partner_id);
+                if ($result != null) {
+                    $sent_count++;
+                }
+
+                $sms_table = new sms_table();
+                $sms_table->sms_content = $personalized;
+                $sms_table->date_sent = date("YmdHis");
+                $sms_table->recipient_phone = $phone;
+                $sms_table->sms_status = $result != null ? 1 : 0;
+                $sms_table->account_id = $client != null ? $client->client_id : 0;
+                $sms_table->sms_type = $sms_type;
+                $sms_table->save();
+            }
+
+            if ($sent_count == 0) {
                 session()->flash("error_sms","Your account cannot send sms, contact us for more information!");
                 return redirect("/sms");
             }
-
-            // check if the phone numbers are connected as an array
-            $client_phone = explode(",",$phone_number);
-            if (count($client_phone) > 1) {
-                for ($i=0; $i < count($client_phone); $i++) { 
-                    // get the user id of the number from the database
-                    $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `clients_contacts` = '$client_phone[$i]'");
-                    $client_id = (count($user_data) > 0) ? $user_data[0]->client_id : 0;
-                    // if the message status is one the message is already sent to the user
-                    $sms_table = new sms_table();
-                    $sms_table->sms_content = $messages;
-                    $sms_table->date_sent = date("YmdHis");
-                    $sms_table->recipient_phone = $client_phone[$i];
-                    $sms_table->sms_status = $message_status;
-                    $sms_table->account_id = $client_id;
-                    $sms_table->sms_type = $sms_type;
-                    $sms_table->save();
-                    // save the clients data one by one
-                }
-            }else {
-                // get the user id of the number from the database
-                $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' AND `clients_contacts` = '$phone_number'");
-                $client_id = (count($user_data) > 0) ? $user_data[0]->client_id : 0;
-                // if the message status is one the message is already sent to the user
-                $sms_table = new sms_table();
-                $sms_table->sms_content = $messages;
-                $sms_table->date_sent = date("YmdHis");
-                $sms_table->recipient_phone = $phone_number;
-                $sms_table->sms_status = $message_status;
-                $sms_table->account_id = $client_id;
-                $sms_table->sms_type = $sms_type;
-                $sms_table->save();
-                // save the clients data one by one
-            }
-            session()->flash("message_success","Message has been successfully sent to the client");
+            session()->flash("message_success","Message has been successfully sent to " . $sent_count . " of " . count($client_phones) . " recipient(s).");
             return redirect("/sms/compose");
         }else{
             return redirect("/sms/compose");
         }
     }
+
+    // Phones are stored inconsistently (07..., 2547..., +2547...), so compare on
+    // the last 9 digits only.
+    function phoneKey($phone){
+        $digits = preg_replace('/\D/', '', (string) $phone);
+        return substr($digits, -9);
+    }
+
+    // Map of phoneKey => client row. Where several clients share a number, the
+    // first one wins.
+    function getClientsByPhoneKey(){
+        $clients = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0' ORDER BY `client_id` ASC");
+        $by_phone = [];
+        foreach ($clients as $client) {
+            $key = $this->phoneKey($client->clients_contacts);
+            if ($key != "" && !isset($by_phone[$key])) {
+                $by_phone[$key] = $client;
+            }
+        }
+        return $by_phone;
+    }
+
     function customsms(){
         // change db
         $change_db = new login();

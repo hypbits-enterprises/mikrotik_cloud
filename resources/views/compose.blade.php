@@ -244,6 +244,7 @@
                                                 <small id="sms_hint">(162 characters cost 1 unit of SMS)</small>
                                             </label>
                                             <div id="sms-var-chips" style="display:flex;flex-wrap:wrap;gap:4px;padding:2px 0 6px;"></div>
+                                            <div id="tag_recipient_warning" class="alert alert-warning d-none mb-1" style="font-size:.85rem;"></div>
                                             <textarea name="messages" class="form-control" id="messages" cols="30" rows="2" placeholder="Write your message here"
                                                 required>{{ isset($messages) ? $messages : '' }}</textarea>
                                         </div>
@@ -361,6 +362,64 @@
         var client_account = @json($client_account ?? '');
     </script>
     <script>
+        // Tags only resolve for numbers that belong to a client. Warn about numbers
+        // that don't, since the server blanks the tags out for them (plain text).
+        var clientPhoneKeys = {};
+        (client_contacts || []).forEach(function (phone) {
+            var key = phoneKey(phone);
+            if (key) clientPhoneKeys[key] = true;
+        });
+
+        // Same rule as Sms::phoneKey(): compare on the last 9 digits.
+        function phoneKey(phone) {
+            return String(phone || '').replace(/\D/g, '').slice(-9);
+        }
+
+        function checkTagRecipients() {
+            var recipient = document.getElementById('select_recipient').value;
+            var chips = document.getElementById('sms-var-chips');
+            var warning = document.getElementById('tag_recipient_warning');
+            var field = recipient == '1' ? document.getElementById('phone_numbers')
+                : (recipient == '5' ? document.getElementById('myInput') : null);
+
+            var numbers = field ? field.value.split(',').map(function (n) { return n.replace(/\s/g, ''); })
+                .filter(function (n) { return n.length > 0; }) : [];
+            // Don't judge the entry still being typed while the suggestion box has
+            // matches for it — only once the box comes up empty (or they leave the field).
+            if (field && field.dataset.suggesting == '1' && !/,\s*$/.test(field.value)) {
+                numbers.pop();
+            }
+            var unmatched = numbers.filter(function (n) { return !clientPhoneKeys[phoneKey(n)]; });
+
+            if (unmatched.length == 0) {
+                chips.classList.remove('d-none');
+                warning.classList.add('d-none');
+                return;
+            }
+            if (unmatched.length == numbers.length) {
+                chips.classList.add('d-none');
+                warning.innerHTML = '<i class="ft-alert-triangle"></i> ' + (numbers.length == 1 ? 'This number does' : 'None of these numbers')
+                    + (numbers.length == 1 ? ' not belong to any client' : ' belong to a client')
+                    + ', so tags will not take effect. Any tags in the message will be removed and the plain text will be sent.';
+            } else {
+                chips.classList.remove('d-none');
+                warning.innerHTML = '<i class="ft-alert-triangle"></i> These numbers do not belong to any client and will receive the plain text (tags removed): <strong>'
+                    + unmatched.map(function (n) { return $('<div>').text(n).html(); }).join(', ') + '</strong>';
+            }
+            warning.classList.remove('d-none');
+        }
+
+        ['phone_numbers', 'myInput'].forEach(function (id) {
+            var el = document.getElementById(id);
+            el.addEventListener('change', function () {
+                el.dataset.suggesting = '0';
+                checkTagRecipients();
+            });
+        });
+        document.getElementById('select_recipient').addEventListener('change', checkTagRecipients);
+        document.addEventListener('DOMContentLoaded', checkTagRecipients);
+    </script>
+    <script>
         var phone_number = document.getElementById("phone_numbers");
         phone_number.onkeyup = function() {
             // console.log(this.value)
@@ -383,6 +442,8 @@
                 /*close any already open lists of autocompleted values*/
                 closeAllLists();
                 if (!val) {
+                    this.dataset.suggesting = '0';
+                    checkTagRecipients();
                     return false;
                 }
                 currentFocus = -1;
@@ -440,12 +501,17 @@
                             continues right after the inserted value:*/
                             inp.focus();
                             inp.setSelectionRange(inp.value.length, inp.value.length);
+                            inp.dataset.suggesting = '0';
+                            checkTagRecipients();
                         });
                         a.appendChild(b);
                         counter++;
                     }
                     console.log(counter);
                 }
+                /*the tag warning only shows once no suggestion matches what is typed*/
+                this.dataset.suggesting = counter > 0 ? '1' : '0';
+                checkTagRecipients();
             });
             /*execute a function presses a key on the keyboard:*/
             inp.addEventListener("keydown", function(e) {
