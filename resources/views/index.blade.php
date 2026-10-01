@@ -88,7 +88,9 @@
                                                     <a href="#" class="media border-0">
                                                 @endif
                                                 <div class="media-left pr-1 text-center text-lg">
-                                                    @if ($sms_sent[$i]->sms_status == 1)
+                                                    @if (isset($sms_sent[$i]->sent_status) && $sms_sent[$i]->sent_status == 0)
+                                                        <h3 class="text-warning" title="Queued"><i class="ft-message-circle"></i></h3>
+                                                    @elseif ($sms_sent[$i]->sms_status == 1)
                                                         <h3 class="text-success"><i class="ft-message-circle"></i></h3>
                                                     @else
                                                         <h3 class="text-danger"><i class="ft-message-circle"></i></h3>

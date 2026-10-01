@@ -238,33 +238,35 @@ CREATE TABLE `unknown_wa_chats` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-## Bulk Message Sending Agent (schema added 2026-09-30, agent itself not yet built)
+## Bulk SMS Sending Agent (built 2026-10-01)
 
-Today, bulk SMS/WhatsApp sends (via the audience-builder on `/sms/compose` and `/whatsapp/bulk`) send synchronously inline within the HTTP request — one blocking API call per recipient in a `foreach` loop. For a large filtered audience this risks hitting `max_execution_time`/request timeouts partway through a send.
+Bulk SMS from `/sms/compose` (Insert Number, Select Client, Filter Clients) is no longer sent inside the HTTP request. `Sms::sendsms()` personalizes each recipient's `[tags]`, **queues** one `sms_tables` row per recipient via `Sms::queueSms()`, then `Sms::startSmsAgent()` calls the agent link and returns at once ("N message(s) queued and are being sent").
 
-The plan is to move sending to an external agent, invoked by URL (design deferred to a future session), that claims and sends queued messages using a concurrency-safe claim pattern so multiple concurrent agent invocations never send the same message twice:
+- **The agent** is `send_queued_sms.php` in the `crontab` project, called as a link with the org database: `{SMS_AGENT_URL}?db=<organization_database>` (also runnable as `php send_queued_sms.php <db>`). It is **not** scheduled in the system crontab — it only runs when this app calls it after queueing. `SMS_AGENT_URL` lives in `.env` and is read through `config('messaging.sms_agent_url')`; if unset, messages are queued but not sent and the operator sees an error.
+- **Fire-and-forget**: `startSmsAgent()` uses a 1.5s cURL timeout; the agent calls `ignore_user_abort(true)` + `set_time_limit(0)` so it keeps sending after this app disconnects.
+- **Queue markers**: a queued row has `processing_id = 0`, `sent_status = 0`, `sms_status = 0`. `sent_status` **defaults to `1`**, so every other `sms_tables` insert (billing SMS, OTPs, `crontab`'s `send_sms()`, etc.) is never picked up by the agent without those writers needing changes. Only `queueSms()` writes `sent_status = 0`.
+- **Claiming**: under a per-org MySQL `GET_LOCK`, the agent takes `MAX(processing_id) + 1` and claims a batch of 50 with one atomic `UPDATE ... SET processing_id = :id, date_changed = :now WHERE processing_id = 0 AND sent_status = 0 AND deleted = 0 ORDER BY sms_id LIMIT 50`. The atomic UPDATE is what prevents double-claims; the lock only stops two concurrent runs from picking the same `processing_id` (which would make each read back the other's rows). Never claim with a separate `SELECT` then `UPDATE`.
+- **Sending**: each claimed row goes through `send_sms_via_provider()` in `crontab/shared_functions.php` (send-only, no insert), then is updated to `sent_status = 1`, `sms_status` = 1/0, `date_sent` = actual send time. Loops batch by batch until nothing is left.
+- **Failures are never re-sent automatically**: rows claimed but still unsent after 10 minutes (`date_changed` = claim time) are marked failed (`sms_status = 0, sent_status = 1`) on the agent's next run for that org; the operator resends by hand. If the org's `send_sms = 0` or no `sms_sender` is configured, the whole queue is marked failed.
+- **UI**: `sent_status = 0` shows as a yellow "Queued" badge in the SMS list (`smsDatatable`) and a yellow icon on the dashboard's recent SMS.
+- **Not covered**: WhatsApp bulk (`/whatsapp/bulk`) still sends inline. `whatsapp_chats.processing_id`/`sent_status` exist but are unused, and `whatsapp_chats.sent_status` still defaults to `0` — change that default to `1` (and backfill) before building a WhatsApp agent, for the same reason as `sms_tables`.
 
-- Each message row starts with `processing_id = 0` (unclaimed) and `sent_status = 0` (not yet sent).
-- An agent invocation claims a batch in **one atomic statement**: `UPDATE ... SET processing_id = :new_id WHERE processing_id = 0 LIMIT :n`, where `:new_id` is the current highest `processing_id` in the table plus one. The atomicity of that single UPDATE — not the uniqueness of `:new_id` — is what prevents double-claims: if two agent calls run concurrently, whichever UPDATE executes first wins those rows, and the second UPDATE's `WHERE processing_id = 0` no longer matches them. This must never be done as a `SELECT` (find unclaimed rows) followed by a separate `UPDATE` — that two-step form has a race window where two concurrent calls could both select and then both send the same rows.
-- Only after a row is claimed does the agent actually send it, then sets `sent_status = 1` on success. A crashed/slow run leaves a row claimed-but-unsent (`processing_id` set, `sent_status` still 0) rather than losing track of it — retry/reset logic for that case is part of the agent design, not yet decided.
-
-**Columns added** (`ALTER TABLE` directly on the `mikrotik_cloud` dev DB, same convention as the `region` column):
+**Schema changes** (applied directly to the `mikrotik_cloud` dev DB only):
 ```sql
 ALTER TABLE `sms_tables`
   ADD COLUMN `processing_id` INT(11) NOT NULL DEFAULT 0 AFTER `sms_status`,
   ADD COLUMN `sent_status` INT(11) NOT NULL DEFAULT 0 AFTER `processing_id`,
   ADD INDEX `idx_processing_id` (`processing_id`);
+ALTER TABLE `sms_tables` ALTER `sent_status` SET DEFAULT 1;
+UPDATE `sms_tables` SET `sent_status` = 1 WHERE `processing_id` = 0 AND `sent_status` = 0;
 
 ALTER TABLE `whatsapp_chats`
   ADD COLUMN `processing_id` INT(10) UNSIGNED NOT NULL DEFAULT 0 AFTER `delivery_status`,
   ADD COLUMN `sent_status` TINYINT(1) NOT NULL DEFAULT 0 AFTER `processing_id`,
   ADD INDEX `idx_processing_id` (`processing_id`);
 ```
-Note `sms_tables.sms_status` and `whatsapp_chats.delivery_status` already exist and are set synchronously today by the current direct-send code path — `sent_status` is a deliberately separate column the future agent will own, not a replacement for them.
 
-**Cross-system sync needed**: like `region`, these columns were added directly to the `mikrotik_cloud` dev DB only and are **not yet propagated** — `mikrotik_cloud_manager` needs to apply the same two `ALTER TABLE` statements above to all existing org DBs during provisioning/upgrade before the agent can work for orgs other than the dev DB.
-
-**Not yet done**: no code writes or reads these columns yet (no INSERT sets them, no controller claims/updates them) — the columns exist ahead of the agent's logic, which is designed and implemented in a future session.
+**Cross-system sync needed**: `mikrotik_cloud_manager` must apply these to every existing org DB (and to new org DBs at provisioning). Order matters for `sms_tables`: the backfill `UPDATE` must run with the default change, otherwise the first agent run re-sends that org's entire SMS history. Until applied, bulk SMS from the compose page will fail for those orgs (the `INSERT` sets columns that don't exist).
 
 ## Session Progress (last updated 2026-05-16)
 

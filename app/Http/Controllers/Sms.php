@@ -175,7 +175,7 @@ class Sms extends Controller
         )[0]->total;
 
         $rows = DB::connection('mysql2')->select(
-            "SELECT s.sms_id, s.date_sent, s.sms_content, s.email_subject, s.sms_status, s.sms_type,
+            "SELECT s.sms_id, s.date_sent, s.sms_content, s.email_subject, s.sms_status, s.sent_status, s.sms_type,
                     s.channel, s.account_id, s.recipient_phone,
                     COALESCE(c.client_name, s.recipient_phone) AS client_name,
                     c.client_id
@@ -195,9 +195,13 @@ class Sms extends Controller
                   ))
                 : $ds;
 
-            $statusBadge = $row->sms_status == 1
-                ? '<span class="badge badge-pill badge-success"><i class="ft-check"></i> Sent</span>'
-                : '<span class="badge badge-pill badge-danger"><i class="ft-x"></i> Failed</span>';
+            if ($row->sent_status == 0) {
+                $statusBadge = '<span class="badge badge-pill badge-warning"><i class="ft-clock"></i> Queued</span>';
+            } else {
+                $statusBadge = $row->sms_status == 1
+                    ? '<span class="badge badge-pill badge-success"><i class="ft-check"></i> Sent</span>'
+                    : '<span class="badge badge-pill badge-danger"><i class="ft-x"></i> Failed</span>';
+            }
 
             $ch = $row->channel ?? 'sms';
             $channelBadge = match($ch) {
@@ -353,9 +357,6 @@ class Sms extends Controller
 
         $sms_settings = $this->getSmsSettings();
         $sms_sender = $sms_settings !== null ? $sms_settings['sms_sender'] : '';
-        $sms_api_key = $sms_settings !== null ? $sms_settings['sms_api_key'] : '';
-        $sms_partner_id = $sms_settings !== null ? $sms_settings['sms_partner_id'] : '';
-        $sms_shortcode = $sms_settings !== null ? $sms_settings['sms_shortcode'] : '';
         // GET THE VALUES
         $select_recipient = $req->input('select_recipient');
         $phone_number = $req->input('phone_number') ? $req->input('phone_number') : $req->input('phone_numbers');
@@ -364,9 +365,8 @@ class Sms extends Controller
         $sms_type = 2;
         // return $req->input();
 
-        // Filtered audience from the shared audience-builder: send one personalized
-        // message per recipient instead of a single bulk call, since each recipient's
-        // [tags] resolve to their own data.
+        // Filtered audience from the shared audience-builder: queue one personalized
+        // message per recipient, since each recipient's [tags] resolve to their own data.
         if ($select_recipient == "filtered") {
             $organization_dets = DB::select("SELECT * FROM `organizations` WHERE `organization_id` = ?",[session("organization")->organization_id]);
             if ($organization_dets[0]->send_sms == 0) {
@@ -387,21 +387,10 @@ class Sms extends Controller
 
             foreach ($clients as $client) {
                 $personalized = $this->substituteClientTags($messages, $client);
-                $phone = $client->clients_contacts;
-                $result = $this->GlobalSendSMS($personalized, $phone, $sms_api_key, $sms_sender, $sms_shortcode, $sms_partner_id);
-
-                $sms_table = new sms_table();
-                $sms_table->sms_content = $personalized;
-                $sms_table->date_sent = date("YmdHis");
-                $sms_table->recipient_phone = $phone;
-                $sms_table->sms_status = $result != null ? 1 : 0;
-                $sms_table->account_id = $client->client_id;
-                $sms_table->sms_type = $sms_type;
-                $sms_table->save();
+                $this->queueSms($personalized, $client->clients_contacts, $client->client_id, $sms_type);
             }
 
-            session()->flash("message_success", "Message has been sent to " . count($clients) . " client(s).");
-            return redirect("/sms/compose");
+            return $this->startSmsAgent(count($clients));
         }
 
         // from the 1
@@ -518,7 +507,7 @@ class Sms extends Controller
 
         // message status
         if ($send_sms == 1) {
-            // Send one message per number so each recipient's [tags] resolve to their
+            // Queue one message per number so each recipient's [tags] resolve to their
             // own client data. Numbers that don't belong to any client get the tags
             // blanked out and receive the plain text.
             $clients_by_phone = $this->getClientsByPhoneKey();
@@ -526,35 +515,56 @@ class Sms extends Controller
                 return trim($phone) != "";
             }));
 
-            $sent_count = 0;
             foreach ($client_phones as $phone) {
                 $phone = trim($phone);
                 $client = $clients_by_phone[$this->phoneKey($phone)] ?? null;
                 $personalized = $this->substituteClientTags($messages, $client);
-                $result = $this->GlobalSendSMS($personalized, $phone, $sms_api_key, $sms_sender, $sms_shortcode, $sms_partner_id);
-                if ($result != null) {
-                    $sent_count++;
-                }
-
-                $sms_table = new sms_table();
-                $sms_table->sms_content = $personalized;
-                $sms_table->date_sent = date("YmdHis");
-                $sms_table->recipient_phone = $phone;
-                $sms_table->sms_status = $result != null ? 1 : 0;
-                $sms_table->account_id = $client != null ? $client->client_id : 0;
-                $sms_table->sms_type = $sms_type;
-                $sms_table->save();
+                $this->queueSms($personalized, $phone, $client != null ? $client->client_id : 0, $sms_type);
             }
 
-            if ($sent_count == 0) {
-                session()->flash("error_sms","Your account cannot send sms, contact us for more information!");
-                return redirect("/sms");
-            }
-            session()->flash("message_success","Message has been successfully sent to " . $sent_count . " of " . count($client_phones) . " recipient(s).");
-            return redirect("/sms/compose");
+            return $this->startSmsAgent(count($client_phones));
         }else{
             return redirect("/sms/compose");
         }
+    }
+
+    // Bulk SMS from the compose page is queued here and sent by the crontab
+    // project's send_queued_sms.php agent. `sent_status = 0` marks the row for the
+    // agent; every other insert gets the column default 1 and is left alone.
+    function queueSms($message, $phone, $client_id, $sms_type){
+        $sms_table = new sms_table();
+        $sms_table->sms_content = $message;
+        $sms_table->date_sent = date("YmdHis");
+        $sms_table->recipient_phone = $phone;
+        $sms_table->sms_status = 0;
+        $sms_table->processing_id = 0;
+        $sms_table->sent_status = 0;
+        $sms_table->account_id = $client_id;
+        $sms_table->sms_type = $sms_type;
+        $sms_table->save();
+    }
+
+    // Calls the agent link for this org without waiting for it to finish: the
+    // agent ignores the disconnect and keeps sending.
+    function startSmsAgent($queued_count){
+        $agent_url = config("messaging.sms_agent_url");
+        if (!$agent_url) {
+            session()->flash("error_sms", $queued_count . " message(s) queued, but the SMS agent link is not configured so they have not been sent.");
+            return redirect("/sms/compose");
+        }
+
+        $ch = curl_init($agent_url . (str_contains($agent_url, "?") ? "&" : "?") . "db=" . urlencode(session("database_name")));
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT_MS => 1500,
+            CURLOPT_NOSIGNAL => 1,
+            CURLOPT_SSL_VERIFYPEER => false,
+        ]);
+        curl_exec($ch);
+        curl_close($ch);
+
+        session()->flash("message_success", $queued_count . " message(s) queued and are being sent. Check the SMS list for each message's status.");
+        return redirect("/sms/compose");
     }
 
     // Phones are stored inconsistently (07..., 2547..., +2547...), so compare on

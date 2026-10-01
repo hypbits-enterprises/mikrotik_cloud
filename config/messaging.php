@@ -20,4 +20,8 @@ return [
 
     'max_templates' => 3,
 
+    // Link to the crontab project's send_queued_sms.php agent; called with ?db=<org database>
+    // after bulk SMS is queued from the compose page.
+    'sms_agent_url' => env('SMS_AGENT_URL'),
+
 ];
