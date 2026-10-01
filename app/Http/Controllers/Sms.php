@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Classes\reports\PDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\sms_table;
 use stdClass;
 
@@ -544,8 +545,9 @@ class Sms extends Controller
         $sms_table->save();
     }
 
-    // Calls the agent link for this org without waiting for it to finish: the
-    // agent ignores the disconnect and keeps sending.
+    // Calls the agent link for this org. With background=1 the agent replies as soon
+    // as it has started and keeps sending after the connection closes, so this
+    // doesn't wait for the sends. The timeouts only need to cover reaching it.
     function startSmsAgent($queued_count){
         $agent_url = config("messaging.sms_agent_url");
         if (!$agent_url) {
@@ -553,15 +555,31 @@ class Sms extends Controller
             return redirect("/sms/compose");
         }
 
-        $ch = curl_init($agent_url . (str_contains($agent_url, "?") ? "&" : "?") . "db=" . urlencode(session("database_name")));
+        $link = $agent_url . (str_contains($agent_url, "?") ? "&" : "?") . "db=" . urlencode(session("database_name")) . "&background=1";
+        $ch = curl_init($link);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT_MS => 1500,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 10,
             CURLOPT_NOSIGNAL => 1,
             CURLOPT_SSL_VERIFYPEER => false,
         ]);
-        curl_exec($ch);
+        $response = curl_exec($ch);
+        $curl_error = curl_errno($ch) ? curl_error($ch) : "";
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
+
+        $agent_reply = $response ? json_decode($response) : null;
+        if ($curl_error != "" || $http_code != 200 || !$agent_reply || empty($agent_reply->success)) {
+            // a non-JSON reply (e.g. a PHP warning or IP-check message printed by the
+            // agent) is shown as-is so the cause is visible on the compose page
+            $reply_text = trim(strip_tags((string) $response));
+            $reason = $curl_error != "" ? $curl_error
+                : ($agent_reply->message ?? ("HTTP " . $http_code . ($reply_text != "" ? ": " . mb_substr($reply_text, 0, 200) : ", empty reply")));
+            Log::error("SMS agent could not be started", ["link" => $link, "reason" => $reason, "response" => $response]);
+            session()->flash("error_sms", $queued_count . " message(s) queued, but the SMS agent could not be reached (" . $reason . "). They will stay queued until the agent runs.");
+            return redirect("/sms/compose");
+        }
 
         session()->flash("message_success", $queued_count . " message(s) queued and are being sent. Check the SMS list for each message's status.");
         return redirect("/sms/compose");
