@@ -349,7 +349,15 @@ class Sms extends Controller
             "SELECT * FROM `whatsapp_templates` WHERE `is_active` = 1 AND `deleted` = '0' AND `meta_status` = 'approved' ORDER BY `id` ASC"
         );
         $audience_options = $this->getAudienceFilterOptions();
-        return view("compose",["client_names" => $client_names,"client_contacts" => $client_contacts,"client_account" => $client_account,"router_infor" => $router_data, "wa_templates" => $wa_templates, "audience_options" => $audience_options]);
+        $view_data = ["client_names" => $client_names,"client_contacts" => $client_contacts,"client_account" => $client_account,"router_infor" => $router_data, "wa_templates" => $wa_templates, "audience_options" => $audience_options];
+
+        // prefilled message and numbers flashed by resend_sms() / Clients::sendSmsClients()
+        if (session()->has("compose_prefill")) {
+            $prefill = session("compose_prefill");
+            $view_data["messages"] = $prefill["messages"];
+            $view_data["phone_number"] = $prefill["phone_number"];
+        }
+        return view("compose", $view_data);
     }
     function sendsms(Request $req){
         // change db
@@ -1198,24 +1206,8 @@ class Sms extends Controller
             // get the sms data it contains the client data
             $messages = $sms_data[0]->sms_content;
             $phone_number = $sms_data[0]->recipient_phone;
-            $client_id = $sms_data[0]->account_id;
-            $sms_type = $sms_data[0]->sms_type;
-            $message_status = 0;
-            // get the data to display for the client list
-            $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0';");
-            $client_names = [];
-            foreach ($user_data as $key => $value) {
-                array_push($client_names,$value->client_name);
-            }
-            $client_contacts = [];
-            foreach ($user_data as $key => $value) {
-                array_push($client_contacts,$value->clients_contacts);
-            }
-            $client_account = [];
-            foreach ($user_data as $key => $value) {
-                array_push($client_account,$value->client_account);
-            }        
-            return view("compose",["client_names" => $client_names,"client_contacts" => $client_contacts,"client_account" => $client_account,"messages" => $messages,"phone_number" => $phone_number]);
+            session()->flash("compose_prefill", ["messages" => $messages, "phone_number" => $phone_number]);
+            return redirect("/sms/compose");
         }else {
             session()->flash("error_sms","Message to resend not found");
             return redirect("/sms");

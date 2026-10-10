@@ -3170,23 +3170,8 @@ $export_text .= "
             $phone_number = substr($phone_numbers, 0, (strlen($phone_numbers) - 1));
             // return $phone_number;
 
-            // get the sms data it contains the client data
-            $messages = "";
-            // get the data to display for the client list
-            $user_data = DB::connection("mysql2")->select("SELECT * FROM `client_tables` WHERE `deleted`= '0';");
-            $client_names = [];
-            foreach ($user_data as $key => $value) {
-                array_push($client_names, $value->client_name);
-            }
-            $client_contacts = [];
-            foreach ($user_data as $key => $value) {
-                array_push($client_contacts, $value->clients_contacts);
-            }
-            $client_account = [];
-            foreach ($user_data as $key => $value) {
-                array_push($client_account, $value->client_account);
-            }
-            return view("compose", ["client_names" => $client_names, "client_contacts" => $client_contacts, "client_account" => $client_account, "messages" => $messages, "phone_number" => $phone_number]);
+            session()->flash("compose_prefill", ["messages" => "", "phone_number" => $phone_number]);
+            return redirect("/sms/compose");
         } else {
             session()->flash("error_clients", "An error occured!");
             return redirect("/Clients");
