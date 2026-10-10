@@ -655,14 +655,71 @@ class Controller extends BaseController
         return json_last_error() === JSON_ERROR_NONE;
     }
 
-    // regions list, stored the same way expense categories are: a JSON array in `settings`
+    // Regions and subregions are stored the same way expense categories are: JSON arrays in
+    // `settings`. `Regions` = [{name, index}], `Subregions` = [{name, index, region}] where
+    // `region` is the parent region's name. Clients are only ever assigned a subregion, and
+    // `client_tables.region` holds that SUBREGION name; a client's region is looked up from it.
     function getRegionsList() {
-        $row = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = 'Regions'");
+        $this->migrateRegionsToSubregions();
+        return $this->readSettingsJsonList('Regions');
+    }
+
+    function getSubregionsList() {
+        $this->migrateRegionsToSubregions();
+        return $this->readSettingsJsonList('Subregions');
+    }
+
+    // [subregion name => parent region name]
+    function getSubregionRegionMap() {
+        $map = [];
+        foreach ($this->getSubregionsList() as $subregion) {
+            $map[$subregion->name] = $subregion->region;
+        }
+        return $map;
+    }
+
+    // [region name => [subregion, ...]] in region order, for grouped (<optgroup>) dropdowns
+    function getSubregionsGrouped() {
+        $grouped = [];
+        foreach ($this->getRegionsList() as $region) {
+            $grouped[$region->name] = [];
+        }
+        foreach ($this->getSubregionsList() as $subregion) {
+            $grouped[$subregion->region][] = $subregion;
+        }
+        return $grouped;
+    }
+
+    private function readSettingsJsonList($keyword) {
+        $row = DB::connection("mysql2")->select("SELECT * FROM `settings` WHERE `deleted` = '0' AND `keyword` = ?", [$keyword]);
         if (count($row) == 0 || !$this->isJson($row[0]->value)) {
             return [];
         }
         $data = json_decode($row[0]->value);
         return is_array($data) ? $data : [];
+    }
+
+    // One-time per org: before subregions existed, the `Regions` row held what are now
+    // subregions. Move them into `Subregions` under a default "General" region. The
+    // `Subregions` row is the marker that this already ran, so it is written first.
+    // Clients need no change: `client_tables.region` already holds those names.
+    private function migrateRegionsToSubregions() {
+        $done = DB::connection("mysql2")->select("SELECT `id` FROM `settings` WHERE `keyword` = 'Subregions' LIMIT 1");
+        if (count($done) > 0) {
+            return;
+        }
+
+        $old_regions = $this->readSettingsJsonList('Regions');
+        $subregions = [];
+        foreach ($old_regions as $old) {
+            $subregions[] = ["name" => $old->name, "index" => $old->index, "region" => "General"];
+        }
+
+        DB::connection("mysql2")->insert("INSERT INTO `settings` (`keyword`,`value`,`status`) VALUES ('Subregions', ?, '1')", [json_encode($subregions)]);
+        if (count($old_regions) > 0) {
+            $regions = [["name" => "General", "index" => 0]];
+            DB::connection("mysql2")->update("UPDATE `settings` SET `value` = ?, `date_changed` = ? WHERE `keyword` = 'Regions'", [json_encode($regions), date("YmdHis")]);
+        }
     }
 
     // ─── Audience / Bulk Messaging Helpers ───────────────────────────────────
@@ -678,7 +735,7 @@ class Controller extends BaseController
         $columnForFilter = [
             'client_status'    => 'client_tables.client_status',
             'router_id'         => 'client_tables.router_name',
-            'region'            => 'client_tables.region',
+            'subregion'         => 'client_tables.region',
             'assignment'        => 'client_tables.assignment',
             'client_profile'    => 'client_tables.client_profile',
             'preferred_channel' => 'client_tables.preferred_channel',
@@ -694,6 +751,17 @@ class Controller extends BaseController
             }
         }
 
+        // a region matches every client in any of its subregions
+        if (isset($filters['region']) && $filters['region'] !== '') {
+            $subregion_names = array_keys(array_filter($this->getSubregionRegionMap(), fn($region) => $region === $filters['region']));
+            if (count($subregion_names) == 0) {
+                $where[] = "1 = 0";
+            } else {
+                $where[] = "client_tables.region IN (" . implode(',', array_fill(0, count($subregion_names), '?')) . ")";
+                $bindings = array_merge($bindings, $subregion_names);
+            }
+        }
+
         $sql = "SELECT client_tables.*, remote_routers.router_name AS router_display_name
                 FROM client_tables
                 LEFT JOIN remote_routers ON remote_routers.router_id = client_tables.router_name
@@ -701,7 +769,7 @@ class Controller extends BaseController
         return DB::connection('mysql2')->select($sql, $bindings);
     }
 
-    // Dropdown option lists for the audience builder: routers, regions, and the
+    // Dropdown option lists for the audience builder: routers, regions, subregions, and the
     // distinct PPPoE packages/profiles currently in use.
     function getAudienceFilterOptions(): array {
         $routers = DB::connection('mysql2')->select(
@@ -715,7 +783,8 @@ class Controller extends BaseController
 
         return [
             'routers'  => $routers,
-            'regions'  => $this->getRegionsList(),
+            'regions'    => $this->getRegionsList(),
+            'subregions' => $this->getSubregionsList(),
             'profiles' => array_map(fn($p) => $p->client_profile, $profiles),
         ];
     }
@@ -725,14 +794,21 @@ class Controller extends BaseController
     // notification messages in Clients.php, Transaction.php and billsms_manager.php
     // (`[client_name]`, `[client_addr]`, `[client_phone]`, `[acc_no]`, `[client_wallet]`,
     // `[monthly_fees]`, `[exp_date]`, `[username]`) so composed messages stay consistent
-    // with the rest of the app. `[region]` is new here — if crontab's billing messages
-    // ever need it too, shared_functions.php there must get the same token added.
+    // with the rest of the app. `[region]` and `[subregion]` are new here — if crontab's
+    // billing messages ever need them too, shared_functions.php there must get the same tokens.
     // Pass `null` for a recipient that isn't a client: every tag is blanked out so
     // they receive the plain text instead of literal `[client_name]` etc.
+    private $subregionMapCache = null;
+
     function substituteClientTags(string $text, $client): string {
         if ($client === null) {
-            $tags = ['[client_name]', '[client_addr]', '[client_phone]', '[acc_no]', '[client_wallet]', '[monthly_fees]', '[exp_date]', '[username]', '[region]'];
+            $tags = ['[client_name]', '[client_addr]', '[client_phone]', '[acc_no]', '[client_wallet]', '[monthly_fees]', '[exp_date]', '[username]', '[region]', '[subregion]'];
             return str_replace($tags, '', $text);
+        }
+
+        // looked up once per request: this runs for every recipient of a bulk send
+        if ($this->subregionMapCache === null) {
+            $this->subregionMapCache = $this->getSubregionRegionMap();
         }
 
         $fullName = $client->client_name ?? '';
@@ -748,7 +824,8 @@ class Controller extends BaseController
             '[monthly_fees]'  => 'Ksh ' . number_format($client->monthly_payment ?? 0),
             '[exp_date]'      => $expDate,
             '[username]'      => $client->client_username ?? '',
-            '[region]'        => $client->region ?? '',
+            '[region]'        => $this->subregionMapCache[$client->region ?? ''] ?? '',
+            '[subregion]'     => $client->region ?? '',
         ];
 
         return str_replace(array_keys($map), array_values($map), $text);

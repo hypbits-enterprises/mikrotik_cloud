@@ -237,7 +237,7 @@
                                         </div>
                                         <div class="col-md-12 d-none" id="audience_filter_row">
                                             <label class="form-control-label">Filter Your Audience</label>
-                                            <x-audience-builder :routers="$audience_options['routers']" :regions="$audience_options['regions']" :profiles="$audience_options['profiles']" idPrefix="audience" :readOnly="$readonly" />
+                                            <x-audience-builder :routers="$audience_options['routers']" :regions="$audience_options['regions']" :subregions="$audience_options['subregions']" :profiles="$audience_options['profiles']" idPrefix="audience" :readOnly="$readonly" />
                                         </div>
                                         <div class="col-md-12 my-1" id="sms_message_row">
                                             <label for="messages" class="form-control-label">Write Message
@@ -301,6 +301,7 @@
                                                 { label: 'Expiry',  icon: 'ft-clock',        token: '[exp_date]' },
                                                 { label: 'Address', icon: 'ft-map-pin',      token: '[client_addr]' },
                                                 { label: 'Region',  icon: 'ft-map',          token: '[region]' },
+                                                { label: 'Subregion', icon: 'ft-map',        token: '[subregion]' },
                                                 { label: 'Username',icon: 'ft-user-check',   token: '[username]' },
                                             ];
                                             tags.forEach(function (t) {

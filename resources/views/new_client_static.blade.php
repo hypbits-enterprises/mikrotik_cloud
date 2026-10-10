@@ -169,11 +169,17 @@
                                                 </select>
                                             </div>
                                             <div class="col-md-3 form-group">
-                                                <label for="region" class="form-control-label">Region</label>
+                                                <label for="region" class="form-control-label">Subregion</label>
                                                 <select name="region" id="region" class="form-control">
                                                     <option value="">Not set</option>
-                                                    @foreach (($regions ?? []) as $region)
-                                                        <option value="{{ $region->name }}">{{ $region->name }}</option>
+                                                    @foreach (($subregion_groups ?? []) as $region_name => $subregions)
+                                                        @if (count($subregions) > 0)
+                                                            <optgroup label="{{ $region_name }}">
+                                                                @foreach ($subregions as $subregion)
+                                                                    <option value="{{ $subregion->name }}">{{ $subregion->name }}</option>
+                                                                @endforeach
+                                                            </optgroup>
+                                                        @endif
                                                     @endforeach
                                                 </select>
                                             </div>

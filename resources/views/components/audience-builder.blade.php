@@ -27,6 +27,15 @@
             </select>
         </div>
         <div class="col-md-4 form-group mb-1">
+            <label class="form-control-label mb-0" style="font-size:0.85rem;">Subregion</label>
+            <select name="subregion" class="form-control form-control-sm audience-filter" {{ $readOnly }}>
+                <option value="">All</option>
+                @foreach ($subregions as $subregion)
+                    <option value="{{ $subregion->name }}" data-region="{{ $subregion->region }}">{{ $subregion->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-4 form-group mb-1">
             <label class="form-control-label mb-0" style="font-size:0.85rem;">Package / Profile</label>
             <select name="client_profile" class="form-control form-control-sm audience-filter" {{ $readOnly }}>
                 <option value="">All</option>
@@ -74,6 +83,7 @@
                     <th>Name</th>
                     <th>Phone</th>
                     <th>Region</th>
+                    <th>Subregion</th>
                     <th>Router</th>
                 </tr>
             </thead>
@@ -137,6 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             { data: 'client_name' },
                             { data: 'clients_contacts' },
                             { data: 'region' },
+                            { data: 'subregion' },
                             { data: 'router_name' },
                         ],
                     });
@@ -151,6 +162,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 countEl.textContent = 'Matching clients: —';
             });
     }
+
+    // only offer the chosen region's subregions, and drop a subregion choice outside it
+    var regionSelect    = builder.querySelector('select[name="region"]');
+    var subregionSelect = builder.querySelector('select[name="subregion"]');
+    regionSelect.addEventListener('change', function () {
+        var region = regionSelect.value;
+        subregionSelect.querySelectorAll('option[data-region]').forEach(function (opt) {
+            opt.hidden = region !== '' && opt.getAttribute('data-region') !== region;
+        });
+        var selected = subregionSelect.options[subregionSelect.selectedIndex];
+        if (selected && selected.hidden) {
+            subregionSelect.value = '';
+        }
+    });
 
     builder.querySelectorAll('.audience-filter').forEach(function (el) {
         el.addEventListener('change', function () {

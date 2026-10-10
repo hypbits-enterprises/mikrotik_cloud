@@ -428,6 +428,9 @@ Route::get("/Regions", [Region::class, "openRegions"])->middleware(["checkAccoun
 Route::post("/Regions/Add", [Region::class, "addRegion"])->middleware(["checkAccount", "validated"]);
 Route::post("/Regions/Update", [Region::class, "updateRegion"])->middleware(["checkAccount", "validated"]);
 Route::get("/Regions/Delete/{region_index}", [Region::class, "deleteRegion"])->middleware(["checkAccount", "validated"]);
+Route::post("/Subregions/Add", [Region::class, "addSubregion"])->middleware(["checkAccount", "validated"]);
+Route::post("/Subregions/Update", [Region::class, "updateSubregion"])->middleware(["checkAccount", "validated"]);
+Route::get("/Subregions/Delete/{subregion_index}", [Region::class, "deleteSubregion"])->middleware(["checkAccount", "validated"]);
 
 
 // MPESA URL REGISTRATION

@@ -19,6 +19,7 @@ class Audience extends Controller
             'client_status',
             'router_id',
             'region',
+            'subregion',
             'assignment',
             'client_profile',
             'preferred_channel',
@@ -27,11 +28,13 @@ class Audience extends Controller
 
         $clients = $this->getFilteredAudience($filters);
 
-        $rows = array_map(function ($c) {
+        $subregion_regions = $this->getSubregionRegionMap();
+        $rows = array_map(function ($c) use ($subregion_regions) {
             return [
                 'client_name'      => $c->client_name,
                 'clients_contacts' => $c->clients_contacts,
-                'region'           => $c->region,
+                'region'           => $subregion_regions[$c->region ?? ''] ?? '',
+                'subregion'        => $c->region,
                 'router_name'      => $c->router_display_name,
             ];
         }, $clients);

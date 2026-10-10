@@ -801,7 +801,7 @@
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-info white">
-                    <h4 class="modal-title white" id="myModalLabelRegion">Update "{{ucwords(strtolower($clients_data[0]->client_name))}}" Region.</h4>
+                    <h4 class="modal-title white" id="myModalLabelRegion">Update "{{ucwords(strtolower($clients_data[0]->client_name))}}" Subregion.</h4>
                     <button id="close_update_region_modal_1" type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
@@ -810,13 +810,19 @@
                     <div class="container">
                         <form action="/change_client_region" method="post" class="form-control-group">
                             @csrf
-                            <h6 class="text-center">Update Region</h6>
+                            <h6 class="text-center">Update Subregion</h6>
                             <input type="hidden" name="clients_id" value="{{ $clients_data[0]->client_id }}">
-                            <label for="region_edit" class="form-control-label">Region</label>
+                            <label for="region_edit" class="form-control-label">Subregion</label>
                             <select name="region" id="region_edit" class="form-control">
                                 <option value="" {{ ($clients_data[0]->region ?? '') == '' ? 'selected' : '' }}>Not set</option>
-                                @foreach (($regions ?? []) as $region)
-                                    <option value="{{ $region->name }}" {{ ($clients_data[0]->region ?? '') == $region->name ? 'selected' : '' }}>{{ $region->name }}</option>
+                                @foreach (($subregion_groups ?? []) as $region_name => $subregions)
+                                    @if (count($subregions) > 0)
+                                        <optgroup label="{{ $region_name }}">
+                                            @foreach ($subregions as $subregion)
+                                                <option value="{{ $subregion->name }}" {{ ($clients_data[0]->region ?? '') == $subregion->name ? 'selected' : '' }}>{{ $subregion->name }}</option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endif
                                 @endforeach
                             </select>
                             <div class="row w-100 mt-1">
@@ -1145,6 +1151,20 @@
                     <div class="col-sm-7">
                         <strong>Region:</strong> <br>
                         @if ($clients_data[0]->region ?? null)
+                            @php
+                                // `client_tables.region` holds the subregion; its region is looked up
+                                $client_region_name = null;
+                                foreach (($subregion_groups ?? []) as $region_name => $subregions) {
+                                    foreach ($subregions as $subregion) {
+                                        if ($subregion->name == $clients_data[0]->region) {
+                                            $client_region_name = $region_name;
+                                        }
+                                    }
+                                }
+                            @endphp
+                            @if ($client_region_name)
+                                <span class="badge badge-secondary">{{ $client_region_name }}</span> <i class="ft-chevron-right"></i>
+                            @endif
                             <span class="badge badge-secondary">{{ $clients_data[0]->region }}</span>
                         @else
                             <span class="text-muted">Not set</span>

@@ -123,7 +123,7 @@
 
                                             <div class="form-group">
                                                 <label>Send To</label>
-                                                <x-audience-builder :routers="$audience_options['routers']" :regions="$audience_options['regions']" :profiles="$audience_options['profiles']" idPrefix="wa_bulk_audience" :readOnly="$readonly" />
+                                                <x-audience-builder :routers="$audience_options['routers']" :regions="$audience_options['regions']" :subregions="$audience_options['subregions']" :profiles="$audience_options['profiles']" idPrefix="wa_bulk_audience" :readOnly="$readonly" />
                                             </div>
 
                                             <div class="alert alert-warning py-1">

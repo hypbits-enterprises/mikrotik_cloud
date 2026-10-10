@@ -282,7 +282,7 @@ class WhatsApp extends Controller
 
         $template = $template[0];
 
-        $filters = $req->only(['client_status', 'router_id', 'region', 'assignment', 'client_profile', 'preferred_channel', 'payments_status']);
+        $filters = $req->only(['client_status', 'router_id', 'region', 'subregion', 'assignment', 'client_profile', 'preferred_channel', 'payments_status']);
         $clients = $this->getFilteredAudience($filters);
 
         if (empty($clients)) {
@@ -377,7 +377,7 @@ class WhatsApp extends Controller
             }
             foreach ($clients as $c) { $phones[] = $c->clients_contacts; $clientMap[$c->clients_contacts] = $c; }
         } elseif ($selectRecipient == 'filtered') {
-            $filters = $req->only(['client_status', 'router_id', 'region', 'assignment', 'client_profile', 'preferred_channel', 'payments_status']);
+            $filters = $req->only(['client_status', 'router_id', 'region', 'subregion', 'assignment', 'client_profile', 'preferred_channel', 'payments_status']);
             $clients = $this->getFilteredAudience($filters);
             if (empty($clients)) {
                 return redirect('/sms/compose')->with('error_sms', 'No clients match the selected filters.');

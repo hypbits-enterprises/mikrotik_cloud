@@ -387,7 +387,7 @@ class Sms extends Controller
                 return redirect("/sms/compose");
             }
 
-            $filters = $req->only(['client_status', 'router_id', 'region', 'assignment', 'client_profile', 'preferred_channel', 'payments_status']);
+            $filters = $req->only(['client_status', 'router_id', 'region', 'subregion', 'assignment', 'client_profile', 'preferred_channel', 'payments_status']);
             $clients = $this->getFilteredAudience($filters);
             if (count($clients) == 0) {
                 session()->flash("error_sms", "No clients match the selected filters.");
