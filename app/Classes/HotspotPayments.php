@@ -426,6 +426,214 @@ class HotspotPayments
         return $counts;
     }
 
+    // ---- separate hotspot Paybill, recovery (no or wrong account code) --------------------------
+
+    // C2B link of the separate hotspot Paybill: account code -> completed, else kept as unmatched
+    public static function fromHotspotC2B(array $c2b)
+    {
+        if (self::fromC2B($c2b, "hotspot_c2b")) {
+            return;
+        }
+        $trans_id = trim((string) ($c2b["TransID"] ?? ""));
+        if ($trans_id === "" || DB::connection("mysql2")->table("hotspot_transactions")->where("trans_id", $trans_id)->exists()) {
+            return;
+        }
+        $now = now()->format('YmdHis');
+        DB::connection("mysql2")->table("hotspot_transactions")->insert([
+            "trans_id" => $trans_id,
+            "source" => "hotspot_c2b",
+            "amount" => (float) ($c2b["TransAmount"] ?? 0),
+            "phone" => isset($c2b["MSISDN"]) ? (string) $c2b["MSISDN"] : null,
+            "payer_name" => trim(((string) ($c2b["FirstName"] ?? "")) . " " . ((string) ($c2b["LastName"] ?? ""))) ?: null,
+            "bill_ref" => mb_substr(trim((string) ($c2b["BillRefNumber"] ?? "")), 0, 30) ?: null,
+            "shortcode" => isset($c2b["BusinessShortCode"]) ? (string) $c2b["BusinessShortCode"] : null,
+            "trans_time" => isset($c2b["TransTime"]) ? (string) $c2b["TransTime"] : null,
+            "status" => "unmatched",
+            "note" => "No hotspot account code: assign it or let the customer claim it.",
+            "raw" => json_encode($c2b),
+            "date_created" => $now,
+            "date_changed" => $now,
+            "deleted" => 0,
+        ]);
+    }
+
+    /**
+     * Does the phone the customer typed match the payer's number on the M-Pesa transaction?
+     * Safaricom sends some C2B numbers as a SHA-256 hash of 2547XXXXXXXX.
+     */
+    public static function phoneMatches($stored, $phone)
+    {
+        $stored = strtolower(trim((string) $stored));
+        $phone = (string) $phone;
+        if ($stored === "" || $phone === "") {
+            return false;
+        }
+        if (preg_match('/^[0-9a-f]{64}$/', $stored)) {
+            return hash_equals($stored, hash("sha256", $phone));
+        }
+        return substr(preg_replace('/\D/', '', $stored), -9) === substr($phone, -9);
+    }
+
+    /**
+     * An M-Pesa payment not linked to hotspot yet, by its code: an unassigned billing transaction
+     * (shared Paybill) or an unmatched hotspot transaction (separate Paybill).
+     *
+     * @return array|null ['kind' => billing|hotspot, 'row', 'amount', 'phone', 'used' => bool]
+     */
+    public static function findPayment($mpesa_code)
+    {
+        $mpesa_code = strtoupper(trim((string) $mpesa_code));
+        if (!preg_match('/^[A-Z0-9]{8,12}$/', $mpesa_code)) {
+            return null;
+        }
+        $hotspot = DB::connection("mysql2")->table("hotspot_transactions")->where("trans_id", $mpesa_code)->where("deleted", 0)->first();
+        if ($hotspot) {
+            return ["kind" => "hotspot", "row" => $hotspot, "amount" => (float) $hotspot->amount, "phone" => $hotspot->phone, "used" => in_array($hotspot->status, ["matched", "rejected"], true) || $hotspot->payment_id];
+        }
+        if (self::config()["mode"] !== "shared") {
+            return null;
+        }
+        $billing = DB::connection("mysql2")->table("transaction_tables")->where("transaction_mpesa_id", $mpesa_code)->where("deleted", "0")->get();
+        // a code on more than one billing row can't be told apart: the ISP assigns it by hand
+        if (count($billing) === 1) {
+            return self::billingFound($billing[0]);
+        }
+        return null;
+    }
+
+    // one billing transaction row as an assignable payment
+    public static function billingFound($row)
+    {
+        return ["kind" => "billing", "row" => $row, "amount" => (float) $row->transacion_amount, "phone" => $row->phone_transacting, "used" => (string) $row->transaction_status !== "0" || (string) $row->deleted !== "0"];
+    }
+
+    /**
+     * Link an M-Pesa payment to hotspot and sell a package with it: the ticket goes to $phone by
+     * SMS. A billing transaction is moved out of the billing lists (deleted flag) and recorded as a
+     * hotspot transaction. $payment: an existing review payment to complete, or null.
+     *
+     * @return array [ticket_id or null, error message or null]
+     */
+    public static function assign(array $found, $plan, $router, $phone, $method, $by, $payment = null)
+    {
+        if ($found["used"]) {
+            return [null, "This M-Pesa payment has already been used."];
+        }
+        if ($found["amount"] + 0.001 < (float) $plan->price) {
+            return [null, "KES " . $found["amount"] . " was paid, less than the KES " . $plan->price . " package."];
+        }
+        $now = now()->format('YmdHis');
+        $row = $found["row"];
+        $trans_id = $found["kind"] === "billing" ? $row->transaction_mpesa_id : $row->trans_id;
+
+        // claim the M-Pesa payment first, atomically, so it can never be used twice
+        if ($found["kind"] === "billing") {
+            $claimed = DB::connection("mysql2")->table("transaction_tables")->where("transaction_id", $row->transaction_id)
+                ->where("transaction_status", "0")->where("deleted", "0")->update(["deleted" => "1", "date_changed" => $now]);
+        } else {
+            $claimed = DB::connection("mysql2")->table("hotspot_transactions")->where("transaction_id", $row->transaction_id)
+                ->whereIn("status", ["unmatched", "review"])->whereNull("payment_id")->update(["status" => "matched", "date_changed" => $now]);
+        }
+        if (!$claimed) {
+            return [null, "This M-Pesa payment has already been used."];
+        }
+        // a customer's claim still waiting on this M-Pesa code is settled by this assignment
+        DB::connection("mysql2")->table("hotspot_payments")->where("mpesa_receipt", $trans_id)->where("status", "review")
+            ->when($payment, function ($query) use ($payment) {
+                $query->where("payment_id", "!=", $payment->payment_id);
+            })->update(["mpesa_receipt" => null, "status" => "cancelled", "result_desc" => "Settled when the payment was assigned by " . $by . ".", "date_changed" => $now]);
+
+        if (!$payment) {
+            $payment_id = DB::connection("mysql2")->table("hotspot_payments")->insertGetId([
+                "phone" => $phone, "amount" => $plan->price, "plan_id" => $plan->plan_id, "router_id" => $router->router_id,
+                "account_code" => self::newAccountCode(), "method" => $method, "public_token" => bin2hex(random_bytes(16)),
+                "status" => "pending", "date_created" => $now, "date_changed" => $now, "deleted" => 0,
+            ]);
+            $payment = self::find($payment_id);
+        } else {
+            DB::connection("mysql2")->table("hotspot_payments")->where("payment_id", $payment->payment_id)
+                ->update(["status" => "pending", "phone" => $phone, "plan_id" => $plan->plan_id, "router_id" => $router->router_id, "amount" => $plan->price, "date_changed" => $now]);
+            $payment = self::find($payment->payment_id);
+        }
+        if ($found["kind"] === "hotspot") {
+            DB::connection("mysql2")->table("hotspot_transactions")->where("transaction_id", $row->transaction_id)
+                ->update(["payment_id" => $payment->payment_id, "note" => "Assigned by " . $by . ".", "date_changed" => $now]);
+        }
+        $ticket_id = self::complete($payment, [
+            "trans_id" => $trans_id,
+            "source" => $found["kind"] === "billing" ? "assigned" : "hotspot_c2b",
+            "amount" => $found["amount"],
+            "phone" => $found["phone"],
+            "payer_name" => $found["kind"] === "billing" ? $row->fullnames : $row->payer_name,
+            "bill_ref" => $found["kind"] === "billing" ? $row->transaction_account : $row->bill_ref,
+            "shortcode" => $found["kind"] === "billing" ? $row->transaction_short_code : $row->shortcode,
+            "trans_time" => $found["kind"] === "billing" ? $row->transaction_date : $row->trans_time,
+            "note" => ($found["kind"] === "billing" ? "Moved from billing transaction #" . $row->transaction_id . " " : "") . "by " . $by . ".",
+            "raw" => $found["kind"] === "billing" ? json_encode($row) : $row->raw,
+        ]);
+        return [$ticket_id, null];
+    }
+
+    /**
+     * Portal "I paid but have no code": the M-Pesa code and the phone the customer paid with. When
+     * the phone matches, the package is sold and the code goes by SMS to that phone (so only the
+     * payer gets it); otherwise the claim waits for the ISP.
+     *
+     * @return array [state ok|review|error, message]
+     */
+    public static function claim($organization, $router, $plan, $mpesa_code, $phone)
+    {
+        $found = self::findPayment($mpesa_code);
+        if (!$found) {
+            return ["error", "We could not find that M-Pesa payment. It can take a minute to arrive: try again shortly, and check the code."];
+        }
+        if ($found["used"]) {
+            return ["error", "That M-Pesa payment has already been used for a package."];
+        }
+        if ($found["amount"] + 0.001 < (float) $plan->price) {
+            return ["error", "KES " . rtrim(rtrim(number_format($found["amount"], 2, ".", ""), "0"), ".") . " was paid, which is less than this package. Choose a package for that amount."];
+        }
+        $sms_on = (int) $organization->send_sms === 1;
+        if (!$sms_on || !self::phoneMatches($found["phone"], $phone)) {
+            $now = now()->format('YmdHis');
+            try {
+                DB::connection("mysql2")->table("hotspot_payments")->insert([
+                    "phone" => $phone, "amount" => $plan->price, "plan_id" => $plan->plan_id, "router_id" => $router->router_id,
+                    "account_code" => self::newAccountCode(), "method" => "claimed", "public_token" => bin2hex(random_bytes(16)),
+                    "mpesa_receipt" => strtoupper(trim($mpesa_code)), "status" => "review",
+                    "result_desc" => $sms_on ? "The phone given does not match the M-Pesa payer." : "SMS is off, so the code cannot be sent to the payer.",
+                    "date_created" => $now, "date_changed" => $now, "deleted" => 0,
+                ]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                return ["review", "This payment is already waiting for the WiFi provider to approve it."];
+            }
+            return ["review", "We could not confirm this payment automatically. It has been sent to the WiFi provider to approve; your code will come by SMS."];
+        }
+        [$ticket_id, $error] = self::assign($found, $plan, $router, $phone, "claimed", "the customer on the login page");
+        if (!$ticket_id) {
+            return ["error", $error];
+        }
+        return ["ok", "Payment confirmed. Your code has been sent by SMS to " . substr($phone, 0, 6) . "***" . substr($phone, -3) . ". Enter it below to connect."];
+    }
+
+    // ISP approves a claim waiting for review: sells the package on that M-Pesa payment
+    public static function approve($payment, $by)
+    {
+        $found = self::findPayment($payment->mpesa_receipt);
+        if (!$found) {
+            return [null, "The M-Pesa payment " . $payment->mpesa_receipt . " was not found."];
+        }
+        $plan = DB::connection("mysql2")->table("hotspot_plans")->where("plan_id", $payment->plan_id)->first();
+        $router = DB::connection("mysql2")->table("remote_routers")->where("router_id", $payment->router_id)->first();
+        // the review row holds the code in mpesa_receipt (unique): free it for the transaction
+        DB::connection("mysql2")->table("hotspot_payments")->where("payment_id", $payment->payment_id)->update(["mpesa_receipt" => null]);
+        [$ticket_id, $error] = self::assign($found, $plan, $router, $payment->phone, "claimed", $by, $payment);
+        if (!$ticket_id) {
+            DB::connection("mysql2")->table("hotspot_payments")->where("payment_id", $payment->payment_id)->update(["mpesa_receipt" => $payment->mpesa_receipt, "status" => "review"]);
+        }
+        return [$ticket_id, $error];
+    }
+
     // the org whose DB mysql2 points at (session-less callers)
     private static function organization()
     {

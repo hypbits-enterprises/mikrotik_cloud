@@ -133,6 +133,28 @@ class MpesaService
     }
 
     /**
+     * Register the C2B confirmation and validation links for this shortcode (hotspot mode), like
+     * mpesa_api::register_url() does for /Transact.
+     *
+     * @return array Daraja reply
+     */
+    public function registerC2B($confirmationUrl, $validationUrl)
+    {
+        $token = $this->cachedToken('v1');
+        if (!isset($token->access_token)) {
+            return ["errorMessage" => "M-Pesa did not accept the consumer key and secret."];
+        }
+        $response = Http::withToken($token->access_token)->timeout(30)
+            ->post('https://api.safaricom.co.ke/mpesa/c2b/v2/registerurl', [
+                "ShortCode"       => $this->shortCode,
+                "ResponseType"    => "Completed",
+                "ConfirmationURL" => $confirmationUrl,
+                "ValidationURL"   => $validationUrl,
+            ]);
+        return $response->json() ?: ["errorMessage" => "HTTP " . $response->status()];
+    }
+
+    /**
      * Generate Access Token
      */
     private function getAccessToken($version = 'v1')

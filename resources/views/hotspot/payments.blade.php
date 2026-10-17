@@ -42,13 +42,95 @@
                 </div>
             </div>
             <div class="content-body">
+                @if (session("success_hotspot"))
+                    <div class="alert alert-success alert-dismissible fade show">{{ session("success_hotspot") }}<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button></div>
+                @endif
+                @if (session("error_hotspot"))
+                    <div class="alert alert-danger alert-dismissible fade show">{{ session("error_hotspot") }}<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button></div>
+                @endif
                 @php
+                    $disabled = $readonly ? 'disabled' : '';
                     $badges = ["matched" => "success", "unmatched" => "warning", "review" => "info", "rejected" => "secondary"];
                     $sources = ["stk" => "M-Pesa prompt", "billing_c2b" => "Paybill (shared)", "hotspot_c2b" => "Paybill (hotspot)", "assigned" => "Assigned"];
                     $attemptBadges = ["pending" => "warning", "failed" => "danger", "cancelled" => "secondary", "expired" => "dark"];
                 @endphp
+                <div class="row mb-1">
+                    <div class="col-12">
+                        @php $btnText = "<i class=\"ft-settings\"></i> Payment settings"; @endphp
+                        <x-button-link :btnText="$btnText" btnType="secondary" btnSize="sm" :btnLink="route('hotspot.payment_settings')" />
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-12">
+                        @if (count($reviews) > 0 || count($unmatched) > 0)
+                            <div class="card border-warning">
+                                <div class="card-header"><h4 class="card-title text-warning"><i class="ft-alert-circle"></i> Needs attention</h4></div>
+                                <div class="card-content"><div class="card-body">
+                                    @if (count($reviews) > 0)
+                                        <p class="mb-1"><b>Customers waiting for approval</b>: they gave an M-Pesa code on the login page but the phone did not match the payer (or SMS is off). Check the payment, then approve to send the ticket code to their phone.</p>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Sent</th><th>M-Pesa code</th><th>Phone given</th><th>Package</th><th>Why</th><th></th></tr></thead>
+                                                <tbody>
+                                                    @foreach ($reviews as $review)
+                                                        <tr>
+                                                            <td>{{ date('D jS M Y g:i:sA', strtotime($review->date_created)) }}</td>
+                                                            <td><b>{{ $review->mpesa_receipt }}</b></td>
+                                                            <td>{{ $review->phone }}</td>
+                                                            <td>{{ $review->plan_name }} (Kes {{ number_format($review->amount) }})</td>
+                                                            <td><small>{{ $review->result_desc }}</small></td>
+                                                            <td class="text-nowrap">
+                                                                @php
+                                                                    $btnText = "<i class=\"ft-check\"></i> Approve";
+                                                                    $attributes = "data-toggle=modal data-target=#approve_modal data-url=\"" . route('hotspot.payment_approve', $review->payment_id) . "\" data-code=\"" . e($review->mpesa_receipt) . "\" data-phone=\"" . e($review->phone) . "\"";
+                                                                @endphp
+                                                                <x-button :btnText="$btnText" btnType="success" btnSize="sm" :readOnly="$disabled" :otherAttributes="$attributes" otherClasses="hs-approve mr-1" />
+                                                                @php
+                                                                    $btnText = "<i class=\"ft-x\"></i> Reject";
+                                                                    $attributes = "data-toggle=modal data-target=#reject_modal data-kind=claim data-id=" . $review->payment_id . " data-code=\"" . e($review->mpesa_receipt) . "\"";
+                                                                @endphp
+                                                                <x-button :btnText="$btnText" btnType="danger" btnSize="sm" :readOnly="$disabled" :otherAttributes="$attributes" otherClasses="hs-reject" />
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @endif
+                                    @if (count($unmatched) > 0)
+                                        <p class="mb-1"><b>Hotspot Paybill payments without a valid account number</b>: assign each to a package and the customer's phone, or reject it.</p>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead><tr><th>Received</th><th>M-Pesa code</th><th>Amount</th><th>Payer</th><th>Account typed</th><th></th></tr></thead>
+                                                <tbody>
+                                                    @foreach ($unmatched as $row)
+                                                        <tr>
+                                                            <td>{{ date('D jS M Y g:i:sA', strtotime($row->date_created)) }}</td>
+                                                            <td><b>{{ $row->trans_id }}</b></td>
+                                                            <td>Kes {{ number_format($row->amount, 2) }}</td>
+                                                            <td>{{ $row->payer_name }} {{ strlen((string) $row->phone) > 15 ? '' : $row->phone }}</td>
+                                                            <td>{{ $row->bill_ref ?: '—' }}@if ($row->note)<br><small class="text-muted">{{ $row->note }}</small>@endif</td>
+                                                            <td class="text-nowrap">
+                                                                @php
+                                                                    $btnText = "<i class=\"ft-tag\"></i> Assign";
+                                                                    $attributes = "data-toggle=modal data-target=#assign_modal data-id=" . $row->transaction_id . " data-code=\"" . e($row->trans_id) . "\" data-amount=\"" . e(number_format($row->amount, 2)) . "\" data-phone=\"" . e(strlen((string) $row->phone) > 15 ? '' : $row->phone) . "\"";
+                                                                @endphp
+                                                                <x-button :btnText="$btnText" btnType="success" btnSize="sm" :readOnly="$disabled" :otherAttributes="$attributes" otherClasses="hs-assign mr-1" />
+                                                                @php
+                                                                    $btnText = "<i class=\"ft-x\"></i> Reject";
+                                                                    $attributes = "data-toggle=modal data-target=#reject_modal data-kind=transaction data-id=" . $row->transaction_id . " data-code=\"" . e($row->trans_id) . "\"";
+                                                                @endphp
+                                                                <x-button :btnText="$btnText" btnType="danger" btnSize="sm" :readOnly="$disabled" :otherAttributes="$attributes" otherClasses="hs-reject" />
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @endif
+                                </div></div>
+                            </div>
+                        @endif
                         <div class="card">
                             <div class="card-header"><h4 class="card-title"><i class="ft-dollar-sign"></i> Hotspot earnings</h4></div>
                             <div class="card-content"><div class="card-body">
@@ -101,6 +183,7 @@
                                 @endif
                             </div></div>
                         </div>
+                        @include("hotspot.partials.payment-modals")
                         <div class="card">
                             <div class="card-header"><h4 class="card-title"><i class="ft-clock"></i> Payment attempts not completed</h4></div>
                             <div class="card-content"><div class="card-body">

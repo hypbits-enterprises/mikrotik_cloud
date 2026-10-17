@@ -44,6 +44,9 @@ class HotspotPaymentsTest extends TestCase
             $this->saved['max_' . $table] = (int) DB::connection('mysql2')->table($table)->max($key);
         }
         $this->saved['customers'] = DB::connection('mysql2')->table('hotspot_customers')->pluck('phone')->all();
+        $this->saved['hotspot_settings'] = DB::connection('mysql2')->table('settings')->where('keyword', 'like', 'hotspot\\_%')->get();
+        $this->saved['sms_key_rows'] = DB::connection('mysql2')->table('settings')->where('keyword', 'sms_api_key')->where('deleted', '0')->pluck('id')->all();
+        $this->saved['max_settings'] = (int) DB::connection('mysql2')->table('settings')->max('id');
         $now = now()->format('YmdHis');
         $plan_id = DB::connection('mysql2')->table('hotspot_plans')->insertGetId([
             'plan_name' => 'Pay test ' . uniqid(), 'price' => 20, 'duration_minutes' => 60, 'validity_type' => 'elapsed',
@@ -69,6 +72,11 @@ class HotspotPaymentsTest extends TestCase
             DB::connection('mysql2')->table($table)->where($key, '>', $this->saved['max_' . $table])->delete();
         }
         DB::connection('mysql2')->table('hotspot_customers')->whereNotIn('phone', $this->saved['customers'] ?: [''])->delete();
+        DB::connection('mysql2')->table('settings')->where('keyword', 'like', 'hotspot\\_%')->delete();
+        foreach ($this->saved['hotspot_settings'] as $row) {
+            DB::connection('mysql2')->table('settings')->insert((array) $row);
+        }
+        DB::connection('mysql2')->table('settings')->whereIn('id', $this->saved['sms_key_rows'] ?: [0])->update(['deleted' => '0']);
         DB::table('organizations')->where('organization_id', self::ORG_ID)->update(['send_sms' => $this->saved['send_sms']]);
         DB::table('org_hotspot_settings')->where('organization_id', self::ORG_ID)->delete();
         if ($this->saved['settings']) {
@@ -269,6 +277,153 @@ class HotspotPaymentsTest extends TestCase
         $this->post('/Transact', $this->c2b($payment->account_code, 'TJP4444444'));
         $this->assertEquals('paid', $this->payment()->status);
         $this->assertCount(1, $this->newRows('hotspot_tickets', 'ticket_id'));
+    }
+
+    // SMS "on" for the org but its SMS key hidden, so no SMS can actually be sent
+    private function smsOnButSilent(): void
+    {
+        DB::table('organizations')->where('organization_id', self::ORG_ID)->update(['send_sms' => 1]);
+        $this->useOrgDb();
+        DB::connection('mysql2')->table('settings')->whereIn('id', $this->saved['sms_key_rows'] ?: [0])->update(['deleted' => '1']);
+    }
+
+    private function billingTransaction($mpesa_code, $phone = '254712345678', $amount = 20)
+    {
+        $this->useOrgDb();
+        return DB::connection('mysql2')->table('transaction_tables')->insertGetId([
+            'transaction_mpesa_id' => $mpesa_code, 'transaction_date' => '20261017200000', 'transacion_amount' => $amount,
+            'phone_transacting' => $phone, 'transaction_account' => 'WRONGACC', 'transaction_acc_id' => 0, 'transaction_status' => '0',
+            'transaction_short_code' => self::SHORTCODE, 'fullnames' => 'TEST', 'date_changed' => now()->format('YmdHis'), 'deleted' => '0',
+        ]);
+    }
+
+    private function claim($code, $phone = '0712345678')
+    {
+        return $this->post('/hs/' . self::KEY . '/claim', ['plan_id' => $this->plan->plan_id, 'mpesa_code' => $code, 'phone' => $phone, 'mac' => 'AA:BB:CC:DD:EE:' . substr(uniqid(), -2)])->json();
+    }
+
+    private function admin(): array
+    {
+        $organization = DB::table('organizations')->where('organization_id', self::ORG_ID)->first();
+        return [
+            'auth' => 'admin', 'Userid' => 1, 'Usernames' => 'Test Admin', 'database_name' => $organization->organization_database,
+            'organization_id' => self::ORG_ID, 'organization' => $organization,
+            'priviledges' => json_encode([['option' => 'Account and Profile', 'view' => true, 'readonly' => false]]),
+        ];
+    }
+
+    public function test_claim_with_the_payer_phone_sells_the_package()
+    {
+        $this->smsOnButSilent();
+        $billing_id = $this->billingTransaction('TJC1000001');
+        $reply = $this->claim('tjc1000001');
+        $this->assertEquals('ok', $reply['state'], $reply['message']);
+        $ticket = $this->newRows('hotspot_tickets', 'ticket_id')->first();
+        $this->assertEquals('254712345678', $ticket->phone);
+        $moved = DB::connection('mysql2')->table('transaction_tables')->where('transaction_id', $billing_id)->first();
+        $this->assertEquals('1', (string) $moved->deleted);
+        $row = $this->newRows('hotspot_transactions', 'transaction_id')->first();
+        $this->assertEquals('TJC1000001', $row->trans_id);
+        $this->assertEquals('assigned', $row->source);
+        $this->assertEquals($ticket->ticket_id, $row->ticket_id);
+
+        // the same M-Pesa code can't be used again
+        $this->assertEquals('error', $this->claim('TJC1000001')['state']);
+    }
+
+    public function test_claim_matches_a_hashed_payer_phone()
+    {
+        $this->smsOnButSilent();
+        $this->billingTransaction('TJC2000002', hash('sha256', '254712345678'));
+        $this->assertEquals('ok', $this->claim('TJC2000002')['state']);
+    }
+
+    public function test_claim_with_another_phone_waits_for_approval()
+    {
+        $this->smsOnButSilent();
+        $this->billingTransaction('TJC3000003');
+        $this->assertEquals('review', $this->claim('TJC3000003', '0799999999')['state']);
+        $this->assertCount(0, $this->newRows('hotspot_tickets', 'ticket_id'));
+        $review = $this->payment();
+        $this->assertEquals('review', $review->status);
+
+        $this->withSession($this->admin())->post('/hotspot/payments/review/' . $review->payment_id . '/approve')->assertSessionHas('success_hotspot');
+        $this->assertEquals('paid', $this->payment()->status);
+        $this->assertEquals('254799999999', $this->newRows('hotspot_tickets', 'ticket_id')->first()->phone);
+    }
+
+    public function test_claim_of_too_little_or_unknown_payment_is_refused()
+    {
+        $this->smsOnButSilent();
+        $this->billingTransaction('TJC4000004', '254712345678', 5);
+        $this->assertEquals('error', $this->claim('TJC4000004')['state']);
+        $this->assertEquals('error', $this->claim('TJC9999999')['state']);
+        $this->assertCount(0, $this->newRows('hotspot_tickets', 'ticket_id'));
+    }
+
+    public function test_isp_assigns_a_billing_transaction_to_hotspot()
+    {
+        $billing_id = $this->billingTransaction('TJA5000005');
+        $this->withSession($this->admin())->post('/hotspot/payments/assign', [
+            'source' => 'billing', 'back' => 'billing', 'transaction_id' => $billing_id,
+            'plan_id' => $this->plan->plan_id, 'router_id' => self::ROUTER, 'phone' => '0712345678',
+        ])->assertRedirect(route('hotspot.payments'))->assertSessionHas('success_hotspot');
+        $this->assertCount(1, $this->newRows('hotspot_tickets', 'ticket_id'));
+        $this->assertEquals('1', (string) DB::connection('mysql2')->table('transaction_tables')->where('transaction_id', $billing_id)->value('deleted'));
+    }
+
+    public function test_transaction_page_offers_assign_to_hotspot()
+    {
+        $billing_id = $this->billingTransaction('TJA6000006');
+        $this->withSession($this->admin())->get('/Transactions/View/' . $billing_id)->assertStatus(200)->assertSee('Assign to hotspot');
+    }
+
+    public function test_separate_paybill_settings_and_its_c2b_link()
+    {
+        $this->withSession($this->admin())->post('/hotspot/payments/settings', [
+            'mode' => 'separate', 'shortcode' => '5551234', 'shortcode_type' => 'paybill',
+            'hotspot_consumer_key' => 'ck-test', 'hotspot_consumer_secret' => 'cs-test', 'hotspot_passkey' => 'pk-test',
+        ])->assertSessionHas('success_hotspot');
+        $this->useOrgDb();
+        $config = HotspotPayments::config();
+        $this->assertEquals('separate', $config['mode']);
+        $this->assertEquals('5551234', $config['shortcode']);
+        $this->assertTrue($config['stk']);
+
+        // a payment with its account code, and one without
+        $this->pay(['method' => 'paybill'])->assertJson(['shortcode' => '5551234']);
+        $payment = $this->payment();
+        $url = '/hs-callback/c2b/' . self::ORG_KEY . '/' . self::TOKEN;
+        $this->postJson($url, array_merge($this->c2b($payment->account_code, 'TJS7000007'), ['BusinessShortCode' => '5551234']))->assertJson(['ResultCode' => 0]);
+        $this->assertEquals('paid', $this->payment()->status);
+        $this->postJson($url, array_merge($this->c2b('typo', 'TJS8000008'), ['BusinessShortCode' => '5551234']));
+        $unmatched = DB::connection('mysql2')->table('hotspot_transactions')->where('trans_id', 'TJS8000008')->first();
+        $this->assertEquals('unmatched', $unmatched->status);
+        $this->postJson('/hs-callback/c2b/' . self::ORG_KEY . '/wrong', $this->c2b('x', 'TJS9000009'))->assertStatus(403);
+
+        // the ISP assigns the unmatched one
+        $this->withSession($this->admin())->post('/hotspot/payments/assign', [
+            'source' => 'hotspot', 'transaction_id' => $unmatched->transaction_id,
+            'plan_id' => $this->plan->plan_id, 'router_id' => self::ROUTER, 'phone' => '0712345678',
+        ])->assertSessionHas('success_hotspot');
+        $this->assertEquals('matched', DB::connection('mysql2')->table('hotspot_transactions')->where('trans_id', 'TJS8000008')->value('status'));
+        $this->assertCount(2, $this->newRows('hotspot_tickets', 'ticket_id'));
+    }
+
+    public function test_settings_never_show_the_keys()
+    {
+        $this->useOrgDb();
+        DB::connection('mysql2')->table('settings')->insert(['keyword' => 'hotspot_consumer_secret', 'value' => 'very-secret-value', 'status' => 1, 'deleted' => 0]);
+        $this->withSession($this->admin())->get('/hotspot/payments/settings')->assertStatus(200)->assertDontSee('very-secret-value');
+    }
+
+    public function test_rejecting_an_unmatched_payment()
+    {
+        $this->useOrgDb();
+        DB::connection('mysql2')->table('hotspot_transactions')->insert(['trans_id' => 'TJR1000001', 'source' => 'hotspot_c2b', 'amount' => 20, 'status' => 'unmatched', 'date_created' => now()->format('YmdHis'), 'deleted' => 0]);
+        $id = DB::connection('mysql2')->table('hotspot_transactions')->where('trans_id', 'TJR1000001')->value('transaction_id');
+        $this->withSession($this->admin())->post('/hotspot/payments/reject', ['kind' => 'transaction', 'id' => $id])->assertSessionHas('success_hotspot');
+        $this->assertEquals('rejected', DB::connection('mysql2')->table('hotspot_transactions')->where('transaction_id', $id)->value('status'));
     }
 
     public function test_payments_page_lists_hotspot_earnings()

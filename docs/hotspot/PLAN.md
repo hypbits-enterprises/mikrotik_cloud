@@ -9,12 +9,14 @@ apply unless a stage below replaces them.
   same name in `mikrotik_cloud_manager` and `crontab` when work starts there.
 - Company name is **Hypbits** (not "Hybits" as written in the PDF).
 
-> **Where we left off (2026-10-17):** Stages 0–7 done (tags `hotspot-stage-00` … `-07`). Stage 7:
-> captive portal `/hs/{key}` (plans, ticket code login, "You're online" page), router login files
-> (agent task `login_files`, with an offline fallback form), Hotspot → Branding. **Add the minute
-> job to the system crontab on staging/live; after moving to the live URL press "Update login page"
-> on every router.** Lab test plans 31/32 ("Test 10 min …") can be deleted when done.
-> **Next: Stage 8 (M-Pesa STK push & manual payment code).** Decide risk R1 first.
+> **Where we left off (2026-10-17):** Stages 0–8 done (tags `hotspot-stage-00` … `-08`). Stage 8:
+> portal payments (M-Pesa prompt / Paybill with an account code that becomes the ticket code),
+> STK callback + query + reconcile, `/Transact` guard for a shared Paybill (R1 decided), separate
+> hotspot Paybill with its own C2B link, assign-to-hotspot and customer claim. **On staging/live add
+> both minute jobs to the system crontab (`crontab/hotspot_tickets.php` and `php artisan
+> hotspot:reconcile-payments`), deploy the `/Transact` guard before selling on a shared Paybill, and
+> after moving to the live URL press "Update login page" on every router.** Lab test plans 31/32 and
+> 270 ("Test …") can be deleted when done. **Next: Stage 9 (reports).**
 
 ## 1. Decisions that change the PDF
 
@@ -286,6 +288,19 @@ pick a package and pay.
 - One code = one ticket (idempotent, like `mpesa_receipt` for STK).
 - Ties to R1: `mpesaTransactions()` must not send the "wrong account" SMS for hotspot payments,
   and hotspot must mark the transaction as used so it isn't assigned to a PPPoE client.
+
+As built (2026-10-17, design from the user, replacing "phone as account"):
+- Every purchase has a random 6-character account code (STK `AccountReference` / Paybill account
+  number = the ticket code). `HotspotPayments::complete()` is the single place a payment becomes
+  paid (row lock, idempotent). Confirmations: STK callback (hotspot link with org key + token), Daraja
+  STK query (portal poll and `php artisan hotspot:reconcile-payments`), C2B (shared Paybill via the
+  `/Transact` guard, separate Paybill via the hotspot C2B link).
+- STK query replies carry no receipt: the transaction is stored as `STK-<CheckoutRequestID>` until
+  the C2B confirmation brings the receipt (column `trans_id` 64 chars — real checkout IDs are ~32).
+- On dev, C2B confirmations for the org's Paybill go to the live server (registered URL), so only
+  the M-Pesa prompt can be tested end to end on dev; the rest is covered by feature tests.
+- Some C2B payer numbers arrive SHA-256 hashed (5 of 19 on dev): claims compare plain or hashed.
+- Tested live: KES 1 STK push on Paybill 4061913 → confirmed by STK query → ticket SMSed → login.
 
 Before starting: decide risk R1 in `00-impact-and-safety.md` — PPPoE STK payments are credited through the C2B `/Transact` URL, so hotspot STK payments to the same Paybill will reach `mpesaTransactions()` too.
 

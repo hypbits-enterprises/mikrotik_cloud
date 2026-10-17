@@ -210,6 +210,7 @@
             <!-- Basic Tables end -->
             {{-- Assign transaction --}}
             @if ($transaction_data[0]->transaction_status == 0)
+                @include("hotspot.partials.assign-transaction", ["transaction" => $transaction_data[0]])
                 <div class="row">
                     <div class="col-12">
                         <div class="card">

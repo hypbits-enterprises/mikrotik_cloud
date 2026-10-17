@@ -70,7 +70,29 @@
         <div id="code_msg" class="msg error hidden"></div>
         <input class="text code" id="code" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABC123" value="{{ $code ?? '' }}">
         <button type="button" class="btn" id="code_btn">Connect</button>
+        @if (count($plans) > 0)
+            <p class="foot" style="margin: 12px 0 0;"><a href="#" id="claim_open">I paid but have no code</a></p>
+        @endif
     </div>
+
+    @if (count($plans) > 0)
+        <div class="card hidden" id="claim_card">
+            <h2>I paid but have no code</h2>
+            <p class="info" style="margin: 0 0 8px; font-size: .9rem; color: #607d8b;">Enter the M-Pesa code from your payment message and the phone you paid with. We send your ticket code to that phone.</p>
+            <div id="claim_msg" class="msg error hidden"></div>
+            <label class="field" for="claim_plan">Package you paid for</label>
+            <select class="text" id="claim_plan">
+                @foreach ($plans as $plan)
+                    <option value="{{ $plan->plan_id }}">{{ $plan->plan_name }} — KES {{ rtrim(rtrim(number_format($plan->price, 2), '0'), '.') }}</option>
+                @endforeach
+            </select>
+            <label class="field" for="claim_code">M-Pesa code</label>
+            <input class="text code" id="claim_code" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="TJK1A2B3C4">
+            <label class="field" for="claim_phone">Phone you paid with</label>
+            <input class="text" id="claim_phone" type="tel" inputmode="numeric" placeholder="07XX XXX XXX">
+            <button type="button" class="btn" id="claim_btn">Send my code</button>
+        </div>
+    @endif
 
     {{-- filled and submitted to the router's login link once the code is accepted --}}
     <form id="router_login" method="post" action="{{ $login_url ?? '' }}" class="hidden">
@@ -212,6 +234,35 @@
             document.getElementById('wait_paybill').className = 'hidden';
             document.getElementById('wait_retry').className = 'btn light hidden';
             document.getElementById('wait_title').textContent = 'Waiting for your payment';
+        });
+    }
+
+    var claimOpen = document.getElementById('claim_open');
+    if (claimOpen) {
+        claimOpen.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.getElementById('claim_card').className = 'card';
+            document.getElementById('claim_card').scrollIntoView();
+        });
+        var claimBtn = document.getElementById('claim_btn');
+        claimBtn.addEventListener('click', function () {
+            var claimMsg = document.getElementById('claim_msg');
+            if (preview) { show(claimMsg, 'Preview: nothing is checked here.', 'info'); return; }
+            claimBtn.disabled = true;
+            claimBtn.textContent = 'Checking…';
+            var body = 'plan_id=' + encodeURIComponent(document.getElementById('claim_plan').value)
+                + '&mpesa_code=' + encodeURIComponent(document.getElementById('claim_code').value)
+                + '&phone=' + encodeURIComponent(document.getElementById('claim_phone').value)
+                + '&mac=' + encodeURIComponent(mac || '');
+            request('POST', @json(route('hs.claim', $key)), body, function (reply) {
+                claimBtn.disabled = false;
+                claimBtn.textContent = 'Send my code';
+                if (!reply) { show(claimMsg, 'Could not reach the server. Try again.', 'error'); return; }
+                show(claimMsg, reply.message || 'Something went wrong. Try again.', reply.state === 'ok' ? 'ok' : (reply.state === 'review' ? 'info' : 'error'));
+                if (reply.state === 'ok') {
+                    codeInput.focus();
+                }
+            });
         });
     }
 

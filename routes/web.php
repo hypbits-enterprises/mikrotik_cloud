@@ -464,6 +464,7 @@ Route::prefix("hs/{hotspot_key}")->name("hs.")->middleware("throttle:hotspot-por
     Route::post("/code", [App\Http\Controllers\Hotspot\Portal::class, "code"])->name("code")->middleware("throttle:hotspot-code");
     Route::post("/pay", [App\Http\Controllers\Hotspot\Portal::class, "pay"])->name("pay")->middleware("throttle:hotspot-pay");
     Route::get("/pay/{payment_id}", [App\Http\Controllers\Hotspot\Portal::class, "payment"])->name("payment")->whereNumber("payment_id");
+    Route::post("/claim", [App\Http\Controllers\Hotspot\Portal::class, "claim"])->name("claim")->middleware("throttle:hotspot-code");
     Route::get("/online", [App\Http\Controllers\Hotspot\Portal::class, "online"])->name("online");
     Route::get("/router-files/{name}", [App\Http\Controllers\Hotspot\Portal::class, "routerFile"])->name("router_file");
     Route::get("/ping", [App\Http\Controllers\Hotspot\Portal::class, "ping"])->name("ping");
@@ -471,6 +472,8 @@ Route::prefix("hs/{hotspot_key}")->name("hs.")->middleware("throttle:hotspot-por
 
 // HOTSPOT M-PESA CALLBACKS — public; the org comes from org_key and callback_token is checked
 Route::post("/hs-callback/stk/{org_key}/{callback_token}", [App\Http\Controllers\Hotspot\Callbacks::class, "stk"])->name("hs_callback_stk");
+Route::post("/hs-callback/c2b/{org_key}/{callback_token}", [App\Http\Controllers\Hotspot\Callbacks::class, "c2b"])->name("hs_callback_c2b");
+Route::post("/hs-callback/c2b-validate/{org_key}/{callback_token}", [App\Http\Controllers\Hotspot\Callbacks::class, "c2bValidate"])->name("hs_callback_c2b_validate");
 
 // HOTSPOT MODULE — every page under /hotspot needs an admin session, an org with hotspot enabled
 // (manager DB org_hotspot_settings) and the page's hotspot privilege.
@@ -481,6 +484,12 @@ Route::prefix("hotspot")->name("hotspot.")->middleware(["checkAccount", "validat
     Route::middleware("hotspotCan:Hotspot Payments")->group(function () {
         Route::get("/payments", [App\Http\Controllers\Hotspot\Payments::class, "index"])->name("payments");
         Route::get("/payments/export", [App\Http\Controllers\Hotspot\Payments::class, "export"])->name("payments_export");
+        Route::get("/payments/settings", [App\Http\Controllers\Hotspot\Payments::class, "settings"])->name("payment_settings");
+        Route::post("/payments/settings", [App\Http\Controllers\Hotspot\Payments::class, "saveSettings"])->name("payment_settings_save");
+        Route::post("/payments/settings/register", [App\Http\Controllers\Hotspot\Payments::class, "registerC2B"])->name("payment_register_c2b");
+        Route::post("/payments/assign", [App\Http\Controllers\Hotspot\Payments::class, "assign"])->name("payment_assign");
+        Route::post("/payments/review/{payment_id}/approve", [App\Http\Controllers\Hotspot\Payments::class, "approve"])->name("payment_approve")->whereNumber("payment_id");
+        Route::post("/payments/reject", [App\Http\Controllers\Hotspot\Payments::class, "reject"])->name("payment_reject");
     });
     Route::middleware("hotspotCan:Hotspot Plans")->group(function () {
         Route::get("/plans", [App\Http\Controllers\Hotspot\Plans::class, "index"])->name("plans");

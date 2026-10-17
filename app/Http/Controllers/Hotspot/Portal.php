@@ -86,6 +86,30 @@ class Portal extends Controller
         ]);
     }
 
+    // "I paid but have no code": M-Pesa code + the phone paid with -> code by SMS to that phone
+    function claim(Request $request, $key)
+    {
+        $found = HotspotPortal::resolve($key);
+        if (!$found) {
+            return response()->json(["state" => "error", "message" => "This hotspot is not available."], 404);
+        }
+        $plan = DB::connection("mysql2")->table("hotspot_plans")->where("plan_id", $request->input("plan_id"))
+            ->where("deleted", 0)->where("is_active", 1)->first();
+        if (!$plan) {
+            return response()->json(["state" => "error", "message" => "Choose the package you paid for."]);
+        }
+        $phone = $this->formatKenyanPhone(preg_replace('/\s+/', '', (string) $request->input("phone")));
+        if (!preg_match('/^254(7|1)\d{8}$/', (string) $phone)) {
+            return response()->json(["state" => "error", "message" => "Enter the phone number you paid with, e.g. 0712345678."]);
+        }
+        $mpesa_code = strtoupper(preg_replace('/\s+/', '', (string) $request->input("mpesa_code")));
+        if (!preg_match('/^[A-Z0-9]{8,12}$/', $mpesa_code)) {
+            return response()->json(["state" => "error", "message" => "Enter the M-Pesa code from your payment message, e.g. TJK1A2B3C4."]);
+        }
+        [$state, $message] = HotspotPayments::claim($found['organization'], $found['router'], $plan, $mpesa_code, $phone);
+        return response()->json(["state" => $state, "message" => $message]);
+    }
+
     // the portal polls this while the customer pays
     function payment(Request $request, $key, $payment_id)
     {

@@ -35,6 +35,28 @@ class Callbacks extends Controller
         return response()->json(["ResultCode" => 0, "ResultDesc" => "Accepted"]);
     }
 
+    // C2B confirmation of the separate hotspot Paybill (registered from Hotspot -> Payments)
+    function c2b(Request $request, $org_key, $callback_token)
+    {
+        $organization = $this->organization($org_key, $callback_token);
+        if (!$organization) {
+            return response()->json(["ResultCode" => 1, "ResultDesc" => "Rejected"], 403);
+        }
+        $c2b = $request->json()->all() ?: $request->all();
+        HotspotPayments::fromHotspotC2B($c2b);
+        return response()->json(["ResultCode" => 0, "ResultDesc" => "Accepted"]);
+    }
+
+    // C2B validation of the separate hotspot Paybill: every payment is accepted (unknown account
+    // numbers are kept for the ISP to assign or the customer to claim)
+    function c2bValidate(Request $request, $org_key, $callback_token)
+    {
+        if (!$this->organization($org_key, $callback_token)) {
+            return response()->json(["ResultCode" => "C2B00016", "ResultDesc" => "Rejected"]);
+        }
+        return response()->json(["ResultCode" => "0", "ResultDesc" => "Accepted"]);
+    }
+
     // org by its public key + secret token, with hotspot on; mysql2 then points at its DB
     private function organization($org_key, $callback_token)
     {
