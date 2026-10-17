@@ -716,6 +716,12 @@ class Transaction extends Controller
         $change_db = new login();
         $change_db->change_db($organization[0]->organization_database);
 
+        // hotspot on the same Paybill (risk R1): an account number that is a hotspot account code
+        // and no client's account is a hotspot payment, recorded there instead of here
+        if (\App\Classes\HotspotPayments::handleBillingC2B($organization[0], $response->all())) {
+            return ['response' => "Hotspot payment received."];
+        }
+
         // get the transaction
         // check the account number if its the user known by the system
         // if the user is known by the system add the amount recieved to the user wallet

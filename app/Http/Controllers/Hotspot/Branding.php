@@ -200,6 +200,7 @@ class Branding extends Controller
             "mac" => null,
             "dst" => null,
             "error" => "",
+            "payments" => \App\Classes\HotspotPayments::config(),
             "logged_out" => false,
             "code" => null,
             "preview" => true,

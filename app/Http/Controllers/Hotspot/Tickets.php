@@ -209,33 +209,9 @@ class Tickets extends Controller
         return $this->backToTicket($ticket_id, $result['ok'] ? "success_hotspot" : "error_hotspot", $result['ok'] ? "Ending ticket " . $ticket->ticket_code . ": it is disconnected and removed from the router in a moment." : $result['message']);
     }
 
-    /**
-     * Send a ticket's code by SMS with the org's own SMS settings, only if SMS is on for the org.
-     *
-     * @return array [sent, message for the admin]
-     */
     private function sendCode($ticket, $plan)
     {
-        $organization = DB::table("organizations")->where("organization_id", session("organization_id"))->first();
-        if (!$organization || (int) $organization->send_sms !== 1) {
-            return [false, "SMS is turned off for your account, so the code was not sent."];
-        }
-        $settings = $this->getSmsSettings();
-        if (!$settings) {
-            return [false, "Your SMS settings are not complete, so the code was not sent."];
-        }
-        $text = HotspotTickets::smsText($ticket, $plan, $organization->organization_name);
-        $result = $this->GlobalSendSMS($text, $ticket->phone, $settings['sms_api_key'], $settings['sms_sender'], $settings['sms_shortcode'], $settings['sms_partner_id']);
-        DB::connection("mysql2")->table("sms_tables")->insert([
-            "sms_content" => $text,
-            "date_sent" => now()->format('YmdHis'),
-            "recipient_phone" => $ticket->phone,
-            "sms_status" => $result ? 1 : 0,
-            "account_id" => 0,
-            "sms_type" => 1,
-            "channel" => "sms",
-        ]);
-        return $result ? [true, "Code sent by SMS to " . $ticket->phone . "."] : [false, "The SMS to " . $ticket->phone . " could not be sent."];
+        return HotspotTickets::sendCode($ticket, $plan, DB::table("organizations")->where("organization_id", session("organization_id"))->first());
     }
 
     private function backToTicket($ticket_id, $key, $message)

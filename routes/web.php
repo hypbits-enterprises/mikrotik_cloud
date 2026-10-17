@@ -462,10 +462,15 @@ Route::get("/Commission", [Clients_data::class, "get_commissions"])->name("get_c
 Route::prefix("hs/{hotspot_key}")->name("hs.")->middleware("throttle:hotspot-portal")->group(function () {
     Route::get("/", [App\Http\Controllers\Hotspot\Portal::class, "index"])->name("portal");
     Route::post("/code", [App\Http\Controllers\Hotspot\Portal::class, "code"])->name("code")->middleware("throttle:hotspot-code");
+    Route::post("/pay", [App\Http\Controllers\Hotspot\Portal::class, "pay"])->name("pay")->middleware("throttle:hotspot-pay");
+    Route::get("/pay/{payment_id}", [App\Http\Controllers\Hotspot\Portal::class, "payment"])->name("payment")->whereNumber("payment_id");
     Route::get("/online", [App\Http\Controllers\Hotspot\Portal::class, "online"])->name("online");
     Route::get("/router-files/{name}", [App\Http\Controllers\Hotspot\Portal::class, "routerFile"])->name("router_file");
     Route::get("/ping", [App\Http\Controllers\Hotspot\Portal::class, "ping"])->name("ping");
 });
+
+// HOTSPOT M-PESA CALLBACKS — public; the org comes from org_key and callback_token is checked
+Route::post("/hs-callback/stk/{org_key}/{callback_token}", [App\Http\Controllers\Hotspot\Callbacks::class, "stk"])->name("hs_callback_stk");
 
 // HOTSPOT MODULE — every page under /hotspot needs an admin session, an org with hotspot enabled
 // (manager DB org_hotspot_settings) and the page's hotspot privilege.
@@ -473,6 +478,10 @@ Route::prefix("hotspot")->name("hotspot.")->middleware(["checkAccount", "validat
     Route::redirect("/", "/hotspot/dashboard");
     Route::get("/dashboard", [App\Http\Controllers\Hotspot\Dashboard::class, "index"])->name("dashboard")->middleware("hotspotCan:Hotspot Dashboard");
     Route::post("/mpesa/test", [App\Http\Controllers\Hotspot\Mpesa::class, "test"])->name("mpesa_test")->middleware("hotspotCan:Hotspot Payments");
+    Route::middleware("hotspotCan:Hotspot Payments")->group(function () {
+        Route::get("/payments", [App\Http\Controllers\Hotspot\Payments::class, "index"])->name("payments");
+        Route::get("/payments/export", [App\Http\Controllers\Hotspot\Payments::class, "export"])->name("payments_export");
+    });
     Route::middleware("hotspotCan:Hotspot Plans")->group(function () {
         Route::get("/plans", [App\Http\Controllers\Hotspot\Plans::class, "index"])->name("plans");
         Route::get("/plans/new", [App\Http\Controllers\Hotspot\Plans::class, "create"])->name("plan_new");

@@ -43,5 +43,7 @@ class VerifyCsrfToken extends Middleware
         '/whatsapp/webhook',
         // hotspot captive portal (no login, opened in the phone's captive-portal browser)
         'hs/*',
+        // hotspot M-Pesa callbacks (Safaricom)
+        'hs-callback/*',
     ];
 }

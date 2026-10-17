@@ -65,6 +65,14 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('hotspot-portal', function (Request $request) {
             return Limit::perMinute(300)->by('hs-page|' . $request->ip());
         });
+        // payments: an M-Pesa prompt costs nothing to send, so limit per phone too
+        RateLimiter::for('hotspot-pay', function (Request $request) {
+            return [
+                Limit::perMinutes(10, 3)->by('hs-pay-phone|' . preg_replace('/\D/', '', substr((string) $request->input('phone'), -9))),
+                Limit::perMinute(5)->by('hs-pay|' . $request->ip() . '|' . substr((string) $request->input('mac'), 0, 17)),
+                Limit::perMinute(60)->by('hs-pay|' . $request->ip()),
+            ];
+        });
         RateLimiter::for('hotspot-code', function (Request $request) {
             return [
                 Limit::perMinute(10)->by('hs-code|' . $request->ip() . '|' . substr((string) $request->input('mac'), 0, 17)),

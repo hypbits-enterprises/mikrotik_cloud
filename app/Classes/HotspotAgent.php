@@ -28,11 +28,14 @@ class HotspotAgent
     }
 
     /**
+     * $database / $triggered_by: for callers without a session (portal, M-Pesa callbacks); the
+     * mysql2 connection must already point at that org DB.
+     *
      * @return array ['ok' => bool, 'message' => string, 'activity_id' => int|null]
      */
-    public static function queue($router_id, $task, array $params = [])
+    public static function queue($router_id, $task, array $params = [], $database = null, $triggered_by = null)
     {
-        $database = session("database_name");
+        $database = $database ?: session("database_name");
         if (!self::writeAllowed($database, $router_id)) {
             return ["ok" => false, "activity_id" => null, "message" => "This router is not on the hotspot write allowlist for this environment (HOTSPOT_ROUTER_WRITE_ALLOWLIST), so nothing was sent to it."];
         }
@@ -44,7 +47,7 @@ class HotspotAgent
             "status" => "queued",
             "attempts" => 0,
             "message" => json_encode(["params" => $params, "log" => []]),
-            "triggered_by" => "admin:" . session("Userid"),
+            "triggered_by" => $triggered_by ?: "admin:" . session("Userid"),
             "date_created" => now()->format('YmdHis'),
         ]);
 

@@ -164,3 +164,36 @@ ALTER TABLE `remote_routers` ADD UNIQUE KEY `uniq_hotspot_key` (`hotspot_key`);
 
 -- Stage 7: optional page the customer is sent to after login instead of the "You're online" page
 ALTER TABLE `hotspot_login_pages` ADD COLUMN `redirect_url` varchar(255) DEFAULT NULL COMMENT 'NULL = Hypbits online page';
+
+-- Stage 8: every portal purchase has a random account code (Paybill account / STK AccountReference),
+-- which becomes the ticket code
+ALTER TABLE `hotspot_payments` ADD COLUMN `account_code` varchar(12) DEFAULT NULL COMMENT 'account number the customer pays to = ticket code';
+ALTER TABLE `hotspot_payments` ADD COLUMN `method` varchar(10) NOT NULL DEFAULT 'stk' COMMENT 'stk | paybill | assigned | claimed';
+ALTER TABLE `hotspot_payments` ADD COLUMN `public_token` varchar(40) DEFAULT NULL COMMENT 'secret the portal polls the payment with';
+ALTER TABLE `hotspot_payments` ADD COLUMN `last_query_at` varchar(14) DEFAULT NULL COMMENT 'last Daraja STK query';
+ALTER TABLE `hotspot_payments` ADD UNIQUE KEY `uniq_account_code` (`account_code`);
+
+-- Stage 8: hotspot money received (hotspot earnings), one row per M-Pesa transaction
+CREATE TABLE IF NOT EXISTS `hotspot_transactions` (
+  `transaction_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `trans_id` varchar(64) NOT NULL COMMENT 'M-Pesa receipt / TransID (STK-<CheckoutRequestID> until the receipt arrives)',
+  `source` varchar(12) NOT NULL COMMENT 'stk | billing_c2b | hotspot_c2b | assigned',
+  `amount` decimal(12,2) NOT NULL DEFAULT 0.00,
+  `phone` varchar(70) DEFAULT NULL COMMENT 'as received, may be a SHA-256 hash',
+  `payer_name` varchar(100) DEFAULT NULL,
+  `bill_ref` varchar(30) DEFAULT NULL,
+  `shortcode` varchar(20) DEFAULT NULL,
+  `trans_time` varchar(14) DEFAULT NULL,
+  `payment_id` bigint(20) unsigned DEFAULT NULL,
+  `ticket_id` bigint(20) unsigned DEFAULT NULL,
+  `status` varchar(10) NOT NULL DEFAULT 'matched' COMMENT 'matched | unmatched | review | rejected',
+  `note` varchar(255) DEFAULT NULL,
+  `raw` longtext DEFAULT NULL COMMENT 'confirmation body, no credentials',
+  `date_created` varchar(14) DEFAULT NULL,
+  `date_changed` varchar(14) DEFAULT NULL,
+  `deleted` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`transaction_id`),
+  UNIQUE KEY `uniq_trans_id` (`trans_id`),
+  KEY `idx_status_created` (`status`,`date_created`),
+  KEY `idx_payment_id` (`payment_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

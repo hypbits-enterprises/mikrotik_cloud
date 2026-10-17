@@ -3,6 +3,7 @@
 namespace App\Classes;
 
 use App\Http\Controllers\login;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
@@ -13,9 +14,21 @@ class MpesaService
     protected $shortCode;
     protected $passKey;
     protected $callbackUrl;
+    protected $cacheToken = false;
+    public $configError = null;
 
-    public function __construct()
+    /**
+     * No argument: the logged-in org's keys from the session DB (PPPoE, unchanged).
+     * Hotspot (no session): ['database' => org DB, 'callback_url' => ..., 'keys' => 'billing'|'hotspot'].
+     * 'hotspot' reads the separate hotspot Paybill keys (hotspot_consumer_key, hotspot_consumer_secret,
+     * hotspot_passkey, hotspot_shortcode). Missing keys set $configError instead of failing.
+     */
+    public function __construct($options = null)
     {
+        if (is_array($options)) {
+            $this->loadKeys($options);
+            return;
+        }
         // $consumerKey = "cCAEjjhm1LSEFUqqlHBOjMG8mjBey25DpkZi8sRrL2SQIkgA";
         // $consumerSecret = "LVO4bJTvAi1fDFsFki3MYVdh9DFQCkXz4KovJJf3WfuxUnJcuJg1zenJmX5vFaMD";
         // $shortCode = "174379";
@@ -49,6 +62,74 @@ class MpesaService
         $this->shortCode     = $paybillno;
         $this->passKey       = $passkey;
         $this->callbackUrl   = $callbackUrl;
+    }
+
+    private function loadKeys(array $options)
+    {
+        (new login())->change_db($options['database']);
+        $names = ($options['keys'] ?? 'billing') === 'hotspot'
+            ? ['consumer_key' => 'hotspot_consumer_key', 'consumer_secret' => 'hotspot_consumer_secret', 'passkey' => 'hotspot_passkey', 'paybill' => 'hotspot_shortcode']
+            : ['consumer_key' => 'consumer_key', 'consumer_secret' => 'consumer_secret', 'passkey' => 'passkey', 'paybill' => 'paybill'];
+        $rows = DB::connection("mysql2")->table("settings")->where("deleted", "0")->whereIn("keyword", array_values($names))->pluck("value", "keyword");
+        $missing = [];
+        foreach ($names as $name) {
+            if (!isset($rows[$name]) || trim((string) $rows[$name]) === "") {
+                $missing[] = $name;
+            }
+        }
+        if (count($missing) > 0) {
+            $this->configError = "M-Pesa settings missing: " . implode(", ", $missing) . ".";
+        }
+        $this->consumerKey    = trim((string) ($rows[$names['consumer_key']] ?? ""));
+        $this->consumerSecret = trim((string) ($rows[$names['consumer_secret']] ?? ""));
+        $this->passKey        = trim((string) ($rows[$names['passkey']] ?? ""));
+        $this->shortCode      = trim((string) ($rows[$names['paybill']] ?? ""));
+        $this->callbackUrl    = $options['callback_url'] ?? "https://mydomain.com/path";
+        $this->cacheToken     = true;
+    }
+
+    public function shortCode()
+    {
+        return $this->shortCode;
+    }
+
+    // Daraja token cached until shortly before it expires (hotspot mode only; never logged)
+    private function cachedToken($version)
+    {
+        $key = "mpesa_token_" . $version . "_" . sha1($this->consumerKey . ":" . $this->consumerSecret);
+        $token = Cache::get($key);
+        if ($token) {
+            return (object) ["access_token" => $token];
+        }
+        $result = $this->getAccessToken($version);
+        if (isset($result->access_token)) {
+            $seconds = max(60, (int) ($result->expires_in ?? 3599) - 120);
+            Cache::put($key, $result->access_token, $seconds);
+        }
+        return $result;
+    }
+
+    /**
+     * Daraja STK push query: the result of a push when its callback did not reach us.
+     *
+     * @return array Daraja reply (ResultCode "0" = paid, "1032" = cancelled, errorCode
+     *               "500.001.1001" = still being processed)
+     */
+    public function stkQuery($checkoutRequestId, $version = 'v1')
+    {
+        $timestamp = now()->format('YmdHis');
+        $token = $this->cachedToken($version);
+        if (!isset($token->access_token)) {
+            return ["errorMessage" => "Could not generate access token"];
+        }
+        $response = Http::withToken($token->access_token)->timeout(20)
+            ->post('https://api.safaricom.co.ke/mpesa/stkpushquery/' . $version . '/query', [
+                "BusinessShortCode" => $this->shortCode,
+                "Password"          => base64_encode($this->shortCode . $this->passKey . $timestamp),
+                "Timestamp"         => $timestamp,
+                "CheckoutRequestID" => $checkoutRequestId,
+            ]);
+        return $response->json() ?: ["errorMessage" => "HTTP " . $response->status()];
     }
 
     /**
@@ -116,7 +197,7 @@ class MpesaService
             "TransactionDesc"   => $transactionDesc
         ];
 
-        $token = $this->getAccessToken($version);
+        $token = $this->cacheToken ? $this->cachedToken($version) : $this->getAccessToken($version);
         if(isset($token->access_token)){
             $token = $token->access_token;
 

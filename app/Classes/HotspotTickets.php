@@ -25,7 +25,9 @@ class HotspotTickets
             for ($i = 0; $i < self::CODE_LENGTH; $i++) {
                 $code .= $alphabet[random_int(0, strlen($alphabet) - 1)];
             }
-            if (!DB::connection("mysql2")->table("hotspot_tickets")->where("ticket_code", $code)->exists()) {
+            // also not a payment's account code (it becomes that payment's ticket code)
+            if (!DB::connection("mysql2")->table("hotspot_tickets")->where("ticket_code", $code)->exists()
+                && !DB::connection("mysql2")->table("hotspot_payments")->where("account_code", $code)->exists()) {
                 return $code;
             }
         }
@@ -38,13 +40,14 @@ class HotspotTickets
      *
      * @return int ticket_id
      */
-    public static function issue($plan, $router, $phone, $mac, $source, $payment_id = null, $created_by = null)
+    public static function issue($plan, $router, $phone, $mac, $source, $payment_id = null, $created_by = null, $code = null)
     {
         $now = now()->format('YmdHis');
         for ($try = 0; $try < 5; $try++) {
             try {
                 return DB::connection("mysql2")->table("hotspot_tickets")->insertGetId([
-                    "ticket_code" => self::newCode(),
+                    // a paid ticket keeps the payment's account code
+                    "ticket_code" => $code && $try == 0 ? $code : self::newCode(),
                     "phone" => $phone ?: null,
                     "mac_address" => $mac ?: null,
                     "plan_id" => $plan->plan_id,
@@ -75,12 +78,42 @@ class HotspotTickets
     }
 
     // put tickets on their router (crontab agent); the minute job retries if the router is offline
-    public static function provision($router_id, array $ticket_ids)
+    public static function provision($router_id, array $ticket_ids, $database = null, $triggered_by = null)
     {
         return HotspotAgent::queue($router_id, "provision_tickets", [
             "target" => count($ticket_ids) . " ticket(s)",
             "ticket_ids" => array_values(array_map("intval", $ticket_ids)),
+        ], $database, $triggered_by);
+    }
+
+    /**
+     * Send a ticket's code by SMS with the org's own SMS settings, only when SMS is on for the org,
+     * and log it in sms_tables. Works without a session (mysql2 on the org DB).
+     *
+     * @return array [sent, message for the admin]
+     */
+    public static function sendCode($ticket, $plan, $organization)
+    {
+        if (!$organization || (int) $organization->send_sms !== 1) {
+            return [false, "SMS is turned off for your account, so the code was not sent."];
+        }
+        $controller = new \App\Http\Controllers\Controller();
+        $settings = $controller->getSmsSettings();
+        if (!$settings) {
+            return [false, "Your SMS settings are not complete, so the code was not sent."];
+        }
+        $text = self::smsText($ticket, $plan, $organization->organization_name);
+        $result = $controller->GlobalSendSMS($text, $ticket->phone, $settings['sms_api_key'], $settings['sms_sender'], $settings['sms_shortcode'], $settings['sms_partner_id']);
+        DB::connection("mysql2")->table("sms_tables")->insert([
+            "sms_content" => $text,
+            "date_sent" => now()->format('YmdHis'),
+            "recipient_phone" => $ticket->phone,
+            "sms_status" => $result ? 1 : 0,
+            "account_id" => 0,
+            "sms_type" => 1,
+            "channel" => "sms",
         ]);
+        return $result ? [true, "Code sent by SMS to " . $ticket->phone . "."] : [false, "The SMS to " . $ticket->phone . " could not be sent."];
     }
 
     /**

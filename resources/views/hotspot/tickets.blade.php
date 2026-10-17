@@ -89,7 +89,7 @@
                                             </select></div>
                                         <div class="col-md-1 col-6 form-group"><label class="mb-0"><small>Source</small></label>
                                             <select class="form-control form-control-sm" name="source"><option value="">All</option>
-                                                @foreach (["stk" => "M-Pesa", "manual" => "Manual"] as $value => $label)<option value="{{ $value }}" {{ $filters['source'] == $value ? 'selected' : '' }}>{{ $label }}</option>@endforeach
+                                                @foreach (["stk" => "M-Pesa prompt", "paybill" => "Paybill", "manual" => "Manual"] as $value => $label)<option value="{{ $value }}" {{ $filters['source'] == $value ? 'selected' : '' }}>{{ $label }}</option>@endforeach
                                             </select></div>
                                         <div class="col-md-2 col-6 form-group"><label class="mb-0"><small>Code or phone</small></label><input class="form-control form-control-sm" type="text" name="q" value="{{ $filters['q'] }}"></div>
                                         <div class="col-md-1 col-12 form-group d-flex align-items-end">
@@ -119,7 +119,7 @@
                                                         <td>{{ $ticket->plan_name }}</td>
                                                         <td>{{ $ticket->router_name }}</td>
                                                         <td>{{ $ticket->phone ?: '—' }}</td>
-                                                        <td>{{ $ticket->source == 'stk' ? 'M-Pesa' : 'Manual' }}</td>
+                                                        <td>{{ ['stk' => 'M-Pesa prompt', 'paybill' => 'Paybill', 'manual' => 'Manual'][$ticket->source] ?? $ticket->source }}</td>
                                                         <td>Kes {{ number_format($ticket->amount) }}</td>
                                                         <td><span class="badge badge-{{ $badges[$ticket->status] ?? 'secondary' }}">{{ $ticket->status }}</span></td>
                                                         <td>{!! $ticket->provision_status == 'done' ? '<span class="text-success">Yes</span>' : ($ticket->provision_status == 'failed' ? '<span class="text-danger">Failed</span>' : '<span class="text-warning">Waiting</span>') !!}</td>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Hotspot;
 
+use App\Classes\HotspotPayments;
 use App\Classes\HotspotPlans;
 use App\Classes\HotspotPortal;
 use App\Classes\HotspotTickets;
@@ -33,6 +34,7 @@ class Portal extends Controller
             "mac" => $this->mac($request->query("mac")),
             "dst" => HotspotPortal::safeLink($request->query("dst")),
             "error" => mb_substr(trim(strip_tags((string) $request->query("error", ""))), 0, 200),
+            "payments" => HotspotPayments::config(),
             "logged_out" => $request->boolean("logged_out"),
             // after logout the router passes the code back, so logging in again is one tap
             "code" => $request->boolean("logged_out") && preg_match('/^[A-Z0-9]{4,12}$/', (string) $request->query("user")) ? $request->query("user") : null,
@@ -49,6 +51,68 @@ class Portal extends Controller
         }
         [$ok, $message, $ticket] = HotspotPortal::checkCode($request->input("code"), $found['router']);
         return response()->json($ok ? ["ok" => true, "code" => $ticket->ticket_code] : ["ok" => false, "message" => $message]);
+    }
+
+    // start a purchase: M-Pesa prompt (stk) or Paybill with the account code (paybill)
+    function pay(Request $request, $key)
+    {
+        $found = HotspotPortal::resolve($key);
+        if (!$found) {
+            return response()->json(["ok" => false, "message" => "This hotspot is not available."], 404);
+        }
+        $plan = DB::connection("mysql2")->table("hotspot_plans")->where("plan_id", $request->input("plan_id"))
+            ->where("deleted", 0)->where("is_active", 1)->first();
+        if (!$plan) {
+            return response()->json(["ok" => false, "message" => "Choose a package."]);
+        }
+        $method = $request->input("method") === "paybill" ? "paybill" : "stk";
+        $phone = $this->formatKenyanPhone(preg_replace('/\s+/', '', (string) $request->input("phone")));
+        if (!preg_match('/^254(7|1)\d{8}$/', (string) $phone)) {
+            return response()->json(["ok" => false, "message" => "Enter your M-Pesa phone number, e.g. 0712345678."]);
+        }
+        [$payment, $error] = HotspotPayments::start($found['organization'], $found['router'], $plan, $phone, $this->mac($request->input("mac")), $request->ip(), $method);
+        if (!$payment) {
+            return response()->json(["ok" => false, "message" => $error]);
+        }
+        $config = HotspotPayments::config();
+        return response()->json([
+            "ok" => true,
+            "payment_id" => $payment->payment_id,
+            "token" => $payment->public_token,
+            "method" => $payment->method,
+            "amount" => rtrim(rtrim(number_format($payment->amount, 2, ".", ""), "0"), "."),
+            "account" => $payment->account_code,
+            "shortcode" => $config['shortcode'],
+        ]);
+    }
+
+    // the portal polls this while the customer pays
+    function payment(Request $request, $key, $payment_id)
+    {
+        $found = HotspotPortal::resolve($key);
+        if (!$found) {
+            return response()->json(["state" => "failed", "message" => "This hotspot is not available."], 404);
+        }
+        $payment = HotspotPayments::find($payment_id);
+        if (!$payment || (int) $payment->router_id !== (int) $found['router']->router_id || !hash_equals((string) $payment->public_token, (string) $request->query("t"))) {
+            return response()->json(["state" => "failed", "message" => "Payment not found."], 404);
+        }
+        $payment = HotspotPayments::refresh($found['organization'], $payment);
+        if ($payment->status === "pending") {
+            return response()->json(["state" => "waiting"]);
+        }
+        if ($payment->status !== "paid") {
+            $messages = [
+                "cancelled" => "The payment was cancelled on the phone.",
+                "expired" => "No payment was received in time. If you paid, enter your M-Pesa details under \"I paid but have no code\".",
+            ];
+            return response()->json(["state" => "failed", "message" => $messages[$payment->status] ?? ("The payment did not go through" . ($payment->result_desc ? ": " . $payment->result_desc : ".") )]);
+        }
+        $ticket = DB::connection("mysql2")->table("hotspot_tickets")->where("payment_id", $payment->payment_id)->first();
+        if (!$ticket || $ticket->provision_status !== "done") {
+            return response()->json(["state" => "activating", "code" => $ticket ? $ticket->ticket_code : null]);
+        }
+        return response()->json(["state" => "ready", "code" => $ticket->ticket_code]);
     }
 
     // "You're online": shown by the router's alogin.html / status.html
