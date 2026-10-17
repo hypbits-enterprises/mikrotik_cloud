@@ -7,7 +7,8 @@
     <div class="navbar-wrapper">
         <div class="navbar-container content ">
             <div class="collapse navbar-collapse show" id="navbar-mobile">
-                <ul class="nav navbar-nav mr-auto float-left">
+                {{-- with the dashboard selector, centre the greeting and the selector on one line --}}
+                <ul class="nav navbar-nav mr-auto float-left {{ $hotspotEnabled ? "d-flex flex-row flex-nowrap align-items-center" : "" }}">
                     <li class="nav-item d-block d-md-none"><a class="nav-link nav-menu-main menu-toggle hidden-xs"
                             href="#"><i class="ft-menu"></i></a></li>
                     <li class="nav-item dropdown navbar-search">
@@ -47,7 +48,7 @@
                     @if ($hotspotEnabled)
                         {{-- ISP Billing / Hotspot dashboard selector: the mode comes from the URL --}}
                         <li class="dropdown nav-item">
-                            <a class="dropdown-toggle nav-link" href="#" data-toggle="dropdown" aria-expanded="false" id="billing_mode_selector" title="Select dashboard">
+                            <a class="dropdown-toggle nav-link text-nowrap" href="#" data-toggle="dropdown" aria-expanded="false" id="billing_mode_selector" title="Select dashboard">
                                 @if ($billingMode === "hotspot")
                                     <i class="ficon ft-wifi"></i><span class="d-none d-sm-inline"> Hotspot</span>
                                 @else
