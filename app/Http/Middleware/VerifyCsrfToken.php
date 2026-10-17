@@ -41,5 +41,7 @@ class VerifyCsrfToken extends Middleware
         '/Payment/stkpush',
         '/router_clients/{acc_name}/{r_name}',
         '/whatsapp/webhook',
+        // hotspot captive portal (no login, opened in the phone's captive-portal browser)
+        'hs/*',
     ];
 }

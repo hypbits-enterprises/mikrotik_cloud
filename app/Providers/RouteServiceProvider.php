@@ -59,5 +59,17 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());
         });
+
+        // hotspot captive portal: every customer on a hotspot reaches us from the router's one
+        // public IP, so limits are per IP + device (MAC) with a looser cap per IP
+        RateLimiter::for('hotspot-portal', function (Request $request) {
+            return Limit::perMinute(300)->by('hs-page|' . $request->ip());
+        });
+        RateLimiter::for('hotspot-code', function (Request $request) {
+            return [
+                Limit::perMinute(10)->by('hs-code|' . $request->ip() . '|' . substr((string) $request->input('mac'), 0, 17)),
+                Limit::perMinute(60)->by('hs-code|' . $request->ip()),
+            ];
+        });
     }
 }

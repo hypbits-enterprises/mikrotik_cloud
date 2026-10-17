@@ -458,6 +458,15 @@ Route::get("/Refferals", [Clients_data::class, "get_refferals"])->name("get_reff
 Route::get("/Refferals/View/{client_id}", [Clients_data::class, "get_refferals_information"])->name("get_refferals_information")->middleware(["clientValidate"]);
 Route::get("/Commission", [Clients_data::class, "get_commissions"])->name("get_commissions")->middleware(["clientValidate"]);
 
+// HOTSPOT CAPTIVE PORTAL — public, no session: the org and router come from the key (fails closed)
+Route::prefix("hs/{hotspot_key}")->name("hs.")->middleware("throttle:hotspot-portal")->group(function () {
+    Route::get("/", [App\Http\Controllers\Hotspot\Portal::class, "index"])->name("portal");
+    Route::post("/code", [App\Http\Controllers\Hotspot\Portal::class, "code"])->name("code")->middleware("throttle:hotspot-code");
+    Route::get("/online", [App\Http\Controllers\Hotspot\Portal::class, "online"])->name("online");
+    Route::get("/router-files/{name}", [App\Http\Controllers\Hotspot\Portal::class, "routerFile"])->name("router_file");
+    Route::get("/ping", [App\Http\Controllers\Hotspot\Portal::class, "ping"])->name("ping");
+});
+
 // HOTSPOT MODULE — every page under /hotspot needs an admin session, an org with hotspot enabled
 // (manager DB org_hotspot_settings) and the page's hotspot privilege.
 Route::prefix("hotspot")->name("hotspot.")->middleware(["checkAccount", "validated", "hotspotEnabled"])->group(function () {
@@ -482,6 +491,12 @@ Route::prefix("hotspot")->name("hotspot.")->middleware(["checkAccount", "validat
         Route::post("/tickets/{ticket_id}/sms", [App\Http\Controllers\Hotspot\Tickets::class, "sms"])->name("ticket_sms")->whereNumber("ticket_id");
         Route::post("/tickets/{ticket_id}/expire", [App\Http\Controllers\Hotspot\Tickets::class, "expire"])->name("ticket_expire")->whereNumber("ticket_id");
     });
+    Route::middleware("hotspotCan:Hotspot Branding")->group(function () {
+        Route::get("/branding", [App\Http\Controllers\Hotspot\Branding::class, "index"])->name("branding");
+        Route::post("/branding", [App\Http\Controllers\Hotspot\Branding::class, "save"])->name("branding_save");
+        Route::post("/branding/delete", [App\Http\Controllers\Hotspot\Branding::class, "destroy"])->name("branding_delete");
+        Route::get("/branding/preview", [App\Http\Controllers\Hotspot\Branding::class, "preview"])->name("branding_preview");
+    });
     Route::middleware("hotspotCan:Hotspot Routers")->group(function () {
         Route::get("/routers", [App\Http\Controllers\Hotspot\Routers::class, "index"])->name("routers");
         Route::get("/routers/{router_id}", [App\Http\Controllers\Hotspot\Routers::class, "show"])->name("router")->whereNumber("router_id");
@@ -492,5 +507,6 @@ Route::prefix("hotspot")->name("hotspot.")->middleware(["checkAccount", "validat
         Route::post("/routers/{router_id}/stop", [App\Http\Controllers\Hotspot\Routers::class, "stop"])->name("router_stop")->whereNumber("router_id");
         Route::post("/routers/{router_id}/remove", [App\Http\Controllers\Hotspot\Routers::class, "remove"])->name("router_remove")->whereNumber("router_id");
         Route::post("/routers/{router_id}/delete-server", [App\Http\Controllers\Hotspot\Routers::class, "deleteServer"])->name("router_delete_server")->whereNumber("router_id");
+        Route::post("/routers/{router_id}/login-page", [App\Http\Controllers\Hotspot\Routers::class, "loginPage"])->name("router_login_page")->whereNumber("router_id");
     });
 });

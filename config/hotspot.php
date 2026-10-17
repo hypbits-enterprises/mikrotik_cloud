@@ -44,6 +44,10 @@ return [
     // host the routers must reach for the captive portal (walled garden). Defaults to APP_URL's host.
     'portal_host' => env('HOTSPOT_PORTAL_HOST', parse_url(env('APP_URL', ''), PHP_URL_HOST)),
 
+    // base URL of the captive portal /hs/{hotspot_key}: the router's login files send customers
+    // there, and the router downloads those files from it. Defaults to APP_URL.
+    'portal_url' => rtrim((string) env('HOTSPOT_PORTAL_URL', env('APP_URL', '')), '/'),
+
     // router hotspot login page over HTTPS: false while testing, TRUE ON THE LIVE SERVER.
     // When on, the setup wizard needs a login page name and the router gets a Let's Encrypt
     // certificate for it (needs a public DNS record for the name and port 80 reachable).

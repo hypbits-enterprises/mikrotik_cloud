@@ -161,3 +161,6 @@ ALTER TABLE `remote_routers` ADD COLUMN `hotspot_interface` varchar(100) DEFAULT
 ALTER TABLE `remote_routers` ADD COLUMN `hotspot_dns_name` varchar(255) DEFAULT NULL;
 ALTER TABLE `remote_routers` ADD COLUMN `hotspot_last_sync` varchar(14) DEFAULT NULL;
 ALTER TABLE `remote_routers` ADD UNIQUE KEY `uniq_hotspot_key` (`hotspot_key`);
+
+-- Stage 7: optional page the customer is sent to after login instead of the "You're online" page
+ALTER TABLE `hotspot_login_pages` ADD COLUMN `redirect_url` varchar(255) DEFAULT NULL COMMENT 'NULL = Hypbits online page';

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Hotspot;
 
 use App\Classes\HotspotAccess;
 use App\Classes\HotspotAgent;
+use App\Classes\HotspotPortal;
 use App\Classes\HotspotRouterService;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\login;
@@ -86,7 +87,80 @@ class Routers extends Controller
             "readonly" => $this->readOnly(),
             "portal_host" => config("hotspot.portal_host"),
             "login_https" => (bool) config("hotspot.login_https"),
+            "login_page" => $detect ? self::loginPageState($router, $detect) : null,
         ]);
+    }
+
+    // which login page the managed hotspot server's profile uses
+    private static function loginPageState($router, $detect)
+    {
+        if (!$router->hotspot_enabled) {
+            return null;
+        }
+        $profile = null;
+        foreach ($detect['hotspots'] as $hotspot) {
+            if (($hotspot['name'] ?? "") === $router->hotspot_server_name) {
+                $profile = $hotspot['profile'] ?? null;
+            }
+        }
+        if (!$profile) {
+            return null;
+        }
+        $directory = "";
+        foreach ($detect['hotspot_profiles'] as $row) {
+            if (($row['name'] ?? "") === $profile) {
+                $directory = $row['html-directory'] ?? "";
+            }
+        }
+        return ["profile" => $profile, "directory" => $directory, "hypbits" => $directory === "hypbits-hs", "adopted" => $profile !== "hypbits-hs"];
+    }
+
+    // parameters of the agent task login_files (also passed to setup, which runs it at the end)
+    private static function loginFileParams()
+    {
+        return ["portal_url" => config("hotspot.portal_url"), "files" => HotspotPortal::ROUTER_FILES];
+    }
+
+    /**
+     * The Hypbits login page on the router: update = download the router files again (Hypbits
+     * profile, or an adopted profile already switched); use = switch an adopted server's profile
+     * to it; restore = put an adopted server's own login page back.
+     */
+    function loginPage(Request $request, $router_id)
+    {
+        $this->useOrgDb();
+        if ($this->readOnly()) {
+            return $this->back($router_id, "error_hotspot", "You have read-only access to hotspot routers.");
+        }
+        $router = DB::connection("mysql2")->table("remote_routers")->where("router_id", $router_id)->where("deleted", 0)->first();
+        if (!$router || !$router->hotspot_enabled) {
+            return $this->back($router_id, "error_hotspot", "Hypbits does not manage a hotspot on this router.");
+        }
+        $service = new HotspotRouterService($router);
+        $detect = $service->detect();
+        $service->disconnect();
+        $page = $detect ? self::loginPageState($router, $detect) : null;
+        if (!$page) {
+            return $this->back($router_id, "error_hotspot", $detect ? "The managed hotspot server was not found on the router." : "The router is offline.");
+        }
+        $mode = $request->input("mode");
+        if ($mode === "restore") {
+            if (!$page['adopted'] || !$page['hypbits']) {
+                return $this->back($router_id, "error_hotspot", "This hotspot server is not using a login page that can be restored.");
+            }
+            $params = ["target" => "own login page (" . $page['profile'] . ")", "restore" => true];
+            $started = "Putting back the server's own login page.";
+        } elseif ($mode === "use" || $mode === "update") {
+            if ($page['adopted'] && !$page['hypbits'] && $mode !== "use") {
+                return $this->back($router_id, "error_hotspot", "This adopted server uses its own login page. Use \"Use the Hypbits login page\" to switch it.");
+            }
+            $params = array_merge(["target" => "Hypbits login page (" . $page['profile'] . ")", "adopted" => $page['adopted']], self::loginFileParams());
+            $started = "Installing the Hypbits login page on the router.";
+        } else {
+            return $this->back($router_id, "error_hotspot", "Unknown login page action.");
+        }
+        $result = HotspotAgent::queue($router_id, "login_files", $params);
+        return $this->back($router_id, $result['ok'] ? "success_hotspot" : "error_hotspot", $result['ok'] ? $started . " Progress shows in the activity log below." : $result['message']);
     }
 
     function setup(Request $request, $router_id)
@@ -162,7 +236,7 @@ class Routers extends Controller
             "add_masquerade" => $request->boolean("add_masquerade"),
             "portal_host" => config("hotspot.portal_host"),
             "login_https" => $login_https,
-        ]);
+        ] + self::loginFileParams());
         $started = $dry_run ? "Dry run started: the activity log below lists the commands it would run. Nothing is changed on the router." : "Hotspot setup started. Progress shows in the activity log below.";
         return $this->back($router_id, $result['ok'] ? "success_hotspot" : "error_hotspot", $result['ok'] ? $started : $result['message']);
     }

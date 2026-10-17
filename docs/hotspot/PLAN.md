@@ -9,11 +9,12 @@ apply unless a stage below replaces them.
   same name in `mikrotik_cloud_manager` and `crontab` when work starts there.
 - Company name is **Hypbits** (not "Hybits" as written in the PDF).
 
-> **Where we left off (2026-10-17):** Stages 0–6 done (tags `hotspot-stage-00` … `-06`). Tickets:
-> manual (cash) tickets, Tickets page, agent tasks `provision_tickets`/`revoke_ticket` and the minute
-> job `crontab/hotspot_tickets.php` (activation, usage, expiry, retries). **Add the minute job to the
-> system crontab on staging/live.** Lab test plans 31/32 ("Test 10 min …") can be deleted when done.
-> **Next: Stage 7 (captive portal & landing page).**
+> **Where we left off (2026-10-17):** Stages 0–7 done (tags `hotspot-stage-00` … `-07`). Stage 7:
+> captive portal `/hs/{key}` (plans, ticket code login, "You're online" page), router login files
+> (agent task `login_files`, with an offline fallback form), Hotspot → Branding. **Add the minute
+> job to the system crontab on staging/live; after moving to the live URL press "Update login page"
+> on every router.** Lab test plans 31/32 ("Test 10 min …") can be deleted when done.
+> **Next: Stage 8 (M-Pesa STK push & manual payment code).** Decide risk R1 first.
 
 ## 1. Decisions that change the PDF
 
@@ -239,6 +240,28 @@ time and data remaining, devices, "Buy more time" and "Log out"; then they can c
 they first opened. The ISP can set an optional redirect URL (e.g. its website) in Hotspot → Branding
 instead.
 As in the PDF: public `/hs/{hotspot_key}` route outside the auth middleware; generated `login.html` / `alogin.html` / `status.html` with download and, where possible, upload via the router agent; portal shows logo, title, welcome text, active plans, phone input, "I have a ticket code", support phone; Hotspot Branding page with live preview; portal under 150 KB with no heavy frameworks. The portal is the one place outside the Chameleon admin theme.
+
+As built (2026-10-17):
+- The router keeps only 7 small forwarding files in its own folder `hypbits-hs/` (served by the app at
+  `/hs/{key}/router-files/<name>`, downloaded by the agent task `login_files` with `/tool fetch`; the
+  managed profile gets `html-directory=hypbits-hs`). They pass `mac`, `ip`, `login`
+  (`$(link-login-only)`), `logout`, `dst` and `error` to the portal. `login.html` first loads
+  `/hs/{key}/ping` (1×1 GIF): if the portal does not answer within 6 s it shows a plain ticket-code
+  form that posts to the router directly, so code holders can connect while our server is down.
+  `logout.html` passes the code back so the portal pre-fills it.
+- Portal (`App\Http\Controllers\Hotspot\Portal`, `App\Classes\HotspotPortal`): the key resolves the
+  org (manager `hotspot_router_keys` → org with hotspot on → org DB → managed router) and fails
+  closed (404 "not available"). No DB name in URLs. The code is checked by `POST /hs/{key}/code`
+  (rate-limited per IP + MAC, 10/min, and 60/min per IP), then the page posts `username=password=CODE`
+  to the router's login link — only accepted when its host is a private IPv4 or the router's login
+  page name. Portal pages are plain HTML/CSS/JS (~9 KB), outside the Chameleon theme.
+- Branding: Hotspot → Branding (default + per-router, live preview iframe); built-in defaults = org
+  name + " WiFi", org profile logo (shrunk to ≤ 320×160 PNG), org main contact as support phone.
+  Rendered live, so branding never needs a router write.
+- Tested live on router 28 with a phone: portal, wrong/used codes, code login, online page, logout →
+  code pre-filled → reconnect. Router 23 (CHR): files downloaded, profile switched.
+- Walled garden: only the portal host. At go-live give the portal its own subdomain (a host rule also
+  opens everything else on that domain).
 
 ### Stage 8 — M-Pesa STK push & automatic sign-in
 1. Load the org's existing M-Pesa keys through `MpesaService`; cache the OAuth token until it expires.

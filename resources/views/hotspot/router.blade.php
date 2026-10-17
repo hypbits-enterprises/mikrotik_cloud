@@ -79,7 +79,30 @@
                                     @endif
                                     <tr><th>Portal key</th><td>{!! $router->hotspot_key ? '<code>' . e($router->hotspot_key) . '</code>' : '—' !!}</td></tr>
                                     <tr><th>Last sync</th><td>{{ $router->hotspot_last_sync ? date('D jS M Y g:i:sA', strtotime($router->hotspot_last_sync)) : '—' }}</td></tr>
+                                    @if ($login_page)
+                                        <tr><th>Login page</th><td>{!! $login_page['hypbits'] ? '<span class="badge badge-success">Hypbits portal</span>' : '<span class="badge badge-secondary">Router\'s own</span> <small>(' . e($login_page['directory'] ?: 'built-in') . ')</small>' !!}</td></tr>
+                                    @endif
+                                    @if ($router->hotspot_enabled && $router->hotspot_key)
+                                        <tr><th>Portal</th><td><a href="{{ route('hs.portal', $router->hotspot_key) }}" target="_blank">Open the portal</a></td></tr>
+                                    @endif
                                 </table>
+                                @if ($login_page)
+                                    <form method="POST" action="{{ route('hotspot.router_login_page', $router->router_id) }}" class="d-inline">
+                                        @csrf
+                                        <input type="hidden" name="mode" value="update">
+                                        @if ($login_page['hypbits'] || !$login_page['adopted'])
+                                            @php $btnText = "<i class=\"ft-refresh-cw\"></i> " . ($login_page['hypbits'] ? "Update login page" : "Install login page"); @endphp
+                                            <x-button :btnText="$btnText" btnType="info" btnSize="sm" type="submit" btnId="hotspot_login_update" :readOnly="$disabled" />
+                                        @endif
+                                    </form>
+                                    @if ($login_page['adopted'])
+                                        @php
+                                            $btnText = $login_page['hypbits'] ? "<i class=\"ft-rotate-ccw\"></i> Restore own login page" : "<i class=\"ft-layout\"></i> Use the Hypbits login page";
+                                            $loginAttributes = "data-toggle=modal data-target=#hotspot_login_modal";
+                                        @endphp
+                                        <x-button :btnText="$btnText" btnType="info" btnSize="sm" btnId="hotspot_login_open" :readOnly="$disabled" :otherAttributes="$loginAttributes" />
+                                    @endif
+                                @endif
                                 @if ($router->hotspot_enabled)
                                     @php $btnText = "<i class=\"ft-pause\"></i> Stop managing"; @endphp
                                     <x-button :btnText="$btnText" btnType="warning" btnSize="sm" btnId="hotspot_stop_open" :readOnly="$readonly ? 'disabled' : ''" otherAttributes="data-toggle=modal data-target=#hotspot_stop_modal" />
@@ -304,6 +327,35 @@
                         </div>
                     </div>
                 </div>
+                @if ($login_page && $login_page['adopted'])
+                    <div class="modal fade text-left" id="hotspot_login_modal" tabindex="-1" role="dialog" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <form method="POST" action="{{ route('hotspot.router_login_page', $router->router_id) }}">
+                                    @csrf
+                                    <input type="hidden" name="mode" value="{{ $login_page['hypbits'] ? 'restore' : 'use' }}">
+                                    <div class="modal-header bg-info white">
+                                        <h4 class="modal-title white">{{ $login_page['hypbits'] ? 'Restore the server\'s own login page?' : 'Use the Hypbits login page?' }}</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        @if ($login_page['hypbits'])
+                                            <p class="mb-0">The hotspot profile <b>{{ $login_page['profile'] }}</b> goes back to the login page it had before Hypbits switched it. Customers then see that page instead of the Hypbits portal.</p>
+                                        @else
+                                            <p>This hotspot server was not created by Hypbits. Its profile <b>{{ $login_page['profile'] }}</b> currently uses the login page in <code>{{ $login_page['directory'] ?: 'built-in' }}</code>.</p>
+                                            <p class="mb-0">Hypbits downloads its login files into a new <code>hypbits-hs</code> folder on the router and points the profile at it, so customers see the Hypbits portal. Your existing login files are not changed, and you can restore them here or with "Remove from router".</p>
+                                        @endif
+                                    </div>
+                                    <div class="modal-footer">
+                                        @php $btnText = "Cancel"; @endphp
+                                        <x-button :btnText="$btnText" btnType="secondary" btnSize="sm" otherAttributes="data-dismiss=modal" />
+                                        @php $btnText = $login_page['hypbits'] ? "<i class=\"ft-rotate-ccw\"></i> Restore" : "<i class=\"ft-layout\"></i> Use the Hypbits login page"; @endphp
+                                        <x-button :btnText="$btnText" btnType="info" btnSize="sm" type="submit" btnId="hotspot_login_submit" :readOnly="$disabled" />
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @endif
                 <div class="modal fade text-left" id="hotspot_remove_modal" tabindex="-1" role="dialog" aria-hidden="true">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
@@ -313,7 +365,7 @@
                                     <h4 class="modal-title white">Remove the Hypbits hotspot from {{ $router->router_name }}</h4>
                                 </div>
                                 <div class="modal-body">
-                                    <p>This deletes only what Hypbits created on the router: the <code>hypbits-hs</code> hotspot server and profile, its DHCP server, pool, address, walled-garden entries and NAT rule. Your PPPoE, bridges, queues and other settings are not touched, and an adopted hotspot server is left in place. Connected hotspot customers are disconnected, and if the hotspot has a Wi-Fi network, the radio restarts for a few seconds so devices on its other networks reconnect briefly.</p>
+                                    <p>This deletes only what Hypbits created on the router: the <code>hypbits-hs</code> hotspot server and profile, its DHCP server, pool, address, walled-garden entries, NAT rule and the Hypbits login files (an adopted server switched to the Hypbits login page gets its own page back). Your PPPoE, bridges, queues and other settings are not touched, and an adopted hotspot server is left in place. Connected hotspot customers are disconnected, and if the hotspot has a Wi-Fi network, the radio restarts for a few seconds so devices on its other networks reconnect briefly.</p>
                                     <label for="confirm_remove">Type <b>REMOVE</b> to confirm</label>
                                     <input class="form-control" type="text" name="confirm" id="confirm_remove" autocomplete="off">
                                 </div>
