@@ -474,6 +474,14 @@ Route::prefix("hotspot")->name("hotspot.")->middleware(["checkAccount", "validat
         Route::post("/plans/{plan_id}/toggle", [App\Http\Controllers\Hotspot\Plans::class, "toggle"])->name("plan_toggle")->whereNumber("plan_id");
         Route::post("/plans/{plan_id}/delete", [App\Http\Controllers\Hotspot\Plans::class, "destroy"])->name("plan_delete")->whereNumber("plan_id");
     });
+    Route::middleware("hotspotCan:Hotspot Tickets")->group(function () {
+        Route::get("/tickets", [App\Http\Controllers\Hotspot\Tickets::class, "index"])->name("tickets");
+        Route::get("/tickets/new", [App\Http\Controllers\Hotspot\Tickets::class, "create"])->name("ticket_new");
+        Route::post("/tickets", [App\Http\Controllers\Hotspot\Tickets::class, "store"])->name("ticket_store");
+        Route::get("/tickets/{ticket_id}", [App\Http\Controllers\Hotspot\Tickets::class, "show"])->name("ticket")->whereNumber("ticket_id");
+        Route::post("/tickets/{ticket_id}/sms", [App\Http\Controllers\Hotspot\Tickets::class, "sms"])->name("ticket_sms")->whereNumber("ticket_id");
+        Route::post("/tickets/{ticket_id}/expire", [App\Http\Controllers\Hotspot\Tickets::class, "expire"])->name("ticket_expire")->whereNumber("ticket_id");
+    });
     Route::middleware("hotspotCan:Hotspot Routers")->group(function () {
         Route::get("/routers", [App\Http\Controllers\Hotspot\Routers::class, "index"])->name("routers");
         Route::get("/routers/{router_id}", [App\Http\Controllers\Hotspot\Routers::class, "show"])->name("router")->whereNumber("router_id");

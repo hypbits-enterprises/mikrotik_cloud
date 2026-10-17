@@ -9,10 +9,11 @@ apply unless a stage below replaces them.
   same name in `mikrotik_cloud_manager` and `crontab` when work starts there.
 - Company name is **Hypbits** (not "Hybits" as written in the PDF).
 
-> **Where we left off (2026-10-17):** Stages 0–5 done (tags `hotspot-stage-00` … `-05`). The ISP
-> manages its packages under Hotspot → Plans; each plan is the user profile `hypbits-hs-<plan_id>`
-> on every managed router (lab: routers 23 and 28 have plan 9, "1 hour", 2M/5M). **Next: Stage 6
-> (tickets & provisioning engine).** Stage 8 includes the manual Paybill/Till payment fallback.
+> **Where we left off (2026-10-17):** Stages 0–6 done (tags `hotspot-stage-00` … `-06`). Tickets:
+> manual (cash) tickets, Tickets page, agent tasks `provision_tickets`/`revoke_ticket` and the minute
+> job `crontab/hotspot_tickets.php` (activation, usage, expiry, retries). **Add the minute job to the
+> system crontab on staging/live.** Lab test plans 31/32 ("Test 10 min …") can be deleted when done.
+> **Next: Stage 7 (captive portal & landing page).**
 
 ## 1. Decisions that change the PDF
 
@@ -84,7 +85,7 @@ Full column lists and how the schema is applied: `tables.md` (Stage 1).
 | 3 | Manager: enable hotspot & billing model | manager, cloud | 3 | 1 | Done | 2026-10-17 | 2026-10-17 |
 | 4 | Cloud routers: hotspot detection & setup | cloud, crontab | 4 | 2 | Done | 2026-10-17 | 2026-10-17 |
 | 5 | Hotspot plans | cloud, crontab | 3 | 4 | Done | 2026-10-17 | 2026-10-17 |
-| 6 | Tickets & provisioning engine | cloud, crontab | 6 | 5 | | | |
+| 6 | Tickets & provisioning engine | cloud, crontab | 6 | 5 | Done | 2026-10-17 | 2026-10-17 |
 | 7 | Captive portal & custom login page | cloud | 5 | 5 | | | |
 | 8 | M-Pesa STK push & automatic sign-in | cloud, crontab | 6 | 3, 6, 7 | | | |
 | 9 | Reports | cloud | 4 | 6, 8 | | | |
@@ -213,6 +214,23 @@ a pending/active ticket still uses it. `HotspotPlans::forPortal()` is the list t
 - Tickets Bought page and manual ticket form as in the PDF. Resending the code uses the org's SMS settings.
 
 Acceptance: as in the PDF, on the GNS3 lab router.
+
+As built (2026-10-17):
+- Ticket = `hotspot_tickets` row + router user `CODE`/`CODE` (6 chars, no 0/O/1/I/L) on profile
+  `hypbits-hs-<plan>`, `server=<hotspot server>`, comment `hypbits-hotspot ticket <id>`;
+  `limit-uptime` only for "while connected" plans, `limit-bytes-total` when the plan has a data cap.
+- `App\Classes\HotspotTickets::issue()` (one payment = one ticket) + `provision()`; manual tickets
+  (1–20 at a time, optional phone + SMS with the org's SMS settings when `send_sms = 1`).
+- `crontab/hotspot_tickets.php` every minute: first login → active (elapsed: `expires_at`), usage
+  copied, elapsed past `expires_at` → expired, paused out of time / data used → used (router user
+  removed, session kicked), unprovisioned tickets retried (≤ 10), usage snapshot every 5 minutes;
+  router writes logged as activity `tickets`. Router helpers shared in `crontab/hotspot_common.php`.
+- Usage = the router user's counters **plus the open session** in `/ip hotspot active`: RouterOS
+  only adds a session to the user's uptime/bytes when the session ends.
+- Tested live: provisioning (and re-run = no duplicate), elapsed expiry, router offline → ticket
+  provisioned on the first run after it came back; phone test on "Hypbits Test WiFi": TVCR8C
+  (10 min elapsed) active within a minute of login, cut off at 10 min, router user removed; 9K8HW5
+  (10 min while connected) active with live usage.
 
 ### Stage 7 — Captive portal & custom login page
 **Landing page after login (2026-10-17):** after the automatic sign-in, the customer lands on the
