@@ -103,3 +103,27 @@ starts from a known router state.
 | Profile page: "SSTP server cannot be reached" | `settings.sstp_server.ip_address` = CHR-VPN address; API on 1982 (`/ip service print`). |
 | Profile page: "Cannot connect to router" | `/ppp active print` on CHR-VPN; home-MikroTik route to `192.168.254.0/24`; `ip route get 192.168.254.x` on the Linux VM shows `via 192.168.86.21`. |
 | SSTP client stuck connecting | `/interface sstp-server server print` (enabled, certificate set), `/log print where topics~"sstp"`, port 443 reachable from CHR-ISP. |
+
+## 9. Hotspot test setup (Stage 4, 2026-10-17)
+
+| Router | Hotspot | How to test |
+|---|---|---|
+| CHR-ISP (router 23) | `hypbits-hs` on `ether3`, `10.5.50.0/24`, login name `hotspot.hypbits.com`, router DNS + NAT masquerade added by the wizard | Add a client with a browser in GNS3 (e.g. the **Webterm** appliance), connect it to CHR-ISP `ether3`, DHCP, open an `http://` site → router login page |
+| Home router RB951Ui-2HnD (router 28, RouterOS 7.20.4, test org on the live system) | `hypbits-hs` on `hypbits-hs-bridge` with the open Wi-Fi network **"Hypbits Test WiFi"** (virtual AP on `wlan1`, next to the home network "Dev-Ops"), `10.5.50.0/24` | Join "Hypbits Test WiFi" from a phone, open an `http://` site → router login page |
+
+Write allowlist (dev): `HOTSPOT_ROUTER_WRITE_ALLOWLIST=mikrotik_cloud:23,mikrotik_cloud:28` in
+`mikrotik_cloud/.env` and the same two routers in `crontab/hotspot_config.local.php`.
+
+Notes from setting this up:
+- **The Linux VM needs its own route to the lab VPN:** `ip route add 192.168.254.0/24 via
+  192.168.86.21` (persist with `nmcli connection modify <ens33 connection> +ipv4.routes
+  "192.168.254.0/24 192.168.86.21"`). Once the home router has its own VPN tunnel, traffic to
+  `192.168.254.x` sent through it comes back by another path and its firewall drops it as invalid.
+- Adding a router whose firewall input chain starts with a dynamic rule: the router-profile script's
+  `move … destination=0` fails (risk R20); move "Allow SYSTEM remote access" above "drop all not
+  coming from LAN" by hand.
+- After CHR-VPN restarts, routers may get different tunnel addresses (R21). That's fine.
+- CHR-ISP has no Wi-Fi radio; Wi-Fi was tested on the RB951 only.
+- CHR-ISP's `bridge2` was deleted while freeing `ether3`; the static clients SF004/SFA005 lost
+  their gateways (`10.10.80.1`, `10.10.70.1` are on a deleted interface). Re-create the bridge or
+  re-save those clients if they are needed.

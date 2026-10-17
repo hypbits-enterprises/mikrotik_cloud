@@ -37,4 +37,18 @@ return [
 
     // seconds the org's hotspot_enabled flag is cached
     'enabled_cache_seconds' => 300,
+
+    // crontab hotspot router agent (router writes), called like the SMS agent
+    'agent_url' => env('HOTSPOT_AGENT_URL'),
+
+    // host the routers must reach for the captive portal (walled garden). Defaults to APP_URL's host.
+    'portal_host' => env('HOTSPOT_PORTAL_HOST', parse_url(env('APP_URL', ''), PHP_URL_HOST)),
+
+    // router hotspot login page over HTTPS: false while testing, TRUE ON THE LIVE SERVER.
+    // When on, the setup wizard needs a login page name and the router gets a Let's Encrypt
+    // certificate for it (needs a public DNS record for the name and port 80 reachable).
+    'login_https' => env('HOTSPOT_LOGIN_HTTPS', false),
+
+    // outside production, router writes only on these routers: <org_db>:<router_id>,...
+    'router_write_allowlist' => env('HOTSPOT_ROUTER_WRITE_ALLOWLIST', ''),
 ];

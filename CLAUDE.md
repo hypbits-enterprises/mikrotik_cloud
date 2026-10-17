@@ -401,3 +401,13 @@ New tables and columns are listed in `docs/hotspot/tables.md` (SQL in `docs/hots
 ### Hotspot billing & M-Pesa test (Stage 3)
 
 Hotspot is turned on per org, and its billing set, in `mikrotik_cloud_manager` (see its CLAUDE.md "Hotspot billing"). This app only reads `org_hotspot_settings.hotspot_enabled`. The hotspot dashboard has "Test M-Pesa credentials" (`POST /hotspot/mpesa/test`, privilege Hotspot Payments, `App\Http\Controllers\Hotspot\Mpesa`), which uses `MpesaService::checkCredentials()` to request a Daraja token with the org's `settings` keys; it reports missing key names and never returns key values or the token.
+
+### Hotspot routers (Stage 4)
+
+- **Pages:** Hotspot → Routers (`/hotspot/routers`, privilege Hotspot Routers, `App\Http\Controllers\Hotspot\Routers`). The list loads from the DB and fetches each router's live status separately (`/hotspot/routers/{id}/status`) so an offline router never blocks it. The router page has detection, the setup wizard (wired port and/or Wi-Fi, "Preview commands" dry run), Adopt / Delete for other hotspot servers, Stop managing, Remove from router, and the activity log (collapsed by default).
+- **Reads** go straight to the router with short timeouts through `App\Classes\HotspotRouterService` (SSTP lookup like `Router_Cloud::checkActive()`), using `App\Classes\HotspotRouterApi`, a `routeros_api` subclass whose `read()` waits for the whole reply (the shared client stops early on slow routers, risk R19). Use `HotspotRouterApi` in hotspot code; don't change `routeros_api.php`.
+- **Writes** never happen in this app: `App\Classes\HotspotAgent::queue()` checks `HOTSPOT_ROUTER_WRITE_ALLOWLIST` (when `APP_ENV` is not production), stores the task as a `hotspot_router_activity` row (`status=queued`, params in `message`) and calls `HOTSPOT_AGENT_URL?db=&activity=&background=1` (crontab `hotspot_router_agent.php`).
+- **Owned objects only:** everything Hypbits creates on a router is named `hypbits-hs*` or commented `hypbits-hotspot`; Remove deletes exactly those. Interfaces in use (WAN, `ether1`, VPN, PPPoE, any static address, bridge ports, bridges with ports) are never offered.
+- `.env` keys: `HOTSPOT_AGENT_URL`, `HOTSPOT_PORTAL_HOST` (walled garden), `HOTSPOT_ROUTER_WRITE_ALLOWLIST`, `HOTSPOT_LOGIN_HTTPS` (false while testing, **true on the live server**).
+- Confirmations use the app's Bootstrap modals, never `confirm()`/`alert()`.
+- Tests: `tests/Feature/HotspotRoutersTest.php` needs the GNS3 lab (router 23 online); only reads reach a router, the agent call is faked.

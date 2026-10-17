@@ -9,11 +9,11 @@ apply unless a stage below replaces them.
   same name in `mikrotik_cloud_manager` and `crontab` when work starts there.
 - Company name is **Hypbits** (not "Hybits" as written in the PDF).
 
-> **Where we left off (2026-10-17):** Stages 0–3 done (tags `hotspot-stage-00` … `-03`). The manager
-> turns hotspot on per org and sets its billing (Organizations → Hotspot Billing for defaults,
-> organization page → Hotspot). **Next: Stage 4 (cloud routers: hotspot detection & setup).** R1 in
-> `00-impact-and-safety.md` (hotspot STK payments also reaching `/Transact`) must be decided before
-> Stage 8.
+> **Where we left off (2026-10-17):** Stages 0–4 done (tags `hotspot-stage-00` … `-04`). Cloud
+> routers can be set up (wizard, wired and/or Wi-Fi), adopted, released, cleaned up and their
+> foreign hotspot servers deleted, all through the crontab agent. Lab: CHR-ISP (router 23, wired on
+> `ether3`) and the user's RB951 (router 28, Wi-Fi "Hypbits Test WiFi"). **Next: Stage 5 (plans).**
+> Stage 8 now also covers the manual Paybill/Till payment fallback (decided 2026-10-17, below).
 
 ## 1. Decisions that change the PDF
 
@@ -83,7 +83,7 @@ Full column lists and how the schema is applied: `tables.md` (Stage 1).
 | 1 | Schema (raw SQL, manager rollout) | cloud, manager | 3 | 0 | Done | 2026-10-17 | 2026-10-17 |
 | 2 | Mode switch, privileges & shared UI | cloud | 2 | 1 | Done | 2026-10-17 | 2026-10-17 |
 | 3 | Manager: enable hotspot & billing model | manager, cloud | 3 | 1 | Done | 2026-10-17 | 2026-10-17 |
-| 4 | Cloud routers: hotspot detection & setup | cloud, crontab | 4 | 2 | | | |
+| 4 | Cloud routers: hotspot detection & setup | cloud, crontab | 4 | 2 | Done | 2026-10-17 | 2026-10-17 |
 | 5 | Hotspot plans | cloud, crontab | 3 | 4 | | | |
 | 6 | Tickets & provisioning engine | cloud, crontab | 6 | 5 | | | |
 | 7 | Captive portal & custom login page | cloud | 5 | 5 | | | |
@@ -170,6 +170,29 @@ As built (2026-10-17):
 
 Acceptance: as in the PDF, on the GNS3 lab router (then once on the test account's router before the pilot).
 
+As built (2026-10-17):
+- **Setup wizard** (decision 2026-10-17) when the router has no hotspot server, creating only
+  Hypbits-owned objects (`hypbits-hs*`, `comment=hypbits-hotspot`): address, pool, DHCP server +
+  network, hotspot profile + server, walled garden for `HOTSPOT_PORTAL_HOST`. Router DNS
+  (`allow-remote-requests`) and a NAT masquerade only when ticked in the wizard.
+- **Wi-Fi** (decision 2026-10-17): one hotspot for wired and Wi-Fi. With Wi-Fi the hotspot runs on
+  `hypbits-hs-bridge` holding the wired port (optional) and an open network: a virtual AP
+  `hypbits-hs-wifi` on a radio already in use (its network is kept), or the radio itself when it is
+  off (tagged, switched off again on Remove). Legacy `/interface wireless` tested on an RB951
+  (RouterOS 7.20.4); the v7 `/interface wifi` path is written but untested. The radio restarts for a
+  few seconds when the virtual network is added or removed.
+- **Dry run** ("Preview commands"): the agent reads the router and lists every change it would make.
+- **Adopt** an existing server; **Stop managing** (DB only); **Remove from router** (only Hypbits
+  objects, typed confirmation); **Delete** a hotspot server Hypbits did not create (only the
+  server; typed name). All confirmations use the app's own modals.
+- Usable interfaces exclude the WAN/default-route interface, `ether1`, the VPN, PPPoE servers,
+  interfaces with any static address (even disabled), bridge ports and bridges with ports.
+- **Login page:** HTTP while testing, HTTPS live (`HOTSPOT_LOGIN_HTTPS`, see Stage 13).
+- Router reads use `App\Classes\HotspotRouterApi` and the agent its own `hs_routeros_api`: both fix
+  the shared clients' reply reading (risks R18, R19 in `00-impact-and-safety.md`).
+- Activity log per router (collapsed by default) in `hotspot_router_activity`.
+- RouterOS v6 not tested (no v6 router in the lab).
+
 ### Stage 5 — Hotspot plans
 As in the PDF (CRUD, paused vs elapsed explained in the form, validation). On save, the router agent creates/updates a `hypbits-hs-<plan_id>` user profile (rate-limit, shared-users) on every hotspot-enabled router of the org. Deactivating a plan hides it from the portal without touching sold tickets. The plans list shows sync status per router.
 
@@ -184,6 +207,11 @@ As in the PDF (CRUD, paused vs elapsed explained in the form, validation). On sa
 Acceptance: as in the PDF, on the GNS3 lab router.
 
 ### Stage 7 — Captive portal & custom login page
+**Landing page after login (2026-10-17):** after the automatic sign-in, the customer lands on the
+Hypbits "You're online" page (the router's `alogin.html` / `status.html` replaced): package bought,
+time and data remaining, devices, "Buy more time" and "Log out"; then they can continue to the page
+they first opened. The ISP can set an optional redirect URL (e.g. its website) in Hotspot → Branding
+instead.
 As in the PDF: public `/hs/{hotspot_key}` route outside the auth middleware; generated `login.html` / `alogin.html` / `status.html` with download and, where possible, upload via the router agent; portal shows logo, title, welcome text, active plans, phone input, "I have a ticket code", support phone; Hotspot Branding page with live preview; portal under 150 KB with no heavy frameworks. The portal is the one place outside the Chameleon admin theme.
 
 ### Stage 8 — M-Pesa STK push & automatic sign-in
@@ -195,6 +223,20 @@ As in the PDF: public `/hs/{hotspot_key}` route outside the auth middleware; gen
 6. Hotspot Payments page: list, filters, totals, CSV export.
 
 Acceptance: as in the PDF. The existing PPPoE STK flow still works (baseline checklist).
+
+**Manual payment fallback (decided 2026-10-17).** Customers never type a username/password: they
+pick a package and pay.
+- Per org, in the manager Hotspot page: **payment method** = `stk` (STK push) or `manual`
+  (Paybill/Till + M-Pesa code). New column(s) on `org_hotspot_settings` (+ Paybill/Till number and
+  type shown on the portal).
+- Manual: the portal shows "Pay KES <price> to Paybill <n>, account <your phone number>" (Till: no
+  account), then asks for the M-Pesa code. The code is matched **automatically** against the
+  C2B confirmation Safaricom posts to `/Transact` (TransID, shortcode, amount ≥ price, not used
+  before); if no confirmation has arrived (or the ISP's till sends none), the code waits in Hotspot →
+  Payments for the ISP to **approve**, and the portal tells the customer it is pending.
+- One code = one ticket (idempotent, like `mpesa_receipt` for STK).
+- Ties to R1: `mpesaTransactions()` must not send the "wrong account" SMS for hotspot payments,
+  and hotspot must mark the transaction as used so it isn't assigned to a PPPoE client.
 
 Before starting: decide risk R1 in `00-impact-and-safety.md` — PPPoE STK payments are credited through the C2B `/Transact` URL, so hotspot STK payments to the same Paybill will reach `mpesaTransactions()` too.
 
@@ -227,6 +269,14 @@ Acceptance: as in the PDF ("KES 120,000 at 5% = KES 6,000"; rate change mid-peri
 As in the PDF, adapted: tests for the mode switch, plan sync, ticket lifecycle (paused and elapsed), STK success/cancel/duplicate/timeout and every billing model; load test the portal, `/hs/status` and the callback with 200 concurrent users on staging; review Apache/PHP-FPM, MySQL indexes and the crontab schedule (no supervisor/queue workers); security review (callback token, rate limits, CSRF exceptions only where needed, privileges, no secrets in logs). Write `docs/hotspot/test-report.md`.
 
 ### Stage 13 — Deployment, documentation & pilot
+**Go-live reminder (decision 2026-10-17): hotspot login pages are HTTP while testing and HTTPS live.**
+Set `HOTSPOT_LOGIN_HTTPS=true` in the live `.env`. For every ISP router the login page name
+(a dedicated ISP subdomain such as `wifi.<isp-domain>`, never the main domain) needs a public DNS A
+record pointing at the router's public IP and port 80 reachable, so the router can get its
+Let's Encrypt certificate (the router-profile script disables the `www` service — check the
+certificate step in the router's activity log; it falls back to HTTP when the certificate fails).
+Put `$hotspot_environment = 'production'` in the live `crontab/hotspot_config.local.php`.
+
 As in the PDF: `docs/hotspot/deployment.md` for today's manual upload (changed files per repo from `git diff pre-hotspot-baseline..feature/hotspot --name-only`, SQL order — manager DB first, then org DBs — `.env` additions, new crontab entries, backup and rollback steps); ISP user guide and manager admin guide; router onboarding checklist (SSTP, hotspot server, walled garden, login files); one-week pilot with one ISP on 1–2 routers.
 
 ### Stage 14 — Switch live updates to Git-based deployment

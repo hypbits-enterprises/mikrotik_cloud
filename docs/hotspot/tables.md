@@ -31,7 +31,7 @@ Applied to dev on 2026-10-17: `mikrotik_cloud_manager` and org DB `mikrotik_clou
 | `hotspot_customers` | Buyers keyed by `phone` (unique): first seen, last purchase, purchase count, total spent. Not linked to `client_tables` | Stage 8 |
 | `hotspot_login_pages` | Portal branding. `router_id` NULL = org default, one row per router overrides it | Stage 7 |
 | `hotspot_usage_snapshots` | Periodic usage readings per ticket and router | Stage 6 (`hotspot_usage_sync.php`) |
-| `hotspot_router_activity` | Log of every router write made by hotspot code (action, target object, success/failed, attempts, message, who) | Stage 4 on |
+| `hotspot_router_activity` | One row per router task, also the agent's task queue. `action`: `setup`, `adopt`, `remove`, `delete_server` (agent) or `stop` (app only). `status`: `queued` → `running` → `success`\|`failed`. `message` is JSON `{"params": {...task parameters...}, "log": [{time, step, result, detail}, ...]}`; `params.dry_run` = only list the changes. `triggered_by` = `admin:<id>` | Stage 4 on |
 | `remote_routers.hotspot_enabled` | Router managed by the hotspot module (default 0) | Stage 4 |
 | `remote_routers.hotspot_key` | Public key in the portal URL `/hs/{hotspot_key}`, unique | Stage 4 |
 | `remote_routers.hotspot_server_name`, `hotspot_interface`, `hotspot_dns_name` | Hotspot server chosen on the router | Stage 4 |

@@ -464,4 +464,15 @@ Route::prefix("hotspot")->name("hotspot.")->middleware(["checkAccount", "validat
     Route::redirect("/", "/hotspot/dashboard");
     Route::get("/dashboard", [App\Http\Controllers\Hotspot\Dashboard::class, "index"])->name("dashboard")->middleware("hotspotCan:Hotspot Dashboard");
     Route::post("/mpesa/test", [App\Http\Controllers\Hotspot\Mpesa::class, "test"])->name("mpesa_test")->middleware("hotspotCan:Hotspot Payments");
+    Route::middleware("hotspotCan:Hotspot Routers")->group(function () {
+        Route::get("/routers", [App\Http\Controllers\Hotspot\Routers::class, "index"])->name("routers");
+        Route::get("/routers/{router_id}", [App\Http\Controllers\Hotspot\Routers::class, "show"])->name("router")->whereNumber("router_id");
+        Route::get("/routers/{router_id}/status", [App\Http\Controllers\Hotspot\Routers::class, "status"])->name("router_status")->whereNumber("router_id");
+        Route::get("/routers/{router_id}/activity", [App\Http\Controllers\Hotspot\Routers::class, "activity"])->name("router_activity")->whereNumber("router_id");
+        Route::post("/routers/{router_id}/setup", [App\Http\Controllers\Hotspot\Routers::class, "setup"])->name("router_setup")->whereNumber("router_id");
+        Route::post("/routers/{router_id}/adopt", [App\Http\Controllers\Hotspot\Routers::class, "adopt"])->name("router_adopt")->whereNumber("router_id");
+        Route::post("/routers/{router_id}/stop", [App\Http\Controllers\Hotspot\Routers::class, "stop"])->name("router_stop")->whereNumber("router_id");
+        Route::post("/routers/{router_id}/remove", [App\Http\Controllers\Hotspot\Routers::class, "remove"])->name("router_remove")->whereNumber("router_id");
+        Route::post("/routers/{router_id}/delete-server", [App\Http\Controllers\Hotspot\Routers::class, "deleteServer"])->name("router_delete_server")->whereNumber("router_id");
+    });
 });
