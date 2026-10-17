@@ -1,3 +1,7 @@
+@php
+    // ISP billing / hotspot mode, top-bar switch and hotspot sidebar (see App\Classes\HotspotAccess)
+    extract(\App\Classes\HotspotAccess::menuState());
+@endphp
 <!-- fixed-top-->
 <nav class="header-navbar navbar-expand-md navbar  navbar-with-menu navbar-without-dd-arrow fixed-top navbar-semi-light">
     <div class="navbar-wrapper">
@@ -40,6 +44,23 @@
                             <span class="text-light">Hello, {{ session('Usernames') }}</span>
                         @endif
                     </li>
+                    @if ($hotspotEnabled)
+                        {{-- ISP Billing | Hotspot switch: the mode comes from the URL --}}
+                        <li class="nav-item d-flex align-items-center ml-1">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Billing mode">
+                                @php
+                                    $btnText = "<i class=\"ft-users\"></i><span class=\"d-none d-sm-inline\"> ISP Billing</span>";
+                                    $btnType = $billingMode === "isp" ? "primary" : "secondary";
+                                @endphp
+                                <x-button-link :btnText="$btnText" :btnType="$btnType" btnSize="sm" btnLink="/Dashboard" btnId="billing_mode_isp" toolTip="ISP Billing" />
+                                @php
+                                    $btnText = "<i class=\"ft-wifi\"></i><span class=\"d-none d-sm-inline\"> Hotspot</span>";
+                                    $btnType = $billingMode === "hotspot" ? "primary" : "secondary";
+                                @endphp
+                                <x-button-link :btnText="$btnText" :btnType="$btnType" btnSize="sm" btnLink="/hotspot/dashboard" btnId="billing_mode_hotspot" toolTip="Hotspot" />
+                            </div>
+                        </li>
+                    @endif
                 </ul>
                 @if (!Session::has('Usernames'))
                     @php
@@ -248,7 +269,7 @@
     <div class="navbar-header" style="height: 120px">
         <ul class="nav navbar-nav flex-row p-0 justify-content-center align-item-center">
             <li class="nav-item mr-auto p-0 w-75 text-center" style="width: fit-content"><a class="navbar-brand "
-                    href="/Dashboard">
+                    href="{{ $billingMode === "hotspot" ? "/hotspot/dashboard" : "/Dashboard" }}">
                     <img class="w-100 mx-auto" height="100" alt="Your Logo Appear Here"
                         src="{{session("organization_logo") != null ? session("organization_logo") :'/theme-assets/images/logoplaceholder.svg'}}" />
                 </a></li>
@@ -257,6 +278,16 @@
     </div>
     <div class="main-menu-content">
         <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
+            @if ($billingMode === "hotspot")
+            {{-- HOTSPOT MENU: items from config/hotspot.php that exist and the admin may see --}}
+            @php
+                $hotspot_menu_blocked = session()->has("inactive_menu") && session("inactive_menu") == "true";
+            @endphp
+            @foreach ($hotspotMenu as $hotspot_item)
+                <li class="nav-item {{$active == $hotspot_item["active"] ? "active" : ""}} {{$hotspot_menu_blocked ? "disabled" : ""}}"><a href="{{$hotspot_menu_blocked ? "#" : route($hotspot_item["route"])}}"><i class="{{$hotspot_item["icon"]}}"></i><span class="menu-title" data-i18n="">{{$hotspot_item["label"]}}</span></a>
+                </li>
+            @endforeach
+            @else
             <li class="{{$active == "dashboard" ? "active" : ""}}"><a href="/Dashboard"><i class="ft-home"></i><span class="menu-title" data-i18n="">Dashboard {{showOption($priviledges,"Quick Register")}}</span></a>
             </li>
             <li class="{{((showOption($priviledges,"My Clients") == "d-none" && showOption($priviledges,"Clients Issues") == "d-none" && showOption($priviledges,"Quick Register") == "d-none") || (showOption($priviledges,"My Clients") == "disabled d-none" && showOption($priviledges,"Clients Issues") == "disabled d-none") && showOption($priviledges,"Quick Register") == "disabled d-none") ? "d-none" : ""}} nav-item has-sub {{$active == "myclients" || $active == "client_issues" || $active == "quick_register" ? "active open" : ""}}"><a href="#"><i class="ft-users"></i><span class="menu-title" data-i18n="">Clients</span></a>
@@ -288,6 +319,7 @@
             </li>
             <li class="{{showOption($priviledges,"Account and Profile")}} nav-item {{$active == "account_and_profile" ? "active" : ""}}"><a href="/Accounts"><i class="ft-lock"></i><span class="menu-title" data-i18n="">Account and Profile</span></a>
             </li>
+            @endif
         </ul>
     </div>
     <!-- <a class="btn btn-danger btn-block btn-glow btn-upgrade-pro mx-1" href="https://themeselection.com/products/chameleon-admin-modern-bootstrap-webapp-dashboard-html-template-ui-kit/" target="_blank">Download PRO!</a> -->

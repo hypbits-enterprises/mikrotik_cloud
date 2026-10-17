@@ -483,6 +483,7 @@
                                                                 </div>
                                                             </td>
                                                         </tr>
+                                                        @include("hotspot.partials.admin-privileges", ["hotspot_admin_privileges" => $admin_data[0]->priviledges])
                                                     </tbody>
                                                 </table>
                                             </div>

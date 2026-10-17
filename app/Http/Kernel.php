@@ -68,5 +68,7 @@ class Kernel extends HttpKernel
         'validated' => \App\Http\Middleware\CheckValidatedClients::class,
         'checkAccount' => \App\Http\Middleware\checkAccount::class,
         'clientValidate' => \App\Http\Middleware\clientValidate::class,
+        'hotspotEnabled' => \App\Http\Middleware\EnsureHotspotEnabled::class,
+        'hotspotCan' => \App\Http\Middleware\EnsureHotspotPrivilege::class,
     ];
 }

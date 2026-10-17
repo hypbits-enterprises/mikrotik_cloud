@@ -9,11 +9,12 @@ apply unless a stage below replaces them.
   same name in `mikrotik_cloud_manager` and `crontab` when work starts there.
 - Company name is **Hypbits** (not "Hybits" as written in the PDF).
 
-> **Where we left off (2026-10-17):** Stages 0 and 1 done (tags `hotspot-stage-00`,
-> `hotspot-stage-01`). Schema is applied to the dev DBs; see `tables.md` for every table and how
-> it is rolled out (`php artisan hotspot:apply-org-schema` in the manager). **Next: Stage 2
-> (mode switch, privileges & shared UI).** R1 in `00-impact-and-safety.md` (hotspot STK payments
-> also reaching `/Transact`) must be decided before Stage 8.
+> **Where we left off (2026-10-17):** Stages 0–2 done (tags `hotspot-stage-00` … `-02`). The
+> ISP Billing | Hotspot switch, hotspot sidebar, privileges and a dashboard skeleton are in; turn
+> hotspot on for an org with a row in `org_hotspot_settings` until Stage 3 builds the manager
+> screen. **Next: Stage 3 (manager: enable hotspot & billing model).** R1 in
+> `00-impact-and-safety.md` (hotspot STK payments also reaching `/Transact`) must be decided before
+> Stage 8.
 
 ## 1. Decisions that change the PDF
 
@@ -53,7 +54,7 @@ apply unless a stage below replaces them.
 10. Follow the org DB conventions: `deleted` flag instead of soft-delete timestamps; dates stored as `YmdHis` strings, written with `now()->format('YmdHis')` (Africa/Nairobi).
 11. Re-run the Stage 0 baseline regression checklist at the end of every stage. Keep `docs/hotspot/` up to date.
 12. Hotspot entry points without a session (captive portal, M-Pesa callback, crontab agents) resolve the org explicitly and fail closed — never rely on `change_db()` falling back to the default `mysql2` DB.
-13. A hotspot privilege missing from an admin's `priviledges` JSON means **no access**, and hotspot routes check the privilege server-side (today's `showOption()` treats a missing option as visible, and routes are not privilege-checked).
+13. A hotspot privilege missing from an admin's `priviledges` JSON is allowed **only for owners** (admins whose "Account and Profile" option has view on and read-only off); everyone else is denied until granted, and an explicit entry always wins. Hotspot routes check the privilege server-side with the `hotspotCan:<option>` middleware (today's `showOption()` treats a missing option as visible, and ISP routes are not privilege-checked). Logic: `App\Classes\HotspotAccess`.
 
 ## 3. Where data lives
 
@@ -81,7 +82,7 @@ Full column lists and how the schema is applied: `tables.md` (Stage 1).
 |---|---|---|---|---|---|---|---|
 | 0 | Study the live system & protect current operations | all 3 | 3 | — | Done | 2026-10-17 | 2026-10-17 |
 | 1 | Schema (raw SQL, manager rollout) | cloud, manager | 3 | 0 | Done | 2026-10-17 | 2026-10-17 |
-| 2 | Mode switch, privileges & shared UI | cloud | 2 | 1 | | | |
+| 2 | Mode switch, privileges & shared UI | cloud | 2 | 1 | Done | 2026-10-17 | 2026-10-17 |
 | 3 | Manager: enable hotspot & billing model | manager, cloud | 3 | 1 | | | |
 | 4 | Cloud routers: hotspot detection & setup | cloud, crontab | 4 | 2 | | | |
 | 5 | Hotspot plans | cloud, crontab | 3 | 4 | | | |
@@ -135,6 +136,15 @@ Acceptance: SQL applies cleanly twice in a row; existing tables untouched; a new
 - Hotspot dashboard placeholder: today's sales, active users, tickets sold today, routers online.
 
 Acceptance: as in the PDF, plus an admin without hotspot privileges sees no hotspot menu items.
+
+As built (2026-10-17):
+- Missing hotspot privilege = owners only (decision 2026-10-17, see golden rule 13).
+- The ISP sidebar stays in Blade (moving it to config would change existing markup); only the
+  hotspot menu is in `config/hotspot.php`. A hotspot menu item appears once its route exists.
+- `<x-menu>` is an anonymous component (the `menu` class is never loaded because of its lower-case
+  file name), so the mode and hotspot menu are computed by `HotspotAccess::menuState()` at the top
+  of `components/menu.blade.php`.
+- No `SetBillingMode` middleware: the mode is read from the URL where it is needed.
 
 ### Stage 3 — Manager: enable hotspot & billing model
 Manager repo:

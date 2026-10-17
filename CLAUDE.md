@@ -383,8 +383,17 @@ The hotspot billing module is built on branch `feature/hotspot` in all three rep
 10. Follow the org DB conventions: `deleted` flag instead of soft-delete timestamps; dates stored as `YmdHis` strings, written with `now()->format('YmdHis')` (Africa/Nairobi).
 11. Re-run the Stage 0 baseline regression checklist at the end of every stage. Keep `docs/hotspot/` up to date.
 12. Hotspot entry points without a session (captive portal, M-Pesa callback, crontab agents) resolve the org explicitly and fail closed — never rely on `change_db()` falling back to the default `mysql2` DB.
-13. A hotspot privilege missing from an admin's `priviledges` JSON means **no access**, and hotspot routes check the privilege server-side (today's `showOption()` treats a missing option as visible, and routes are not privilege-checked).
+13. A hotspot privilege missing from an admin's `priviledges` JSON is allowed **only for owners** (admins whose "Account and Profile" option has view on and read-only off); everyone else is denied until granted, and an explicit entry always wins. Hotspot routes check the privilege server-side with the `hotspotCan:<option>` middleware (today's `showOption()` treats a missing option as visible, and ISP routes are not privilege-checked). Logic: `App\Classes\HotspotAccess`.
 
 ### Hotspot schema
 
 New tables and columns are listed in `docs/hotspot/tables.md` (SQL in `docs/hotspot/sql/`). Org DBs get them from `mikrotik_cloud_manager` (`php artisan hotspot:apply-org-schema` for existing orgs, `imports.sql` for new ones); the manager keeps an identical copy of `org_db.sql` in `database/hotspot/`. Any change to the hotspot org SQL must be made in both copies and in the hotspot block of the manager's `imports.sql`.
+
+### Hotspot mode switch & privileges (Stage 2)
+
+- **Mode** comes from the URL: `/hotspot/*` = hotspot, everything else = ISP billing. `App\Classes\HotspotAccess::menuState()` (called at the top of `components/menu.blade.php`) decides the sidebar and the "ISP Billing | Hotspot" switch in the top bar. `<x-menu>` is an anonymous component — `app/View/Components/menu.php` is never loaded (lower-case file name), so don't put logic there.
+- **Org flag**: `org_hotspot_settings.hotspot_enabled` in the manager DB, cached 5 minutes (`HotspotAccess::enabledForOrg()`, cache key `hotspot_enabled_<org_id>`). No row = off.
+- **Privileges**: options listed in `config/hotspot.php` (`privileges`), stored in the same `priviledges` JSON. Missing option = owners only (golden rule 13). Add/edit admin screens show the hotspot rows through `resources/views/hotspot/partials/admin-privileges.blade.php` when the org has hotspot.
+- **Adding a hotspot page**: put the route inside the `Route::prefix("hotspot")->name("hotspot.")` group at the end of `routes/web.php` (group middleware: `checkAccount`, `validated`, `hotspotEnabled`), add `->middleware("hotspotCan:<option>")`, and add a `menu` entry in `config/hotspot.php` with the route name — the sidebar shows it once the route exists. Views go in `resources/views/hotspot/` and use `<x-menu active="hotspot_...">`.
+- **403 page**: `resources/views/hotspot/disabled.blade.php` (`reason` = `disabled` or `privilege`).
+- **Tests**: `tests/Feature/HotspotModeTest.php` runs each test in its own process because the menu and admin views declare global PHP functions (a page can render only once per process).

@@ -457,3 +457,10 @@ Route::view("/Client-Forgot-Password", "clients.client-forgot-password")->name("
 Route::get("/Refferals", [Clients_data::class, "get_refferals"])->name("get_refferals")->middleware(["clientValidate"]);
 Route::get("/Refferals/View/{client_id}", [Clients_data::class, "get_refferals_information"])->name("get_refferals_information")->middleware(["clientValidate"]);
 Route::get("/Commission", [Clients_data::class, "get_commissions"])->name("get_commissions")->middleware(["clientValidate"]);
+
+// HOTSPOT MODULE — every page under /hotspot needs an admin session, an org with hotspot enabled
+// (manager DB org_hotspot_settings) and the page's hotspot privilege.
+Route::prefix("hotspot")->name("hotspot.")->middleware(["checkAccount", "validated", "hotspotEnabled"])->group(function () {
+    Route::redirect("/", "/hotspot/dashboard");
+    Route::get("/dashboard", [App\Http\Controllers\Hotspot\Dashboard::class, "index"])->name("dashboard")->middleware("hotspotCan:Hotspot Dashboard");
+});

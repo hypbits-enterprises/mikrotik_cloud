@@ -305,6 +305,7 @@
                                                                 </div>
                                                             </td>
                                                         </tr>
+                                                        @include("hotspot.partials.admin-privileges", ["hotspot_admin_privileges" => null])
                                                     </tbody>
                                                 </table>
                                             </div>
