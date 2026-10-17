@@ -9,11 +9,10 @@ apply unless a stage below replaces them.
   same name in `mikrotik_cloud_manager` and `crontab` when work starts there.
 - Company name is **Hypbits** (not "Hybits" as written in the PDF).
 
-> **Where we left off (2026-10-17):** Stages 0–4 done (tags `hotspot-stage-00` … `-04`). Cloud
-> routers can be set up (wizard, wired and/or Wi-Fi), adopted, released, cleaned up and their
-> foreign hotspot servers deleted, all through the crontab agent. Lab: CHR-ISP (router 23, wired on
-> `ether3`) and the user's RB951 (router 28, Wi-Fi "Hypbits Test WiFi"). **Next: Stage 5 (plans).**
-> Stage 8 now also covers the manual Paybill/Till payment fallback (decided 2026-10-17, below).
+> **Where we left off (2026-10-17):** Stages 0–5 done (tags `hotspot-stage-00` … `-05`). The ISP
+> manages its packages under Hotspot → Plans; each plan is the user profile `hypbits-hs-<plan_id>`
+> on every managed router (lab: routers 23 and 28 have plan 9, "1 hour", 2M/5M). **Next: Stage 6
+> (tickets & provisioning engine).** Stage 8 includes the manual Paybill/Till payment fallback.
 
 ## 1. Decisions that change the PDF
 
@@ -84,7 +83,7 @@ Full column lists and how the schema is applied: `tables.md` (Stage 1).
 | 2 | Mode switch, privileges & shared UI | cloud | 2 | 1 | Done | 2026-10-17 | 2026-10-17 |
 | 3 | Manager: enable hotspot & billing model | manager, cloud | 3 | 1 | Done | 2026-10-17 | 2026-10-17 |
 | 4 | Cloud routers: hotspot detection & setup | cloud, crontab | 4 | 2 | Done | 2026-10-17 | 2026-10-17 |
-| 5 | Hotspot plans | cloud, crontab | 3 | 4 | | | |
+| 5 | Hotspot plans | cloud, crontab | 3 | 4 | Done | 2026-10-17 | 2026-10-17 |
 | 6 | Tickets & provisioning engine | cloud, crontab | 6 | 5 | | | |
 | 7 | Captive portal & custom login page | cloud | 5 | 5 | | | |
 | 8 | M-Pesa STK push & automatic sign-in | cloud, crontab | 6 | 3, 6, 7 | | | |
@@ -195,6 +194,15 @@ As built (2026-10-17):
 
 ### Stage 5 — Hotspot plans
 As in the PDF (CRUD, paused vs elapsed explained in the form, validation). On save, the router agent creates/updates a `hypbits-hs-<plan_id>` user profile (rate-limit, shared-users) on every hotspot-enabled router of the org. Deactivating a plan hides it from the portal without touching sold tickets. The plans list shows sync status per router.
+
+As built (2026-10-17): Hotspot → Plans (list with a sync badge per managed router, new/edit form,
+activate/deactivate, delete in our own modal, "Sync to routers"). Duration in minutes/hours/days/
+weeks/months (month = 30 days), validity "from first login" (elapsed) or "while connected"
+(paused), optional upload/download speed (Kbps/Mbps), data limit (MB/GB) and devices (1–10).
+Agent task `sync_profiles` (also run after setup/adopt) keeps one user profile per non-deleted plan;
+**RouterOS user profiles have no comment field**, so ownership is the exact name
+`hypbits-hs-<digits>`; other profiles are never touched. A deleted plan's profile is removed unless
+a pending/active ticket still uses it. `HotspotPlans::forPortal()` is the list the portal will show.
 
 ### Stage 6 — Tickets & provisioning engine
 - `TicketService::issue(plan, router, phone, mac, source, payment?)` in the org app: unique short code, `hotspot_tickets` row, then calls the router agent to run `/ip hotspot user add` (limit-uptime for paused plans, limit-bytes-total if there's a data limit). Idempotent: re-running never creates duplicates.

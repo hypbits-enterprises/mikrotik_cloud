@@ -464,6 +464,16 @@ Route::prefix("hotspot")->name("hotspot.")->middleware(["checkAccount", "validat
     Route::redirect("/", "/hotspot/dashboard");
     Route::get("/dashboard", [App\Http\Controllers\Hotspot\Dashboard::class, "index"])->name("dashboard")->middleware("hotspotCan:Hotspot Dashboard");
     Route::post("/mpesa/test", [App\Http\Controllers\Hotspot\Mpesa::class, "test"])->name("mpesa_test")->middleware("hotspotCan:Hotspot Payments");
+    Route::middleware("hotspotCan:Hotspot Plans")->group(function () {
+        Route::get("/plans", [App\Http\Controllers\Hotspot\Plans::class, "index"])->name("plans");
+        Route::get("/plans/new", [App\Http\Controllers\Hotspot\Plans::class, "create"])->name("plan_new");
+        Route::post("/plans", [App\Http\Controllers\Hotspot\Plans::class, "store"])->name("plan_store");
+        Route::post("/plans/sync", [App\Http\Controllers\Hotspot\Plans::class, "sync"])->name("plans_sync");
+        Route::get("/plans/{plan_id}/edit", [App\Http\Controllers\Hotspot\Plans::class, "edit"])->name("plan_edit")->whereNumber("plan_id");
+        Route::post("/plans/{plan_id}", [App\Http\Controllers\Hotspot\Plans::class, "update"])->name("plan_update")->whereNumber("plan_id");
+        Route::post("/plans/{plan_id}/toggle", [App\Http\Controllers\Hotspot\Plans::class, "toggle"])->name("plan_toggle")->whereNumber("plan_id");
+        Route::post("/plans/{plan_id}/delete", [App\Http\Controllers\Hotspot\Plans::class, "destroy"])->name("plan_delete")->whereNumber("plan_id");
+    });
     Route::middleware("hotspotCan:Hotspot Routers")->group(function () {
         Route::get("/routers", [App\Http\Controllers\Hotspot\Routers::class, "index"])->name("routers");
         Route::get("/routers/{router_id}", [App\Http\Controllers\Hotspot\Routers::class, "show"])->name("router")->whereNumber("router_id");

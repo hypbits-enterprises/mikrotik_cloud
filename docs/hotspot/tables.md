@@ -25,13 +25,13 @@ Applied to dev on 2026-10-17: `mikrotik_cloud_manager` and org DB `mikrotik_clou
 
 | Table / column | Purpose | Written by |
 |---|---|---|
-| `hotspot_plans` | Plans sold on the portal: price, speeds / `rate_limit`, `validity_type` (`paused` = counts connected time, `elapsed` = clock runs from first login), `duration_minutes`, `data_limit_mb`, `shared_users`, `is_active`, `sort_order` | Stage 5 |
+| `hotspot_plans` | Plans sold on the portal: `price` (KES), `duration_minutes`, `validity_type` (`paused` = counts connected time, `elapsed` = clock runs from first login), `upload_speed`/`download_speed` (`2M`, `512k`, NULL = unlimited), `rate_limit` (RouterOS `rx/tx` from the router's side = `upload/download`, NULL = unlimited), `data_limit_mb` (NULL = unlimited), `shared_users` (devices per ticket), `is_active` (shown on the portal), `sort_order`, `deleted`. Each plan = router user profile `hypbits-hs-<plan_id>` | Stage 5 |
 | `hotspot_tickets` | One row per ticket on a router. `ticket_code` unique; `payment_id` unique (one payment = one ticket, NULL for manual); `source` `stk`\|`manual`; `amount` = price at sale; `status` `pending`\|`active`\|`used`\|`expired`\|`failed`; `provision_status`/`provision_attempts`/`last_error` for creating the router user while the router is offline; usage counters | Stage 6 (manual), Stage 8 (STK) |
 | `hotspot_payments` | STK pushes from the portal. `checkout_request_id` and `mpesa_receipt` unique (idempotent callbacks); `status` `pending`\|`paid`\|`failed`\|`cancelled`; `raw_callback` without credentials | Stage 8 |
 | `hotspot_customers` | Buyers keyed by `phone` (unique): first seen, last purchase, purchase count, total spent. Not linked to `client_tables` | Stage 8 |
 | `hotspot_login_pages` | Portal branding. `router_id` NULL = org default, one row per router overrides it | Stage 7 |
 | `hotspot_usage_snapshots` | Periodic usage readings per ticket and router | Stage 6 (`hotspot_usage_sync.php`) |
-| `hotspot_router_activity` | One row per router task, also the agent's task queue. `action`: `setup`, `adopt`, `remove`, `delete_server` (agent) or `stop` (app only). `status`: `queued` → `running` → `success`\|`failed`. `message` is JSON `{"params": {...task parameters...}, "log": [{time, step, result, detail}, ...]}`; `params.dry_run` = only list the changes. `triggered_by` = `admin:<id>` | Stage 4 on |
+| `hotspot_router_activity` | One row per router task, also the agent's task queue. `action`: `setup`, `adopt`, `remove`, `delete_server`, `sync_profiles` (agent) or `stop` (app only). `status`: `queued` → `running` → `success`\|`failed`. `message` is JSON `{"params": {...task parameters...}, "log": [{time, step, result, detail}, ...]}`; `params.dry_run` = only list the changes. `triggered_by` = `admin:<id>` | Stage 4 on |
 | `remote_routers.hotspot_enabled` | Router managed by the hotspot module (default 0) | Stage 4 |
 | `remote_routers.hotspot_key` | Public key in the portal URL `/hs/{hotspot_key}`, unique | Stage 4 |
 | `remote_routers.hotspot_server_name`, `hotspot_interface`, `hotspot_dns_name` | Hotspot server chosen on the router | Stage 4 |

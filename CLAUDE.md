@@ -411,3 +411,7 @@ Hotspot is turned on per org, and its billing set, in `mikrotik_cloud_manager` (
 - `.env` keys: `HOTSPOT_AGENT_URL`, `HOTSPOT_PORTAL_HOST` (walled garden), `HOTSPOT_ROUTER_WRITE_ALLOWLIST`, `HOTSPOT_LOGIN_HTTPS` (false while testing, **true on the live server**).
 - Confirmations use the app's Bootstrap modals, never `confirm()`/`alert()`.
 - Tests: `tests/Feature/HotspotRoutersTest.php` needs the GNS3 lab (router 23 online); only reads reach a router, the agent call is faked.
+
+### Hotspot plans (Stage 5)
+
+Hotspot → Plans (`App\Http\Controllers\Hotspot\Plans`, privilege Hotspot Plans): the ISP's packages in `hotspot_plans`. Helpers in `App\Classes\HotspotPlans` (unit conversions, display text, `forPortal()` = active plans in order). Every save/toggle/delete queues the agent task `sync_profiles` for each managed router (`remote_routers.hotspot_enabled = 1`); the plan is the router user profile `hypbits-hs-<plan_id>` (`rate-limit` = `upload/download`, `shared-users`). A router shows a plan as in sync when its `hotspot_last_sync` is newer than the plan's `date_changed`. Tests: `tests/Feature/HotspotPlansTest.php`.
