@@ -384,3 +384,7 @@ The hotspot billing module is built on branch `feature/hotspot` in all three rep
 11. Re-run the Stage 0 baseline regression checklist at the end of every stage. Keep `docs/hotspot/` up to date.
 12. Hotspot entry points without a session (captive portal, M-Pesa callback, crontab agents) resolve the org explicitly and fail closed — never rely on `change_db()` falling back to the default `mysql2` DB.
 13. A hotspot privilege missing from an admin's `priviledges` JSON means **no access**, and hotspot routes check the privilege server-side (today's `showOption()` treats a missing option as visible, and routes are not privilege-checked).
+
+### Hotspot schema
+
+New tables and columns are listed in `docs/hotspot/tables.md` (SQL in `docs/hotspot/sql/`). Org DBs get them from `mikrotik_cloud_manager` (`php artisan hotspot:apply-org-schema` for existing orgs, `imports.sql` for new ones); the manager keeps an identical copy of `org_db.sql` in `database/hotspot/`. Any change to the hotspot org SQL must be made in both copies and in the hotspot block of the manager's `imports.sql`.

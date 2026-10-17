@@ -9,12 +9,11 @@ apply unless a stage below replaces them.
   same name in `mikrotik_cloud_manager` and `crontab` when work starts there.
 - Company name is **Hypbits** (not "Hybits" as written in the PDF).
 
-> **Where we left off (2026-10-17):** Stage 0 done and awaiting sign-off: baseline tags
-> `pre-hotspot-baseline` and branch `feature/hotspot` in all three repos; `00-discovery.md`,
-> `00-impact-and-safety.md`, `00-gns3-lab.md` written; golden rules added to all three CLAUDE.md
-> files; GNS3 lab working (router 23 = CHR-ISP). **Next: Stage 1 (schema).** Read the risks in
-> `00-impact-and-safety.md` section 4 first — R1 (hotspot STK payments also reaching `/Transact`)
-> must be decided before Stage 8.
+> **Where we left off (2026-10-17):** Stages 0 and 1 done (tags `hotspot-stage-00`,
+> `hotspot-stage-01`). Schema is applied to the dev DBs; see `tables.md` for every table and how
+> it is rolled out (`php artisan hotspot:apply-org-schema` in the manager). **Next: Stage 2
+> (mode switch, privileges & shared UI).** R1 in `00-impact-and-safety.md` (hotspot STK payments
+> also reaching `/Transact`) must be decided before Stage 8.
 
 ## 1. Decisions that change the PDF
 
@@ -58,12 +57,15 @@ apply unless a stage below replaces them.
 
 ## 3. Where data lives
 
+Full column lists and how the schema is applied: `tables.md` (Stage 1).
+
 | Manager DB (`mikrotik_cloud_manager`) | Each org DB |
 |---|---|
-| `org_hotspot_settings` — org_id, hotspot_enabled, enabled_at, billing_model (`percentage`\|`flat_monthly`\|`per_router`\|`per_ticket`), rate, manual_ticket_rate, minimum_charge, callback_token, effective_from | `hotspot_plans`, `hotspot_tickets`, `hotspot_payments`, `hotspot_customers`, `hotspot_usage_snapshots`, `hotspot_login_pages`, `hotspot_router_activity` |
+| `org_hotspot_settings` — org_id, hotspot_enabled, enabled_at, billing_model (`percentage`\|`flat_monthly`\|`per_router`\|`per_ticket`), rate, manual_ticket_rate, minimum_charge, org_key (random public key for callback URLs), callback_token, effective_from | `hotspot_plans`, `hotspot_tickets`, `hotspot_payments`, `hotspot_customers`, `hotspot_usage_snapshots`, `hotspot_login_pages`, `hotspot_router_activity` |
 | `org_hotspot_settings_history` — audit of who changed model/rate and when | `remote_routers` + new columns: `hotspot_enabled`, `hotspot_key` (unique, used in the portal URL), `hotspot_server_name`, `hotspot_interface`, `hotspot_dns_name`, `hotspot_last_sync` |
 | `hotspot_billing_defaults` — global default model, rate and manual-ticket rate | Existing `settings` M-Pesa keys (unchanged, reused) |
 | `org_hotspot_statements` — org_id, period_start, period_end, gross_sales, stk_ticket_count, manual_ticket_count, active_routers, billing_model, rate, amount_due, charged_at, status | Existing ISP clients, PPPoE billing data (untouched) |
+| `hotspot_router_keys` — hotspot_key → org_id, router_id (so the session-less portal finds the org in one lookup) | |
 
 ## 4. How money and data flow
 
@@ -77,8 +79,8 @@ apply unless a stage below replaces them.
 
 | # | Stage | Repos | Est. days | Needs | Status | Started | Done |
 |---|---|---|---|---|---|---|---|
-| 0 | Study the live system & protect current operations | all 3 | 3 | — | Awaiting sign-off | 2026-10-17 | |
-| 1 | Schema (raw SQL, manager rollout) | cloud, manager | 3 | 0 | | | |
+| 0 | Study the live system & protect current operations | all 3 | 3 | — | Done | 2026-10-17 | 2026-10-17 |
+| 1 | Schema (raw SQL, manager rollout) | cloud, manager | 3 | 0 | Done | 2026-10-17 | 2026-10-17 |
 | 2 | Mode switch, privileges & shared UI | cloud | 2 | 1 | | | |
 | 3 | Manager: enable hotspot & billing model | manager, cloud | 3 | 1 | | | |
 | 4 | Cloud routers: hotspot detection & setup | cloud, crontab | 4 | 2 | | | |
