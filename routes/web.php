@@ -463,4 +463,5 @@ Route::get("/Commission", [Clients_data::class, "get_commissions"])->name("get_c
 Route::prefix("hotspot")->name("hotspot.")->middleware(["checkAccount", "validated", "hotspotEnabled"])->group(function () {
     Route::redirect("/", "/hotspot/dashboard");
     Route::get("/dashboard", [App\Http\Controllers\Hotspot\Dashboard::class, "index"])->name("dashboard")->middleware("hotspotCan:Hotspot Dashboard");
+    Route::post("/mpesa/test", [App\Http\Controllers\Hotspot\Mpesa::class, "test"])->name("mpesa_test")->middleware("hotspotCan:Hotspot Payments");
 });

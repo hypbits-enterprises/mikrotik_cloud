@@ -9,10 +9,9 @@ apply unless a stage below replaces them.
   same name in `mikrotik_cloud_manager` and `crontab` when work starts there.
 - Company name is **Hypbits** (not "Hybits" as written in the PDF).
 
-> **Where we left off (2026-10-17):** Stages 0–2 done (tags `hotspot-stage-00` … `-02`). The
-> ISP Billing | Hotspot switch, hotspot sidebar, privileges and a dashboard skeleton are in; turn
-> hotspot on for an org with a row in `org_hotspot_settings` until Stage 3 builds the manager
-> screen. **Next: Stage 3 (manager: enable hotspot & billing model).** R1 in
+> **Where we left off (2026-10-17):** Stages 0–3 done (tags `hotspot-stage-00` … `-03`). The manager
+> turns hotspot on per org and sets its billing (Organizations → Hotspot Billing for defaults,
+> organization page → Hotspot). **Next: Stage 4 (cloud routers: hotspot detection & setup).** R1 in
 > `00-impact-and-safety.md` (hotspot STK payments also reaching `/Transact`) must be decided before
 > Stage 8.
 
@@ -83,7 +82,7 @@ Full column lists and how the schema is applied: `tables.md` (Stage 1).
 | 0 | Study the live system & protect current operations | all 3 | 3 | — | Done | 2026-10-17 | 2026-10-17 |
 | 1 | Schema (raw SQL, manager rollout) | cloud, manager | 3 | 0 | Done | 2026-10-17 | 2026-10-17 |
 | 2 | Mode switch, privileges & shared UI | cloud | 2 | 1 | Done | 2026-10-17 | 2026-10-17 |
-| 3 | Manager: enable hotspot & billing model | manager, cloud | 3 | 1 | | | |
+| 3 | Manager: enable hotspot & billing model | manager, cloud | 3 | 1 | Done | 2026-10-17 | 2026-10-17 |
 | 4 | Cloud routers: hotspot detection & setup | cloud, crontab | 4 | 2 | | | |
 | 5 | Hotspot plans | cloud, crontab | 3 | 4 | | | |
 | 6 | Tickets & provisioning engine | cloud, crontab | 6 | 5 | | | |
@@ -156,6 +155,13 @@ Org app (`mikrotik_cloud`): a "Test M-Pesa credentials" button that requests a D
 
 Acceptance: as in the PDF, minus the credentials form; no secrets appear in page source, logs or responses.
 
+As built (2026-10-17):
+- **Versions:** every save writes a row to `org_hotspot_settings_history`; `org_hotspot_settings` mirrors the latest saved values. The settings that bill a period are the history row with the greatest `effective_from` on or before the period start (ties: highest `id`) — `HotspotBilling::versionAt()` in the manager. Stage 11 must use the same rule.
+- **effective_from:** a model/rate change applies from the org's current `expiry_date` (its next billing period), or now if the org is already expired. First enable: now, values copied from `hotspot_billing_defaults`.
+- **Enable/disable** applies at once (the org app caches the flag up to 5 minutes) and writes a history row carrying the billing values in effect. `history.hotspot_enabled` is informational; Stage 11 decides "was hotspot on" from `org_hotspot_settings` and the period's sales, not from history rows.
+- `org_key` (24 chars) and `callback_token` (48 chars) are created on first enable and never regenerated; the token is never shown.
+- Org app: "Test M-Pesa credentials" on the hotspot dashboard (`hotspot.mpesa_test`, needs Hotspot Payments) via `MpesaService::checkCredentials()`; lists missing key names, never values.
+
 ### Stage 4 — Cloud routers: hotspot detection & setup
 - `HotspotRouterService` (org app) built on `routeros_api.php` and the SSTP addressing `Router_Cloud.php` already uses: `detect()` (hotspot servers, profiles, RouterOS version), `health()`, `enable()`, `disable()`, `syncProfiles()`.
 - Hotspot Routers page: `remote_routers` with online/offline, RouterOS version, hotspot detected, managed on/off, last sync.
@@ -212,6 +218,8 @@ Only hotspot-specific additions to the router detail page: hotspot active users,
 - Manager: "Hotspot billing" page per org and period (sales, model, rate, amount, status), a month-to-date estimate, and an admin "recalculate" for periods not yet charged.
 - Org app: the same statement, read-only.
 - Note for Stage 0 to confirm: `getWaCost()` is computed today but appears to be used only in the message text, not in the wallet deduction. Hotspot must actually be deducted; whether WhatsApp should be too is a separate decision.
+
+Which model/rate bills a period: the history row with the greatest `effective_from` on or before the period start (Stage 3 rule, `HotspotBilling::versionAt()` in the manager).
 
 Acceptance: as in the PDF ("KES 120,000 at 5% = KES 6,000"; rate change mid-period applies next period; hotspot-disabled org not billed; org statement matches the manager; running renewal twice doesn't double-charge), plus manual tickets charged at the manual rate.
 

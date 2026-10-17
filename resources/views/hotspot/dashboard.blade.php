@@ -114,6 +114,25 @@
                         </div>
                     </div>
                 </div>
+                @if (\App\Classes\HotspotAccess::can(session("priviledges"), "Hotspot Payments"))
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h4 class="card-title"><i class="ft-credit-card"></i> M-Pesa</h4>
+                            </div>
+                            <div class="card-content">
+                                <div class="card-body">
+                                    <p>Hotspot customers pay into your own Paybill/Till using the M-Pesa keys in your account settings. Check that M-Pesa accepts them before you start selling.</p>
+                                    @php $btnText = "<i class=\"ft-check-circle\"></i> Test M-Pesa credentials"; @endphp
+                                    <x-button :btnText="$btnText" btnType="primary" btnSize="sm" btnId="test_mpesa_credentials" />
+                                    <p class="mt-1 mb-0" id="test_mpesa_result"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
                 <div class="row">
                     <div class="col-12">
                         <div class="card">
@@ -148,6 +167,34 @@
     <script src="/theme-assets/js/core/app-menu-lite.js" type="text/javascript"></script>
     <script src="/theme-assets/js/core/app-lite.js" type="text/javascript"></script>
     <script src="/theme-assets/js/core/bootstrap.bundle.min.js"></script>
+    <script>
+        (function () {
+            var button = document.getElementById("test_mpesa_credentials");
+            if (!button) {
+                return;
+            }
+            var result = document.getElementById("test_mpesa_result");
+            button.addEventListener("click", function () {
+                button.disabled = true;
+                result.className = "mt-1 mb-0 text-muted";
+                result.textContent = "Contacting M-Pesa...";
+                fetch("{{ route('hotspot.mpesa_test') }}", {
+                    method: "POST",
+                    headers: {"X-CSRF-TOKEN": "{{ csrf_token() }}", "Accept": "application/json"}
+                }).then(function (response) {
+                    return response.json();
+                }).then(function (data) {
+                    result.className = "mt-1 mb-0 " + (data.ok ? "text-success" : "text-danger");
+                    result.textContent = data.message;
+                }).catch(function () {
+                    result.className = "mt-1 mb-0 text-danger";
+                    result.textContent = "The test could not be run. Reload the page and try again.";
+                }).finally(function () {
+                    button.disabled = false;
+                });
+            });
+        })();
+    </script>
 </body>
 
 </html>

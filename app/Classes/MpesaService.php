@@ -79,6 +79,22 @@ class MpesaService
     }
 
     /**
+     * Check that the organization's consumer key and secret can get a Daraja access token
+     * (tries v1 then v2, like initiate_stk). Never returns the token.
+     */
+    public function checkCredentials()
+    {
+        foreach (['v1', 'v2'] as $version) {
+            $result = $this->getAccessToken($version);
+            if (isset($result->access_token)) {
+                return ['ok' => true, 'message' => "M-Pesa accepted the consumer key and secret (Daraja $version)."];
+            }
+        }
+        $reason = isset($result->errorMessage) ? $result->errorMessage : (isset($result->error_description) ? $result->error_description : "No access token returned");
+        return ['ok' => false, 'message' => "M-Pesa rejected the consumer key and secret: " . $reason];
+    }
+
+    /**
      * Initiate STK Push
      */
     public function stkPush($phone, $amount, $accountReference = "TestPayment", $transactionDesc = "Payment", $version = 'v1')

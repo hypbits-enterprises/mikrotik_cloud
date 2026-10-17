@@ -106,6 +106,7 @@ class HotspotModeTest extends TestCase
             ->assertSee('Active Users')
             ->assertSee('Tickets Sold Today')
             ->assertSee('Hotspot Routers')
+            ->assertSee('test_mpesa_credentials')
             ->assertSee('billing_mode_hotspot')
             ->assertSee(route('hotspot.dashboard'));
     }
@@ -169,6 +170,33 @@ class HotspotModeTest extends TestCase
 
         $this->withSession($this->adminSession($this->privileges()))->get('/Accounts/add')
             ->assertStatus(200)->assertSee('hotspot_privilege_view');
+    }
+
+    public function test_mpesa_test_reports_missing_keys_without_showing_values()
+    {
+        $this->enableHotspot();
+        $session = $this->adminSession($this->privileges());
+        (new \App\Http\Controllers\login())->change_db($session['database_name']);
+        $secret = DB::connection('mysql2')->table('settings')->where('keyword', 'consumer_secret')->first();
+        $key = DB::connection('mysql2')->table('settings')->where('keyword', 'consumer_key')->value('value');
+
+        // hide consumer_secret for this request only, so no live Daraja call is made
+        if ($secret) {
+            DB::connection('mysql2')->table('settings')->where('id', $secret->id)->update(['deleted' => 1]);
+        }
+        try {
+            $response = $this->withSession($session)->postJson('/hotspot/mpesa/test');
+        } finally {
+            if ($secret) {
+                DB::connection('mysql2')->table('settings')->where('id', $secret->id)->update(['deleted' => $secret->deleted]);
+            }
+        }
+
+        $response->assertStatus(200)->assertJson(['ok' => false]);
+        $this->assertStringContainsString('consumer_secret', $response->json('message'));
+        if ($key) {
+            $this->assertStringNotContainsString($key, $response->getContent());
+        }
     }
 
     public function test_access_rules()

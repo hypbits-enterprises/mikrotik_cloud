@@ -397,3 +397,7 @@ New tables and columns are listed in `docs/hotspot/tables.md` (SQL in `docs/hots
 - **Adding a hotspot page**: put the route inside the `Route::prefix("hotspot")->name("hotspot.")` group at the end of `routes/web.php` (group middleware: `checkAccount`, `validated`, `hotspotEnabled`), add `->middleware("hotspotCan:<option>")`, and add a `menu` entry in `config/hotspot.php` with the route name — the sidebar shows it once the route exists. Views go in `resources/views/hotspot/` and use `<x-menu active="hotspot_...">`.
 - **403 page**: `resources/views/hotspot/disabled.blade.php` (`reason` = `disabled` or `privilege`).
 - **Tests**: `tests/Feature/HotspotModeTest.php` runs each test in its own process because the menu and admin views declare global PHP functions (a page can render only once per process).
+
+### Hotspot billing & M-Pesa test (Stage 3)
+
+Hotspot is turned on per org, and its billing set, in `mikrotik_cloud_manager` (see its CLAUDE.md "Hotspot billing"). This app only reads `org_hotspot_settings.hotspot_enabled`. The hotspot dashboard has "Test M-Pesa credentials" (`POST /hotspot/mpesa/test`, privilege Hotspot Payments, `App\Http\Controllers\Hotspot\Mpesa`), which uses `MpesaService::checkCredentials()` to request a Daraja token with the org's `settings` keys; it reports missing key names and never returns key values or the token.

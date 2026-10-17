@@ -42,7 +42,7 @@ Applied to dev on 2026-10-17: `mikrotik_cloud_manager` and org DB `mikrotik_clou
 | Table | Purpose | Written by |
 |---|---|---|
 | `org_hotspot_settings` | Current settings per org: `hotspot_enabled` (default 0), `billing_model` (`percentage`\|`flat_monthly`\|`per_router`\|`per_ticket`), `rate`, `manual_ticket_rate`, `minimum_charge`, `effective_from`, plus `org_key` (random public key for callback URLs) and `callback_token` (secret checked on each M-Pesa callback) | Stage 3 |
-| `org_hotspot_settings_history` | Every change to an org's settings with `effective_from`. The latest row with `effective_from` on or before a period's start is what bills that period | Stage 3 (written), Stage 11 (read) |
+| `org_hotspot_settings_history` | Every change to an org's settings with `effective_from`. The row with the greatest `effective_from` on or before a period's start (ties: highest `id`) is what bills that period. `hotspot_enabled` here is informational | Stage 3 (written), Stage 11 (read) |
 | `hotspot_billing_defaults` | Global defaults copied to an org when hotspot is first enabled. One row, seeded with `percentage` and rates 0 until set in Stage 3 | Stage 3 |
 | `org_hotspot_statements` | Hotspot charge per org per billing period (sales, ticket counts, routers, model, rates, `amount_due`, `status` `estimate`\|`charged`\|`unpaid`\|`waived`). Unique on (`organization_id`, `period_start`) so renewal can't charge a period twice | Stage 11 |
 | `hotspot_router_keys` | Global index `hotspot_key` → (`organization_id`, `router_id`) so the session-less portal finds the org in one lookup | Stage 4 |
