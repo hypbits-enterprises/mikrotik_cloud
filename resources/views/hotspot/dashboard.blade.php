@@ -123,7 +123,7 @@
                             <div class="card-content">
                                 <div class="card-body">
                                     <p>The hotspot module is being set up for your account. Plans, tickets, payments and router setup will appear in the menu as they become available.</p>
-                                    <p class="mb-0">Use the <b>ISP Billing | Hotspot</b> switch at the top to go back to your ISP billing dashboard at any time.</p>
+                                    <p class="mb-0">Use the dashboard selector at the top (<b>Hotspot</b> &#9662;) and pick <b>ISP Billing</b> to go back to your ISP billing dashboard at any time.</p>
                                 </div>
                             </div>
                         </div>

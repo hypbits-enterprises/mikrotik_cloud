@@ -45,19 +45,20 @@
                         @endif
                     </li>
                     @if ($hotspotEnabled)
-                        {{-- ISP Billing | Hotspot switch: the mode comes from the URL --}}
-                        <li class="nav-item d-flex align-items-center ml-1">
-                            <div class="btn-group btn-group-sm" role="group" aria-label="Billing mode">
-                                @php
-                                    $btnText = "<i class=\"ft-users\"></i><span class=\"d-none d-sm-inline\"> ISP Billing</span>";
-                                    $btnType = $billingMode === "isp" ? "primary" : "secondary";
-                                @endphp
-                                <x-button-link :btnText="$btnText" :btnType="$btnType" btnSize="sm" btnLink="/Dashboard" btnId="billing_mode_isp" toolTip="ISP Billing" />
-                                @php
-                                    $btnText = "<i class=\"ft-wifi\"></i><span class=\"d-none d-sm-inline\"> Hotspot</span>";
-                                    $btnType = $billingMode === "hotspot" ? "primary" : "secondary";
-                                @endphp
-                                <x-button-link :btnText="$btnText" :btnType="$btnType" btnSize="sm" btnLink="/hotspot/dashboard" btnId="billing_mode_hotspot" toolTip="Hotspot" />
+                        {{-- ISP Billing / Hotspot dashboard selector: the mode comes from the URL --}}
+                        <li class="dropdown nav-item">
+                            <a class="dropdown-toggle nav-link" href="#" data-toggle="dropdown" aria-expanded="false" id="billing_mode_selector" title="Select dashboard">
+                                @if ($billingMode === "hotspot")
+                                    <i class="ficon ft-wifi"></i><span class="d-none d-sm-inline"> Hotspot</span>
+                                @else
+                                    <i class="ficon ft-users"></i><span class="d-none d-sm-inline"> ISP Billing</span>
+                                @endif
+                            </a>
+                            <div class="dropdown-menu">
+                                <div class="arrow_box">
+                                    <a class="dropdown-item {{ $billingMode === "isp" ? "active" : "" }}" href="/Dashboard" id="billing_mode_isp"><i class="ft-users"></i> ISP Billing</a>
+                                    <a class="dropdown-item {{ $billingMode === "hotspot" ? "active" : "" }}" href="/hotspot/dashboard" id="billing_mode_hotspot"><i class="ft-wifi"></i> Hotspot</a>
+                                </div>
                             </div>
                         </li>
                     @endif
