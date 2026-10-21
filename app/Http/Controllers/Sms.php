@@ -553,9 +553,11 @@ class Sms extends Controller
         $sms_table->save();
     }
 
-    // Calls the agent link for this org. With background=1 the agent replies as soon
-    // as it has started and keeps sending after the connection closes, so this
-    // doesn't wait for the sends. The timeouts only need to cover reaching it.
+    // Fires the agent link for this org and leaves it running: the call gives up
+    // after a moment and does not wait for the agent's reply. The agent keeps
+    // sending after the connection drops (ignore_user_abort). A reply that does
+    // arrive within that moment is still checked, so a 404 or an IP-check message
+    // is shown instead of being reported as started.
     function startSmsAgent($queued_count){
         $agent_url = config("messaging.sms_agent_url");
         if (!$agent_url) {
@@ -567,15 +569,24 @@ class Sms extends Controller
         $ch = curl_init($link);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT => 5,
-            CURLOPT_TIMEOUT => 10,
+            CURLOPT_CONNECTTIMEOUT_MS => 1500,
+            CURLOPT_TIMEOUT_MS => 1500,
             CURLOPT_NOSIGNAL => 1,
             CURLOPT_SSL_VERIFYPEER => false,
         ]);
         $response = curl_exec($ch);
-        $curl_error = curl_errno($ch) ? curl_error($ch) : "";
+        $curl_errno = curl_errno($ch);
+        $curl_error = $curl_errno ? curl_error($ch) : "";
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        // > 0 once the connection was made and the request went out
+        $request_sent = curl_getinfo($ch, CURLINFO_PRETRANSFER_TIME) > 0;
         curl_close($ch);
+
+        // timed out after the request was sent: the agent has it, don't wait for it
+        if ($curl_errno == CURLE_OPERATION_TIMEDOUT && $request_sent && $http_code == 0) {
+            session()->flash("message_success", $queued_count . " message(s) queued and are being sent. Check the SMS list for each message's status.");
+            return redirect("/sms/compose");
+        }
 
         $agent_reply = $response ? json_decode($response) : null;
         if ($curl_error != "" || $http_code != 200 || !$agent_reply || empty($agent_reply->success)) {

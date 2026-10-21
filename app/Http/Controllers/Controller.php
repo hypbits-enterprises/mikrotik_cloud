@@ -364,6 +364,19 @@ class Controller extends BaseController
         $decoded = json_decode($response, true);
         $success = $this->isSuccessfulSmsGatewayResponse($httpCode, $decoded);
 
+        // BlessedTexts replies to a send with one entry per recipient, e.g.
+        // [{"status_code":"1000","status_desc":"Success","message_id":"...","phone":"+2547...","message_cost":0.45}]
+        // and to an error with a single object, e.g. 422 {"status_code":"1002","status_desc":"Invalid API Key"}.
+        // Anything but 1000 is a failure.
+        if ($success && is_array($decoded)) {
+            $entries = isset($decoded[0]) ? $decoded : [$decoded];
+            foreach ($entries as $entry) {
+                if (is_array($entry) && isset($entry['status_code']) && (string) $entry['status_code'] !== "1000") {
+                    $success = false;
+                }
+            }
+        }
+
         if (!$success) {
             \Log::warning('sendBlessedTextsSMS failed', ['status' => $httpCode, 'response' => $decoded ?: $response]);
         }
