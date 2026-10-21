@@ -301,7 +301,7 @@ Route::get("/Payment/mpesa/{mpesaid}", [Clients_data::class, "confirm_mpesa"])->
 Route::view("/Credentials", "clients.credential")->middleware(["clientValidate"]);
 Route::post("/changePassword", [Clients_data::class, "change_password"])->middleware(["clientValidate"]);
 Route::get("/Payment/stkpush_init", [Transaction::class, "stkpush"])->middleware(["clientValidate"]);
-Route::post("/Payment/stkpush", [Transaction::class, "initiate_stk"])->middleware(["clientValidate"]);
+Route::post("/Payment/stkpush", [Transaction::class, "initiate_stk"])->middleware(["clientValidate:allow_admin"]);
 
 // get ip addresses
 Route::get("/ipAddress/{routerid}", [Clients::class, "getIpaddresses"]);
