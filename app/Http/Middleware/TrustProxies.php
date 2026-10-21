@@ -10,9 +10,13 @@ class TrustProxies extends Middleware
     /**
      * The trusted proxies for this application.
      *
+     * The live server sits behind a proxy that ends HTTPS (Cloudflare), so its
+     * X-Forwarded-Proto header is trusted; otherwise redirects come out as http://
+     * and browsers block them as mixed content on https pages.
+     *
      * @var array<int, string>|string|null
      */
-    protected $proxies;
+    protected $proxies = '*';
 
     /**
      * The headers that should be used to detect proxies.
