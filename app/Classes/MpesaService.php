@@ -109,7 +109,8 @@ class MpesaService
 
             return $response->json();
         }else{
-            return ["CustomerMessage"=>"Could not generate access token"];
+            // shaped like a Daraja error so handleStkPushResponse() shows this message
+            return ["errorCode" => "token", "errorMessage" => "Could not get an M-Pesa access token. Check the consumer key and consumer secret in the M-Pesa settings."];
         }
     }
 }
